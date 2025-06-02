@@ -27,15 +27,6 @@ A modern Next.js application built with TypeScript, Tailwind CSS, and shadcn/ui.
 
 3. Open [http://localhost:3000](http://localhost:3000) with your browser.
 
-## Project Structure
-
-```
-├── app/                # Next.js App Router
-├── components/         # React components
-├── lib/               # Utility functions
-├── public/            # Static assets
-└── styles/            # Global styles
-```
 
 ## Development Guidelines
 

@@ -4,21 +4,29 @@ interface UserData {
 	name: string;
 	account_type: string;
 	profile_image: string;
+	company_name: string;
 }
 
 export function useUser() {
-	const [user, setUser] = useState<UserData | null>(() => {
-		if (typeof window !== "undefined") {
-			const userData = localStorage.getItem("user");
-			return userData ? JSON.parse(userData) : null;
-		}
-		return null;
-	});
+	const [user, setUser] = useState<UserData | null>(null);
+	const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
+	const [isLoading, setIsLoading] = useState(true);
 
 	useEffect(() => {
+		// Initialize state from localStorage on client-side only
+		const userData = localStorage.getItem("user");
+		if (userData) {
+			const parsedUser = JSON.parse(userData);
+			setUser(parsedUser);
+			setIsUserLoggedIn(true);
+		}
+		setIsLoading(false);
+
 		function handleStorageChange(event: StorageEvent) {
 			if (event.key === "user") {
-				setUser(event.newValue ? JSON.parse(event.newValue) : null);
+				const newUserData = event.newValue ? JSON.parse(event.newValue) : null;
+				setUser(newUserData);
+				setIsUserLoggedIn(!!newUserData);
 			}
 		}
 
@@ -28,12 +36,14 @@ export function useUser() {
 		// Custom event for same-tab updates
 		window.addEventListener("userChange", ((event: CustomEvent) => {
 			setUser(event.detail);
+			setIsUserLoggedIn(!!event.detail);
 		}) as EventListener);
 
 		return () => {
 			window.removeEventListener("storage", handleStorageChange);
 			window.removeEventListener("userChange", ((event: CustomEvent) => {
 				setUser(event.detail);
+				setIsUserLoggedIn(!!event.detail);
 			}) as EventListener);
 		};
 	}, []);
@@ -47,7 +57,8 @@ export function useUser() {
 
 		// Dispatch custom event for same-tab updates
 		window.dispatchEvent(new CustomEvent("userChange", { detail: userData }));
+		setIsUserLoggedIn(!!userData);
 	};
 
-	return { user, updateUser };
+	return { user, updateUser, isUserLoggedIn, isLoading };
 }

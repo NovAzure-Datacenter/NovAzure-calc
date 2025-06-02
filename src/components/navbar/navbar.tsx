@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Button } from "../../ui/button";
+import { Button } from "../ui/button";
 import NavbarText from "./navbar-text";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -35,7 +35,7 @@ interface UserData {
 
 export default function Navbar() {
 	const { companyName, menuItems, ctaButton } = NavbarText;
-	const { user, updateUser } = useUser();
+	const { user, updateUser, isUserLoggedIn, isLoading } = useUser();
 	const router = useRouter();
 
 	const handleLogout = () => {
@@ -51,34 +51,37 @@ export default function Navbar() {
 						<Link href="/" className="font-semibold text-xl">
 							{companyName}
 						</Link>
-						<nav className="hidden md:flex gap-6">
-							{menuItems.map((item) => (
-								<Link
-									key={item.label}
-									href={item.href}
-									className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-								>
-									{item.label}
-								</Link>
-							))}
-						</nav>
+
+						{menuItems.map((item) => (
+							<Link
+								key={item.label}
+								href={item.href}
+								className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
+							>
+								{item.label}
+							</Link>
+						))}
 					</div>
 					<div className="flex items-center gap-4">
-						{user ? (
-							<NavBarDropdown
-								user={user}
-								router={router}
-								handleLogout={handleLogout}
-							/>
-						) : (
+						{!isLoading && (
 							<>
-								<Link
-									href="/login"
-									className="text-sm font-medium text-muted-foreground hidden sm:block"
-								>
-									Log in
-								</Link>
-								<Button size="sm">{ctaButton}</Button>
+								{isUserLoggedIn ? (
+									<NavBarDropdown
+										user={user}
+										router={router}
+										handleLogout={handleLogout}
+									/>
+								) : (
+									<>
+										<Link
+											href="/login"
+											className="text-sm font-medium text-muted-foreground hidden sm:block"
+										>
+											Log in
+										</Link>
+										<Button size="sm">{ctaButton}</Button>
+									</>
+								)}
 							</>
 						)}
 					</div>
@@ -93,30 +96,31 @@ function NavBarDropdown({
 	router,
 	handleLogout,
 }: {
-	user: UserData;
+	user: UserData | null;
 	router: ReturnType<typeof useRouter>;
 	handleLogout: () => void;
 }) {
+	if (!user) return null;
+
 	return (
 		<DropdownMenu>
-			<DropdownMenuTrigger asChild>
+			<DropdownMenuTrigger className="flex items-center gap-3 bg-transparent border-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 rounded-md p-1">
+				<p className="text-sm text-muted-foreground">
+					DEMO: {user.account_type.toUpperCase()}
+				</p>
 				<div className="flex items-center gap-3">
-					<p className="text-sm text-muted-foreground">DEMO: {user.account_type.toUpperCase()}</p>
-					<div className="flex items-center gap-3 cursor-pointer">
-						<div className="text-sm text-right hidden sm:block">
-							<p className="font-medium">{user.name}</p>
-							
-						</div>
-						<Avatar className="h-8 w-8">
-							<AvatarImage src={user.profile_image} alt={user.name} />
-							<AvatarFallback>
-								{user.name
-									.split(" ")
-									.map((n) => n[0])
-									.join("")}
-							</AvatarFallback>
-						</Avatar>
+					<div className="text-sm text-right">
+						<p className="font-medium">{user.name}</p>
 					</div>
+					<Avatar className="h-8 w-8">
+						<AvatarImage src={user.profile_image} alt={user.name} />
+						<AvatarFallback>
+							{user.name
+								.split(" ")
+								.map((n) => n[0])
+								.join("")}
+						</AvatarFallback>
+					</Avatar>
 				</div>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent className="w-56" align="end">

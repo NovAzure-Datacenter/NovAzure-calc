@@ -32,12 +32,14 @@ export default function LoginPage() {
 					name: "John Doe",
 					account_type: "seller",
 					profile_image: "/images/profile/profile2.jpg",
+					company_name: "Shell",
 			  }
 			: email.toLowerCase().includes("buyer")
 			? {
 					name: "Jane Doe",
 					account_type: "buyer",
 					profile_image: "/images/profile/profile1.jpg",
+					company_name: "Tech Solutions Inc.",
 			  }
 			: null;
 
@@ -48,7 +50,7 @@ export default function LoginPage() {
 		// Simulate login delay
 		setTimeout(() => {
 			setIsLoading(false);
-			router.push("/dashboard");
+			router.push("/home/dashboard");
 		}, 1000);
 	}
 

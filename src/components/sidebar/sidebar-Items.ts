@@ -1,0 +1,300 @@
+import {
+	BarChart3,
+	GitCompare,
+	Filter,
+	CalculatorIcon,
+	FilesIcon,
+	AudioWaveform,
+	Command,
+	GalleryVerticalEnd,
+	PieChart,
+	Frame,
+	Map,
+	Plus,
+	BookOpenIcon,
+	SearchIcon,
+	HomeIcon,
+} from "lucide-react";
+import { Dashboard } from "./sidebar/buyers/dashboard";
+import { ScenarioTemplates } from "./sidebar/buyers/scenario-templates";
+import { ComparisonView } from "./sidebar/buyers/comparison-view";
+import { FilterSort } from "./sidebar/buyers/filter-sort";
+import { Calculators } from "./sidebar/buyers/calculators";
+import {
+	BuyerSidebarStructure,
+	DefaultItem,
+	Team,
+} from "./sidebar-items-types";
+
+export const buyerSidebarTools: BuyerSidebarStructure = {
+	items: [
+		{
+			title: "Calculators",
+			icon: CalculatorIcon,
+			component: Calculators,
+			isActive: true,
+			items: [
+				{
+					title: "Value Calculator",
+					url: "/home/calculators/value-calculator",
+				},
+				{
+					title: "Alternative UPS Solution",
+					url: "#",
+				},
+				{
+					title: "Legacy UPS System",
+					url: "#",
+				},
+				{
+					title: "Browse More",
+					url: "/calculators/store",
+					icon: Plus,
+				},
+			],
+		},
+		{
+			title: "Scenario Templates",
+			icon: FilesIcon,
+			component: ScenarioTemplates,
+			isActive: true,
+			items: [
+				{
+					title: "UPS Efficiency Comparison",
+					url: "#",
+				},
+			],
+		},
+		{
+			title: "Comparison View",
+			icon: GitCompare,
+			component: ComparisonView,
+			isActive: true,
+			items: [
+				{
+					title: "UPS Efficiency Comparison",
+					url: "#",
+				},
+			],
+		},
+		{
+			title: "Filter & Sort",
+			icon: Filter,
+			component: FilterSort,
+			isActive: true,
+			items: [
+				{
+					title: "UPS Efficiency Comparison",
+					url: "#",
+				},
+			],
+		},
+	],
+	projects: [
+		{
+			name: "Saved Project #1",
+			url: "#",
+			icon: Frame,
+		},
+		{
+			name: "Saved Project #2",
+			url: "#",
+			icon: PieChart,
+		},
+		{
+			name: "Saved Project #3",
+			url: "#",
+			icon: Map,
+		},
+	],
+};
+
+export const sellerSideBarTools: BuyerSidebarStructure = {
+	items: [
+		{
+			title: "Calculators",
+			icon: CalculatorIcon,
+			component: Calculators,
+			isActive: true,
+			items: [
+				{
+					title: "Value Calculator",
+					url: "/home/calculators/value-calculator",
+				},
+				{
+					title: "Alternative UPS Solution",
+					url: "#",
+				},
+				{
+					title: "Legacy UPS System",
+					url: "#",
+				},
+				{
+					title: "Browse More",
+					url: "/calculators/store",
+					icon: Plus,
+				},
+			],
+		},
+		{
+			title: "Scenarios",
+			icon: FilesIcon,
+			component: ScenarioTemplates,
+			isActive: true,
+			items: [
+				{
+					title: "UPS Efficiency Comparison",
+					url: "#",
+				},
+			],
+		},
+		{
+			title: "Comparison View",
+			icon: GitCompare,
+			component: ComparisonView,
+			isActive: true,
+			items: [
+				{
+					title: "UPS Efficiency Comparison",
+					url: "#",
+				},
+			],
+		},
+		{
+			title: "Filter & Sort",
+			icon: Filter,
+			component: FilterSort,
+			isActive: true,
+			items: [
+				{
+					title: "UPS Efficiency Comparison",
+					url: "#",
+				},
+			],
+		},
+	],
+	projects: [
+		{
+			name: "Saved Project #1",
+			url: "#",
+			icon: Frame,
+		},
+		{
+			name: "Saved Project #2",
+			url: "#",
+			icon: PieChart,
+		},
+		{
+			name: "Saved Project #3",
+			url: "#",
+			icon: Map,
+		},
+	],
+};
+
+export const adminSideBarTools: BuyerSidebarStructure = {
+	items: [
+		{
+			title: "Calculators",
+			icon: CalculatorIcon,
+			component: Calculators,
+			isActive: true,
+			items: [
+				{
+					title: "Value Calculator",
+					url: "/home/calculators/value-calculator",
+				},
+				{
+					title: "Alternative UPS Solution",
+					url: "#",
+				},
+				{
+					title: "Legacy UPS System",
+					url: "#",
+				},
+				{
+					title: "Browse More",
+					url: "/calculators/store",
+					icon: Plus,
+				},
+			],
+		},
+		{
+			title: "Scenarios",
+			icon: FilesIcon,
+			component: ScenarioTemplates,
+			isActive: true,
+			items: [
+				{
+					title: "UPS Efficiency Comparison",
+					url: "#",
+				},
+			],
+		},
+		{
+			title: "Comparison View",
+			icon: GitCompare,
+			component: ComparisonView,
+			isActive: true,
+			items: [
+				{
+					title: "UPS Efficiency Comparison",
+					url: "#",
+				},
+			],
+		},
+		{
+			title: "Filter & Sort",
+			icon: Filter,
+			component: FilterSort,
+			isActive: true,
+			items: [
+				{
+					title: "UPS Efficiency Comparison",
+					url: "#",
+				},
+			],
+		},
+	],
+	projects: [
+		{
+			name: "Saved Project #1",
+			url: "#",
+			icon: Frame,
+		},
+
+	],
+};
+
+export const defautlSideBarItems: DefaultItem[] = [
+	{
+		title: "Home",
+		icon: HomeIcon,
+		url: "/",
+	},
+	// { title: "Search", icon: SearchIcon, url: "/search" },
+	{
+		title: "Dashboard",
+		icon: BarChart3,
+		url: "/home/dashboard",
+	},
+	{ title: "News", icon: BookOpenIcon, url: "/news" },
+];
+
+export const teams: Team[] = [
+	{
+		name: "Acme Inc",
+		logo: GalleryVerticalEnd,
+		plan: "Enterprise",
+	},
+	{
+		name: "Acme Corp.",
+		logo: AudioWaveform,
+		plan: "Startup",
+	},
+	{
+		name: "Evil Corp.",
+		logo: Command,
+		plan: "Free",
+	},
+];

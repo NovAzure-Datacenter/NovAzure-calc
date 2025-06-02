@@ -25,7 +25,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar"
-import { TeamSwitcher } from "@/app/dashboard/components/team-switcher"
+import { TeamSwitcher } from "@/app/[...slug]/components/team-switcher"
 
 // This is sample data.
 const data = {

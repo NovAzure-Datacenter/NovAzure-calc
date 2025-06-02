@@ -1,5 +1,5 @@
-'use client'
-import { AppSidebar } from "@/components/app-sidebar";
+"use client";
+
 import {
 	Breadcrumb,
 	BreadcrumbItem,
@@ -9,23 +9,18 @@ import {
 	BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { BuyerSidebar } from "./components/sidebar/buyers/sidepanel/buyer-sidebar";
 import { useState } from "react";
-import { buyerSideBarItems } from "./components/sidebar/sidebar-Items";
 
-
-
+import CustomSidebar from "@/components/sidebar/custom-sidebar";
+import { useUser } from "@/hooks/useUser";
 
 export default function Page() {
-	const [activeTab, setActiveTab] = useState<string>("Dashboard");
-	const ActiveComponent =
-		buyerSideBarItems.items.find((item) => item.title === activeTab)?.component;
-
+	const [activeTab, setActiveTab] = useState<string>("Calculators");
+	const { user } = useUser();
 
 	return (
 		<SidebarProvider defaultOpen>
-			{/* <AppSidebar /> */}
-			<BuyerSidebar setActiveTab={setActiveTab} activeTab={activeTab}/>
+			<CustomSidebar setActiveTab={setActiveTab} activeTab={activeTab} />
 			<main className="flex-1 min-h-screen w-full">
 				<div className="flex w-full items-center gap-2 px-6 h-14">
 					<Breadcrumb>
@@ -44,7 +39,6 @@ export default function Page() {
 				</div>
 
 				<div className="flex-1 px-6 py-6 flex w-full flex-col gap-6">
-					{ActiveComponent && <ActiveComponent />}
 				</div>
 			</main>
 		</SidebarProvider>
