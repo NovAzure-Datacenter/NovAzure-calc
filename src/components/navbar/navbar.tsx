@@ -44,7 +44,7 @@ export default function Navbar() {
 	};
 
 	return (
-		<header className="border-b bg-background fixed top-0 left-0 right-0 z-50">
+		<header className="border-b bg-background fixed top-0 left-0 right-0 z-50 h-12">
 			<div className="w-full px-6">
 				<div className="flex h-12 items-center justify-between">
 					<div className="flex items-center gap-6">

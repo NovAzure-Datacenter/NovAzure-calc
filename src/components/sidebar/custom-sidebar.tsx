@@ -35,6 +35,8 @@ import {
 	SidebarRail,
 	useSidebar,
 	SidebarMenuAction,
+	SidebarTrigger,
+	SidebarInset,
 } from "@/components/ui/sidebar";
 
 import {
@@ -54,55 +56,79 @@ import { useState } from "react";
 import { Separator } from "@/components/ui/separator";
 
 import { SidebarItem as MenuItem, Project } from "./sidebar-items-types";
-import { useUser } from "@/hooks/useUser";
+import { UserData, useUser } from "@/hooks/useUser";
+import { Skeleton } from "@/components/ui/skeleton";
+
+type SidebarType = "seller" | "buyer" | "admin";
+
+const getSidebarTools = (type: SidebarType) => {
+	switch (type) {
+		case "seller":
+			return sellerSideBarTools;
+		case "admin":
+			return adminSideBarTools;
+		case "buyer":
+		default:
+			return buyerSidebarTools;
+	}
+};
 
 export default function CustomSidebar({
-	setActiveTab,
-	activeTab,
 	...props
-}: {
-	setActiveTab: (tab: string) => void;
-	activeTab: string;
-} & React.ComponentProps<typeof Sidebar>) {
-	const [sideBarType, setSideBarType] = useState<"seller" | "buyer" | "admin">(
-		"buyer"
-	);
-	const { user } = useUser();
+}: {} & React.ComponentProps<typeof Sidebar>) {
+	const [activeTab, setActiveTab] = useState<string>("Dashboard");
+	const [sideBarType, setSideBarType] = useState<SidebarType>("buyer");
+	const { user, isLoading } = useUser();
+	const sidebarTools = getSidebarTools(sideBarType);
 
 	React.useEffect(() => {
-		setSideBarType(
-			(user?.account_type as "seller" | "buyer" | "admin") || "buyer"
-		);
-		console.log("User account type:", user?.account_type);
-	}, [user]);
+		if (user?.account_type) {
+			setSideBarType(user.account_type as SidebarType);
+		}
+	}, [user, isLoading]);
 
 	return (
-		<>
-			{sideBarType === "buyer" && (
-				<BuyerSideBar
-					setActiveTab={setActiveTab}
-					activeTab={activeTab}
-					{...props}
-				/>
+	    <Sidebar collapsible="none" {...props} variant="sidebar" className="pt-12 border-r border-border w-[16rem] max-w-[16rem] overflow-hidden">
+			{isLoading ? (
+				<SidebarSkeleton />
+			) : (
+				<>
+					<SidebarHeader className="pt-8 px-4 full">
+						<div className="flex items-center gap-3">
+							<div className="relative h-14 w-14 overflow-hidden rounded-full border border-border bg-muted">
+								<Image
+									src="/images/logos/logo-sample.png"
+									alt="Company Logo"
+									fill
+									className="object-cover"
+									sizes="(max-width: 40px) 100vw"
+								/>
+							</div>
+							<div className="flex flex-col">
+								<span className="font-semibold">
+									{sideBarType === "seller" && user?.company_name
+										? user.company_name
+										: "Lorem Ipsum"}
+								</span>
+							</div>
+						</div>
+						<Separator className="my-4" />
+					</SidebarHeader>
+
+					<SidebarContent>
+						<NavDefault setActiveTab={setActiveTab} activeTab={activeTab} />
+						<NavMain
+							items={sidebarTools.items}
+							setActiveTab={setActiveTab}
+							activeTab={activeTab}
+						/>
+						<NavSecond projects={sidebarTools.projects} />
+					</SidebarContent>
+				</>
 			)}
-			{sideBarType === "seller" && (
-				<SellerSideBar
-					setActiveTab={setActiveTab}
-					activeTab={activeTab}
-					{...props}
-				/>
-			)}
-			{sideBarType === "admin" && (
-				<AdminSideBar
-					setActiveTab={setActiveTab}
-					activeTab={activeTab}
-					{...props}
-				/>
-			)}
-		</>
+		</Sidebar>
 	);
 }
-
 function NavMain({
 	items,
 	setActiveTab,
@@ -130,7 +156,6 @@ function NavMain({
 							onOpenChange={(isOpen) => {
 								setOpenItem(isOpen ? item.title : null);
 							}}
-							className="group/collapsible"
 						>
 							<SidebarMenuItem>
 								<CollapsibleTrigger asChild>
@@ -166,7 +191,7 @@ function NavMain({
 													</Collapsible>
 												) : (
 													<SidebarMenuSubButton asChild>
-														<a href={subItem.url}>
+														<a href={subItem.url} className="text-xs">
 															{subItem.icon && (
 																<subItem.icon className="mr-2 h-4 w-4" />
 															)}
@@ -201,143 +226,11 @@ function NavMain({
 	);
 }
 
-function BuyerSideBar({
-	setActiveTab,
-	activeTab,
-	...props
-}: {
-	setActiveTab: (tab: string) => void;
-	activeTab: string;
-} & React.ComponentProps<typeof Sidebar>) {
-	return (
-		<div className=" border-r border-border">
-			<Sidebar collapsible="none" variant="sidebar" {...props}>
-				<SidebarHeader className="pt-8 px-4">
-					<div className="flex items-center gap-3">
-						<div className="relative h-14 w-14 overflow-hidden rounded-full border border-border bg-muted">
-							<Image
-								src="/images/logos/logo-sample.png"
-								alt="Company Logo"
-								fill
-								className="object-cover "
-								sizes="(max-width: 40px) 100vw"
-							/>
-						</div>
-						<div className="flex flex-col">
-							<span className="font-semibold">Lorem Ipsum</span>
-						</div>
-					</div>
-					<Separator className="my-4" />
-				</SidebarHeader>
-
-				<SidebarContent>
-					<NavDefault setActiveTab={setActiveTab} activeTab={activeTab} />
-					<NavMain
-						items={buyerSidebarTools.items}
-						setActiveTab={setActiveTab}
-						activeTab={activeTab}
-					/>
-					<NavSecond projects={buyerSidebarTools.projects} />
-				</SidebarContent>
-				<SidebarRail />
-			</Sidebar>
-		</div>
-	);
-}
-
-function SellerSideBar({
-	setActiveTab,
-	activeTab,
-	...props
-}: {
-	setActiveTab: (tab: string) => void;
-	activeTab: string;
-} & React.ComponentProps<typeof Sidebar>) {
-	return (
-		<div className=" border-r border-border">
-			<Sidebar collapsible="none" variant="sidebar" {...props}>
-				<SidebarHeader className="pt-8 px-4">
-					<div className="flex items-center gap-3">
-						<div className="relative h-14 w-14 overflow-hidden rounded-full border border-border bg-muted">
-							<Image
-								src="/images/logos/logo-sample.png"
-								alt="Company Logo"
-								fill
-								className="object-cover "
-								sizes="(max-width: 40px) 100vw"
-							/>
-						</div>
-						<div className="flex flex-col">
-							<span className="font-semibold">Lorem Ipsum</span>
-						</div>
-					</div>
-					<Separator className="my-4" />
-				</SidebarHeader>
-
-				<SidebarContent>
-					<NavDefault setActiveTab={setActiveTab} activeTab={activeTab} />
-					<NavMain
-						items={sellerSideBarTools.items}
-						setActiveTab={setActiveTab}
-						activeTab={activeTab}
-					/>
-					<NavSecond projects={sellerSideBarTools.projects} />
-				</SidebarContent>
-				<SidebarRail />
-			</Sidebar>
-		</div>
-	);
-}
-
-function AdminSideBar({
-	setActiveTab,
-	activeTab,
-	...props
-}: {
-	setActiveTab: (tab: string) => void;
-	activeTab: string;
-} & React.ComponentProps<typeof Sidebar>) {
-	return (
-		<div className=" border-r border-border">
-			<Sidebar collapsible="none" variant="sidebar" {...props}>
-				<SidebarHeader className="pt-8 px-4">
-					<div className="flex items-center gap-3">
-						<div className="relative h-14 w-14 overflow-hidden rounded-full border border-border bg-muted">
-							<Image
-								src="/images/logos/logo-sample.png"
-								alt="Company Logo"
-								fill
-								className="object-cover "
-								sizes="(max-width: 40px) 100vw"
-							/>
-						</div>
-						<div className="flex flex-col">
-							<span className="font-semibold">Lorem Ipsum</span>
-						</div>
-					</div>
-					<Separator className="my-4" />
-				</SidebarHeader>
-
-				<SidebarContent>
-					<NavDefault setActiveTab={setActiveTab} activeTab={activeTab} />
-					<NavMain
-						items={adminSideBarTools.items}
-						setActiveTab={setActiveTab}
-						activeTab={activeTab}
-					/>
-					<NavSecond projects={adminSideBarTools.projects} />
-				</SidebarContent>
-				<SidebarRail />
-			</Sidebar>
-		</div>
-	);
-}
-
 function NavSecond({ projects }: { projects: Project[] }) {
 	const { isMobile } = useSidebar();
 
 	return (
-		<SidebarGroup className="group-data-[collapsible=icon]:hidden">
+		<SidebarGroup>
 			<SidebarGroupLabel>Saved Projects</SidebarGroupLabel>
 			<SidebarMenu>
 				{projects.map((item) => (
@@ -405,5 +298,68 @@ function NavDefault({
 				))}
 			</SidebarMenu>
 		</SidebarGroup>
+	);
+}
+
+function SidebarSkeleton() {
+	return (
+		<div className="flex flex-col h-full w-[12rem]">
+			<SidebarHeader className="pt-8 px-4">
+				<div className="flex items-center gap-3">
+					<Skeleton className="h-14 w-14 rounded-full" />
+					<div className="flex flex-col gap-2">
+						<Skeleton className="h-5 w-32" />
+					</div>
+				</div>
+				<Separator className="my-4" />
+			</SidebarHeader>
+
+			<SidebarContent>
+				<SidebarGroup>
+					<SidebarMenu>
+						{[1, 2, 3].map((i) => (
+							<SidebarMenuItem key={i}>
+								<div className="flex items-center gap-3 px-3 py-2">
+									<Skeleton className="h-4 w-4" />
+									<Skeleton className="h-4 w-24" />
+								</div>
+							</SidebarMenuItem>
+						))}
+					</SidebarMenu>
+				</SidebarGroup>
+
+				<SidebarGroup>
+					<SidebarGroupLabel>
+						<Skeleton className="h-4 w-16" />
+					</SidebarGroupLabel>
+					<SidebarMenu>
+						{[1, 2, 3, 4].map((i) => (
+							<SidebarMenuItem key={i}>
+								<div className="flex items-center gap-3 px-3 py-2">
+									<Skeleton className="h-4 w-4" />
+									<Skeleton className="h-4 w-32" />
+								</div>
+							</SidebarMenuItem>
+						))}
+					</SidebarMenu>
+				</SidebarGroup>
+
+				<SidebarGroup>
+					<SidebarGroupLabel>
+						<Skeleton className="h-4 w-24" />
+					</SidebarGroupLabel>
+					<SidebarMenu>
+						{[1, 2].map((i) => (
+							<SidebarMenuItem key={i}>
+								<div className="flex items-center gap-3 px-3 py-2">
+									<Skeleton className="h-4 w-4" />
+									<Skeleton className="h-4 w-28" />
+								</div>
+							</SidebarMenuItem>
+						))}
+					</SidebarMenu>
+				</SidebarGroup>
+			</SidebarContent>
+		</div>
 	);
 }

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-interface UserData {
+export interface UserData {
 	name: string;
 	account_type: string;
 	profile_image: string;
@@ -13,7 +13,6 @@ export function useUser() {
 	const [isLoading, setIsLoading] = useState(true);
 
 	useEffect(() => {
-		// Initialize state from localStorage on client-side only
 		const userData = localStorage.getItem("user");
 		if (userData) {
 			const parsedUser = JSON.parse(userData);
