@@ -25,7 +25,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar"
-import { TeamSwitcher } from "@/app/[...slug]/components/team-switcher"
+// import { TeamSwitcher } from "@/app/[company_name]/das/team-switcher"
 
 // This is sample data.
 const data = {
@@ -160,9 +160,9 @@ const data = {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="none" {...props} variant="sidebar" >
-      <SidebarHeader>
+      {/* <SidebarHeader>
         <TeamSwitcher teams={data.teams} />
-      </SidebarHeader>
+      </SidebarHeader> */}
       <SidebarContent>
         <NavMain items={data.navMain} />
         <NavProjects projects={data.projects} />
