@@ -15,11 +15,11 @@ import {
 	SearchIcon,
 	HomeIcon,
 } from "lucide-react";
-import { Dashboard } from "./sidebar/buyers/dashboard";
-import { ScenarioTemplates } from "./sidebar/buyers/scenario-templates";
-import { ComparisonView } from "./sidebar/buyers/comparison-view";
-import { FilterSort } from "./sidebar/buyers/filter-sort";
-import { Calculators } from "./sidebar/buyers/calculators";
+import { Dashboard } from "../../app/[company_name]/(dashboard)/dashboard";
+import { ScenarioTemplates } from "./sidebar/buyers-content/scenario-templates";
+import { ComparisonView } from "./sidebar/buyers-content/comparison-view";
+import { FilterSort } from "./sidebar/buyers-content/filter-sort";
+import { Calculators } from "../../app/[company_name]/(calculators)/calculators";
 import {
 	BuyerSidebarStructure,
 	DefaultItem,
@@ -119,11 +119,11 @@ export const sellerSideBarTools: BuyerSidebarStructure = {
 			items: [
 				{
 					title: "Value Calculator",
-					url: "/home/calculators/value-calculator",
+					url: "/calculators",
 				},
 				{
 					title: "Alternative UPS Solution",
-					url: "#",
+					url: "/calculators/UPS-solution",
 				},
 				{
 					title: "Legacy UPS System",
@@ -262,7 +262,6 @@ export const adminSideBarTools: BuyerSidebarStructure = {
 			url: "#",
 			icon: Frame,
 		},
-
 	],
 };
 
@@ -273,12 +272,12 @@ export const defautlSideBarItems: DefaultItem[] = [
 		url: "/",
 	},
 	// { title: "Search", icon: SearchIcon, url: "/search" },
+	{ title: "News", icon: BookOpenIcon, url: "/news" },
 	{
 		title: "Dashboard",
 		icon: BarChart3,
-		url: "/home/dashboard",
+		url: "/dashboard",
 	},
-	{ title: "News", icon: BookOpenIcon, url: "/news" },
 ];
 
 export const teams: Team[] = [
