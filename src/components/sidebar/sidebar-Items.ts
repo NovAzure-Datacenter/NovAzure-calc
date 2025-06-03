@@ -117,7 +117,7 @@ export const sellerSideBarTools: BuyerSidebarStructure = {
 			items: [
 				{
 					title: "Value Calculator",
-					url: "/calculators",
+					url: "/calculators/value-calculator",
 				},
 				{
 					title: "Alternative UPS Solution",
