@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 
 export interface UserData {
@@ -9,54 +10,69 @@ export interface UserData {
 
 export function useUser() {
 	const [user, setUser] = useState<UserData | null>(null);
-	const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
-	const [isLoading, setIsLoading] = useState(true);
+	const [isUserLoggedIn, setIsUserLoggedIn] = useState<boolean>(false);
+	const [isLoading, setIsLoading] = useState<boolean>(true);
 
 	useEffect(() => {
-		const userData = localStorage.getItem("user");
-		if (userData) {
-			const parsedUser = JSON.parse(userData);
-			setUser(parsedUser);
-			setIsUserLoggedIn(true);
-		}
-		setIsLoading(false);
-
-		function handleStorageChange(event: StorageEvent) {
-			if (event.key === "user") {
-				const newUserData = event.newValue ? JSON.parse(event.newValue) : null;
-				setUser(newUserData);
-				setIsUserLoggedIn(!!newUserData);
+		// Check localStorage only on client side
+		try {
+			const userData = localStorage.getItem("user");
+			if (userData) {
+				const parsedUser = JSON.parse(userData);
+				setUser(parsedUser);
+				setIsUserLoggedIn(true);
 			}
+		} catch (error) {
+			console.error("Error parsing user data from localStorage:", error);
+		} finally {
+			setIsLoading(false);
 		}
 
-		// Handle changes from other tabs/windows
-		window.addEventListener("storage", handleStorageChange);
+		// Create event handlers
+		const handleStorageChange = (event: StorageEvent) => {
+			if (event.key === "user") {
+				try {
+					const newUserData = event.newValue ? JSON.parse(event.newValue) : null;
+					setUser(newUserData);
+					setIsUserLoggedIn(!!newUserData);
+				} catch (error) {
+					console.error("Error parsing user data from storage event:", error);
+				}
+			}
+		};
 
-		// Custom event for same-tab updates
-		window.addEventListener("userChange", ((event: CustomEvent) => {
+		const handleUserChange = (event: CustomEvent<UserData | null>) => {
 			setUser(event.detail);
 			setIsUserLoggedIn(!!event.detail);
-		}) as EventListener);
+		};
+
+		// Add event listeners
+		window.addEventListener("storage", handleStorageChange);
+		window.addEventListener("userChange", handleUserChange as EventListener);
 
 		return () => {
+			// Clean up event listeners
 			window.removeEventListener("storage", handleStorageChange);
-			window.removeEventListener("userChange", ((event: CustomEvent) => {
-				setUser(event.detail);
-				setIsUserLoggedIn(!!event.detail);
-			}) as EventListener);
+			window.removeEventListener("userChange", handleUserChange as EventListener);
 		};
 	}, []);
 
 	const updateUser = (userData: UserData | null) => {
-		if (userData) {
-			localStorage.setItem("user", JSON.stringify(userData));
-		} else {
-			localStorage.removeItem("user");
-		}
+		try {
+			if (userData) {
+				localStorage.setItem("user", JSON.stringify(userData));
+			} else {
+				localStorage.removeItem("user");
+			}
 
-		// Dispatch custom event for same-tab updates
-		window.dispatchEvent(new CustomEvent("userChange", { detail: userData }));
-		setIsUserLoggedIn(!!userData);
+			// Dispatch custom event for same-tab updates
+			window.dispatchEvent(new CustomEvent("userChange", { detail: userData }));
+			
+			setUser(userData);
+			setIsUserLoggedIn(!!userData);
+		} catch (error) {
+			console.error("Error updating user data:", error);
+		}
 	};
 
 	return { user, updateUser, isUserLoggedIn, isLoading };

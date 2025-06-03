@@ -50,7 +50,7 @@ export default function LoginPage() {
 		// Simulate login delay
 		setTimeout(() => {
 			setIsLoading(false);
-			router.push("/home/dashboard");
+			router.push("/home/");
 		}, 1000);
 	}
 

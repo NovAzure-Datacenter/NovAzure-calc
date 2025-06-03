@@ -4,13 +4,22 @@ import * as React from "react";
 import Image from "next/image";
 
 import {
+	BadgeCheck,
+	Bell,
 	BookOpenIcon,
 	ChevronRight,
+	ChevronsUpDown,
+	CreditCard,
 	Folder,
 	Forward,
+	HeadsetIcon,
 	HomeIcon,
+	LogOut,
+	MoonIcon,
 	MoreHorizontal,
 	SearchIcon,
+	Sparkles,
+	SunIcon,
 	Trash2,
 	type LucideIcon,
 } from "lucide-react";
@@ -37,11 +46,14 @@ import {
 	SidebarMenuAction,
 	SidebarTrigger,
 	SidebarInset,
+	SidebarFooter,
 } from "@/components/ui/sidebar";
 
 import {
 	DropdownMenuContent,
+	DropdownMenuGroup,
 	DropdownMenuItem,
+	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -58,6 +70,8 @@ import { Separator } from "@/components/ui/separator";
 import { SidebarItem as MenuItem, Project } from "./sidebar-items-types";
 import { UserData, useUser } from "@/hooks/useUser";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { useTheme } from "next-themes";
 
 type SidebarType = "seller" | "buyer" | "admin";
 
@@ -74,9 +88,13 @@ const getSidebarTools = (type: SidebarType) => {
 };
 
 export default function CustomSidebar({
+	activeTab,
+	setActiveTab,
 	...props
-}: {} & React.ComponentProps<typeof Sidebar>) {
-	const [activeTab, setActiveTab] = useState<string>("Dashboard");
+}: {
+	activeTab: string;
+	setActiveTab: (component: string) => void;
+} & React.ComponentProps<typeof Sidebar>) {
 	const [sideBarType, setSideBarType] = useState<SidebarType>("buyer");
 	const { user, isLoading } = useUser();
 	const sidebarTools = getSidebarTools(sideBarType);
@@ -88,47 +106,86 @@ export default function CustomSidebar({
 	}, [user, isLoading]);
 
 	return (
-	    <Sidebar collapsible="none" {...props} variant="sidebar" className="pt-12 border-r border-border w-[16rem] max-w-[16rem] overflow-hidden">
-			{isLoading ? (
-				<SidebarSkeleton />
-			) : (
-				<>
-					<SidebarHeader className="pt-8 px-4 full">
-						<div className="flex items-center gap-3">
-							<div className="relative h-14 w-14 overflow-hidden rounded-full border border-border bg-muted">
-								<Image
-									src="/images/logos/logo-sample.png"
-									alt="Company Logo"
-									fill
-									className="object-cover"
-									sizes="(max-width: 40px) 100vw"
-								/>
-							</div>
-							<div className="flex flex-col">
-								<span className="font-semibold">
-									{sideBarType === "seller" && user?.company_name
-										? user.company_name
-										: "Lorem Ipsum"}
-								</span>
-							</div>
+		<Sidebar
+			collapsible="none"
+			{...props}
+			variant="sidebar"
+			className="pt-12 border-r border-border w-[16rem] max-w-[16rem] overflow-hidden"
+		>
+			<>
+				<SidebarHeader className="pt-8 px-4 full">
+					<div className="flex items-center gap-3">
+						<div className="relative h-14 w-14 overflow-hidden rounded-full border border-border bg-muted">
+							<Image
+								src="/images/logos/logo-sample.png"
+								alt="Company Logo"
+								fill
+								className="object-cover"
+								sizes="(max-width: 40px) 100vw"
+							/>
 						</div>
-						<Separator className="my-4" />
-					</SidebarHeader>
+						<div className="flex flex-col">
+							<span className="font-semibold">
+								{sideBarType === "seller" && user?.company_name
+									? user.company_name
+									: "Lorem Ipsum"}
+							</span>
+						</div>
+					</div>
+					<Separator className="my-4" />
+				</SidebarHeader>
 
-					<SidebarContent>
-						<NavDefault setActiveTab={setActiveTab} activeTab={activeTab} />
-						<NavMain
-							items={sidebarTools.items}
-							setActiveTab={setActiveTab}
-							activeTab={activeTab}
-						/>
-						<NavSecond projects={sidebarTools.projects} />
-					</SidebarContent>
-				</>
-			)}
+				<SidebarContent>
+					<NavDefault setActiveTab={setActiveTab} activeTab={activeTab} />
+					<NavMain
+						items={sidebarTools.items}
+						setActiveTab={setActiveTab}
+						activeTab={activeTab}
+					/>
+					<NavSecond projects={sidebarTools.projects} />
+				</SidebarContent>
+				<SidebarFooter>{user && <NavUser user={user} />}</SidebarFooter>
+			</>
 		</Sidebar>
 	);
 }
+
+function NavDefault({
+	setActiveTab,
+	activeTab,
+}: {
+	setActiveTab: (tab: string) => void;
+	activeTab: string;
+} & React.ComponentProps<typeof Sidebar>) {
+	return (
+		<SidebarGroup>
+			<SidebarMenu>
+				{defautlSideBarItems.map((item) => (
+					<SidebarMenuItem key={item.title}>
+						<SidebarMenuButton
+							asChild
+							onClick={(e) => {
+								e.preventDefault();
+								setActiveTab(item.url);
+							}}
+						>
+							<a href={item.url} className="relative">
+								{item.icon && <item.icon className="h-4 w-4" />}
+								<span>{item.title}</span>
+								{item.title.toLowerCase() === "news" && (
+									<div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center min-w-[20px] h-5 rounded-full bg-primary text-primary-foreground text-xs font-medium">
+										3
+									</div>
+								)}
+							</a>
+						</SidebarMenuButton>
+					</SidebarMenuItem>
+				))}
+			</SidebarMenu>
+		</SidebarGroup>
+	);
+}
+
 function NavMain({
 	items,
 	setActiveTab,
@@ -142,6 +199,11 @@ function NavMain({
 
 	// Filter out inactive items
 	const activeItems = items.filter((item) => item.isActive !== false);
+
+	const handleItemClick = (url: string, e: React.MouseEvent) => {
+		e.preventDefault();
+		setActiveTab(url);
+	};
 
 	return (
 		<SidebarGroup>
@@ -181,7 +243,11 @@ function NavMain({
 															<SidebarMenuSub className="pl-4">
 																{subItem.items.map((nestedItem) => (
 																	<SidebarMenuSubItem key={nestedItem.title}>
-																		<SidebarMenuSubButton>
+																		<SidebarMenuSubButton
+																			onClick={(e) =>
+																				handleItemClick(nestedItem.url, e)
+																			}
+																		>
 																			<span>{nestedItem.title}</span>
 																		</SidebarMenuSubButton>
 																	</SidebarMenuSubItem>
@@ -190,7 +256,10 @@ function NavMain({
 														</CollapsibleContent>
 													</Collapsible>
 												) : (
-													<SidebarMenuSubButton asChild>
+													<SidebarMenuSubButton
+														asChild
+														onClick={(e) => handleItemClick(subItem.url, e)}
+													>
 														<a href={subItem.url} className="text-xs">
 															{subItem.icon && (
 																<subItem.icon className="mr-2 h-4 w-4" />
@@ -212,7 +281,12 @@ function NavMain({
 						</Collapsible>
 					) : (
 						<SidebarMenuItem key={item.title}>
-							<SidebarMenuButton asChild>
+							<SidebarMenuButton
+								asChild
+								onClick={(e) =>
+									handleItemClick(item.url || `/${item.title.toLowerCase()}`, e)
+								}
+							>
 								<a href={item.url}>
 									{item.icon && <item.icon className="h-4 w-4" />}
 									<span>{item.title}</span>
@@ -275,27 +349,87 @@ function NavSecond({ projects }: { projects: Project[] }) {
 	);
 }
 
-function NavDefault({
-	setActiveTab,
-	activeTab,
-	...props
-}: {
-	setActiveTab: (tab: string) => void;
-	activeTab: string;
-} & React.ComponentProps<typeof Sidebar>) {
+function NavUser({ user }: { user: UserData }) {
+	const { isMobile } = useSidebar();
+	const { theme, setTheme } = useTheme();
+
 	return (
 		<SidebarGroup>
 			<SidebarMenu>
-				{defautlSideBarItems.map((item) => (
-					<SidebarMenuItem key={item.title}>
-						<SidebarMenuButton asChild>
-							<a href={item.url}>
-								{item.icon && <item.icon className="h-4 w-4" />}
-								<span>{item.title}</span>
-							</a>
-						</SidebarMenuButton>
-					</SidebarMenuItem>
-				))}
+				<SidebarMenuItem>
+					<SidebarMenuButton>
+						<HeadsetIcon className="h-4 w-4" />
+						<span>Support</span>
+					</SidebarMenuButton>
+					<SidebarMenuButton
+						onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+					>
+						{theme === "dark" ? (
+							<SunIcon className="h-4 w-4" />
+						) : (
+							<MoonIcon className="h-4 w-4" />
+						)}
+						<span>{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
+					</SidebarMenuButton>
+				</SidebarMenuItem>
+
+				<SidebarMenuItem>
+					<DropdownMenu>
+						<DropdownMenuTrigger asChild>
+							<SidebarMenuButton
+								size="lg"
+								className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+							>
+								<Avatar className="h-8 w-8 rounded-lg">
+									<AvatarImage src={user.profile_image} alt={user.name} />
+									<AvatarFallback className="rounded-lg">CN</AvatarFallback>
+								</Avatar>
+								<div className="grid flex-1 text-left text-sm leading-tight">
+									<span className="truncate font-medium">{user.name}</span>
+									{/* <span className="truncate text-xs">{user.email}</span> */}
+								</div>
+								<ChevronsUpDown className="ml-auto size-4" />
+							</SidebarMenuButton>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent
+							className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+							side={isMobile ? "bottom" : "right"}
+							align="end"
+							sideOffset={4}
+						>
+							<DropdownMenuLabel className="p-0 font-normal">
+								<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+									<Avatar className="h-8 w-8 rounded-lg">
+										<AvatarImage src={user.profile_image} alt={user.name} />
+										<AvatarFallback className="rounded-lg">CN</AvatarFallback>
+									</Avatar>
+									<div className="grid flex-1 text-left text-sm leading-tight">
+										<span className="truncate font-medium">{user.name}</span>
+										{/* <span className="truncate text-xs">{user.email}</span> */}
+									</div>
+								</div>
+							</DropdownMenuLabel>
+							<DropdownMenuSeparator />
+
+							<DropdownMenuGroup>
+								<DropdownMenuItem>
+									<BadgeCheck />
+									Account
+								</DropdownMenuItem>
+
+								<DropdownMenuItem>
+									<Bell />
+									Notifications
+								</DropdownMenuItem>
+							</DropdownMenuGroup>
+							<DropdownMenuSeparator />
+							<DropdownMenuItem>
+								<LogOut />
+								Log out
+							</DropdownMenuItem>
+						</DropdownMenuContent>
+					</DropdownMenu>
+				</SidebarMenuItem>
 			</SidebarMenu>
 		</SidebarGroup>
 	);
@@ -306,10 +440,9 @@ function SidebarSkeleton() {
 		<div className="flex flex-col h-full w-[12rem]">
 			<SidebarHeader className="pt-8 px-4">
 				<div className="flex items-center gap-3">
-					<Skeleton className="h-14 w-14 rounded-full" />
-					<div className="flex flex-col gap-2">
-						<Skeleton className="h-5 w-32" />
-					</div>
+					<Skeleton className="h-14 w-20 rounded-full" />
+
+					<Skeleton className="h-5 w-32" />
 				</div>
 				<Separator className="my-4" />
 			</SidebarHeader>
