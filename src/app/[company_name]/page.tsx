@@ -14,7 +14,7 @@ import { Dashboard } from "./(dashboard)/dashboard";
 import { Calculators } from "./(calculators)/calculators";
 import { useParams } from "next/navigation";
 
-export default function Page({}: {}) {
+export default function Page() {
 	const [activeComponent, setActiveComponent] = useState<string>("/dashboard");
 	const params = useParams();
 	const company_name = params.company_name as string;

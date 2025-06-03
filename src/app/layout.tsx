@@ -4,8 +4,6 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Providers } from "@/components/providers";
 import Navbar from "@/components/navbar/navbar";
-import { SidebarProvider } from "@/components/ui/sidebar";
-import CustomSidebar from "@/components/sidebar/custom-sidebar";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 

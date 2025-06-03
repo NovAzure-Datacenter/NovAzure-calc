@@ -23,14 +23,20 @@ export default function SignUpPage() {
 		event.preventDefault();
 		setIsLoading(true);
 
-		// TODO: Implement actual signup logic here
-		setTimeout(() => {
+		try {
+			// TODO: Add your API call for signup here
+			// For now, we'll simulate a successful signup
+			await new Promise(resolve => setTimeout(resolve, 1000));
+			router.push('/dashboard'); // Redirect to dashboard after signup
+		} catch (error) {
+			console.error('Signup failed:', error);
+		} finally {
 			setIsLoading(false);
-		}, 1000);
+		}
 	}
 
 	return (
-		<>
+		<Card className="w-full max-w-md mx-auto">
 			<CardHeader className="space-y-2">
 				<CardTitle className="text-3xl font-bold text-foreground">
 					Create an account
@@ -86,6 +92,6 @@ export default function SignUpPage() {
 					</div>
 				</CardFooter>
 			</form>
-		</>
+		</Card>
 	);
 }

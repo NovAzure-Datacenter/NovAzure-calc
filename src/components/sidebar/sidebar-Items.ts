@@ -12,10 +12,8 @@ import {
 	Map,
 	Plus,
 	BookOpenIcon,
-	SearchIcon,
 	HomeIcon,
 } from "lucide-react";
-import { Dashboard } from "../../app/[company_name]/(dashboard)/dashboard";
 import { ScenarioTemplates } from "./sidebar/buyers-content/scenario-templates";
 import { ComparisonView } from "./sidebar/buyers-content/comparison-view";
 import { FilterSort } from "./sidebar/buyers-content/filter-sort";
