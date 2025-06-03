@@ -15,6 +15,7 @@ import { Calculators } from "./(calculators)/calculators";
 import { useParams } from "next/navigation";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { CalculatorsStore } from "./(calculators)/calculators-store";
+import ValueCalculator from "./(calculators)/value-calculator";
 
 export default function Page() {
 	const [activeComponent, setActiveComponent] = useState<string>("/dashboard");
@@ -34,7 +35,7 @@ export default function Page() {
 			case "/calculators":
 			case "/calculators/UPS-solution":
 			case "/calculators/value-calculator":
-				return <Calculators />;
+				return <ValueCalculator />;
 
 			case "/calculators/store":
 				return <CalculatorsStore />;
