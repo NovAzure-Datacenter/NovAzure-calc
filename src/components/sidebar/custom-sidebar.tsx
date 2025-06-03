@@ -251,9 +251,9 @@ function NavMain({
 														asChild
 														onClick={(e) => handleItemClick(subItem.url, e)}
 													>
-														<a href={subItem.url} className="text-xs">
+														<a href={subItem.url} className="text-xs items-center ">
 															{subItem.icon && (
-																<subItem.icon className="mr-2 h-4 w-4" />
+																<subItem.icon className="h-4 w-4" />
 															)}
 															<span>{subItem.title}</span>
 															{subItem.description && (

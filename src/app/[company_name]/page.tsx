@@ -14,6 +14,7 @@ import { Dashboard } from "./(dashboard)/dashboard";
 import { Calculators } from "./(calculators)/calculators";
 import { useParams } from "next/navigation";
 import { SidebarInset } from "@/components/ui/sidebar";
+import { CalculatorsStore } from "./(calculators)/calculators-store";
 
 export default function Page() {
 	const [activeComponent, setActiveComponent] = useState<string>("/dashboard");
@@ -29,11 +30,15 @@ export default function Page() {
 		switch (activeComponent) {
 			case "/dashboard":
 				return <Dashboard />;
+
 			case "/calculators":
-			case "/calculators/store":
 			case "/calculators/UPS-solution":
 			case "/calculators/value-calculator":
 				return <Calculators />;
+
+			case "/calculators/store":
+				return <CalculatorsStore />;
+
 			default:
 				return <Dashboard />;
 		}
@@ -47,7 +52,9 @@ export default function Page() {
 			/>
 
 			<SidebarInset>
-				<div className="p-4 max-h-screen overflow-x-hidden overflow-y-auto">{renderComponent()}</div>
+				<div className="p-4 max-h-screen overflow-x-hidden overflow-y-auto">
+					{renderComponent()}
+				</div>
 			</SidebarInset>
 		</div>
 	);
