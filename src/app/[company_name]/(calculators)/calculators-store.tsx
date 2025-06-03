@@ -27,8 +27,43 @@ import {
 	PopoverTrigger,
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
+import { useState } from "react";
 
-export function Calculators() {
+interface CartItem {
+	id: string;
+	name: string;
+	price: string;
+	category: string;
+}
+
+interface CartPopoverProps {
+	cartItems: CartItem[];
+	removeFromCart: (itemId: string) => void;
+	calculateTotal: () => string;
+}
+
+export function CalculatorsStore() {
+	const [cartItems, setCartItems] = useState<CartItem[]>([]);
+
+	const addToCart = (item: CartItem) => {
+		if (!cartItems.some((cartItem) => cartItem.id === item.id)) {
+			setCartItems([...cartItems, item]);
+		}
+	};
+
+	const removeFromCart = (itemId: string) => {
+		setCartItems(cartItems.filter((item) => item.id !== itemId));
+	};
+
+	const calculateTotal = () => {
+		return cartItems
+			.reduce((total, item) => {
+				const price = parseFloat(item.price.replace("€", ""));
+				return total + price;
+			}, 0)
+			.toFixed(2);
+	};
+
 	const categories = [
 		{ name: "Energy Analysis", icon: Zap, count: 8 },
 		{ name: "Cost Analysis", icon: DollarSign, count: 12 },
@@ -149,35 +184,40 @@ export function Calculators() {
 			category: "Infrastructure",
 			price: "€249",
 			rating: 4.7,
-			description: "Determine optimal cooling capacity and configuration for your data center environment",
+			description:
+				"Determine optimal cooling capacity and configuration for your data center environment",
 		},
 		{
 			name: "Edge Computing Network Latency Calculator",
 			category: "Performance",
 			price: "€179",
 			rating: 4.8,
-			description: "Analyze network latency impact and optimize edge computing deployment locations",
+			description:
+				"Analyze network latency impact and optimize edge computing deployment locations",
 		},
 		{
 			name: "Renewable Energy Integration Calculator",
 			category: "Energy Analysis",
 			price: "€219",
 			rating: 4.6,
-			description: "Evaluate feasibility and ROI of integrating renewable energy sources in data centers",
+			description:
+				"Evaluate feasibility and ROI of integrating renewable energy sources in data centers",
 		},
 		{
 			name: "Data Center Water Usage Calculator",
 			category: "Carbon Footprint",
 			price: "€169",
 			rating: 4.5,
-			description: "Calculate and optimize water consumption efficiency in cooling systems",
+			description:
+				"Calculate and optimize water consumption efficiency in cooling systems",
 		},
 		{
 			name: "IT Equipment Refresh ROI Calculator",
 			category: "Cost Analysis",
 			price: "€199",
 			rating: 4.4,
-			description: "Determine optimal timing and ROI for IT equipment replacement cycles",
+			description:
+				"Determine optimal timing and ROI for IT equipment replacement cycles",
 		},
 	];
 
@@ -223,40 +263,11 @@ export function Calculators() {
 						<TabsTrigger value="bundles">Bundles</TabsTrigger>
 					</TabsList>
 
-					<Popover>
-						<PopoverTrigger asChild>
-							<Button variant="outline" className="flex items-center gap-2">
-								<ShoppingCart className="h-4 w-4" />
-								<Badge variant="secondary" className="rounded-full">0</Badge>
-							</Button>
-						</PopoverTrigger>
-						<PopoverContent className="w-80" align="end">
-							<div className="flex flex-col gap-4">
-								<div className="flex items-center justify-between">
-									<h4 className="font-medium">Cart</h4>
-									<Badge variant="secondary">0 items</Badge>
-								</div>
-								<ScrollArea className="h-[200px]">
-									<div className="space-y-4">
-										{/* Cart items will go here */}
-										<div className="text-sm text-muted-foreground text-center py-8">
-											Your cart is empty
-										</div>
-									</div>
-								</ScrollArea>
-								<Separator />
-								<div className="space-y-4">
-									<div className="flex items-center justify-between font-medium">
-										<span>Total</span>
-										<span>€0.00</span>
-									</div>
-									<Button className="w-full" disabled>
-										Checkout
-									</Button>
-								</div>
-							</div>
-						</PopoverContent>
-					</Popover>
+					<CartPopover
+						cartItems={cartItems}
+						removeFromCart={removeFromCart}
+						calculateTotal={calculateTotal}
+					/>
 				</div>
 
 				<TabsContent value="featured" className="space-y-6">
@@ -301,9 +312,26 @@ export function Calculators() {
 											<Button variant="outline" size="sm">
 												Preview
 											</Button>
-											<Button size="sm">
+											<Button
+												size="sm"
+												onClick={() =>
+													addToCart({
+														id: `featured-${index}`,
+														name: calc.name,
+														price: calc.price,
+														category: calc.category,
+													})
+												}
+												disabled={cartItems.some(
+													(item) => item.id === `featured-${index}`
+												)}
+											>
 												<ShoppingCart className="h-4 w-4 mr-1" />
-												Purchase
+												{cartItems.some(
+													(item) => item.id === `featured-${index}`
+												)
+													? "In Cart"
+													: "Purchase"}
 											</Button>
 										</div>
 									</div>
@@ -360,9 +388,24 @@ export function Calculators() {
 										<Button variant="outline" size="sm">
 											Preview
 										</Button>
-										<Button size="sm">
+										<Button
+											size="sm"
+											onClick={() =>
+												addToCart({
+													id: `all-${index}`,
+													name: calc.name,
+													price: calc.price,
+													category: calc.category,
+												})
+											}
+											disabled={cartItems.some(
+												(item) => item.id === `all-${index}`
+											)}
+										>
 											<ShoppingCart className="h-4 w-4 mr-1" />
-											Add to Cart
+											{cartItems.some((item) => item.id === `all-${index}`)
+												? "In Cart"
+												: "Add to Cart"}
 										</Button>
 									</div>
 								</div>
@@ -398,9 +441,21 @@ export function Calculators() {
 											€599
 										</span>
 									</div>
-									<Button>
+									<Button
+										onClick={() =>
+											addToCart({
+												id: "bundle-1",
+												name: "Energy Efficiency Bundle",
+												price: "€449",
+												category: "Bundle",
+											})
+										}
+										disabled={cartItems.some((item) => item.id === "bundle-1")}
+									>
 										<ShoppingCart className="h-4 w-4 mr-1" />
-										Purchase Bundle
+										{cartItems.some((item) => item.id === "bundle-1")
+											? "In Cart"
+											: "Purchase Bundle"}
 									</Button>
 								</div>
 							</CardContent>
@@ -431,9 +486,21 @@ export function Calculators() {
 											€569
 										</span>
 									</div>
-									<Button>
+									<Button
+										onClick={() =>
+											addToCart({
+												id: "bundle-2",
+												name: "Carbon Footprint Suite",
+												price: "€399",
+												category: "Bundle",
+											})
+										}
+										disabled={cartItems.some((item) => item.id === "bundle-2")}
+									>
 										<ShoppingCart className="h-4 w-4 mr-1" />
-										Purchase Bundle
+										{cartItems.some((item) => item.id === "bundle-2")
+											? "In Cart"
+											: "Purchase Bundle"}
 									</Button>
 								</div>
 							</CardContent>
@@ -442,5 +509,80 @@ export function Calculators() {
 				</TabsContent>
 			</Tabs>
 		</div>
+	);
+}
+
+function CartPopover({
+	cartItems,
+	removeFromCart,
+	calculateTotal,
+}: CartPopoverProps) {
+	const items: CartItem[] = cartItems;
+
+	return (
+		<Popover>
+			<PopoverTrigger asChild>
+				<Button variant="outline" className="flex items-center gap-2">
+					<ShoppingCart className="h-4 w-4" />
+					<Badge variant="secondary" className="rounded-full">
+						{items.length}
+					</Badge>
+				</Button>
+			</PopoverTrigger>
+			<PopoverContent className="w-96" align="end" side="bottom">
+				<div className="flex flex-col gap-4">
+					<div className="flex items-center justify-between">
+						<h4 className="font-medium">Cart</h4>
+						<Badge variant="secondary">{items.length} items</Badge>
+					</div>
+					<ScrollArea className="h-[200px] pr-4 -mr-4 overflow-y-auto">
+						<div className="space-y-4">
+							{items.length === 0 ? (
+								<div className="text-sm text-muted-foreground text-center py-8">
+									Your cart is empty
+								</div>
+							) : (
+								items.map((item: CartItem) => (
+									<div
+										key={item.id}
+										className="flex items-center justify-between gap-2 p-2 border border-border rounded-lg hover:bg-accent/50 transition-colors"
+									>
+										<div className="space-y-1 flex-1 min-w-0">
+											<p className="text-sm font-medium truncate">
+												{item.name}
+											</p>
+											<Badge variant="outline" className="text-xs">
+												{item.category}
+											</Badge>
+										</div>
+										<div className="flex items-center gap-2 shrink-0">
+											<span className="text-sm font-medium">{item.price}</span>
+											<Button
+												variant="ghost"
+												size="icon"
+												className="h-6 w-6 hover:bg-destructive/10 hover:text-destructive"
+												onClick={() => removeFromCart(item.id)}
+											>
+												<X className="h-4 w-4" />
+											</Button>
+										</div>
+									</div>
+								))
+							)}
+						</div>
+					</ScrollArea>
+					<Separator />
+					<div className="space-y-4">
+						<div className="flex items-center justify-between font-medium">
+							<span>Total</span>
+							<span>€{calculateTotal()}</span>
+						</div>
+						<Button className="w-full" disabled={items.length === 0}>
+							Checkout
+						</Button>
+					</div>
+				</div>
+			</PopoverContent>
+		</Popover>
 	);
 }

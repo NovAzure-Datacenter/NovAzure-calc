@@ -101,7 +101,7 @@ export default function CustomSidebar({
 			collapsible="none"
 			{...props}
 			variant="sidebar"
-			className="pt-12 border-r border-border w-[16rem] max-w-[16rem] overflow-hidden"
+			className="border-r border-border w-[16rem] max-w-[16rem] "
 		>
 			<>
 				<SidebarHeader className="pt-8 px-4 full">
@@ -251,9 +251,9 @@ function NavMain({
 														asChild
 														onClick={(e) => handleItemClick(subItem.url, e)}
 													>
-														<a href={subItem.url} className="text-xs">
+														<a href={subItem.url} className="text-xs items-center ">
 															{subItem.icon && (
-																<subItem.icon className="mr-2 h-4 w-4" />
+																<subItem.icon className="h-4 w-4" />
 															)}
 															<span>{subItem.title}</span>
 															{subItem.description && (
