@@ -63,21 +63,7 @@ export default function Navbar() {
 						))}
 					</div>
 					{!isLoading && (
-						<div className="flex items-center pr-4">
-							{isMainPage && (
-								<Button
-									size="sm"
-									variant="ghost"
-									onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-									className="flex items-center gap-2"
-								>
-									{theme === "dark" ? (
-										<Sun className="h-4 w-4" />
-									) : (
-										<Moon className="h-4 w-4" />
-									)}
-								</Button>
-							)}
+						<div className="flex items-center pr-4 gap-2">
 							{isUserLoggedIn ? (
 								<DropdownMenu>
 									<DropdownMenuTrigger asChild>
@@ -140,7 +126,7 @@ export default function Navbar() {
 									</DropdownMenuContent>
 								</DropdownMenu>
 							) : (
-								<>
+								<div className="flex flex-row items-center gap-4">
 									<Link
 										href="/login"
 										className="text-sm font-medium text-muted-foreground hidden sm:block"
@@ -148,7 +134,23 @@ export default function Navbar() {
 										Log in
 									</Link>
 									<Button size="sm">{ctaButton}</Button>
-								</>
+									{isMainPage && (
+										<Button
+											size="sm"
+											variant="ghost"
+											onClick={() =>
+												setTheme(theme === "dark" ? "light" : "dark")
+											}
+											className="flex items-center 2"
+										>
+											{theme === "dark" ? (
+												<Sun className="h-4 w-4" />
+											) : (
+												<Moon className="h-4 w-4" />
+											)}
+										</Button>
+									)}
+								</div>
 							)}
 						</div>
 					)}
