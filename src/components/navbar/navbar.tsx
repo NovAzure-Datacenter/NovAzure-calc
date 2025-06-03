@@ -12,7 +12,6 @@ import {
 	Moon,
 	Bell,
 	BadgeCheck,
-	ChevronsUpDown,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import {

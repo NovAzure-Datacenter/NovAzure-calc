@@ -6,22 +6,16 @@ import Image from "next/image";
 import {
 	BadgeCheck,
 	Bell,
-	BookOpenIcon,
 	ChevronRight,
 	ChevronsUpDown,
-	CreditCard,
 	Folder,
 	Forward,
 	HeadsetIcon,
-	HomeIcon,
 	LogOut,
 	MoonIcon,
 	MoreHorizontal,
-	SearchIcon,
-	Sparkles,
 	SunIcon,
 	Trash2,
-	type LucideIcon,
 } from "lucide-react";
 
 import {
@@ -41,11 +35,8 @@ import {
 	Sidebar,
 	SidebarContent,
 	SidebarHeader,
-	SidebarRail,
 	useSidebar,
 	SidebarMenuAction,
-	SidebarTrigger,
-	SidebarInset,
 	SidebarFooter,
 } from "@/components/ui/sidebar";
 
