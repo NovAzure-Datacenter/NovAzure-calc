@@ -58,7 +58,7 @@ export default function UnderConstruction() {
 
 					<div className="relative">
 						<p className="text-lg text-gray-600 dark:text-gray-400 max-w-md mx-auto ">
-							We're building something amazing! Our team is working hard to
+							We&apos;re building something amazing! Our team is working hard to
 							bring you an incredible product.
 						</p>
 

@@ -15,9 +15,6 @@ import 'react-circular-progressbar/dist/styles.css';
 
 export function ResultsComparison({
 	results,
-	scenario,
-	dataCenterType,
-	location,
 }: {
 	results: CalculationResults;
 	scenario: string;

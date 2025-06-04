@@ -18,7 +18,6 @@ import {
 	Leaf,
 	BarChart3,
 	Settings,
-	X,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {

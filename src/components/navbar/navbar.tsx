@@ -7,23 +7,18 @@ import { useUser } from "@/hooks/useUser";
 import { useRouter, usePathname } from "next/navigation";
 import {
 	LogOut,
-	LayoutDashboard,
 	Sun,
 	Moon,
-	Bell,
-	BadgeCheck,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
-	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
-	DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback} from "@/components/ui/avatar";
 import Image from "next/image";
 import { useState } from "react";
 
