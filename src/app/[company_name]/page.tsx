@@ -1,17 +1,9 @@
 "use client";
 
 import CustomSidebar from "@/components/sidebar/custom-sidebar";
-import {
-	Breadcrumb,
-	BreadcrumbItem,
-	BreadcrumbLink,
-	BreadcrumbList,
-	BreadcrumbPage,
-	BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 import { useState } from "react";
 import { Dashboard } from "./(dashboard)/dashboard";
-import { Calculators } from "./(calculators)/calculators";
+
 import { useParams } from "next/navigation";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { CalculatorsStore } from "./(calculators)/calculators-store";
@@ -22,7 +14,7 @@ import UnderConstruction from "@/components/under-construction";
 export default function Page() {
 	const [activeComponent, setActiveComponent] = useState<string>("/dashboard");
 	const params = useParams();
-	const company_name = params.company_name as string;
+	// const company_name = params.company_name as string;
 
 	const handleComponentChange = (url: string) => {
 		setActiveComponent(url);
