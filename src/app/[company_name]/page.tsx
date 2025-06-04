@@ -16,6 +16,8 @@ import { useParams } from "next/navigation";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { CalculatorsStore } from "./(calculators)/calculators-store";
 import ValueCalculator from "./(calculators)/value-calculator";
+import SolutionsForm from "./(solutions)/page";
+import UnderConstruction from "@/components/under-construction";
 
 export default function Page() {
 	const [activeComponent, setActiveComponent] = useState<string>("/dashboard");
@@ -31,7 +33,8 @@ export default function Page() {
 		switch (activeComponent) {
 			case "/dashboard":
 				return <Dashboard />;
-
+			case "/solutions":
+				return <SolutionsForm />;
 			case "/calculators":
 			case "/calculators/UPS-solution":
 			case "/calculators/value-calculator":
@@ -41,7 +44,7 @@ export default function Page() {
 				return <CalculatorsStore />;
 
 			default:
-				return <Dashboard />;
+				return <UnderConstruction />;
 		}
 	};
 
@@ -52,7 +55,7 @@ export default function Page() {
 				setActiveTab={handleComponentChange}
 			/>
 
-			<SidebarInset>
+			<SidebarInset className="bg-gradient-to-br from-blue-50 to-sky-50 dark:from-blue-950 dark:to-sky-950">
 				<div className="p-4 max-h-screen overflow-x-hidden overflow-y-auto">
 					{renderComponent()}
 				</div>

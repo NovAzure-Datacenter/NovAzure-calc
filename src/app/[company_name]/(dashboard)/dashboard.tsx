@@ -62,7 +62,7 @@ export function Dashboard() {
 	];
 
 	return (
-		<div className="space-y-6">
+		<div className="space-y-6 p-4">
 			<div>
 				<h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
 				<p className="text-muted-foreground">
@@ -139,7 +139,7 @@ export function Dashboard() {
 										</span>
 									</div>
 								</div>
-								<Button size="sm">
+								<Button size="sm" className="bg-custom-dark-blue">
 									<Play className="h-4 w-4 mr-1" />
 									Launch
 								</Button>
@@ -168,7 +168,7 @@ export function Dashboard() {
 										<Badge variant="outline">{project.progress}</Badge>
 									</div>
 								</div>
-								<Button variant="outline" size="sm">
+								<Button variant="outline" size="sm" className="bg-custom-light-blue">
 									View
 								</Button>
 							</div>
@@ -195,7 +195,7 @@ export function Dashboard() {
 								<p className="text-xs text-muted-foreground mt-2">
 									Modified: {scenario.lastModified}
 								</p>
-								<Button className="w-full mt-3" variant="outline" size="sm">
+								<Button className="w-full mt-3 bg-custom-light-blue" variant="outline" size="sm">
 									Apply Scenario
 								</Button>
 							</div>
