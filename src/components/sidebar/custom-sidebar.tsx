@@ -104,29 +104,26 @@ export default function CustomSidebar({
 			className="border-r border-border w-[16rem] max-w-[16rem] "
 		>
 			<>
-				<SidebarHeader className="pt-8 px-4 full">
-					<div className="flex items-center gap-3">
-						<div className="relative h-14 w-14 overflow-hidden rounded-full border border-border bg-muted">
+				<SidebarHeader className=" px-4 full">
+					<div className="flex items-center gap-6">
+						<div className="relative h-14 w-14 overflow-hidden rounded-full border border-border dark:bg-white">
 							<Image
-								src="/images/logos/logo-sample.png"
+								src="/images/logos/logo_iceotope.png"
 								alt="Company Logo"
-								fill
-								className="object-cover"
-								sizes="(max-width: 40px) 100vw"
+								width={56}
+								height={56}
+								className="object-scale-down"
 							/>
 						</div>
-						<div className="flex flex-col">
-							<span className="font-semibold">
-								{sideBarType === "seller" && user?.company_name
-									? user.company_name
-									: "Lorem Ipsum"}
-							</span>
+						<div className="flex flex-col mr-8">
+							<span className="font-semibold ">{"iceotope".toUpperCase()}</span>
 						</div>
 					</div>
-					<Separator className="my-4" />
 				</SidebarHeader>
 
-				<SidebarContent>
+				<Separator className="mb-4" />
+
+				<SidebarContent className="space-y-4">
 					<NavDefault setActiveTab={setActiveTab} activeTab={activeTab} />
 					<NavMain
 						items={sidebarTools.items}
@@ -164,7 +161,7 @@ function NavDefault({
 								{item.icon && <item.icon className="h-4 w-4" />}
 								<span>{item.title}</span>
 								{item.title.toLowerCase() === "news" && (
-									<div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center min-w-[20px] h-5 rounded-full bg-primary text-primary-foreground text-xs font-medium">
+									<div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center min-w-[20px] h-5 rounded-full bg-custom-dark-blue text-primary-foreground text-xs font-medium">
 										3
 									</div>
 								)}
@@ -251,7 +248,10 @@ function NavMain({
 														asChild
 														onClick={(e) => handleItemClick(subItem.url, e)}
 													>
-														<a href={subItem.url} className="text-xs items-center ">
+														<a
+															href={subItem.url}
+															className="text-xs items-center "
+														>
 															{subItem.icon && (
 																<subItem.icon className="h-4 w-4" />
 															)}
@@ -377,7 +377,6 @@ function NavUser({ user }: { user: UserData }) {
 								</Avatar>
 								<div className="grid flex-1 text-left text-sm leading-tight">
 									<span className="truncate font-medium">{user.name}</span>
-									{/* <span className="truncate text-xs">{user.email}</span> */}
 								</div>
 								<ChevronsUpDown className="ml-auto size-4" />
 							</SidebarMenuButton>
@@ -396,7 +395,6 @@ function NavUser({ user }: { user: UserData }) {
 									</Avatar>
 									<div className="grid flex-1 text-left text-sm leading-tight">
 										<span className="truncate font-medium">{user.name}</span>
-										{/* <span className="truncate text-xs">{user.email}</span> */}
 									</div>
 								</div>
 							</DropdownMenuLabel>

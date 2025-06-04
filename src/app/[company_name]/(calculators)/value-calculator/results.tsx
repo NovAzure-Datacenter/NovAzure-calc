@@ -52,27 +52,27 @@ export function ResultsComparison({
 						<div className="overflow-x-auto">
 							<table className="w-full border-collapse">
 								<thead>
-									<tr className="bg-blue-600 text-white">
-										<th className="border border-blue-700 px-4 py-3 text-left font-medium">
+									<tr className="bg-custom-dark-blue text-white">
+										<th className="border bg-custom-dark-blue px-4 py-3 text-left font-medium">
 											Column
 										</th>
-										<th className="border border-blue-700 px-4 py-3 text-center font-medium">
+										<th className="border bg-custom-dark-blue px-4 py-3 text-center font-medium">
 											Air Cooling
 										</th>
-										<th className="border border-blue-700 px-4 py-3 text-center font-medium">
+										<th className="border bg-custom-dark-blue px-4 py-3 text-center font-medium">
 											PLC
 										</th>
-										<th className="border border-blue-700 px-4 py-3 text-center font-medium">
+										<th className="border bg-custom-dark-blue px-4 py-3 text-center font-medium">
 											Saving (€)
 										</th>
-										<th className="border border-blue-700 px-4 py-3 text-center font-medium">
+										<th className="border bg-custom-dark-blue px-4 py-3 text-center font-medium">
 											Saving (%)
 										</th>
 									</tr>
 								</thead>
 								<tbody className="bg-white">
 									<tr className="border-b">
-										<td className="border border-gray-300 px-4 py-3 font-medium text-blue-600">
+										<td className="border border-gray-300 px-4 py-3 font-medium text-custom-dark-blue">
 											Capex
 										</td>
 										<td className="border border-gray-300 px-4 py-3 text-center">
@@ -89,7 +89,7 @@ export function ResultsComparison({
 										</td>
 									</tr>
 									<tr className="border-b">
-										<td className="border border-gray-300 px-4 py-3 font-medium text-blue-600">
+										<td className="border border-gray-300 px-4 py-3 font-medium text-custom-dark-blue">
 											Annual Opex
 										</td>
 										<td className="border border-gray-300 px-4 py-3 text-center">
@@ -107,7 +107,7 @@ export function ResultsComparison({
 										</td>
 									</tr>
 									<tr className="border-b">
-										<td className="border border-gray-300 px-4 py-3 font-medium text-blue-600">
+										<td className="border border-gray-300 px-4 py-3 font-medium text-custom-dark-blue">
 											Total Opex
 										</td>
 										<td className="border border-gray-300 px-4 py-3 text-center">
@@ -125,7 +125,7 @@ export function ResultsComparison({
 										</td>
 									</tr>
 									<tr className="bg-blue-50">
-										<td className="border border-gray-300 px-4 py-3 font-bold text-blue-600">
+										<td className="border border-gray-300 px-4 py-3 font-bold text-custom-dark-blue">
 											Total Cost of Ownership
 										</td>
 										<td className="border border-gray-300 px-4 py-3 text-center font-semibold">
@@ -138,7 +138,7 @@ export function ResultsComparison({
 										<td className="border border-gray-300 px-4 py-3 text-center font-semibold">
 											€{formatNumber(financial.savings.totalCost / 1000)} k
 										</td>
-										<td className="border border-gray-300 px-4 py-3 text-center font-bold text-blue-600">
+										<td className="border border-gray-300 px-4 py-3 text-center font-bold text-custom-dark-blue">
 											{financial.savings.totalCostPercent}%
 										</td>
 									</tr>
@@ -211,27 +211,27 @@ export function ResultsComparison({
 						<div className="overflow-x-auto">
 							<table className="w-full border-collapse">
 								<thead>
-									<tr className="bg-blue-600 text-white">
-										<th className="border border-blue-700 px-4 py-3 text-left font-medium">
+									<tr className="bg-custom-dark-blue text-white">
+										<th className="border bg-custom-dark-blue px-4 py-3 text-left font-medium">
 											Column
 										</th>
-										<th className="border border-blue-700 px-4 py-3 text-center font-medium">
+										<th className="border bg-custom-dark-blue px-4 py-3 text-center font-medium">
 											Air Cooling
 										</th>
-										<th className="border border-blue-700 px-4 py-3 text-center font-medium">
+										<th className="border bg-custom-dark-blue px-4 py-3 text-center font-medium">
 											PLC
 										</th>
-										<th className="border border-blue-700 px-4 py-3 text-center font-medium">
+										<th className="border bg-custom-dark-blue px-4 py-3 text-center font-medium">
 											Saving (€)
 										</th>
-										<th className="border border-blue-700 px-4 py-3 text-center font-medium">
+										<th className="border bg-custom-dark-blue px-4 py-3 text-center font-medium">
 											Saving (%)
 										</th>
 									</tr>
 								</thead>
 								<tbody className="bg-white">
 									<tr className="border-b">
-										<td className="border border-gray-300 px-4 py-3 font-medium text-blue-600">
+										<td className="border border-gray-300 px-4 py-3 font-medium text-custom-dark-blue">
 											pPUE
 										</td>
 										<td className="border border-gray-300 px-4 py-3 text-center">
@@ -248,7 +248,7 @@ export function ResultsComparison({
 										</td>
 									</tr>
 									<tr className="border-b">
-										<td className="border border-gray-300 px-4 py-3 font-medium text-blue-600">
+										<td className="border border-gray-300 px-4 py-3 font-medium text-custom-dark-blue">
 											Energy Consumption (MWh/year)
 										</td>
 										<td className="border border-gray-300 px-4 py-3 text-center">
@@ -265,7 +265,7 @@ export function ResultsComparison({
 										</td>
 									</tr>
 									<tr className="border-b">
-										<td className="border border-gray-300 px-4 py-3 font-medium text-blue-600">
+										<td className="border border-gray-300 px-4 py-3 font-medium text-custom-dark-blue">
 											Water Consumption (litre/year)
 										</td>
 										<td className="border border-gray-300 px-4 py-3 text-center">
@@ -282,7 +282,7 @@ export function ResultsComparison({
 										</td>
 									</tr>
 									<tr className="border-b">
-										<td className="border border-gray-300 px-4 py-3 font-medium text-blue-600">
+										<td className="border border-gray-300 px-4 py-3 font-medium text-custom-dark-blue">
 											Total CO2e
 										</td>
 										<td className="border border-gray-300 px-4 py-3 text-center">
@@ -301,7 +301,7 @@ export function ResultsComparison({
 										</td>
 									</tr>
 									<tr>
-										<td className="border border-gray-300 px-4 py-3 font-medium text-blue-600">
+										<td className="border border-gray-300 px-4 py-3 font-medium text-custom-dark-blue">
 											Floor space (sqm)
 										</td>
 										<td className="border border-gray-300 px-4 py-3 text-center">
@@ -390,7 +390,7 @@ export function ResultsComparison({
 
 					{/* Action Buttons */}
 					<div className="flex flex-col sm:flex-row gap-4 pt-6 border-t">
-						<Button className="bg-blue-600 hover:bg-blue-700">
+						<Button className="bg-custom-dark-blue hover:bg-blue-700">
 							<Download className="mr-2 h-4 w-4" />
 							Download Full Report
 						</Button>

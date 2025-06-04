@@ -24,21 +24,31 @@ import {
 	DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Image from "next/image";
+import { useState } from "react";
+
+type Role = "Seller" | "Buyer" | "Admin";
 
 export default function Navbar() {
-	const { companyName, menuItems, ctaButton } = NavbarText;
+	const { menuItems, ctaButton } = NavbarText;
 	const { isUserLoggedIn, isLoading, updateUser, user } = useUser();
 	const router = useRouter();
 	const pathname = usePathname();
 	const { theme, setTheme } = useTheme();
+	const [selectedRole, setSelectedRole] = useState<Role>("Seller");
 
 	const handleLogout = () => {
 		updateUser(null);
 		router.push("/");
 	};
 
-	const handleDashboardClick = () => {
+	const handleDashboardClick = (role: Role) => {
+		setSelectedRole(role);
 		router.push(`/${user?.company_name || "home"}`);
+	};
+
+	const getRoleLetter = (role: Role) => {
+		return role.charAt(0);
 	};
 
 	const isMainPage = pathname === "/";
@@ -49,7 +59,13 @@ export default function Navbar() {
 				<div className="flex h-12 items-center justify-between">
 					<div className="flex items-center gap-6">
 						<Link href="/" className="font-semibold text-xl">
-							{companyName}
+							<Image
+								src="/images/logos/logo_novazure.png"
+								alt="Company Logo"
+								width={40}
+								height={40}
+								className="inline-block  mr-2 py-2"
+							/>
 						</Link>
 
 						{menuItems.map((item) => (
@@ -72,12 +88,8 @@ export default function Navbar() {
 											className="relative h-8 w-8 rounded-full"
 										>
 											<Avatar className="h-8 w-8 rounded-full">
-												<AvatarImage
-													src={user?.profile_image}
-													alt={user?.name}
-												/>
-												<AvatarFallback className="rounded-full">
-													{user?.name?.charAt(0) || "U"}
+												<AvatarFallback className="rounded-full bg-custom-dark-blue text-primary-foreground">
+													{getRoleLetter(selectedRole)}
 												</AvatarFallback>
 											</Avatar>
 										</Button>
@@ -87,37 +99,51 @@ export default function Navbar() {
 										align="end"
 										sideOffset={4}
 									>
-										<DropdownMenuLabel className="p-0 font-normal">
-											<div className="flex items-center gap-2 px-2 py-1.5">
-												<Avatar className="h-8 w-8 rounded-full">
-													<AvatarImage
-														src={user?.profile_image}
-														alt={user?.name}
-													/>
-													<AvatarFallback className="rounded-full">
-														{user?.name?.charAt(0) || "U"}
+										<DropdownMenuItem onClick={() => handleDashboardClick("Seller")}>
+											<div className="flex items-center gap-2 ">
+												<Avatar className="h-6 w-6 rounded-full">
+													<AvatarFallback className="rounded-full bg-custom-dark-blue text-primary-foreground">
+														S
 													</AvatarFallback>
 												</Avatar>
 												<div className="grid flex-1 text-left text-sm leading-tight">
-													<span className="font-medium">{user?.name}</span>
+													Seller
+												</div>
+												<div className="text-sm text-muted-foreground">
+													DEMO
 												</div>
 											</div>
-										</DropdownMenuLabel>
-										<DropdownMenuSeparator />
-										<DropdownMenuItem onClick={handleDashboardClick}>
-											<LayoutDashboard className="mr-2 h-4 w-4" />
-											Dashboard
 										</DropdownMenuItem>
-										<DropdownMenuGroup>
-											<DropdownMenuItem>
-												<BadgeCheck className="mr-2 h-4 w-4" />
-												Account
-											</DropdownMenuItem>
-											<DropdownMenuItem>
-												<Bell className="mr-2 h-4 w-4" />
-												Notifications
-											</DropdownMenuItem>
-										</DropdownMenuGroup>
+										<DropdownMenuItem onClick={() => handleDashboardClick("Buyer")}>
+											<div className="flex items-center gap-2 ">
+												<Avatar className="h-6 w-6 rounded-full">
+													<AvatarFallback className="rounded-full bg-custom-dark-blue text-primary-foreground">
+														B
+													</AvatarFallback>
+												</Avatar>
+												<div className="grid flex-1 text-left text-sm leading-tight">
+													Buyer
+												</div>
+												<div className="text-sm text-muted-foreground">
+													DEMO
+												</div>
+											</div>
+										</DropdownMenuItem>
+										<DropdownMenuItem onClick={() => handleDashboardClick("Admin")}>
+											<div className="flex items-center gap-2 ">
+												<Avatar className="h-6 w-6 rounded-full">
+													<AvatarFallback className="rounded-full bg-custom-dark-blue text-primary-foreground">
+														A
+													</AvatarFallback>
+												</Avatar>
+												<div className="grid flex-1 text-left text-sm leading-tight">
+													Admin
+												</div>
+												<div className="text-sm text-muted-foreground">
+													DEMO
+												</div>
+											</div>
+										</DropdownMenuItem>
 										<DropdownMenuSeparator />
 										<DropdownMenuItem onClick={handleLogout}>
 											<LogOut className="mr-2 h-4 w-4" />

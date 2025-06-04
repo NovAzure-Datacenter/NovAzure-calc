@@ -23,6 +23,7 @@ import {
 	DefaultItem,
 	Team,
 } from "./sidebar-items-types";
+import SolutionsForm from "@/app/[company_name]/(solutions)/page";
 
 export const buyerSidebarTools: BuyerSidebarStructure = {
 	items: [
@@ -110,6 +111,14 @@ export const buyerSidebarTools: BuyerSidebarStructure = {
 export const sellerSideBarTools: BuyerSidebarStructure = {
 	items: [
 		{
+			title: "Solutions",
+			icon: AudioWaveform,
+			component: SolutionsForm,
+			isActive: true,
+			url: "/solutions",
+		
+		},
+		{
 			title: "Calculators",
 			icon: CalculatorIcon,
 			component: Calculators,
@@ -120,12 +129,8 @@ export const sellerSideBarTools: BuyerSidebarStructure = {
 					url: "/calculators/value-calculator",
 				},
 				{
-					title: "Alternative UPS Solution",
-					url: "/calculators/UPS-solution",
-				},
-				{
 					title: "Legacy UPS System",
-					url: "#",
+					url: "/under-construction.tsx",
 				},
 				{
 					title: "Browse More",
@@ -134,6 +139,7 @@ export const sellerSideBarTools: BuyerSidebarStructure = {
 				},
 			],
 		},
+
 		{
 			title: "Scenarios",
 			icon: FilesIcon,
@@ -151,25 +157,21 @@ export const sellerSideBarTools: BuyerSidebarStructure = {
 			icon: GitCompare,
 			component: ComparisonView,
 			isActive: true,
-			items: [
-				{
-					title: "UPS Efficiency Comparison",
-					url: "#",
-				},
-			],
+			url: "/",
+		
 		},
-		{
-			title: "Filter & Sort",
-			icon: Filter,
-			component: FilterSort,
-			isActive: true,
-			items: [
-				{
-					title: "UPS Efficiency Comparison",
-					url: "#",
-				},
-			],
-		},
+		// {
+		// 	title: "Filter & Sort",
+		// 	icon: Filter,
+		// 	component: FilterSort,
+		// 	isActive: true,
+		// 	items: [
+		// 		{
+		// 			title: "UPS Efficiency Comparison",
+		// 			url: "#",
+		// 		},
+		// 	],
+		// },
 	],
 	projects: [
 		{

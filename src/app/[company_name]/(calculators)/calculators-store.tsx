@@ -234,7 +234,7 @@ export function CalculatorsStore() {
 				</div>
 				<div className="relative">
 					<Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-					<Input placeholder="Search calculators..." className="pl-8 w-64" />
+					<Input placeholder="Search calculators..." className="pl-8 w-64 bg-white" />
 				</div>
 			</div>
 
@@ -275,7 +275,7 @@ export function CalculatorsStore() {
 						{featuredCalculators.map((calc, index) => (
 							<Card key={index} className="relative">
 								{calc.popular && (
-									<Badge className="absolute top-4 right-4">Popular</Badge>
+									<Badge className="absolute top-4 right-4 bg-custom-light-blue text-foreground">Popular</Badge>
 								)}
 								<CardHeader>
 									<div className="flex items-start justify-between">
@@ -306,7 +306,7 @@ export function CalculatorsStore() {
 											))}
 										</ul>
 									</div>
-									<div className="flex items-center justify-between pt-4">
+									<div className="flex items-center justify-between pt-4 ">
 										<div className="text-2xl font-bold">{calc.price}</div>
 										<div className="flex gap-2">
 											<Button variant="outline" size="sm">
@@ -321,7 +321,9 @@ export function CalculatorsStore() {
 														price: calc.price,
 														category: calc.category,
 													})
+												
 												}
+												className="bg-custom-dark-blue"
 												disabled={cartItems.some(
 													(item) => item.id === `featured-${index}`
 												)}
@@ -577,7 +579,7 @@ function CartPopover({
 							<span>Total</span>
 							<span>€{calculateTotal()}</span>
 						</div>
-						<Button className="w-full" disabled={items.length === 0}>
+						<Button className="w-full bg-custom-dark-blue" disabled={items.length === 0}>
 							Checkout
 						</Button>
 					</div>

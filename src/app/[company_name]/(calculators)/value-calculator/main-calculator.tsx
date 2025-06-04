@@ -87,7 +87,7 @@ export function MainCalculator({
 
 					<div className="flex items-center pt-2 pr-2 gap-2">
 						<div className="text-right">
-							<Label className="text-sm font-medium">
+							<Label className="text-sm font-medium ">
 								Advanced Configuration
 							</Label>
 						</div>
@@ -95,6 +95,7 @@ export function MainCalculator({
 							id="advanced-config"
 							checked={showAdvanced}
 							onCheckedChange={setShowAdvanced}
+							
 						/>
 					</div>
 				</div>
@@ -297,7 +298,7 @@ export function MainCalculator({
 								<div className="flex flex-col sm:flex-row gap-2">
 									<Button
 										size="default"
-										className="bg-blue-600 hover:bg-blue-700 flex-1"
+										className="bg-custom-dark-blue hover:bg-custom-dark-blue flex-1"
 										onClick={onCalculate}
 										disabled={isCalculating}
 									>

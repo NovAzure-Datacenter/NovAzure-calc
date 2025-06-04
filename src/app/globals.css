@@ -26,6 +26,7 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
+    
 
   }
 
@@ -52,6 +53,13 @@
 
   }
 }
+
+.bg-custom-dark-blue { background-color: #0b519f; }
+.text-custom-dark-blue { color: #0b519f; }
+.bg-custom-light-blue { background-color: #f0f8ff; }
+.border-custom-dark-blue { border-color: #0b519f; }
+
+
 
 @layer base {
   * {
