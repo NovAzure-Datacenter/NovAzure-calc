@@ -148,12 +148,14 @@ export default function Navbar() {
 								</DropdownMenu>
 							) : (
 								<div className="flex flex-row items-center gap-4">
-									<Link
-										href="/login"
-										className="text-sm font-medium text-muted-foreground hidden sm:block"
-									>
-										Log in
-									</Link>
+									{pathname !== "/login" && (
+										<Link
+											href="/login"
+											className="text-sm font-medium text-muted-foreground hidden sm:block"
+										>
+											Log in
+										</Link>
+									)}
 									<Button size="sm">{ctaButton}</Button>
 									{isMainPage && (
 										<Button
