@@ -23,7 +23,7 @@ import {
 	DefaultItem,
 	Team,
 } from "./sidebar-items-types";
-import SolutionsForm from "@/app/[company_name]/(solutions)/page";
+import SolutionsForm from "@/app/[company_name]/(solutions)/components/solutions-form";
 
 export const buyerSidebarTools: BuyerSidebarStructure = {
 	items: [

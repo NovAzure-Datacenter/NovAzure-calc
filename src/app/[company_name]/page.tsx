@@ -8,8 +8,9 @@ import { useParams } from "next/navigation";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { CalculatorsStore } from "./(calculators)/calculators-store";
 import ValueCalculator from "./(calculators)/value-calculator";
-import SolutionsForm from "./(solutions)/page";
 import UnderConstruction from "@/components/under-construction";
+import SolutionsDisplay from "./(solutions)/components/solutions-display";
+import TechnologySelector from "./(solutions)/page";
 
 export default function Page() {
 	const [activeComponent, setActiveComponent] = useState<string>("/dashboard");
@@ -26,7 +27,7 @@ export default function Page() {
 			case "/dashboard":
 				return <Dashboard />;
 			case "/solutions":
-				return <SolutionsForm />;
+				return <TechnologySelector />;
 			case "/calculators":
 			case "/calculators/UPS-solution":
 			case "/calculators/value-calculator":
