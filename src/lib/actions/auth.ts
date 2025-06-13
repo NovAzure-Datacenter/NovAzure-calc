@@ -1,6 +1,6 @@
 'use server'
 
-import { usersCollection } from "../mongoDb/db";
+import { getUsersCollection } from "../mongoDb/db";
 import { hash, compare } from "bcrypt";
 import { UserData } from "@/hooks/useUser";
 import { ObjectId } from "mongodb";
@@ -30,6 +30,7 @@ function convertToClientData(user: any) {
 export async function createDemoUser() {
     try {
         // Check if demo user already exists
+        const usersCollection = await getUsersCollection(); 
         const existingUser = await usersCollection.findOne({ email: "demo@example.com" });
         if (existingUser) {
             return { error: "Demo user already exists" };
@@ -72,6 +73,8 @@ export async function createDemoUser() {
 // Debug function to list all users
 export async function getAllUsers() {
     try {
+        const usersCollection = await getUsersCollection(); 
+        console.log("usersCollection", usersCollection);
         const users = await usersCollection.find({}).toArray();
         // Remove sensitive data and convert ObjectIds to strings
         const safeUsers = users.map(user => {
@@ -87,6 +90,7 @@ export async function getAllUsers() {
 
 export async function login(data: LoginData): Promise<LoginResponse> {
     try {
+        const usersCollection = await getUsersCollection(); 
         const user = await usersCollection.findOne({ email: data.email });
 
         if (!user) {
@@ -102,7 +106,7 @@ export async function login(data: LoginData): Promise<LoginResponse> {
         // Transform MongoDB user to UserData type
         const userData: UserData = {
             name: user.name || "Unknown",
-            account_type: user.role,
+            account_type: user.role, 
             profile_image: user.profile_image || "https://ui-avatars.com/api/?name=Unknown",
             company_name: user.company_name || "Unknown Company"
         };
@@ -113,6 +117,7 @@ export async function login(data: LoginData): Promise<LoginResponse> {
         };
     } catch (error) {
         console.error("Login error:", error);
-        return { error: "An error occurred during login" };
+
+        return { error: "An error occurred during login. Please try again." };
     }
 } 

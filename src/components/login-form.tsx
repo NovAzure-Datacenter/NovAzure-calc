@@ -76,7 +76,6 @@ export function LoginForm({
         toast.success("Users found", {
           description: `Found ${result.users.length} users`
         });
-        console.log("All users:", result.users);
       }
     } catch (error) {
       toast.error("Error", {
