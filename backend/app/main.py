@@ -28,16 +28,10 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup_event():
-    """
-    Connect to database on startup.
-    """
     db_manager.connect()
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    """
-    Disconnect from database on shutdown.
-    """
     db_manager.disconnect()
 
 @app.get("/collections", tags=["Database Test"])
