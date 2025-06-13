@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import patch
-from app.services.calculations.capex import calculate_cooling_equipment_capex
+from .capex import calculate_cooling_equipment_capex
 
 MOCK_DATA = {
     "total_it_cost": [
