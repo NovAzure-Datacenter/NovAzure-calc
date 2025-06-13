@@ -1,0 +1,23 @@
+{
+  "total_it_cost": [
+    {
+      "id": 1,
+      "name": "Total IT Cost",
+      "value": 97859534 
+    }
+  ],
+  "air_cooled_cost_with_inflation_LE": [
+    {
+      "id": 2,
+      "name": "Lower Efficiency Air Cooling",
+      "value": 135749738
+    }
+  ],
+  "air_cooled_cost_with_inflation_HE": [
+    {
+      "id": 3,
+      "name": "Higher Efficiency Air Cooling",
+      "value": 136472220 
+    }
+  ]
+}
