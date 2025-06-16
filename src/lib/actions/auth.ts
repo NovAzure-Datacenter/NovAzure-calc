@@ -4,6 +4,7 @@ import { getUsersCollection } from "../mongoDb/db";
 import { hash, compare } from "bcrypt";
 import { UserData } from "@/hooks/useUser";
 import { ObjectId } from "mongodb";
+import { sendEmail, generatePasswordResetEmail } from './utils/forgot-password-email-template';
 
 export interface LoginData {
     email: string;
@@ -16,7 +17,27 @@ export interface LoginResponse {
     user?: UserData;
 }
 
-// Helper function to convert MongoDB document to safe client data
+export interface ResetPasswordRequest {
+    email: string;
+}
+
+export interface VerifyResetCodeRequest {
+    email: string;
+    code: string;
+}
+
+export interface UpdatePasswordRequest {
+    email: string;
+    code: string;
+    newPassword: string;
+}
+
+
+{/*
+* Helper functions while in development - remove in production
+convertToClientData() // Convert MongoDB document to safe client data
+createDemoUser() // Create demo user
+*/}
 function convertToClientData(user: any) {
     return {
         ...user,
@@ -25,8 +46,6 @@ function convertToClientData(user: any) {
         created_at: user.created_at.toISOString()
     };
 }
-
-// Debug function to create a demo user
 export async function createDemoUser() {
     try {
         // Check if demo user already exists
@@ -70,24 +89,12 @@ export async function createDemoUser() {
     }
 }
 
-// Debug function to list all users
-export async function getAllUsers() {
-    try {
-        const usersCollection = await getUsersCollection(); 
-        console.log("usersCollection", usersCollection);
-        const users = await usersCollection.find({}).toArray();
-        // Remove sensitive data and convert ObjectIds to strings
-        const safeUsers = users.map(user => {
-            const { passwordHash, ...userWithoutPassword } = user;
-            return convertToClientData(userWithoutPassword);
-        });
-        return { success: true, users: safeUsers };
-    } catch (error) {
-        console.error("Error fetching users:", error);
-        return { error: "Failed to fetch users" };
-    }
-}
 
+
+{/*
+* Login functions
+login() // Login user
+*/}
 export async function login(data: LoginData): Promise<LoginResponse> {
     try {
         const usersCollection = await getUsersCollection(); 
@@ -119,5 +126,118 @@ export async function login(data: LoginData): Promise<LoginResponse> {
         console.error("Login error:", error);
 
         return { error: "An error occurred during login. Please try again." };
+    }
+}
+
+
+
+{/*
+* Password reset functions
+requestPasswordReset() // Send email with reset code
+verifyResetCode() // Verify reset code
+updatePassword() // Update password
+*/}
+export async function requestPasswordReset(data: ResetPasswordRequest) {
+    try {
+        const usersCollection = await getUsersCollection();
+        const user = await usersCollection.findOne({ email: data.email });
+
+        if (!user) {
+            return { error: "No account found with this email" };
+        }
+
+        // Generate a 6-digit code
+        const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const resetCodeExpiry = new Date(Date.now() + 15 * 60 * 1000); 
+
+        // Update mongodb user with reset code
+        await usersCollection.updateOne(
+            { email: data.email },
+            {
+                $set: {
+                    reset_code: resetCode,
+                    reset_code_expiry: resetCodeExpiry
+                }
+            }
+        );
+
+        // Send email with reset code
+        try {
+            await sendEmail({
+                to: data.email,
+                subject: 'NovAzure Password Reset Code',
+                html: generatePasswordResetEmail(resetCode)
+            });
+        } catch (emailError) {
+            console.error('Failed to send reset email:', emailError);
+            // If email fails, remove the reset code
+            await usersCollection.updateOne(
+                { email: data.email },
+                {
+                    $unset: { reset_code: "", reset_code_expiry: "" }
+                }
+            );
+            return { error: "Failed to send reset code email" };
+        }
+
+        return {
+            success: true,
+            message: "Reset code sent to email"
+        };
+    } catch (error) {
+        console.error("Error requesting password reset:", error);
+        return { error: "Failed to process password reset request" };
+    }
+}
+
+export async function verifyResetCode(data: VerifyResetCodeRequest) {
+    try {
+        const usersCollection = await getUsersCollection();
+        const user = await usersCollection.findOne({
+            email: data.email,
+            reset_code: data.code,
+            reset_code_expiry: { $gt: new Date() }
+        });
+
+        if (!user) {
+            return { error: "Invalid or expired reset code" };
+        }
+
+        return { success: true };
+    } catch (error) {
+        console.error("Error verifying reset code:", error);
+        return { error: "Failed to verify reset code" };
+    }
+}
+
+export async function updatePassword(data: UpdatePasswordRequest) {
+    try {
+        const usersCollection = await getUsersCollection();
+        const user = await usersCollection.findOne({
+            email: data.email,
+            reset_code: data.code,
+            reset_code_expiry: { $gt: new Date() }
+        });
+
+        if (!user) {
+            return { error: "Invalid or expired reset code" };
+        }
+
+        // Hash the new password
+        const passwordHash = await hash(data.newPassword, 10);
+
+        // Update password and clear reset code
+        await usersCollection.updateOne(
+            { email: data.email },
+            {
+                $set: { passwordHash },
+                $unset: { reset_code: "", reset_code_expiry: "" }
+            }
+        );
+
+        return { success: true, message: "Password updated successfully" };
+    } catch (error) {
+        console.error("Error updating password:", error);
+        return { error: "Failed to update password" };
     }
 } 
