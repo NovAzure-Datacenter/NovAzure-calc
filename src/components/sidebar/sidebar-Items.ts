@@ -13,6 +13,7 @@ import {
 	Plus,
 	BookOpenIcon,
 	HomeIcon,
+	UsersIcon,
 } from "lucide-react";
 import { ScenarioTemplates } from "./sidebar/buyers-content/scenario-templates";
 import { ComparisonView } from "./sidebar/buyers-content/comparison-view";
@@ -202,7 +203,7 @@ export const adminSideBarTools: BuyerSidebarStructure = {
 			items: [
 				{
 					title: "Value Calculator",
-					url: "/home/calculators/value-calculator",
+					url: "/calculators/value-calculator",
 				},
 				{
 					title: "Alternative UPS Solution",
@@ -278,6 +279,11 @@ export const defautlSideBarItems: DefaultItem[] = [
 		icon: BarChart3,
 		url: "/dashboard",
 	},
+	{
+		title: "Users",
+		icon: UsersIcon,
+		url: "/users",
+	}
 ];
 
 export const teams: Team[] = [

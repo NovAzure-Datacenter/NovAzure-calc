@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import Image from "next/image";
+import Image from "next/image";	
 
 import {
 	BadgeCheck,
@@ -60,7 +60,6 @@ import { Separator } from "@/components/ui/separator";
 
 import { SidebarItem as MenuItem, Project } from "./sidebar-items-types";
 import { UserData, useUser } from "@/hooks/useUser";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { useTheme } from "next-themes";
 
@@ -129,10 +128,10 @@ export default function CustomSidebar({
 						items={sidebarTools.items}
 						setActiveTab={setActiveTab}
 						activeTab={activeTab}
-					/>
+					/> 
 					<NavSecond projects={sidebarTools.projects} />
 				</SidebarContent>
-				<SidebarFooter>{user && <NavUser user={user} />}</SidebarFooter>
+				<SidebarFooter>{user && <NavUser user={user} setActiveTab={setActiveTab} />}</SidebarFooter>
 			</>
 		</Sidebar>
 	);
@@ -340,13 +339,14 @@ function NavSecond({ projects }: { projects: Project[] }) {
 	);
 }
 
-function NavUser({ user }: { user: UserData }) {
+function NavUser({ user, setActiveTab }: { user: UserData, setActiveTab: (tab: string) => void }) {
 	const { isMobile } = useSidebar();
 	const { theme, setTheme } = useTheme();
 
 	return (
 		<SidebarGroup>
 			<SidebarMenu>
+				{/* Suppert & Theme */}
 				<SidebarMenuItem>
 					<SidebarMenuButton>
 						<HeadsetIcon className="h-4 w-4" />
@@ -364,6 +364,7 @@ function NavUser({ user }: { user: UserData }) {
 					</SidebarMenuButton>
 				</SidebarMenuItem>
 
+						
 				<SidebarMenuItem>
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
@@ -401,7 +402,7 @@ function NavUser({ user }: { user: UserData }) {
 							<DropdownMenuSeparator />
 
 							<DropdownMenuGroup>
-								<DropdownMenuItem>
+								<DropdownMenuItem onClick={() => setActiveTab('/dashboard/account/settings')}>
 									<BadgeCheck />
 									Account
 								</DropdownMenuItem>
@@ -424,64 +425,3 @@ function NavUser({ user }: { user: UserData }) {
 	);
 }
 
-function SidebarSkeleton() {
-	return (
-		<div className="flex flex-col h-full w-[12rem]">
-			<SidebarHeader className="pt-8 px-4">
-				<div className="flex items-center gap-3">
-					<Skeleton className="h-14 w-20 rounded-full" />
-
-					<Skeleton className="h-5 w-32" />
-				</div>
-				<Separator className="my-4" />
-			</SidebarHeader>
-
-			<SidebarContent>
-				<SidebarGroup>
-					<SidebarMenu>
-						{[1, 2, 3].map((i) => (
-							<SidebarMenuItem key={i}>
-								<div className="flex items-center gap-3 px-3 py-2">
-									<Skeleton className="h-4 w-4" />
-									<Skeleton className="h-4 w-24" />
-								</div>
-							</SidebarMenuItem>
-						))}
-					</SidebarMenu>
-				</SidebarGroup>
-
-				<SidebarGroup>
-					<SidebarGroupLabel>
-						<Skeleton className="h-4 w-16" />
-					</SidebarGroupLabel>
-					<SidebarMenu>
-						{[1, 2, 3, 4].map((i) => (
-							<SidebarMenuItem key={i}>
-								<div className="flex items-center gap-3 px-3 py-2">
-									<Skeleton className="h-4 w-4" />
-									<Skeleton className="h-4 w-32" />
-								</div>
-							</SidebarMenuItem>
-						))}
-					</SidebarMenu>
-				</SidebarGroup>
-
-				<SidebarGroup>
-					<SidebarGroupLabel>
-						<Skeleton className="h-4 w-24" />
-					</SidebarGroupLabel>
-					<SidebarMenu>
-						{[1, 2].map((i) => (
-							<SidebarMenuItem key={i}>
-								<div className="flex items-center gap-3 px-3 py-2">
-									<Skeleton className="h-4 w-4" />
-									<Skeleton className="h-4 w-28" />
-								</div>
-							</SidebarMenuItem>
-						))}
-					</SidebarMenu>
-				</SidebarGroup>
-			</SidebarContent>
-		</div>
-	);
-}
