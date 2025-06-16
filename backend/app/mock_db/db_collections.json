@@ -1,23 +1,48 @@
-{
-  "total_it_cost": [
-    {
-      "id": 1,
-      "name": "Total IT Cost",
-      "value": 97859534 
-    }
-  ],
-  "air_cooled_cost_with_inflation_LE": [
-    {
-      "id": 2,
-      "name": "Lower Efficiency Air Cooling",
-      "value": 135749738
-    }
-  ],
-  "air_cooled_cost_with_inflation_HE": [
-    {
-      "id": 3,
-      "name": "Higher Efficiency Air Cooling",
-      "value": 136472220 
-    }
-  ]
-}
+[
+  {
+    "total_it_cost": [
+      {
+        "id": 1,
+        "name": "Total IT Cost",
+        "value": 97859534
+      }
+    ],
+    "air_cooled_cost_with_inflation_LE": [
+      {
+        "id": 2,
+        "name": "Lower Efficiency Air Cooling",
+        "value": 135749738
+      }
+    ],
+    "air_cooled_cost_with_inflation_HE": [
+      {
+        "id": 3,
+        "name": "Higher Efficiency Air Cooling",
+        "value": 136472220
+      }
+    ]
+  },
+  {
+    "annual_Cooling_Opex": [
+      {
+        "id": 4,
+        "name": "Total IT Cost",
+        "value": 89234567
+      }
+    ],
+    "annual_IT_Equipment_Maintenance": [
+      {
+        "id": 5,
+        "name": "Lower Efficiency Air Cooling",
+        "value": 128765432
+      }
+    ],
+    "opex_for_Lifetime_of_Operation": [
+      {
+        "id": 6,
+        "name": "Higher Efficiency Air Cooling",
+        "value": 130234567
+      }
+    ]
+  }
+]
