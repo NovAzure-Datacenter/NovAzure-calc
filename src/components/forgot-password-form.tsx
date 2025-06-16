@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { requestPasswordReset, verifyResetCode, updatePassword } from "@/lib/actions/auth";
+import { requestPasswordReset, verifyResetCode, updatePassword } from "@/lib/actions/password/password";
 import { cn } from "@/lib/utils";
 
 type Step = "email" | "code" | "new-password";

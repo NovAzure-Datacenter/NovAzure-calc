@@ -1,21 +1,9 @@
 'use server'
 
-import { getUsersCollection } from "../mongoDb/db";
+import { getUsersCollection } from "../../mongoDb/db";
 import { hash, compare } from "bcrypt";
-import { UserData } from "@/hooks/useUser";
+import { sendEmail, generatePasswordResetEmail } from '../utils/forgot-password-email-template';
 import { ObjectId } from "mongodb";
-import { sendEmail, generatePasswordResetEmail } from './utils/forgot-password-email-template';
-
-export interface LoginData {
-    email: string;
-    password: string;
-}
-
-export interface LoginResponse {
-    success?: boolean;
-    error?: string;
-    user?: UserData;
-}
 
 export interface ResetPasswordRequest {
     email: string;
@@ -32,111 +20,12 @@ export interface UpdatePasswordRequest {
     newPassword: string;
 }
 
-
-{/*
-* Helper functions while in development - remove in production
-convertToClientData() // Convert MongoDB document to safe client data
-createDemoUser() // Create demo user
-*/}
-function convertToClientData(user: any) {
-    return {
-        ...user,
-        _id: user._id.toString(),
-        company_id: user.company_id.toString(),
-        created_at: user.created_at.toISOString()
-    };
-}
-export async function createDemoUser() {
-    try {
-        // Check if demo user already exists
-        const usersCollection = await getUsersCollection(); 
-        const existingUser = await usersCollection.findOne({ email: "demo@example.com" });
-        if (existingUser) {
-            return { error: "Demo user already exists" };
-        }
-
-        const demoUser = {
-            email: "demo@example.com",
-            passwordHash: await hash("demo123", 10), 
-            role: "admin",
-            company_id: new ObjectId(),
-            timezone: "UTC",
-            currency: "USD",
-            unit_system: "metric",
-            created_at: new Date(),
-            name: "Demo User",
-            profile_image: "https://ui-avatars.com/api/?name=Demo+User",
-            company_name: "Demo Company"
-        };
-
-        // Insert demo user
-        const result = await usersCollection.insertOne(demoUser);
-
-        if (!result.acknowledged) {
-            return { error: "Failed to create demo user" };
-        }
-
-        // Return success without sensitive data and convert ObjectId to string
-        const { passwordHash, ...safeUser } = demoUser;
-        return { 
-            success: true, 
-            message: "Demo user created successfully",
-            user: convertToClientData(safeUser)
-        };
-    } catch (error) {
-        console.error("Error creating demo user:", error);
-        return { error: "Failed to create demo user. Error: " + (error as Error).message };
-    }
+export interface ChangePasswordRequest {
+    userId: string;
+    currentPassword: string;
+    newPassword: string;
 }
 
-
-
-{/*
-* Login functions
-login() // Login user
-*/}
-export async function login(data: LoginData): Promise<LoginResponse> {
-    try {
-        const usersCollection = await getUsersCollection(); 
-        const user = await usersCollection.findOne({ email: data.email });
-
-        if (!user) {
-            return { error: "User not found" };
-        }
-
-        const isPasswordValid = await compare(data.password, user.passwordHash);
-
-        if (!isPasswordValid) {
-            return { error: "Invalid password" };
-        }
-
-        // Transform MongoDB user to UserData type
-        const userData: UserData = {
-            name: user.name || "Unknown",
-            account_type: user.role, 
-            profile_image: user.profile_image || "https://ui-avatars.com/api/?name=Unknown",
-            company_name: user.company_name || "Unknown Company"
-        };
-
-        return { 
-            success: true, 
-            user: userData
-        };
-    } catch (error) {
-        console.error("Login error:", error);
-
-        return { error: "An error occurred during login. Please try again." };
-    }
-}
-
-
-
-{/*
-* Password reset functions
-requestPasswordReset() // Send email with reset code
-verifyResetCode() // Verify reset code
-updatePassword() // Update password
-*/}
 export async function requestPasswordReset(data: ResetPasswordRequest) {
     try {
         const usersCollection = await getUsersCollection();
@@ -239,5 +128,36 @@ export async function updatePassword(data: UpdatePasswordRequest) {
     } catch (error) {
         console.error("Error updating password:", error);
         return { error: "Failed to update password" };
+    }
+}
+
+export async function changePassword(data: ChangePasswordRequest) {
+    try {
+        const usersCollection = await getUsersCollection();
+        const user = await usersCollection.findOne({ _id: new ObjectId(data.userId) });
+
+        if (!user) {
+            return { error: "User not found" };
+        }
+
+        // Verify current password
+        const isValidPassword = await compare(data.currentPassword, user.passwordHash);
+        if (!isValidPassword) {
+            return { error: "Current password is incorrect" };
+        }
+
+        // Hash the new password
+        const passwordHash = await hash(data.newPassword, 10);
+
+        // Update password
+        await usersCollection.updateOne(
+            { _id: new ObjectId(data.userId) },
+            { $set: { passwordHash } }
+        );
+
+        return { success: true, message: "Password updated successfully" };
+    } catch (error) {
+        console.error("Error changing password:", error);
+        return { error: "Failed to change password" };
     }
 } 

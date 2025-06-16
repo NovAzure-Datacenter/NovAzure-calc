@@ -69,7 +69,7 @@ function AccountTypeDropdown() {
 			<div className="flex items-center gap-2">
 				<Select
 					value={accountType}
-					onValueChange={(value: "super-admin" | "user") =>
+					onValueChange={(value: "super-admin" | "admin" | "user") =>
 						setAccountType(value)
 					}
 				>
@@ -78,14 +78,25 @@ function AccountTypeDropdown() {
 					</SelectTrigger>
 					<SelectContent>
 						<SelectItem value="super-admin">Super Admin</SelectItem>
+						<SelectItem value="admin">Admin</SelectItem>
 						<SelectItem value="user">User</SelectItem>
 					</SelectContent>
 				</Select>
 				<Badge
-					variant={accountType === "super-admin" ? "default" : "secondary"}
+					variant={
+						accountType === "super-admin"
+							? "default"
+							: accountType === "admin"
+							? "secondary"
+							: "outline"
+					}
 					className="h-8"
 				>
-					{accountType === "super-admin" ? "Super Admin" : "User"}
+					{accountType === "super-admin"
+						? "Super Admin"
+						: accountType === "admin"
+						? "Admin"
+						: "User"}
 				</Badge>
 			</div>
 		</div>

@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, ReactNode } from "react";
 
-type AccountType = "super-admin" | "user";
+type AccountType = "super-admin" | "admin" | "user";
 
 interface AccountTypeContextType {
   accountType: AccountType;
