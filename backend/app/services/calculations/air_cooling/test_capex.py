@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import patch
-from app.services.calculations.air_cooling.capex import calculate_cooling_equipment_capex, calculate_it_equipment_capex, total_capex
+from app.services.calculations.air_cooling.capex import calculate_cooling_equipment_capex, calculate_it_equipment_capex, total_capex, calculate_cooling_capex
 
 MOCK_DATA = {
     "total_it_cost": [
@@ -49,16 +49,61 @@ def test_calculate_it_equipment_capex(mock_get_data):
 
 @patch('app.services.calculations.air_cooling.capex.calculate_cooling_equipment_capex')
 @patch('app.services.calculations.air_cooling.capex.calculate_it_equipment_capex')
-def test_total_capex(mock_it_capex, mock_cooling_capex, mock_get_data):
+def test_total_capex_without_it_cost(mock_it_capex, mock_cooling_capex, mock_get_data):
     mock_cooling_capex.return_value = EXPECTED_LE_RESULT
     mock_it_capex.return_value = 97859534
     
-    result = total_capex(5)
+    result = total_capex(5, include_it_cost=False)
     
     assert result == EXPECTED_LE_RESULT
     mock_cooling_capex.assert_called_once_with(5)
     mock_it_capex.assert_called_once_with(5)
 
-# Note: To test total_capex with include_IT_cost=True, we would need to modify
-# the function to accept this as a parameter or use dependency injection to make 
-# it more testable. This is left as a future enhancement.
+@patch('app.services.calculations.air_cooling.capex.calculate_cooling_equipment_capex')
+@patch('app.services.calculations.air_cooling.capex.calculate_it_equipment_capex')
+def test_total_capex_with_it_cost(mock_it_capex, mock_cooling_capex, mock_get_data):
+    mock_cooling_capex.return_value = EXPECTED_LE_RESULT
+    mock_it_capex.return_value = 97859534
+    expected_total = EXPECTED_LE_RESULT + 97859534
+    
+    result = total_capex(5, include_it_cost=True)
+    
+    assert result == expected_total
+    mock_cooling_capex.assert_called_once_with(5)
+    mock_it_capex.assert_called_once_with(5)
+
+def test_calculate_cooling_capex_without_it_cost(mock_get_data):
+    input_data = {
+        'cooling_capacity_limit': 5,
+        'include_it_cost': False
+    }
+    
+    result = calculate_cooling_capex(input_data)
+    
+    assert result['cooling_equipment_capex'] == EXPECTED_LE_RESULT
+    assert result['it_equipment_capex'] == 97859534
+    assert result['total_capex'] == EXPECTED_LE_RESULT
+
+def test_calculate_cooling_capex_with_it_cost(mock_get_data):
+    input_data = {
+        'cooling_capacity_limit': 5,
+        'include_it_cost': True
+    }
+    
+    result = calculate_cooling_capex(input_data)
+    
+    assert result['cooling_equipment_capex'] == EXPECTED_LE_RESULT
+    assert result['it_equipment_capex'] == 97859534
+    assert result['total_capex'] == EXPECTED_LE_RESULT + 97859534
+
+def test_calculate_cooling_capex_high_efficiency(mock_get_data):
+    input_data = {
+        'cooling_capacity_limit': 10,
+        'include_it_cost': True
+    }
+    
+    result = calculate_cooling_capex(input_data)
+    
+    assert result['cooling_equipment_capex'] == EXPECTED_HE_RESULT
+    assert result['it_equipment_capex'] == 97859534
+    assert result['total_capex'] == EXPECTED_HE_RESULT + 97859534
