@@ -50,7 +50,7 @@ export default function Page() {
 
 			<SidebarInset className="bg-gradient-to-br from-blue-50 to-sky-50 dark:from-blue-950 dark:to-sky-950">
 				<div className="p-4 max-h-screen overflow-x-hidden overflow-y-auto">
-					{renderComponent()}
+					{/* {renderComponent()} */}
 				</div>
 			</SidebarInset>
 		</div>

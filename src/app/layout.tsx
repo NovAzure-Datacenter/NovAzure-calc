@@ -4,6 +4,9 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Providers } from "@/components/providers";
 import Navbar from "@/components/navbar/navbar";
+import { SidebarInset } from "@/components/ui/sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { DebugLayout } from "@/components/debug/debug-layout";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -23,10 +26,13 @@ export default function RootLayout({
 				suppressHydrationWarning
 				className={cn("font-sans antialiased h-auto", inter.variable)}
 			>
-				<Providers>
-					<Navbar />
-					{children}
-				</Providers>
+				<DebugLayout>
+					<Providers>
+						<SidebarProvider className="flex ">
+							<SidebarInset>{children}</SidebarInset>
+						</SidebarProvider>
+					</Providers>
+				</DebugLayout>
 			</body>
 		</html>
 	);
