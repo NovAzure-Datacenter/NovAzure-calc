@@ -3,7 +3,7 @@
 import CustomSidebar from "@/components/sidebar/custom-sidebar";
 import { useState } from "react";
 import { Dashboard } from "./(dashboard)/dashboard";
-
+import { TCOCalculator } from "./(tcocalculator)/tcocalculator";
 import { useParams } from "next/navigation";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { CalculatorsStore } from "./(calculators)/calculators-store";
@@ -28,6 +28,8 @@ export default function Page() {
 				return <Dashboard />;
 			case "/solutions":
 				return <TechnologySelector />;
+			case "/tcocalculator":
+				return <TCOCalculator />;
 			case "/calculators":
 			case "/calculators/UPS-solution":
 			case "/calculators/value-calculator":
@@ -50,7 +52,7 @@ export default function Page() {
 
 			<SidebarInset className="bg-gradient-to-br from-blue-50 to-sky-50 dark:from-blue-950 dark:to-sky-950">
 				<div className="p-4 max-h-screen overflow-x-hidden overflow-y-auto">
-					{/* {renderComponent()} */}
+					{renderComponent()}
 				</div>
 			</SidebarInset>
 		</div>
