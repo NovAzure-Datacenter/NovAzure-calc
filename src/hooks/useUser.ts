@@ -1,11 +1,20 @@
-
 import { useState, useEffect } from "react";
 
 export interface UserData {
-	name: string;
+	first_name: string;
+	last_name: string;
 	account_type: string;
 	profile_image: string;
 	company_name: string;
+	company_id: string;
+	email: string;
+	work_number: string;
+	mobile_number: string;
+	timezone: string;
+	currency: string;
+	unit_system: string;
+	_id: string;
+	role: string;
 }
 
 export function useUser() {
@@ -46,12 +55,10 @@ export function useUser() {
 			setIsUserLoggedIn(!!event.detail);
 		};
 
-		// Add event listeners
 		window.addEventListener("storage", handleStorageChange);
 		window.addEventListener("userChange", handleUserChange as EventListener);
 
 		return () => {
-			// Clean up event listeners
 			window.removeEventListener("storage", handleStorageChange);
 			window.removeEventListener("userChange", handleUserChange as EventListener);
 		};
@@ -65,7 +72,6 @@ export function useUser() {
 				localStorage.removeItem("user");
 			}
 
-			// Dispatch custom event for same-tab updates
 			window.dispatchEvent(new CustomEvent("userChange", { detail: userData }));
 			
 			setUser(userData);

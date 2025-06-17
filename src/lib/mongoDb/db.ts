@@ -1,4 +1,3 @@
-
 import { Db, Collection } from "mongodb";
 import { getConnectedClient } from "./dbConnect";
 
@@ -11,6 +10,11 @@ export async function getDb(): Promise<Db> {
 export async function getUsersCollection(): Promise<Collection> {
     const db = await getDb();
     return db.collection("users");
+}
+
+export async function getCompaniesCollection(): Promise<Collection> {
+    const db = await getDb();
+    return db.collection("companies");
 }
 
 
