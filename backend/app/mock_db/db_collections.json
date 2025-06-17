@@ -20,24 +20,24 @@
       "value": 136472220 
     }
   ],
-  "liquid_cooling_cost_LE": [
+  "annual_cooling_opex": [
     {
       "id": 4,
-      "name": "Lower Efficiency Liquid Cooling",
+      "name": "Annual Cooling OPEX",
       "value": 89234567
     }
   ],
-  "liquid_cooling_cost_HE": [
+  "annual_it_maintenance": [
     {
       "id": 5,
-      "name": "Higher Efficiency Liquid Cooling",
+      "name": "Annual IT Maintenance",
       "value": 92145678
     }
   ],
-  "immersion_cooling_cost": [
+  "opex_lifetime": [
     {
       "id": 6,
-      "name": "Immersion Cooling System",
+      "name": "OPEX Lifetime",
       "value": 78456123
     }
   ]
