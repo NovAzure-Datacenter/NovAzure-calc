@@ -19,5 +19,26 @@
       "name": "Higher Efficiency Air Cooling",
       "value": 136472220 
     }
+  ],
+  "liquid_cooling_cost_LE": [
+    {
+      "id": 4,
+      "name": "Lower Efficiency Liquid Cooling",
+      "value": 89234567
+    }
+  ],
+  "liquid_cooling_cost_HE": [
+    {
+      "id": 5,
+      "name": "Higher Efficiency Liquid Cooling",
+      "value": 92145678
+    }
+  ],
+  "immersion_cooling_cost": [
+    {
+      "id": 6,
+      "name": "Immersion Cooling System",
+      "value": 78456123
+    }
   ]
 }
