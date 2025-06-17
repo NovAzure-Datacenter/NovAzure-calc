@@ -1,23 +1,32 @@
 {
   "total_it_cost": [
     {
-      "id": 1,
       "name": "Total IT Cost",
       "value": 97859534 
     }
   ],
   "air_cooled_cost_with_inflation_LE": [
     {
-      "id": 2,
       "name": "Lower Efficiency Air Cooling",
       "value": 135749738
     }
   ],
   "air_cooled_cost_with_inflation_HE": [
     {
-      "id": 3,
       "name": "Higher Efficiency Air Cooling",
       "value": 136472220 
+    }
+  ],
+  "chassis_solution_capex_in_absence_of_waterloop": [
+    {
+      "name": "Chassis solution capex in absence of Waterloop",
+      "value": 138348319 
+    }
+  ],
+  "chassis_total_it_cost": [
+    {
+      "name": "Total IT cost with geographical adjustment",
+      "value": 94837982 
     }
   ]
 }

@@ -25,7 +25,7 @@ def total_capex(cooling_capacity_limit, include_it_cost):
     
 def calculate_cooling_capex(input):
     """
-    This is the entry point function that will be called from services/calculations/main.py.
+    This is the entry point function for air cooling capex that will be called from services/calculations/main.py.
     It receives a dictionary with required inputs:
     {
         'cooling_capacity_limit': int,
