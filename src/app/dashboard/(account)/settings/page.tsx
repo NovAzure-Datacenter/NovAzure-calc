@@ -17,6 +17,10 @@ import BillingInformationTab from "./components/billing-settings-tab";
 import PersonalProfileTab from "./components/personal-settings-tab";
 import { Separator } from "@/components/ui/separator";
 import { CompanyData, PersonalData, BillingData } from "./components/types";
+import { PersonalProfileCard, CompanyProfileCard } from "@/components/profile-cards";
+import { currencies } from "@/lib/globalConst";
+import { timeZones } from "@/lib/globalConst";
+import { unitSystems } from "@/lib/globalConst";
 
 
 
@@ -27,6 +31,7 @@ export default function AccountSettingsPage() {
 	const [isEditingPersonal, setIsEditingPersonal] = useState(false);
 	const [isEditingCompany, setIsEditingCompany] = useState(false);
 	const [isEditingBilling, setIsEditingBilling] = useState(false);
+	const [activeTab, setActiveTab] = useState("personal");
 
 	// Personal profile state
 	const [personalData, setPersonalData] = useState<PersonalData>({
@@ -44,6 +49,7 @@ export default function AccountSettingsPage() {
 
 	// Company data state
 	const [companyData, setCompanyData] = useState<CompanyData>({
+		companyId: "",
 		companyName: "",
 		companyAddress: "",
 		companyPhone: "",
@@ -63,17 +69,7 @@ export default function AccountSettingsPage() {
 		billingEmail: "",
 	});
 
-	const timeZones = [
-		"America/New_York",
-		"America/Chicago",
-		"America/Denver",
-		"America/Los_Angeles",
-		"Europe/London",
-		"Europe/Paris",
-		"Asia/Tokyo",
-	];
-	const unitSystems = ["metric", "imperial"];
-	const currencies = ["USD", "EUR", "GBP", "CAD", "AUD", "JPY"];
+
 
 	useEffect(() => {
 		if (user) {
@@ -96,6 +92,7 @@ export default function AccountSettingsPage() {
 					if (result.success && result.company) {
 						setCompanyName(result.company.name);
 						setCompanyData({
+							companyId: result.company._id.toString(),
 							companyName: result.company.name || "",
 							companyAddress: result.company.address || "",
 							companyPhone: result.company.contact_number || "",
@@ -149,23 +146,6 @@ export default function AccountSettingsPage() {
 		}
 	};
 
-	//remove this in production
-	// useEffect(() => {
-	// 	if (user) {
-	// 		setPersonalData({
-	// 			first_name: user.first_name || "",
-	// 			last_name: user.last_name || "",
-	// 			email: user.email || "",
-	// 			timezone: user.timezone || "",
-	// 			currency: user.currency || "",
-	// 			unit_system: user.unit_system || "",
-	// 			profile_image: user.profile_image || "",
-	// 			mobile_number: user.mobile_number || "",
-	// 			work_number: user.work_number || "",
-	// 			role: user.role || "",
-	// 		});
-	// 	}
-	// }, [accountType, user]);
 
 	const handleCompanySubmit = (e: FormEvent) => {
 		e.preventDefault();
@@ -191,54 +171,16 @@ export default function AccountSettingsPage() {
 						Manage your account settings and preferences.
 					</p>
 					{/* Profile Card */}
-					<Card className="p-6 ">
-						<div className="flex flex-col space-y-6 md:flex-row md:items-center md:space-x-6 md:space-y-0">
-							<div className="relative">
-								<Avatar className="h-24 w-24 border-2 border-border">
-									<AvatarImage
-										src={personalData.profile_image || "/placeholder.svg"}
-										className="object-cover"
-									/>
-									<AvatarFallback className="text-xl">
-										{personalData.first_name[0]}
-										{personalData.last_name[0]}
-									</AvatarFallback>
-								</Avatar>
-							</div>
-							<div className="flex flex-1 flex-col space-y-4">
-								<div className="space-y-1">
-									<h2 className="text-2xl font-semibold tracking-tight">
-										{personalData.first_name} {personalData.last_name}
-									</h2>
-									<p className="text-sm text-muted-foreground">
-										{companyName || "No company assigned"}
-									</p>
-									<p className="text-sm text-muted-foreground">
-										{personalData.email}
-									</p>
-								</div>
-								<div className="flex flex-wrap gap-4">
-									<div className="flex items-center space-x-2">
-										<Phone className="h-4 w-4 text-muted-foreground" />
-										<span className="text-sm text-muted-foreground">
-											{personalData.mobile_number || "No mobile number"}
-										</span>
-									</div>
-									<div className="flex items-center space-x-2">
-										<Building2 className="h-4 w-4 text-muted-foreground" />
-										<span className="text-sm text-muted-foreground">
-											{personalData.work_number || "No work number"}
-										</span>
-									</div>
-								</div>
-							</div>
-						</div>
-					</Card>
+					{personalData.role === "super-admin" && activeTab === "company" ? (
+						<CompanyProfileCard companyData={companyData} />
+					) : (
+						<PersonalProfileCard personalData={personalData} companyName={companyName} />
+					)}
 				</div>
 				<Separator />
 
 				{personalData.role === "super-admin" ? (
-					<Tabs defaultValue="personal">
+					<Tabs defaultValue="personal" onValueChange={setActiveTab}>
 						<TabsList className="grid w-auto grid-cols-3 h-12">
 							<TabsTrigger
 								value="personal"
