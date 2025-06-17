@@ -46,5 +46,31 @@
       "name": "Higher Efficiency Air Cooling",
       "value": 130234567
     }
+  ],
+  "chassis_markup": [
+    {
+      "name": "Chassis markup KU:L 2",
+      "value": 2250000
+    },
+    {
+      "name": "Chassis markup KU:L Box 3U",
+      "value": 2250000
+    }
+  ],
+  "chassis_capex_with_inflation": [
+    {
+      "name": "Capex with inflation KU:L 2",
+      "value": 136134281
+    },
+    {
+      "name": "Capex with inflation KU:L Box 3U",
+      "value": 125835281
+    }
+  ],
+  "total_it_cost_per_kw": [
+    {
+      "name": "Total IT cost per KW",
+      "value": 12645.064 
+    }
   ]
 }
