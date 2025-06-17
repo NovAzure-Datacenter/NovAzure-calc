@@ -31,24 +31,20 @@
   ],
   "annual_Cooling_Opex": [
     {
-      "id": 4,
       "name": "Total IT Cost",
       "value": 89234567
     }
   ],
   "annual_IT_Equipment_Maintenance": [
     {
-      "id": 5,
       "name": "Lower Efficiency Air Cooling",
       "value": 128765432
     }
   ],
   "opex_for_Lifetime_of_Operation": [
     {
-      "id": 6,
       "name": "Higher Efficiency Air Cooling",
       "value": 130234567
     }
   ]
 }
-]
