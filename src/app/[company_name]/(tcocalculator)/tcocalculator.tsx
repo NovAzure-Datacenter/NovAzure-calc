@@ -74,6 +74,28 @@ export function TCOCalculator() {
         });
     }
 
+    function handleReset() {
+        setValueCaptured(false);
+        setPocCost("No");
+        setPocCostValue("");
+        setUserName("");
+        setUserEmail("");
+        setDeploymentType("Greenfield");
+        setDataCentreType("none");
+        setUtilisation("none");
+        setYearsOfOperation("");
+        setProjectLocation("none");
+        setDataHallCapacity("");
+        setFirstYear("none");
+        setAirCoolingPUE("");
+        setLiquidCoolingPUE("");
+        setIceotopePricingMethod("");
+        setRetrofitProjectType("expansion");
+        setIceotopeRackCount("");
+        setShowDefinitions(false);
+        setShowResultTable(false);
+    }
+
     return (
         <div className="flex justify-center w-full min-h-screen bg-muted">
             <div className="w-full max-w-5xl space-y-6 p-4 md:p-8">
@@ -958,10 +980,10 @@ export function TCOCalculator() {
                     )}
                     <div className="flex gap-6 mt-4">
                         <Button type="button" className="bg-[#11182A] text-white font-semibold px-10 py-4 text-lg rounded-lg" onClick={() => setShowResultTable(true)}>Show Result</Button>
-                        <Button type="button" className="bg-[#11182A] text-white font-semibold px-10 py-4 text-lg rounded-lg">Reset</Button>
+                        <Button type="button" className="bg-[#11182A] text-white font-semibold px-10 py-4 text-lg rounded-lg" onClick={handleReset}>Reset</Button>
                     </div>
                     {showResultTable && (
-                        <div className="w-full max-w-5xl mx-auto p-4 md:p-8 space-y-16">
+                        <div id="tco-dashboard-export" className="w-full max-w-5xl mx-auto p-4 md:p-8 space-y-16">
                             {/* Demonstrated Value Comparison Table */}
                             <div>
                                 <h2 className="text-2xl font-semibold mb-6">Demonstrated Value Comparison</h2>
