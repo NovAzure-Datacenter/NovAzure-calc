@@ -284,15 +284,17 @@ export const defautlSideBarItems: DefaultItem[] = [
 		url: "/dashboard",
 	},
 	{
-		title: "Users",
-		icon: UsersIcon,
-		url: "/users",
-	},
-	{
 		title: "TCO Calculator",
 		icon: CalculatorIcon,
 		url: "/tcocalculator",
 	},
+	{
+		title: "Users",
+		icon: UsersIcon,
+		url: "/dashboard/users",
+	},
+
+
 ];
 
 export const teams: Team[] = [
