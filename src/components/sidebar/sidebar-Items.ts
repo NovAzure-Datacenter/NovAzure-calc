@@ -282,7 +282,7 @@ export const defautlSideBarItems: DefaultItem[] = [
 	{
 		title: "Users",
 		icon: UsersIcon,
-		url: "/users",
+		url: "/dashboard/users",
 	}
 ];
 

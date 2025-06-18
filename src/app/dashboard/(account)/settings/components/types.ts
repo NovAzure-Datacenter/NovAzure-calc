@@ -12,6 +12,7 @@ export interface PersonalData {
 }
 
 export interface CompanyData {
+	companyId: string;
 	companyName: string;
 	companyAddress: string;
 	companyPhone: string;
