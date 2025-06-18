@@ -34,6 +34,9 @@ export function TCOCalculator() {
 
     const [iceotopePricingMethod, setIceotopePricingMethod] = useState("");
 
+    const [retrofitProjectType, setRetrofitProjectType] = useState("expansion");
+    const [iceotopeRackCount, setIceotopeRackCount] = useState("");
+
     const dataCentreTypeOptions = ["General Purpose", "HPC/AI"];
     const utilisationOptions = ["25%", "50%", "75%", "100%"];
     const projectLocationOptions = ["USA", "UK", "Singapore", "UAE"];
@@ -362,33 +365,35 @@ export function TCOCalculator() {
                                             </SelectContent>
                                         </Select>
                                     </div>
-                                    <div>
-                                        <div className="mb-2 flex items-center justify-between">
-                                            <Label className="text-xs text-muted-foreground" htmlFor="dataHallCapacity">
-                                                Data Hall Design Capacity MW *
-                                            </Label>
-                                            <TooltipProvider>
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <button type="button" tabIndex={0} aria-label="Info about data hall capacity" className="focus:outline-none">
-                                                            <Info className="w-4 h-4 text-muted-foreground" />
-                                                        </button>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent side="top" className="max-w-xs">
-                                                        Size of the data hall in Megawatts (MW).
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            </TooltipProvider>
+                                    {deploymentType === "Greenfield" && (
+                                        <div>
+                                            <div className="mb-2 flex items-center justify-between">
+                                                <Label className="text-xs text-muted-foreground" htmlFor="dataHallCapacity">
+                                                    Data Hall Design Capacity MW *
+                                                </Label>
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <button type="button" tabIndex={0} aria-label="Info about data hall capacity" className="focus:outline-none">
+                                                                <Info className="w-4 h-4 text-muted-foreground" />
+                                                            </button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent side="top" className="max-w-xs">
+                                                            Size of the data hall in Megawatts (MW).
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            </div>
+                                            <Input
+                                                type="number"
+                                                min="0"
+                                                step="0.01"
+                                                value={dataHallCapacity}
+                                                onChange={(e) => setDataHallCapacity(e.target.value)}
+                                                className="w-full border rounded px-3 py-2"
+                                            />
                                         </div>
-                                        <Input
-                                            type="number"
-                                            min="0"
-                                            step="0.01"
-                                            value={dataHallCapacity}
-                                            onChange={(e) => setDataHallCapacity(e.target.value)}
-                                            className="w-full border rounded px-3 py-2"
-                                        />
-                                    </div>
+                                    )}
                                     <div>
                                         <div className="mb-2 flex items-center justify-between">
                                             <Label className="text-xs text-muted-foreground" htmlFor="firstYear">
@@ -425,15 +430,94 @@ export function TCOCalculator() {
                                 </div>
                             </div>
                             {/* Cooling Configuration */}
-                            <div className="w-full mb-10">
-                                <h2 className="text-xl font-semibold mb-4">Cooling Configuration</h2>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <h3 className="text-md font-semibold mb-1">Air Cooling</h3>
-                                        <Label className="text-xs text-muted-foreground mb-2" htmlFor="airCoolingPUE" title="Annualized partial Power Usage Effectiveness for Air Cooling at selected utilization">
-                                            Annualised Air pPUE (at selected % of utilisation) *
-                                        </Label>
-                                        <div className="flex items-center gap-2">
+                            {deploymentType === "Greenfield" ? (
+                                <div className="w-full mb-10">
+                                    <h2 className="text-xl font-semibold mb-4">Cooling Configuration</h2>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <h3 className="text-md font-semibold">Air Cooling</h3>
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <button type="button" tabIndex={0} aria-label="Info about Air Cooling" className="focus:outline-none">
+                                                                <Info className="w-4 h-4 text-muted-foreground" />
+                                                            </button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent side="top" className="max-w-xs">
+                                                            Air Cooling refers to traditional data center cooling using chilled air to dissipate heat from IT equipment. Enter the annualized partial Power Usage Effectiveness (pPUE) for your air-cooled setup.
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            </div>
+                                            <Label className="text-xs text-muted-foreground mb-2" htmlFor="airCoolingPUE" title="Annualized partial Power Usage Effectiveness for Air Cooling at selected utilization">
+                                                Annualised Air pPUE (at selected % of utilisation) *
+                                            </Label>
+                                            <div className="flex items-center gap-2">
+                                                <Input
+                                                    type="number"
+                                                    step="0.01"
+                                                    min="0"
+                                                    value={airCoolingPUE}
+                                                    onChange={(e) => setAirCoolingPUE(e.target.value)}
+                                                    className="w-full border rounded px-3 py-2"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <h3 className="text-md font-semibold">Chassis Immersion Precision Liquid Cooling</h3>
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <button type="button" tabIndex={0} aria-label="Info about Chassis Immersion Precision Liquid Cooling" className="focus:outline-none">
+                                                                <Info className="w-4 h-4 text-muted-foreground" />
+                                                            </button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent side="top" className="max-w-xs">
+                                                            Chassis Immersion is our advanced liquid cooling solution, providing efficient thermal management for high-density compute environments. Select your configuration and enter the required values for accurate TCO calculation.
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            </div>
+                                            <Label className="text-xs text-muted-foreground mb-2" htmlFor="liquidCoolingPUE" title="Annualized partial Power Usage Effectiveness for Chassis Immersion Liquid Cooling">
+                                                Annualised Liquid Cooled pPUE at selected % of load:
+                                            </Label>
+                                            <Input
+                                                type="number"
+                                                step="0.01"
+                                                min="0"
+                                                value={liquidCoolingPUE}
+                                                onChange={(e) => setLiquidCoolingPUE(e.target.value)}
+                                                className="w-full border rounded px-3 py-2"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="w-full mb-10">
+                                    <h2 className="text-xl font-semibold mb-4">Cooling Configuration</h2>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                        {/* Air Cooling */}
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <h3 className="text-md font-semibold">Air Cooling</h3>
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <button type="button" tabIndex={0} aria-label="Info about Air Cooling" className="focus:outline-none">
+                                                                <Info className="w-4 h-4 text-muted-foreground" />
+                                                            </button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent side="top" className="max-w-xs">
+                                                            Air Cooling refers to traditional data center cooling using chilled air to dissipate heat from IT equipment. Enter the annualized partial Power Usage Effectiveness (pPUE) for your air-cooled setup.
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            </div>
+                                            <Label className="text-xs text-muted-foreground mb-2" htmlFor="airCoolingPUE">
+                                                Annualised Air pPUE (at selected % of utilisation) *
+                                            </Label>
                                             <Input
                                                 type="number"
                                                 step="0.01"
@@ -442,43 +526,107 @@ export function TCOCalculator() {
                                                 onChange={(e) => setAirCoolingPUE(e.target.value)}
                                                 className="w-full border rounded px-3 py-2"
                                             />
-                                            <span className="text-base font-semibold">1.35</span>
-                                            <TooltipProvider>
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <button type="button" tabIndex={0} aria-label="Info about Air pPUE" className="focus:outline-none">
-                                                            <Info className="w-4 h-4 text-muted-foreground" />
-                                                        </button>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent side="top" className="max-w-xs">
-                                                        Typical Air Annualised pPUE (partial Power Usage Effectiveness for cooling) for the selected location at selected load. Please ensure any inputed pPUE value is above 1.00 and below 3.00. The suggested average market value is to the right and based on the selected load of 60%. At 100% of load, the selected location has average market pPUE of 1.2
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            </TooltipProvider>
+                                        </div>
+                                        {/* Chassis Immersion Precision Liquid Cooling */}
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <h3 className="text-md font-semibold">Chassis Immersion Precision Liquid Cooling</h3>
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <button type="button" tabIndex={0} aria-label="Info about Chassis Immersion Precision Liquid Cooling" className="focus:outline-none">
+                                                                <Info className="w-4 h-4 text-muted-foreground" />
+                                                            </button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent side="top" className="max-w-xs">
+                                                            Chassis Immersion is our advanced liquid cooling solution, providing efficient thermal management for high-density compute environments. Select your configuration and enter the required values for accurate TCO calculation.
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            </div>
+                                            <Label className="text-xs text-muted-foreground mb-2" htmlFor="liquidCoolingPUE">
+                                                Annualised Liquid Cooled pPUE at selected % of load:
+                                            </Label>
+                                            <Input
+                                                type="number"
+                                                step="0.01"
+                                                min="0"
+                                                value={liquidCoolingPUE}
+                                                onChange={(e) => setLiquidCoolingPUE(e.target.value)}
+                                                className="w-full border rounded px-3 py-2"
+                                            />
+                                            <div className="mt-4">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className="font-semibold">Retrofit project type</span>
+                                                    <TooltipProvider>
+                                                        <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                                <button type="button" tabIndex={0} aria-label="Info about Retrofit project type" className="focus:outline-none">
+                                                                    <Info className="w-4 h-4 text-muted-foreground" />
+                                                                </button>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent side="top" className="max-w-xs">
+                                                                Select whether this retrofit is an Expansion (adding new racks to existing infrastructure) or a Replacement (replacing existing racks with Chassis Immersion racks).
+                                                            </TooltipContent>
+                                                        </Tooltip>
+                                                    </TooltipProvider>
+                                                </div>
+                                                <div className="flex items-center gap-4 mt-2">
+                                                    <label className="flex items-center gap-2">
+                                                        <input
+                                                            type="radio"
+                                                            name="retrofitProjectType"
+                                                            value="expansion"
+                                                            checked={retrofitProjectType === "expansion"}
+                                                            onChange={() => setRetrofitProjectType("expansion")}
+                                                            className="accent-blue-700"
+                                                        />
+                                                        Expansion
+                                                    </label>
+                                                    <label className="flex items-center gap-2">
+                                                        <input
+                                                            type="radio"
+                                                            name="retrofitProjectType"
+                                                            value="replacement"
+                                                            checked={retrofitProjectType === "replacement"}
+                                                            onChange={() => setRetrofitProjectType("replacement")}
+                                                            className="accent-blue-700"
+                                                        />
+                                                        Replacement
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {/* Number of Chassis Immersion Racks and Calculated Capacity */}
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <Label className="text-xs text-muted-foreground" htmlFor="chassisImmersionRackCount">
+                                                    Number of Chassis Immersion Racks to Put In *
+                                                </Label>
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <button type="button" tabIndex={0} aria-label="Info about Chassis Immersion Racks" className="focus:outline-none">
+                                                                <Info className="w-4 h-4 text-muted-foreground" />
+                                                            </button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent side="top" className="max-w-xs">
+                                                            Enter the total number of Chassis Immersion racks you are planning to install as part of this retrofit project. This is a required field for accurate calculations.
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            </div>
+                                            <Input
+                                                type="number"
+                                                min="1"
+                                                value={iceotopeRackCount}
+                                                onChange={(e) => setIceotopeRackCount(e.target.value)}
+                                                className="w-full border rounded px-3 py-2"
+                                            />
                                         </div>
                                     </div>
-                                    <div>
-                                        <h3 className="text-md font-semibold mb-1">Iceotope Precision Liquid Cooling</h3>
-                                        <Label className="text-xs text-muted-foreground mb-2" htmlFor="liquidCoolingPUE" title="Annualized partial Power Usage Effectiveness for Iceotope Liquid Cooling">
-                                            Annualised Liquid Cooled pPUE at selected % of load:
-                                        </Label>
-                                        <Input
-                                            type="number"
-                                            step="0.01"
-                                            min="0"
-                                            value={liquidCoolingPUE}
-                                            onChange={(e) => setLiquidCoolingPUE(e.target.value)}
-                                            className="w-full border rounded px-3 py-2"
-                                        />
-                                    </div>
                                 </div>
-                                <div className="mt-6">
-                                    <Button type="button" className="bg-[#11182A] text-white font-semibold px-10 py-4 text-lg rounded-lg">Advanced...</Button>
-                                    <p className="text-red-600 text-sm mt-2">
-                                        Please ensure all required fields are completed to access the Advanced section or show results!
-                                    </p>
-                                </div>
-                            </div>
+                            )}
                             <p className="text-sm text-muted-foreground italic mb-6">
                                 An asterisk * denotes that the field is required to view results
                             </p>
