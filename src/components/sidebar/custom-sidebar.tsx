@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import Image from "next/image";	
+import Image from "next/image";
 
 import {
 	BadgeCheck,
@@ -55,13 +55,15 @@ import {
 	sellerSideBarTools,
 } from "./sidebar-Items";
 import { DropdownMenu } from "@/components/ui/dropdown-menu";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Separator } from "@/components/ui/separator";
 
 import { SidebarItem as MenuItem, Project } from "./sidebar-items-types";
 import { UserData, useUser } from "@/hooks/useUser";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { useTheme } from "next-themes";
+import { getCompanyDetails } from "@/lib/actions/company/company";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type SidebarType = "seller" | "buyer" | "admin";
 
@@ -86,14 +88,36 @@ export default function CustomSidebar({
 	setActiveTab: (component: string) => void;
 } & React.ComponentProps<typeof Sidebar>) {
 	const [sideBarType, setSideBarType] = useState<SidebarType>("buyer");
-	const { user, isLoading } = useUser();
+	const { user, isLoading: isUserLoading } = useUser();
 	const sidebarTools = getSidebarTools(sideBarType);
+	const [companyDetails, setCompanyDetails] = useState<{
+		name: string;
+		logo: string;
+	} | null>(null);
+	const [isCompanyLoading, setIsCompanyLoading] = useState(true);
 
-	React.useEffect(() => {
+	useEffect(() => {
 		if (user?.account_type) {
 			setSideBarType(user.account_type as SidebarType);
 		}
-	}, [user, isLoading]);
+	}, [user, isUserLoading]);
+
+	useEffect(() => {
+		async function fetchCompanyDetails() {
+			setIsCompanyLoading(true);
+			if (user?.company_id) {
+				const result = await getCompanyDetails(user.company_id);
+				if (result.success && result.company) {
+					setCompanyDetails({
+						name: result.company.name,
+						logo: result.company.logo,
+					});
+				}
+			}
+			setIsCompanyLoading(false);
+		}
+		fetchCompanyDetails();
+	}, [user?.company_id]);
 
 	return (
 		<Sidebar
@@ -106,16 +130,29 @@ export default function CustomSidebar({
 				<SidebarHeader className=" px-4 full">
 					<div className="flex items-center gap-6">
 						<div className="relative h-14 w-14 overflow-hidden rounded-full border border-border dark:bg-white">
-							<Image
-								src="/images/logos/logo_iceotope.png"
-								alt="Company Logo"
-								width={56}
-								height={56}
-								className="object-scale-down"
-							/>
+							{isCompanyLoading ? (
+								<Skeleton className="h-14 w-14 rounded-full" />
+							) : (
+								<Avatar className="h-14 w-14 rounded-full">
+									<AvatarImage
+										src={companyDetails?.logo || "/images/profile/default-profile-pic.png"}
+										alt="Company Logo"
+										className="object-cover"
+									/>
+									<AvatarFallback className="rounded-full">
+										{companyDetails?.name?.charAt(0) || "C"}
+									</AvatarFallback>
+								</Avatar>
+							)}
 						</div>
 						<div className="flex flex-col mr-8">
-							<span className="font-semibold ">{"iceotope".toUpperCase()}</span>
+							{isCompanyLoading ? (
+								<Skeleton className="h-5 w-24" />
+							) : (
+								<span className="font-semibold ">
+									{companyDetails?.name || "No Company"}
+								</span>
+							)}
 						</div>
 					</div>
 				</SidebarHeader>
@@ -128,10 +165,23 @@ export default function CustomSidebar({
 						items={sidebarTools.items}
 						setActiveTab={setActiveTab}
 						activeTab={activeTab}
-					/> 
+					/>
 					<NavSecond projects={sidebarTools.projects} />
 				</SidebarContent>
-				<SidebarFooter>{user && <NavUser user={user} setActiveTab={setActiveTab} />}</SidebarFooter>
+				<SidebarFooter>
+					{isUserLoading ? (
+						<div className="p-4">
+							<div className="flex items-center gap-4">
+								<Skeleton className="h-8 w-8 rounded-lg" />
+								<div className="space-y-2">
+									<Skeleton className="h-4 w-24" />
+								</div>
+							</div>
+						</div>
+					) : (
+						user && <NavUser user={user} setActiveTab={setActiveTab} />
+					)}
+				</SidebarFooter>
 			</>
 		</Sidebar>
 	);
@@ -339,7 +389,13 @@ function NavSecond({ projects }: { projects: Project[] }) {
 	);
 }
 
-function NavUser({ user, setActiveTab }: { user: UserData, setActiveTab: (tab: string) => void }) {
+function NavUser({
+	user,
+	setActiveTab,
+}: {
+	user: UserData;
+	setActiveTab: (tab: string) => void;
+}) {
 	const { isMobile } = useSidebar();
 	const { theme, setTheme } = useTheme();
 
@@ -364,7 +420,6 @@ function NavUser({ user, setActiveTab }: { user: UserData, setActiveTab: (tab: s
 					</SidebarMenuButton>
 				</SidebarMenuItem>
 
-						
 				<SidebarMenuItem>
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
@@ -373,11 +428,16 @@ function NavUser({ user, setActiveTab }: { user: UserData, setActiveTab: (tab: s
 								className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
 							>
 								<Avatar className="h-8 w-8 rounded-lg">
-									<AvatarImage src={user.profile_image} alt={user.first_name + " " + user.last_name} />
+									<AvatarImage
+										src={user.profile_image}
+										alt={user.first_name + " " + user.last_name}
+									/>
 									<AvatarFallback className="rounded-lg">CN</AvatarFallback>
 								</Avatar>
 								<div className="grid flex-1 text-left text-sm leading-tight">
-									<span className="truncate font-medium">{user.first_name + " " + user.last_name}</span>
+									<span className="truncate font-medium">
+										{user.first_name + " " + user.last_name}
+									</span>
 								</div>
 								<ChevronsUpDown className="ml-auto size-4" />
 							</SidebarMenuButton>
@@ -391,18 +451,25 @@ function NavUser({ user, setActiveTab }: { user: UserData, setActiveTab: (tab: s
 							<DropdownMenuLabel className="p-0 font-normal">
 								<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
 									<Avatar className="h-8 w-8 rounded-lg">
-										<AvatarImage src={user.profile_image} alt={user.first_name + " " + user.last_name} />
+										<AvatarImage
+											src={user.profile_image}
+											alt={user.first_name + " " + user.last_name}
+										/>
 										<AvatarFallback className="rounded-lg">CN</AvatarFallback>
 									</Avatar>
 									<div className="grid flex-1 text-left text-sm leading-tight">
-										<span className="truncate font-medium">{user.first_name + " " + user.last_name}</span>
+										<span className="truncate font-medium">
+											{user.first_name + " " + user.last_name}
+										</span>
 									</div>
 								</div>
 							</DropdownMenuLabel>
 							<DropdownMenuSeparator />
 
 							<DropdownMenuGroup>
-								<DropdownMenuItem onClick={() => setActiveTab('/dashboard/account/settings')}>
+								<DropdownMenuItem
+									onClick={() => setActiveTab("/dashboard/account/settings")}
+								>
 									<BadgeCheck />
 									Account
 								</DropdownMenuItem>
@@ -413,10 +480,12 @@ function NavUser({ user, setActiveTab }: { user: UserData, setActiveTab: (tab: s
 								</DropdownMenuItem>
 							</DropdownMenuGroup>
 							<DropdownMenuSeparator />
-							<DropdownMenuItem onClick={() => {
-								localStorage.removeItem("user");
-								window.location.href = "/login";
-							}}>
+							<DropdownMenuItem
+								onClick={() => {
+									localStorage.removeItem("user");
+									window.location.href = "/login";
+								}}
+							>
 								<LogOut />
 								Log out
 							</DropdownMenuItem>
@@ -427,4 +496,3 @@ function NavUser({ user, setActiveTab }: { user: UserData, setActiveTab: (tab: s
 		</SidebarGroup>
 	);
 }
-
