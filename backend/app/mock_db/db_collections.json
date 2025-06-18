@@ -29,24 +29,6 @@
       "value": 94837982 
     }
   ],
-  "annual_Cooling_Opex": [
-    {
-      "name": "Total IT Cost",
-      "value": 89234567
-    }
-  ],
-  "annual_IT_Equipment_Maintenance": [
-    {
-      "name": "Lower Efficiency Air Cooling",
-      "value": 128765432
-    }
-  ],
-  "opex_for_Lifetime_of_Operation": [
-    {
-      "name": "Higher Efficiency Air Cooling",
-      "value": 130234567
-    }
-  ],
   "chassis_markup": [
     {
       "name": "Chassis markup KU:L 2",
@@ -72,5 +54,41 @@
       "name": "Total IT cost per KW",
       "value": 12645.064 
     }
-  ]
+  ],
+    "annual_Cooling_Opex_LE": [
+      {
+        "name": "Annual Cooling OPEX LE",
+        "value": 18654697
+      }
+    ],
+    "annual_Cooling_Opex_HE": [
+      {
+        "name": "Annual Cooling OPEX HE",
+        "value": 18712495
+      }
+    ],
+    "annual_IT_Equipment_Maintenance_LE": [
+      {
+        "name": "Annual IT Equipment Maintenance LE",
+        "value": 7828763
+      }
+    ],
+    "annual_IT_Equipment_Maintenance_HE": [
+      {
+        "name": "Annual IT Equipment Maintenance HE",
+        "value": 7828763
+      }
+    ],
+    "lifetime_Opex_LE": [
+      {
+        "name": "Lifetime OPEX LE",
+        "value": 159586426
+      }
+    ],
+    "lifetime_Opex_HE": [
+      {
+        "name": "Lifetime OPEX HE",
+        "value": 160164412
+      }
+    ]
 }
