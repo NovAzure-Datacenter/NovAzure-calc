@@ -29,7 +29,7 @@ export function LoginForm({
 
 		try {
 			const formData = new FormData(e.currentTarget);
-			const email = formData.get("email") as string;
+			const email = (formData.get("email") as string).toLowerCase();
 			const password = formData.get("password") as string;
 
 			const result = await signIn("credentials", {
@@ -52,7 +52,7 @@ export function LoginForm({
 				});
 				router.push("/dashboard");
 			} else {
-				// Handle case where neither error nor ok is true
+
 				console.log("Unexpected result:", result);
 				toast.error("Login Failed", {
 					description: "Authentication failed. Please try again.",

@@ -167,7 +167,11 @@ export default function CustomSidebar({
 				<Separator className="mb-4" />
 
 				<SidebarContent className="space-y-4">
-					<NavDefault setActiveTab={setActiveTab} activeTab={activeTab} />
+					<NavDefault
+						setActiveTab={setActiveTab}
+						activeTab={activeTab}
+						user={user}
+					/>
 					<NavMain
 						items={sidebarTools.items}
 						setActiveTab={setActiveTab}
@@ -197,18 +201,29 @@ export default function CustomSidebar({
 function NavDefault({
 	setActiveTab,
 	activeTab,
+	user,
 }: {
 	setActiveTab: (tab: string) => void;
 	activeTab: string;
+	user: UserData | null;
 } & React.ComponentProps<typeof Sidebar>) {
 	const [isMenuItemHovered, setIsMenuItemHovered] = useState<string | null>(
 		null
 	);
 
+	// Check if user has admin or super-admin role - this needs be revisited as the sidebar content grows
+	const isAdminUser = user?.role === "admin" || user?.role === "super-admin";
+	const filteredItems = defautlSideBarItems.filter((item) => {
+		if (item.title === "Users" && !isAdminUser) {
+			return false;
+		}
+		return true;
+	});
+
 	return (
 		<SidebarGroup>
 			<SidebarMenu>
-				{defautlSideBarItems.map((item) => (
+				{filteredItems.map((item) => (
 					<SidebarMenuItem key={item.title}>
 						<SidebarMenuButton
 							asChild

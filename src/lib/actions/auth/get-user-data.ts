@@ -1,6 +1,6 @@
 "use server";
 
-import { getUsersCollection } from "@/lib/mongoDb/db";
+import { getUsersCollection, getCompaniesCollection } from "@/lib/mongoDb/db";
 import { ObjectId } from "mongodb";
 import { UserData } from "@/hooks/useUser";
 
@@ -13,13 +13,21 @@ export async function getUserData(userId: string): Promise<UserData | null> {
 			return null;
 		}
 
+		// Fetch company name based on company_id
+		let companyName = "Unknown Company";
+		if (user.company_id) {
+			const companiesCollection = await getCompaniesCollection();
+			const company = await companiesCollection.findOne({ _id: user.company_id });
+			companyName = company?.name || "Unknown Company";
+		}
+
 		return {
 			first_name: user.first_name || "Unknown",
 			last_name: user.last_name || "",
 			account_type: user.role || "user",
 			profile_image:
 				user.profile_image || "/images/profile/default-profile-pic.png",
-			company_name: user.company_name || "Unknown Company",
+			company_name: companyName,
 			company_id: user.company_id.toString(),
 			email: user.email,
 			work_number: user.work_number || "",
