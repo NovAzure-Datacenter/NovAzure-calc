@@ -1,6 +1,6 @@
 'use server'
 
-import { getUsersCollection } from "../../mongoDb/db";
+import { getUsersCollection, getCompaniesCollection } from "../../mongoDb/db";
 import { compare } from "bcrypt";
 import { UserData } from "@/hooks/useUser";
 import { ObjectId } from "mongodb";
@@ -37,11 +37,18 @@ export async function login(data: LoginData): Promise<LoginResponse> {
             return { error: "User not found" };
         }
 
-
         const isPasswordValid = await compare(data.password, user.passwordHash);
 
         if (!isPasswordValid) {
             return { error: "Invalid password" };
+        }
+
+        // Fetch company name based on company_id
+        let companyName = "Unknown Company";
+        if (user.company_id) {
+            const companiesCollection = await getCompaniesCollection();
+            const company = await companiesCollection.findOne({ _id: user.company_id });
+            companyName = company?.name || "Unknown Company";
         }
 
         // Transform MongoDB user to UserData type
@@ -52,7 +59,7 @@ export async function login(data: LoginData): Promise<LoginResponse> {
             work_number: user.work_number || "",
             mobile_number: user.mobile_number || "",
             profile_image: user.profile_image || "/images/profile/default-profile-pic.png",
-            company_name: user.company_name || "Unknown Company",
+            company_name: companyName,
             company_id: user.company_id.toString(),
             email: user.email,
             timezone: user.timezone || "UTC",
@@ -61,7 +68,6 @@ export async function login(data: LoginData): Promise<LoginResponse> {
             _id: user._id.toString(),
             role: user.role || "user"
         };
-
 
         return { 
             success: true, 

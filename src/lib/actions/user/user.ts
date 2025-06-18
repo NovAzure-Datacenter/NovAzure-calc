@@ -1,6 +1,6 @@
 "use server";
 
-import { getUsersCollection } from "../../mongoDb/db";
+import { getUsersCollection, getCompaniesCollection } from "../../mongoDb/db";
 import { ObjectId } from "mongodb";
 import { hash } from "bcrypt";
 import { sendEmail, generateWelcomeEmail } from "../utils/SMTP-email-template";
@@ -77,6 +77,14 @@ export async function updateUserProfile(
 export async function getUsersByCompany(companyId: string) {
 	try {
 		const usersCollection = await getUsersCollection();
+		const companiesCollection = await getCompaniesCollection();
+
+		// First get the company name
+		const company = await companiesCollection.findOne({
+			_id: new ObjectId(companyId),
+		});
+		const companyName = company?.name || "Unknown Company";
+
 		const users = await usersCollection
 			.find({ company_id: new ObjectId(companyId) })
 			.toArray();
@@ -91,7 +99,7 @@ export async function getUsersByCompany(companyId: string) {
 			last_name: user.last_name || "",
 			email: user.email,
 			role: user.role || "user",
-			company_name: user.company_name || "",
+			company_name: companyName, // Use the fetched company name
 			mobile_number: user.mobile_number || "",
 			work_number: user.work_number || "",
 			timezone: user.timezone || "",
@@ -130,7 +138,11 @@ export async function createUser(data: CreateUserData) {
 	try {
 		const usersCollection = await getUsersCollection();
 
-		const existingUser = await usersCollection.findOne({ email: data.email });
+		const normalizedEmail = data.email.toLowerCase();
+
+		const existingUser = await usersCollection.findOne({
+			email: normalizedEmail,
+		});
 		if (existingUser) {
 			return { error: "User with this email already exists" };
 		}
@@ -146,11 +158,10 @@ export async function createUser(data: CreateUserData) {
 		const newUser = {
 			first_name: data.first_name,
 			last_name: data.last_name,
-			email: data.email,
+			email: normalizedEmail,
 			passwordHash,
 			role: data.role,
 			company_id: new ObjectId(data.company_id),
-			company_name: data.company_name,
 			mobile_number: data.mobile_number || "",
 			work_number: data.work_number || "",
 			timezone: data.timezone || "UTC",
@@ -179,7 +190,7 @@ export async function createUser(data: CreateUserData) {
 		try {
 			await sendEmail({
 				to: data.email,
-				subject: `Welcome to ${data.company_name}!`,
+				subject: `Welcome to NovAzure`,
 				html: generateWelcomeEmail(
 					data.first_name,
 					data.last_name,
@@ -199,7 +210,7 @@ export async function createUser(data: CreateUserData) {
 				last_name: createdUser.last_name,
 				email: createdUser.email,
 				role: createdUser.role,
-				company_name: createdUser.company_name,
+				company_name: data.company_name,
 				mobile_number: createdUser.mobile_number,
 				work_number: createdUser.work_number,
 				timezone: createdUser.timezone,
