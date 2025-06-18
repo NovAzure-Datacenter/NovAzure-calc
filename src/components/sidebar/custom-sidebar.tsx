@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Image from "next/image";
+import { signOut } from "next-auth/react";
 
 import {
 	BadgeCheck,
@@ -95,6 +96,9 @@ export default function CustomSidebar({
 		logo: string;
 	} | null>(null);
 	const [isCompanyLoading, setIsCompanyLoading] = useState(true);
+	const [isMenuItemHovered, setIsMenuItemHovered] = useState<string | null>(
+		null
+	);
 
 	useEffect(() => {
 		if (user?.account_type) {
@@ -135,7 +139,10 @@ export default function CustomSidebar({
 							) : (
 								<Avatar className="h-14 w-14 rounded-full">
 									<AvatarImage
-										src={companyDetails?.logo || "/images/profile/default-profile-pic.png"}
+										src={
+											companyDetails?.logo ||
+											"/images/profile/default-profile-pic.png"
+										}
 										alt="Company Logo"
 										className="object-cover"
 									/>
@@ -194,6 +201,10 @@ function NavDefault({
 	setActiveTab: (tab: string) => void;
 	activeTab: string;
 } & React.ComponentProps<typeof Sidebar>) {
+	const [isMenuItemHovered, setIsMenuItemHovered] = useState<string | null>(
+		null
+	);
+
 	return (
 		<SidebarGroup>
 			<SidebarMenu>
@@ -205,6 +216,9 @@ function NavDefault({
 								e.preventDefault();
 								setActiveTab(item.url);
 							}}
+							className={isMenuItemHovered === item.title ? "bg-accent" : ""}
+							onMouseEnter={() => setIsMenuItemHovered(item.title)}
+							onMouseLeave={() => setIsMenuItemHovered(null)}
 						>
 							<a href={item.url} className="relative">
 								{item.icon && <item.icon className="h-4 w-4" />}
@@ -233,6 +247,9 @@ function NavMain({
 	activeTab: string;
 }) {
 	const [openItem, setOpenItem] = useState<string | null>(null);
+	const [isMenuItemHovered, setIsMenuItemHovered] = useState<string | null>(
+		null
+	);
 
 	// Filter out inactive items
 	const activeItems = items.filter((item) => item.isActive !== false);
@@ -258,7 +275,14 @@ function NavMain({
 						>
 							<SidebarMenuItem>
 								<CollapsibleTrigger asChild>
-									<SidebarMenuButton tooltip={item.title}>
+									<SidebarMenuButton
+										tooltip={item.title}
+										className={
+											isMenuItemHovered === item.title ? "bg-accent" : ""
+										}
+										onMouseEnter={() => setIsMenuItemHovered(item.title)}
+										onMouseLeave={() => setIsMenuItemHovered(null)}
+									>
 										{item.icon && <item.icon className="h-4 w-4" />}
 										<span>{item.title}</span>
 										<ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 h-4 w-4" />
@@ -271,7 +295,17 @@ function NavMain({
 												{subItem.items ? (
 													<Collapsible asChild>
 														<CollapsibleTrigger asChild>
-															<SidebarMenuSubButton>
+															<SidebarMenuSubButton
+																className={
+																	isMenuItemHovered === subItem.title
+																		? "bg-accent"
+																		: ""
+																}
+																onMouseEnter={() =>
+																	setIsMenuItemHovered(subItem.title)
+																}
+																onMouseLeave={() => setIsMenuItemHovered(null)}
+															>
 																<span>{subItem.title}</span>
 																<ChevronRight className="ml-auto h-4 w-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
 															</SidebarMenuSubButton>
@@ -283,6 +317,17 @@ function NavMain({
 																		<SidebarMenuSubButton
 																			onClick={(e) =>
 																				handleItemClick(nestedItem.url, e)
+																			}
+																			className={
+																				isMenuItemHovered === nestedItem.title
+																					? "bg-accent"
+																					: ""
+																			}
+																			onMouseEnter={() =>
+																				setIsMenuItemHovered(nestedItem.title)
+																			}
+																			onMouseLeave={() =>
+																				setIsMenuItemHovered(null)
 																			}
 																		>
 																			<span>{nestedItem.title}</span>
@@ -296,6 +341,15 @@ function NavMain({
 													<SidebarMenuSubButton
 														asChild
 														onClick={(e) => handleItemClick(subItem.url, e)}
+														className={
+															isMenuItemHovered === subItem.title
+																? "bg-accent"
+																: ""
+														}
+														onMouseEnter={() =>
+															setIsMenuItemHovered(subItem.title)
+														}
+														onMouseLeave={() => setIsMenuItemHovered(null)}
 													>
 														<a
 															href={subItem.url}
@@ -326,6 +380,9 @@ function NavMain({
 								onClick={(e) =>
 									handleItemClick(item.url || `/${item.title.toLowerCase()}`, e)
 								}
+								className={isMenuItemHovered === item.title ? "bg-accent" : ""}
+								onMouseEnter={() => setIsMenuItemHovered(item.title)}
+								onMouseLeave={() => setIsMenuItemHovered(null)}
 							>
 								<a href={item.url}>
 									{item.icon && <item.icon className="h-4 w-4" />}
@@ -342,6 +399,9 @@ function NavMain({
 
 function NavSecond({ projects }: { projects: Project[] }) {
 	const { isMobile } = useSidebar();
+	const [isMenuItemHovered, setIsMenuItemHovered] = useState<string | null>(
+		null
+	);
 
 	return (
 		<SidebarGroup>
@@ -349,7 +409,12 @@ function NavSecond({ projects }: { projects: Project[] }) {
 			<SidebarMenu>
 				{projects.map((item) => (
 					<SidebarMenuItem key={item.name}>
-						<SidebarMenuButton asChild>
+						<SidebarMenuButton
+							asChild
+							className={isMenuItemHovered === item.name ? "bg-accent" : ""}
+							onMouseEnter={() => setIsMenuItemHovered(item.name)}
+							onMouseLeave={() => setIsMenuItemHovered(null)}
+						>
 							<a href={item.url}>
 								<item.icon className="h-4 w-4" />
 								<span>{item.name}</span>
@@ -482,8 +547,7 @@ function NavUser({
 							<DropdownMenuSeparator />
 							<DropdownMenuItem
 								onClick={() => {
-									localStorage.removeItem("user");
-									window.location.href = "/login";
+									signOut({ callbackUrl: "/login" });
 								}}
 							>
 								<LogOut />
