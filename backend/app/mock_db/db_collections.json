@@ -34,10 +34,10 @@
       "value": 92145678
     }
   ],
-  "opex_lifetime": [
+  "immersion_cooling_cost": [
     {
       "id": 6,
-      "name": "OPEX Lifetime",
+      "name": "Immersion Cooling System",
       "value": 78456123
     }
   ]
