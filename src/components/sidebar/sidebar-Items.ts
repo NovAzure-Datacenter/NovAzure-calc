@@ -273,17 +273,28 @@ export const defautlSideBarItems: DefaultItem[] = [
 		url: "/",
 	},
 	// { title: "Search", icon: SearchIcon, url: "/search" },
-	{ title: "News", icon: BookOpenIcon, url: "/news" },
+	{ 
+		title: "News",
+		icon: BookOpenIcon,
+		url: "/news"
+	},
 	{
 		title: "Dashboard",
 		icon: BarChart3,
 		url: "/dashboard",
 	},
 	{
+		title: "TCO Calculator",
+		icon: CalculatorIcon,
+		url: "/tcocalculator",
+	},
+	{
 		title: "Users",
 		icon: UsersIcon,
 		url: "/dashboard/users",
-	}
+	},
+
+
 ];
 
 export const teams: Team[] = [
