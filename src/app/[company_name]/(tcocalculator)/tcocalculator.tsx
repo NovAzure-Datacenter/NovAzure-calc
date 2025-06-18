@@ -22,46 +22,59 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
 export function TCOCalculator() {
-    const [valueCaptured, setValueCaptured] = useState(false);
-    const [pocCost, setPocCost] = useState("No");
-    const [pocCostValue, setPocCostValue] = useState("");
-    const [userName, setUserName] = useState("");
-    const [userEmail, setUserEmail] = useState("");
-    const [deploymentType, setDeploymentType] = useState("Greenfield");
+    // 1. Define the initial state object
+    const initialState = {
+        valueCaptured: false,
+        pocCost: "No",
+        pocCostValue: "",
+        userName: "",
+        userEmail: "",
+        deploymentType: "Greenfield",
+        dataCentreType: "none",
+        utilisation: "none",
+        yearsOfOperation: "",
+        projectLocation: "none",
+        dataHallCapacity: "",
+        firstYear: "none",
+        airCoolingPUE: "",
+        liquidCoolingPUE: "",
+        iceotopePricingMethod: "",
+        retrofitProjectType: "expansion",
+        iceotopeRackCount: "",
+        showDefinitions: false,
+        showResultTable: false,
+    };
 
-    const [dataCentreType, setDataCentreType] = useState("none");
-    const [utilisation, setUtilisation] = useState("none");
-    const [yearsOfOperation, setYearsOfOperation] = useState("");
-    const [projectLocation, setProjectLocation] = useState("none");
-    const [dataHallCapacity, setDataHallCapacity] = useState("");
-    const [firstYear, setFirstYear] = useState("none");
+    // 2. Single useState for all state
+    const [state, setState] = useState(initialState);
 
-    const [airCoolingPUE, setAirCoolingPUE] = useState("");
-    const [liquidCoolingPUE, setLiquidCoolingPUE] = useState("");
+    // 3. Update all usages: state.field, setState(prev => ({ ...prev, field: value }))
+    // Example for userName:
+    // value={state.userName}
+    // onChange={e => setState(prev => ({ ...prev, userName: e.target.value }))}
 
-    const [iceotopePricingMethod, setIceotopePricingMethod] = useState("");
+    // 4. Update reset logic
+    function handleReset() {
+        setState(initialState);
+    }
 
-    const [retrofitProjectType, setRetrofitProjectType] = useState("expansion");
-    const [iceotopeRackCount, setIceotopeRackCount] = useState("");
-
-    const [showDefinitions, setShowDefinitions] = useState(false);
-    const [showResultTable, setShowResultTable] = useState(false);
+    // 5. Update validation logic
+    const allRequiredFilled =
+        !!state.userName &&
+        !!state.userEmail &&
+        state.dataCentreType !== "none" &&
+        state.utilisation !== "none" &&
+        !!state.yearsOfOperation &&
+        state.projectLocation !== "none" &&
+        !!state.dataHallCapacity &&
+        !!state.airCoolingPUE &&
+        (!state.valueCaptured || (state.iceotopePricingMethod !== "" && state.iceotopePricingMethod !== "none")) &&
+        (state.pocCost !== "Yes" || !!state.pocCostValue);
 
     const dataCentreTypeOptions = ["General Purpose", "HPC/AI"];
     const utilisationOptions = ["20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "100%"];
     const projectLocationOptions = ["USA", "UK", "Singapore", "UAE"];
     const yearOptions = Array.from({ length: 21 }, (_, i) => (2020 + i).toString());
-
-    // 1. Define a helper to check if all required fields are filled
-    const allRequiredFilled =
-        !!userName &&
-        !!userEmail &&
-        dataCentreType !== "none" &&
-        utilisation !== "none" &&
-        !!yearsOfOperation &&
-        projectLocation !== "none" &&
-        !!dataHallCapacity &&
-        !!airCoolingPUE;
 
     function handleExportPDF() {
         const dashboard = document.getElementById('tco-dashboard-export');
@@ -72,28 +85,6 @@ export function TCOCalculator() {
             pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
             pdf.save('tco-dashboard.pdf');
         });
-    }
-
-    function handleReset() {
-        setValueCaptured(false);
-        setPocCost("No");
-        setPocCostValue("");
-        setUserName("");
-        setUserEmail("");
-        setDeploymentType("Greenfield");
-        setDataCentreType("none");
-        setUtilisation("none");
-        setYearsOfOperation("");
-        setProjectLocation("none");
-        setDataHallCapacity("");
-        setFirstYear("none");
-        setAirCoolingPUE("");
-        setLiquidCoolingPUE("");
-        setIceotopePricingMethod("");
-        setRetrofitProjectType("expansion");
-        setIceotopeRackCount("");
-        setShowDefinitions(false);
-        setShowResultTable(false);
     }
 
     return (
@@ -115,8 +106,8 @@ export function TCOCalculator() {
                                         <div className="flex items-center gap-2">
                                             <input
                                                 type="checkbox"
-                                                checked={valueCaptured}
-                                                onChange={(e) => setValueCaptured(e.target.checked)}
+                                                checked={state.valueCaptured}
+                                                onChange={(e) => setState(prev => ({ ...prev, valueCaptured: e.target.checked }))}
                                                 id="valueCaptured"
                                                 className="h-4 w-4"
                                             />
@@ -124,7 +115,7 @@ export function TCOCalculator() {
                                                 Value-Captured Pricing Customisation
                                             </label>
                                         </div>
-                                        {valueCaptured && (
+                                        {state.valueCaptured && (
                                             <div>
                                                 <div className="mb-2 flex items-center justify-between">
                                                     <Label className="text-xs text-muted-foreground" htmlFor="iceotopePricingMethod">
@@ -144,9 +135,9 @@ export function TCOCalculator() {
                                                     </TooltipProvider>
                                                 </div>
                                                 <Select
-                                                    value={iceotopePricingMethod}
+                                                    value={state.iceotopePricingMethod}
                                                     onValueChange={(value: "none" | "value-captured" | "fixed-markup") =>
-                                                        setIceotopePricingMethod(value)
+                                                        setState(prev => ({ ...prev, iceotopePricingMethod: value }))
                                                     }
                                                 >
                                                     <SelectTrigger className="h-8 w-full">
@@ -168,8 +159,8 @@ export function TCOCalculator() {
                                                 Include Proof of Concept (PoC) Cost
                                             </Label>
                                             <Select
-                                                value={pocCost}
-                                                onValueChange={(value: "No" | "Yes") => setPocCost(value)}
+                                                value={state.pocCost}
+                                                onValueChange={(value: "No" | "Yes") => setState(prev => ({ ...prev, pocCost: value }))}
                                             >
                                                 <SelectTrigger className="h-10 w-28">
                                                     <SelectValue />
@@ -180,7 +171,7 @@ export function TCOCalculator() {
                                                 </SelectContent>
                                             </Select>
                                         </div>
-                                        {pocCost === "Yes" && (
+                                        {state.pocCost === "Yes" && (
                                             <div className="mt-2">
                                                 <Label htmlFor="pocCostValue" className="text-xs text-muted-foreground mb-2 block">
                                                     PoC Cost (Excluding IT, in USD)
@@ -188,8 +179,8 @@ export function TCOCalculator() {
                                                 <Input
                                                     type="number"
                                                     id="pocCostValue"
-                                                    value={pocCostValue}
-                                                    onChange={(e) => setPocCostValue(e.target.value)}
+                                                    value={state.pocCostValue}
+                                                    onChange={(e) => setState(prev => ({ ...prev, pocCostValue: e.target.value }))}
                                                     className="w-full border rounded px-3 py-2 placeholder:text-muted-foreground"
                                                     placeholder="e.g. 15000"
                                                 />
@@ -211,8 +202,8 @@ export function TCOCalculator() {
                                     <Input
                                         id="userName"
                                         type="text"
-                                        value={userName}
-                                        onChange={(e) => setUserName(e.target.value)}
+                                        value={state.userName}
+                                        onChange={(e) => setState(prev => ({ ...prev, userName: e.target.value }))}
                                         className="w-full border rounded px-3 py-2"
                                         title="Enter your full name"
                                         placeholder="Type your User Name"
@@ -225,8 +216,8 @@ export function TCOCalculator() {
                                     <Input
                                         id="userEmail"
                                         type="email"
-                                        value={userEmail}
-                                        onChange={(e) => setUserEmail(e.target.value)}
+                                        value={state.userEmail}
+                                        onChange={(e) => setState(prev => ({ ...prev, userEmail: e.target.value }))}
                                         className="w-full border rounded px-3 py-2"
                                         title="Enter a valid email address"
                                         placeholder="Type your Email address"
@@ -240,8 +231,8 @@ export function TCOCalculator() {
                                         type="radio"
                                         name="deployment"
                                         value="Greenfield"
-                                        checked={deploymentType === "Greenfield"}
-                                        onChange={(e) => setDeploymentType(e.target.value)}
+                                        checked={state.deploymentType === "Greenfield"}
+                                        onChange={(e) => setState(prev => ({ ...prev, deploymentType: e.target.value }))}
                                         id="greenfield"
                                     />
                                     <label htmlFor="greenfield" className="flex items-center gap-1">
@@ -265,8 +256,8 @@ export function TCOCalculator() {
                                         type="radio"
                                         name="deployment"
                                         value="Retrofit"
-                                        checked={deploymentType === "Retrofit"}
-                                        onChange={(e) => setDeploymentType(e.target.value)}
+                                        checked={state.deploymentType === "Retrofit"}
+                                        onChange={(e) => setState(prev => ({ ...prev, deploymentType: e.target.value }))}
                                         id="retrofit"
                                     />
                                     <label htmlFor="retrofit" className="flex items-center gap-1">
@@ -313,8 +304,8 @@ export function TCOCalculator() {
                                             </TooltipProvider>
                                         </div>
                                         <Select
-                                            value={dataCentreType}
-                                            onValueChange={setDataCentreType}
+                                            value={state.dataCentreType}
+                                            onValueChange={(value) => setState(prev => ({ ...prev, dataCentreType: value }))}
                                         >
                                             <SelectTrigger className="h-8 w-full">
                                                 <SelectValue placeholder="Select an Option" />
@@ -346,8 +337,8 @@ export function TCOCalculator() {
                                             </TooltipProvider>
                                         </div>
                                         <Select
-                                            value={utilisation}
-                                            onValueChange={setUtilisation}
+                                            value={state.utilisation}
+                                            onValueChange={(value) => setState(prev => ({ ...prev, utilisation: value }))}
                                         >
                                             <SelectTrigger className="h-8 w-full">
                                                 <SelectValue placeholder="Select an Option" />
@@ -382,8 +373,8 @@ export function TCOCalculator() {
                                             type="number"
                                             min="1"
                                             max="20"
-                                            value={yearsOfOperation}
-                                            onChange={(e) => setYearsOfOperation(e.target.value)}
+                                            value={state.yearsOfOperation}
+                                            onChange={(e) => setState(prev => ({ ...prev, yearsOfOperation: e.target.value }))}
                                             className="w-full border rounded px-3 py-2"
                                             placeholder="Enter years (max 20)"
                                         />
@@ -407,8 +398,8 @@ export function TCOCalculator() {
                                             </TooltipProvider>
                                         </div>
                                         <Select
-                                            value={projectLocation}
-                                            onValueChange={setProjectLocation}
+                                            value={state.projectLocation}
+                                            onValueChange={(value) => setState(prev => ({ ...prev, projectLocation: value }))}
                                         >
                                             <SelectTrigger className="h-8 w-full">
                                                 <SelectValue placeholder="Select an Option" />
@@ -421,7 +412,7 @@ export function TCOCalculator() {
                                             </SelectContent>
                                         </Select>
                                     </div>
-                                    {deploymentType === "Greenfield" && (
+                                    {state.deploymentType === "Greenfield" && (
                                         <div>
                                             <div className="mb-2 flex items-center justify-between">
                                                 <Label className="text-xs text-muted-foreground" htmlFor="dataHallCapacity">
@@ -445,8 +436,8 @@ export function TCOCalculator() {
                                                 min="0.5"
                                                 max="10"
                                                 step="0.01"
-                                                value={dataHallCapacity}
-                                                onChange={(e) => setDataHallCapacity(e.target.value)}
+                                                value={state.dataHallCapacity}
+                                                onChange={(e) => setState(prev => ({ ...prev, dataHallCapacity: e.target.value }))}
                                                 className="w-full border rounded px-3 py-2"
                                                 placeholder="e.g. 2.5"
                                             />
@@ -471,8 +462,8 @@ export function TCOCalculator() {
                                             </TooltipProvider>
                                         </div>
                                         <Select
-                                            value={firstYear}
-                                            onValueChange={setFirstYear}
+                                            value={state.firstYear}
+                                            onValueChange={(value) => setState(prev => ({ ...prev, firstYear: value }))}
                                         >
                                             <SelectTrigger className="h-8 w-full">
                                                 <SelectValue placeholder="Select an Option" />
@@ -488,7 +479,7 @@ export function TCOCalculator() {
                                 </div>
                             </div>
                             {/* Cooling Configuration */}
-                            {deploymentType === "Greenfield" ? (
+                            {state.deploymentType === "Greenfield" ? (
                                 <div className="w-full mb-10">
                                     <h2 className="text-xl font-semibold mb-4">Cooling Configuration</h2>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -519,8 +510,8 @@ export function TCOCalculator() {
                                                     type="number"
                                                     step="0.01"
                                                     min="1"
-                                                    value={airCoolingPUE}
-                                                    onChange={(e) => setAirCoolingPUE(e.target.value)}
+                                                    value={state.airCoolingPUE}
+                                                    onChange={(e) => setState(prev => ({ ...prev, airCoolingPUE: e.target.value }))}
                                                     className="w-full border rounded px-3 py-2"
                                                     placeholder="Enter value (1.00 - 3.00)"
                                                 />
@@ -605,8 +596,8 @@ export function TCOCalculator() {
                                                     type="number"
                                                     step="0.01"
                                                     min="0"
-                                                    value={airCoolingPUE}
-                                                    onChange={(e) => setAirCoolingPUE(e.target.value)}
+                                                    value={state.airCoolingPUE}
+                                                    onChange={(e) => setState(prev => ({ ...prev, airCoolingPUE: e.target.value }))}
                                                     className="w-full border rounded px-3 py-2"
                                                     placeholder="Enter value (1.00 - 3.00)"
                                                 />
@@ -665,8 +656,8 @@ export function TCOCalculator() {
                                                             type="radio"
                                                             name="retrofitProjectType"
                                                             value="expansion"
-                                                            checked={retrofitProjectType === "expansion"}
-                                                            onChange={() => setRetrofitProjectType("expansion")}
+                                                            checked={state.retrofitProjectType === "expansion"}
+                                                            onChange={() => setState(prev => ({ ...prev, retrofitProjectType: "expansion" }))}
                                                             className="accent-blue-700"
                                                         />
                                                         Expansion
@@ -676,8 +667,8 @@ export function TCOCalculator() {
                                                             type="radio"
                                                             name="retrofitProjectType"
                                                             value="replacement"
-                                                            checked={retrofitProjectType === "replacement"}
-                                                            onChange={() => setRetrofitProjectType("replacement")}
+                                                            checked={state.retrofitProjectType === "replacement"}
+                                                            onChange={() => setState(prev => ({ ...prev, retrofitProjectType: "replacement" }))}
                                                             className="accent-blue-700"
                                                         />
                                                         Replacement
@@ -707,8 +698,8 @@ export function TCOCalculator() {
                                             <Input
                                                 type="number"
                                                 min="1"
-                                                value={iceotopeRackCount}
-                                                onChange={(e) => setIceotopeRackCount(e.target.value)}
+                                                value={state.iceotopeRackCount}
+                                                onChange={(e) => setState(prev => ({ ...prev, iceotopeRackCount: e.target.value }))}
                                                 className="w-full border rounded px-3 py-2"
                                             />
                                         </div>
@@ -738,12 +729,12 @@ export function TCOCalculator() {
                             type="checkbox"
                             id="see-definitions"
                             className="h-5 w-5 rounded border"
-                            checked={showDefinitions}
-                            onChange={e => setShowDefinitions(e.target.checked)}
+                            checked={state.showDefinitions}
+                            onChange={(e) => setState(prev => ({ ...prev, showDefinitions: e.target.checked }))}
                         />
                         <label htmlFor="see-definitions" className="text-lg text-muted-foreground select-none">See Definitions and Assumptions</label>
                     </div>
-                    {showDefinitions && (
+                    {state.showDefinitions && (
                         <div className="mt-6 space-y-8">
                             {/* Simple Definitions Table */}
                             <Card className="overflow-x-auto">
@@ -979,10 +970,10 @@ export function TCOCalculator() {
                         </div>
                     )}
                     <div className="flex gap-6 mt-4">
-                        <Button type="button" className="bg-[#11182A] text-white font-semibold px-10 py-4 text-lg rounded-lg" onClick={() => setShowResultTable(true)}>Show Result</Button>
+                        <Button type="button" className="bg-[#11182A] text-white font-semibold px-10 py-4 text-lg rounded-lg" onClick={() => setState(prev => ({ ...prev, showResultTable: true }))} disabled={!allRequiredFilled}>Show Result</Button>
                         <Button type="button" className="bg-[#11182A] text-white font-semibold px-10 py-4 text-lg rounded-lg" onClick={handleReset}>Reset</Button>
                     </div>
-                    {showResultTable && (
+                    {state.showResultTable && (
                         <div id="tco-dashboard-export" className="w-full max-w-5xl mx-auto p-4 md:p-8 space-y-16">
                             {/* Demonstrated Value Comparison Table */}
                             <div>
