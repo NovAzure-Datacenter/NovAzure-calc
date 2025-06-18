@@ -70,7 +70,10 @@ export default function PersonalProfileTab({
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<form onSubmit={handlePersonalSubmit} className="space-y-6">
+					<form onSubmit={(e) => {
+						e.preventDefault();
+						handlePersonalSubmit(e);
+					}} className="space-y-6">
 						<Separator />
 
 						<div className="space-y-4">
@@ -122,10 +125,12 @@ export default function PersonalProfileTab({
 											<Button
 												variant="secondary"
 												size="icon"
+												type="button"
 												className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full border-2 border-background"
-												onClick={() =>
-													document.getElementById("profile-image")?.click()
-												}
+												onClick={(e) => {
+													e.preventDefault();
+													document.getElementById("profile-image")?.click();
+												}}
 											>
 												<Camera className="h-4 w-4" />
 											</Button>
