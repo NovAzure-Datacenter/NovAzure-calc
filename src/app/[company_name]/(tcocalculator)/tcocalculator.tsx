@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 export function TCOCalculator() {
     const [valueCaptured, setValueCaptured] = useState(false);
@@ -126,7 +128,7 @@ export function TCOCalculator() {
                                                 <Label htmlFor="pocCostValue" className="text-xs text-muted-foreground mb-2 block">
                                                     PoC Cost (Excluding IT, in USD)
                                                 </Label>
-                                                <input
+                                                <Input
                                                     type="number"
                                                     id="pocCostValue"
                                                     value={pocCostValue}
@@ -149,7 +151,7 @@ export function TCOCalculator() {
                                     <Label className="text-xs text-muted-foreground mb-2" htmlFor="userName">
                                         User Name *
                                     </Label>
-                                    <input
+                                    <Input
                                         id="userName"
                                         type="text"
                                         value={userName}
@@ -163,7 +165,7 @@ export function TCOCalculator() {
                                     <Label className="text-xs text-muted-foreground mb-2" htmlFor="userEmail">
                                         User Email *
                                     </Label>
-                                    <input
+                                    <Input
                                         id="userEmail"
                                         type="email"
                                         value={userEmail}
@@ -319,7 +321,7 @@ export function TCOCalculator() {
                                                 </Tooltip>
                                             </TooltipProvider>
                                         </div>
-                                        <input
+                                        <Input
                                             type="number"
                                             min="1"
                                             value={yearsOfOperation}
@@ -378,7 +380,7 @@ export function TCOCalculator() {
                                                 </Tooltip>
                                             </TooltipProvider>
                                         </div>
-                                        <input
+                                        <Input
                                             type="number"
                                             min="0"
                                             step="0.01"
@@ -432,7 +434,7 @@ export function TCOCalculator() {
                                             Annualised Air pPUE (at selected % of utilisation) *
                                         </Label>
                                         <div className="flex items-center gap-2">
-                                            <input
+                                            <Input
                                                 type="number"
                                                 step="0.01"
                                                 min="0"
@@ -460,7 +462,7 @@ export function TCOCalculator() {
                                         <Label className="text-xs text-muted-foreground mb-2" htmlFor="liquidCoolingPUE" title="Annualized partial Power Usage Effectiveness for Iceotope Liquid Cooling">
                                             Annualised Liquid Cooled pPUE at selected % of load:
                                         </Label>
-                                        <input
+                                        <Input
                                             type="number"
                                             step="0.01"
                                             min="0"
@@ -471,7 +473,7 @@ export function TCOCalculator() {
                                     </div>
                                 </div>
                                 <div className="mt-6">
-                                    <a href="#" className="text-blue-600 underline text-sm">Advanced...</a>
+                                    <Button type="button" className="bg-[#11182A] text-white font-semibold px-10 py-4 text-lg rounded-lg">Advanced...</Button>
                                     <p className="text-red-600 text-sm mt-2">
                                         Please ensure all required fields are completed to access the Advanced section or show results!
                                     </p>
@@ -489,8 +491,8 @@ export function TCOCalculator() {
                         <label htmlFor="see-definitions" className="text-lg text-muted-foreground select-none">See Definitions and Assumptions</label>
                     </div>
                     <div className="flex gap-6 mt-4">
-                        <button type="button" className="bg-blue-700 hover:bg-blue-800 text-white font-semibold rounded-full px-10 py-4 text-lg transition">Show Result</button>
-                        <button type="button" className="bg-blue-700 hover:bg-blue-800 text-white font-semibold rounded-full px-10 py-4 text-lg transition">Reset</button>
+                        <Button type="button" className="bg-[#11182A] text-white font-semibold px-10 py-4 text-lg rounded-lg">Show Result</Button>
+                        <Button type="button" className="bg-[#11182A] text-white font-semibold px-10 py-4 text-lg rounded-lg">Reset</Button>
                     </div>
                 </div>
             </div>
