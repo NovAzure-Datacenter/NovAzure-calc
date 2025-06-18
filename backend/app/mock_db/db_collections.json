@@ -20,25 +20,46 @@
       "value": 136472220 
     }
   ],
-  "annual_cooling_opex": [
-    {
-      "id": 4,
-      "name": "Annual Cooling OPEX",
-      "value": 89234567
-    }
-  ],
-  "annual_it_maintenance": [
-    {
-      "id": 5,
-      "name": "Annual IT Maintenance",
-      "value": 92145678
-    }
-  ],
-  "opex_lifetime": [
-    {
-      "id": 6,
-      "name": "OPEX Lifetime",
-      "value": 78456123
-    }
-  ]
+    "annual_Cooling_Opex_LE": [
+      {
+        "id": 1,
+        "name": "Annual Cooling OPEX LE",
+        "value": 1200000
+      }
+    ],
+    "annual_Cooling_Opex_HE": [
+      {
+        "id": 2,
+        "name": "Annual Cooling OPEX HE",
+        "value": 1500000
+      }
+    ],
+    "annual_IT_Equipment_Maintenance_LE": [
+      {
+        "id": 3,
+        "name": "Annual IT Equipment Maintenance LE",
+        "value": 300000
+      }
+    ],
+    "annual_IT_Equipment_Maintenance_HE": [
+      {
+        "id": 4,
+        "name": "Annual IT Equipment Maintenance HE",
+        "value": 400000
+      }
+    ],
+    "lifetime_Opex_LE": [
+      {
+        "id": 5,
+        "name": "Lifetime OPEX LE",
+        "value": 20000000
+      }
+    ],
+    "lifetime_Opex_HE": [
+      {
+        "id": 6,
+        "name": "Lifetime OPEX HE",
+        "value": 25000000
+      }
+    ]
 }
