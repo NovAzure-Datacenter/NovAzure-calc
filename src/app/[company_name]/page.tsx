@@ -3,7 +3,7 @@
 import CustomSidebar from "@/components/sidebar/custom-sidebar";
 import { useState } from "react";
 import { Dashboard } from "./(dashboard)/dashboard";
-import { TCOCalculator } from "./(tcocalculator)/tcocalculator";
+// import { TCOCalculator } from "../dashboard/(tcocalculator)/tcocalculator";
 import { useParams } from "next/navigation";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { CalculatorsStore } from "./(calculators)/calculators-store";
@@ -28,8 +28,7 @@ export default function Page() {
 				return <Dashboard />;
 			case "/solutions":
 				return <TechnologySelector />;
-			case "/tcocalculator":
-				return <TCOCalculator />;
+	
 			case "/calculators":
 			case "/calculators/UPS-solution":
 			case "/calculators/value-calculator":
