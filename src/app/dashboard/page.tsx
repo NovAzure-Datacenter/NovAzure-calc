@@ -3,8 +3,8 @@ import { SidebarInset } from "@/components/ui/sidebar";
 import UnderConstruction from "@/components/under-construction";
 import { useActiveComponent } from "@/contexts/active-component-context";
 import AccountSettingsPage from "./(account)/settings/page";
-import ValueCalculator from "./(calculators)/value-calculator";
 import CompanyUsersPage from "./(users)/page";
+import TCOCalculator from "./(tcocalculator)/page";
 
 export default function Page() {
 	const { activeComponent } = useActiveComponent();
@@ -14,10 +14,8 @@ export default function Page() {
 			case "/dashboard/users":
 				return <CompanyUsersPage />;
 
-			case "/calculators":
-			case "/calculators/UPS-solution":
-			case "/calculators/value-calculator":
-				return <ValueCalculator />;
+			case "/dashboard/tco-calculator":
+				return <TCOCalculator />;
 
 			case "/dashboard/account/settings":
 				return <AccountSettingsPage />;

@@ -21,7 +21,7 @@ import { LineChart, Line } from 'recharts';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
-export function TCOCalculator() {
+export default function TCOCalculator() {
     // 1. Define the initial state object
     const initialState = {
         valueCaptured: false,
