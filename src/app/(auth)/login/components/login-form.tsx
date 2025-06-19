@@ -11,10 +11,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
-import { login} from "@/lib/actions/auth/auth";
+import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { useUser } from "@/hooks/useUser";
 import Link from "next/link";
 
 export function LoginForm({
@@ -23,7 +22,6 @@ export function LoginForm({
 }: React.ComponentProps<"div">) {
 	const [isLoading, setIsLoading] = useState(false);
 	const router = useRouter();
-	const { updateUser } = useUser();
 
 	async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
 		e.preventDefault();
@@ -31,26 +29,37 @@ export function LoginForm({
 
 		try {
 			const formData = new FormData(e.currentTarget);
-			const email = formData.get("email") as string;
+			const email = (formData.get("email") as string).toLowerCase();
 			const password = formData.get("password") as string;
 
-			const result = await login({ email, password });
+			const result = await signIn("credentials", {
+				email,
+				password,
+				redirect: false,
+			});
 
-			if (result.error) {
+
+			if (result?.error) {
 				toast.error("Login Failed", {
 					description: result.error,
 				});
 				return;
 			}
 
-			if (result.success && result.user) {
-				updateUser(result.user);
+			if (result?.ok) {
 				toast.success("Login Successful", {
 					description: "Welcome back!",
 				});
 				router.push("/dashboard");
+			} else {
+
+				console.log("Unexpected result:", result);
+				toast.error("Login Failed", {
+					description: "Authentication failed. Please try again.",
+				});
 			}
 		} catch (error) {
+			console.error("Login error:", error);
 			toast.error("Error", {
 				description: "An unexpected error occurred",
 			});

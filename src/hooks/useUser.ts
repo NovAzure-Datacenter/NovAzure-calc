@@ -1,4 +1,6 @@
+import { useSession, signOut } from "next-auth/react";
 import { useState, useEffect } from "react";
+import { getUserData } from "@/lib/actions/auth/get-user-data";
 
 export interface UserData {
 	first_name: string;
@@ -18,68 +20,50 @@ export interface UserData {
 }
 
 export function useUser() {
-	const [user, setUser] = useState<UserData | null>(null);
-	const [isUserLoggedIn, setIsUserLoggedIn] = useState<boolean>(false);
-	const [isLoading, setIsLoading] = useState<boolean>(true);
+	const { data: session, status } = useSession();
+	const [userData, setUserData] = useState<UserData | null>(null);
+	const [isLoadingUserData, setIsLoadingUserData] = useState(false);
 
+	// Fetch additional user data when session is available
 	useEffect(() => {
-		// Check localStorage only on client side
-		try {
-			const userData = localStorage.getItem("user");
-			if (userData) {
-				const parsedUser = JSON.parse(userData);
-				setUser(parsedUser);
-				setIsUserLoggedIn(true);
-			}
-		} catch (error) {
-			console.error("Error parsing user data from localStorage:", error);
-		} finally {
-			setIsLoading(false);
-		}
-
-		// Create event handlers
-		const handleStorageChange = (event: StorageEvent) => {
-			if (event.key === "user") {
+		async function fetchUserData() {
+			if (session?.user?.id && !userData) {
+				setIsLoadingUserData(true);
 				try {
-					const newUserData = event.newValue ? JSON.parse(event.newValue) : null;
-					setUser(newUserData);
-					setIsUserLoggedIn(!!newUserData);
+					const fullUserData = await getUserData(session.user.id);
+					if (fullUserData) {
+						setUserData(fullUserData);
+					}
 				} catch (error) {
-					console.error("Error parsing user data from storage event:", error);
+					console.error("Error fetching user data:", error);
+				} finally {
+					setIsLoadingUserData(false);
 				}
 			}
-		};
-
-		const handleUserChange = (event: CustomEvent<UserData | null>) => {
-			setUser(event.detail);
-			setIsUserLoggedIn(!!event.detail);
-		};
-
-		window.addEventListener("storage", handleStorageChange);
-		window.addEventListener("userChange", handleUserChange as EventListener);
-
-		return () => {
-			window.removeEventListener("storage", handleStorageChange);
-			window.removeEventListener("userChange", handleUserChange as EventListener);
-		};
-	}, []);
-
-	const updateUser = (userData: UserData | null) => {
-		try {
-			if (userData) {
-				localStorage.setItem("user", JSON.stringify(userData));
-			} else {
-				localStorage.removeItem("user");
-			}
-
-			window.dispatchEvent(new CustomEvent("userChange", { detail: userData }));
-			
-			setUser(userData);
-			setIsUserLoggedIn(!!userData);
-		} catch (error) {
-			console.error("Error updating user data:", error);
 		}
+
+		fetchUserData();
+	}, [session?.user?.id, userData]);
+
+	const isUserLoggedIn = status === "authenticated";
+	const isLoading = status === "loading" || isLoadingUserData;
+
+	const updateUser = async (userData: UserData | null) => {
+		// With NextAuth, user data is managed server-side
+		// This function is kept for compatibility but doesn't modify localStorage
+		console.log("User data updated:", userData);
 	};
 
-	return { user, updateUser, isUserLoggedIn, isLoading };
+	const logout = async () => {
+		await signOut({ callbackUrl: "/login" });
+	};
+
+	return {
+		user: userData,
+		updateUser,
+		isUserLoggedIn,
+		isLoading,
+		logout,
+		session, // Expose the full session for advanced use cases
+	};
 }

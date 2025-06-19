@@ -259,7 +259,6 @@ export default function CompanyUsersPage() {
 				return;
 			}
 
-			// Remove the user from the local state
 			setData((prev) => prev.filter((user) => user.id !== userId));
 
 			toast.success("User deleted successfully");
@@ -370,7 +369,6 @@ export default function CompanyUsersPage() {
 			const fullName = `${firstName} ${lastName}`;
 			const isVerified = row.original.isVerified ? "verified" : "unverified";
 
-			// Handle verification status search separately
 			if (searchValue === "verified" || searchValue === "unverified") {
 				return isVerified === searchValue;
 			}

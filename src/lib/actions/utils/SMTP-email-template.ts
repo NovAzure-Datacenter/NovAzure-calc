@@ -56,7 +56,7 @@ export function generateWelcomeEmail(
 ) {
 	const resetLink = `${
 		process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
-	}/login?token=${resetToken}`;
+	}/verify?token=${resetToken}`;
 
 	console.log("companyName", companyName);
 	return `
