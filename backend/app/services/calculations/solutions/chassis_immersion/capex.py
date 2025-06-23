@@ -15,29 +15,52 @@ COUNTRY_MULTIPLIERS = {
     "UAE": 4120       # ~20% premium over air cooling
 }
 
-# Inflation factors by base year (same as air cooling)
+# UK Capex Inflation factors applied universally to all countries
 INFLATION_FACTORS = {
-    2020: 1.0,
-    2021: 1.045,  # 4.5% inflation
-    2022: 1.092,  # 9.2% inflation
-    2023: 1.125,  # 12.5% cumulative
-    2024: 1.158,  # 15.8% cumulative
-    2025: 1.190,  # 19.0% cumulative
+    2023: 1.0,
+    2024: 1.02,
+    2025: 1.04,
+    2026: 1.06,
+    2027: 1.08,
+    2028: 1.10,
+    2029: 1.13,
+    2030: 1.15,
+    2031: 1.17,
+    2032: 1.20,
+    2033: 1.22,
+    2034: 1.24,
+    2035: 1.27,
+    2036: 1.29,
+    2037: 1.32,
+    2038: 1.35,
+    2039: 1.37,
+    2040: 1.40,
+    2041: 1.43,
+    2042: 1.46,
+    2043: 1.49,
+    2044: 1.52,
+    2045: 1.55,
+    2046: 1.58,
+    2047: 1.61,
+    2048: 1.64,
+    2049: 1.67,
+    2050: 1.70,
 }
 
 def get_inflation_factor(base_year: int) -> float:
     """
-    Get inflation factor for the given base year
-    Current year is used as the reference point
+    Get inflation factor for the given base year using UK Capex Inflation data
+    Base year represents when costs were established - older years get higher inflation factors
     """
-    current_year = datetime.now().year
-    
-    # If base year is current year or future, no inflation adjustment
-    if base_year >= current_year:
-        return 1.0
-    
-    # Look up inflation factor, default to 1.0 if not found
-    return INFLATION_FACTORS.get(base_year, 1.0)
+    # Look up inflation factor directly - base year determines the inflation to apply
+    if base_year in INFLATION_FACTORS:
+        return INFLATION_FACTORS[base_year]
+    elif base_year < min(INFLATION_FACTORS.keys()):
+        # For years before 2023, use 2023 rate (1.0 - no inflation)
+        return INFLATION_FACTORS[2023]
+    else:
+        # For years after 2050, use 2050 rate (highest inflation)
+        return INFLATION_FACTORS[2050]
 
 def calculate_cooling_capex(input_data: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -71,7 +94,7 @@ def calculate_cooling_capex(input_data: Dict[str, Any]) -> Dict[str, Any]:
     # Calculate base CAPEX before inflation
     base_capex_before_inflation = country_multiplier * nameplate_power_kw
     
-    # Get inflation factor
+    # Get inflation factor (using UK data universally)
     inflation_factor = get_inflation_factor(base_year)
     
     # Calculate final CAPEX with inflation
