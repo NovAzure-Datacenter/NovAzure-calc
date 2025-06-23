@@ -76,6 +76,10 @@ export const authOptions: NextAuthOptions = {
 		signIn: "/login",
 	},
 	secret: process.env.NEXTAUTH_SECRET,
+	// Add NEXTAUTH_URL configuration for proper redirect handling
+	...(process.env.NEXTAUTH_URL && {
+		url: process.env.NEXTAUTH_URL,
+	}),
 };
 
 export default NextAuth(authOptions);

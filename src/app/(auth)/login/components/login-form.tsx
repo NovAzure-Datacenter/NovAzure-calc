@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import Link from "next/link";
 
@@ -22,6 +22,8 @@ export function LoginForm({
 }: React.ComponentProps<"div">) {
 	const [isLoading, setIsLoading] = useState(false);
 	const router = useRouter();
+	const searchParams = useSearchParams();
+	const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
 
 	async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
 		e.preventDefault();
@@ -36,8 +38,8 @@ export function LoginForm({
 				email,
 				password,
 				redirect: false,
+				callbackUrl,
 			});
-
 
 			if (result?.error) {
 				toast.error("Login Failed", {
@@ -50,9 +52,8 @@ export function LoginForm({
 				toast.success("Login Successful", {
 					description: "Welcome back!",
 				});
-				router.push("/dashboard");
+				router.push(callbackUrl);
 			} else {
-
 				console.log("Unexpected result:", result);
 				toast.error("Login Failed", {
 					description: "Authentication failed. Please try again.",
