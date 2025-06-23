@@ -55,7 +55,7 @@ export function useUser() {
 	};
 
 	const logout = async () => {
-		await signOut({ callbackUrl: "/login" });
+		await signOut({ callbackUrl: "/" });
 	};
 
 	return {

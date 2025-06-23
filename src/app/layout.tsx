@@ -26,13 +26,13 @@ export default function RootLayout({
 				suppressHydrationWarning
 				className={cn("font-sans antialiased h-auto", inter.variable)}
 			>
-				<DebugLayout>
+				{/* <DebugLayout> */}
 					<Providers>
 						<SidebarProvider className="flex ">
 							<SidebarInset>{children}</SidebarInset>
 						</SidebarProvider>
 					</Providers>
-				</DebugLayout>
+				{/* </DebugLayout> */}
 			</body>
 		</html>
 	);

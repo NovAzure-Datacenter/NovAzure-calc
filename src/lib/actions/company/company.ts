@@ -7,7 +7,6 @@ export async function getCompanyDetails(companyId: string) {
     try {
         const companiesCollection = await getCompaniesCollection();
         const company = await companiesCollection.findOne({ _id: new ObjectId(companyId) });
-        
         if (!company) {
             return { error: "Company not found" };
         }

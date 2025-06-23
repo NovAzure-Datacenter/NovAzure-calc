@@ -1,32 +1,50 @@
 "use client";
 
 import CustomSidebar from "@/components/sidebar/custom-sidebar";
-import { ActiveComponentProvider, useActiveComponent } from "@/contexts/active-component-context";
+import Loading from "@/components/loading-main";
+import { useUser } from "@/hooks/useUser";
+import { useEffect, useState } from "react";
+import { getCompanyDetails } from "@/lib/actions/company/company";
 
-function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
-	const { activeComponent, setActiveComponent } = useActiveComponent();
-
-	return (
-		<div className="flex h-screen overflow-hidden">
-			<CustomSidebar
-				activeTab={activeComponent}
-				setActiveTab={setActiveComponent}
-			/>
-			{children}
-		</div>
-	);
-}
-
-
-// set active component context
 export default function DashboardLayout({
 	children,
 }: {
 	children: React.ReactNode;
 }) {
+	const { user, isLoading: isUserLoading } = useUser();
+	const [isCompanyLoading, setIsCompanyLoading] = useState(true);
+	const [isLoading, setIsLoading] = useState(true);
+
+	useEffect(() => {
+		async function fetchCompanyDetails() {
+			setIsCompanyLoading(true);
+			if (user?.company_id) {
+				const result = await getCompanyDetails(user.company_id);
+				if (result.success && result.company) {
+					// Company details loaded successfully
+				}
+			}
+			setIsCompanyLoading(false);
+		}
+
+		if (!isUserLoading && user) {
+			fetchCompanyDetails();
+		}
+	}, [user?.company_id, isUserLoading, user]);
+
+	useEffect(() => {
+		// Show loading while either user data or company details are loading
+		setIsLoading(isUserLoading || isCompanyLoading);
+	}, [isUserLoading, isCompanyLoading]);
+
+	if (isLoading) {
+		return <Loading />;
+	}
+
 	return (
-		<ActiveComponentProvider>
-			<DashboardLayoutContent>{children}</DashboardLayoutContent>
-		</ActiveComponentProvider>
+		<div className="flex h-screen overflow-hidden">
+			<CustomSidebar />
+			{children}
+		</div>
 	);
 }

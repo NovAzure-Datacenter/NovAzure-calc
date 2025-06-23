@@ -1,9 +1,13 @@
+"use client";
 
 import { Button } from "@/components/ui/button"
 import HeroText from "./hero-text"
+import { useUser } from "@/hooks/useUser"
+import Link from "next/link"
 
 export default function Hero() {
   const { heading, subheading, description, primaryCta, secondaryCta } = HeroText
+  const { isUserLoggedIn, isLoading } = useUser()
 
   return (
     <section className="py-28 md:py-34 lg:py-44 bg-background">
@@ -15,10 +19,27 @@ export default function Hero() {
             <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">{description}</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-2 min-[400px]">
-            <Button size="lg">{primaryCta}</Button>
-            <Button size="lg" variant="outline">
-              {secondaryCta}
-            </Button>
+            {!isLoading && (
+              <>
+                {isUserLoggedIn ? (
+                  <>
+                    <Link href="/dashboard">
+                      <Button size="lg">Go to Dashboard</Button>
+                    </Link>
+                    <Button size="lg" variant="outline">
+                      Book a demo
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button size="lg">{primaryCta}</Button>
+                    <Button size="lg" variant="outline">
+                      {secondaryCta}
+                    </Button>
+                  </>
+                )}
+              </>
+            )}
           </div>
         </div>
       </div>
