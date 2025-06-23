@@ -1,5 +1,10 @@
-from app.services.calculations.air_cooling.capex import calculate_cooling_capex as calculate_air_cooling_capex
-from app.services.calculations.chassis_immersion.capex import calculate_cooling_capex as calculate_chassis_immersion_capex
+"""
+Main calculation service - coordinates between different cooling solutions
+"""
+
+from typing import Dict, Any, Literal
+from app.services.calculations.solutions.air_cooling.capex import calculate_cooling_capex as calculate_air_cooling_capex
+from app.services.calculations.solutions.chassis_immersion.capex import calculate_cooling_capex as calculate_chassis_immersion_capex
 
 # Initialising User inputs that will be used in the calculations
 
@@ -23,20 +28,64 @@ def update_inputs(inputs):
         elif key in data_source:
             data_source[key] = value
         
-def calculate():
-    if cooling_solution_inputs['cooling_type'] == 'air_cooling':
-        input_data = {
-            'data_source': data_source['data_source'],
-            'cooling_capacity_limit': cooling_capacity_inputs['cooling_capacity_limit'],
-            'include_it_cost': cost_inclusion_inputs['include_it_cost']
-        }
+def calculate_solution_capex(
+    cooling_type: Literal["air_cooling", "chassis_immersion"],
+    input_data: Dict[str, Any]
+) -> Dict[str, Any]:
+    """
+    Calculate CAPEX for a specific cooling solution type
+    
+    Args:
+        cooling_type: Type of cooling solution ("air_cooling" or "chassis_immersion")
+        input_data: Dictionary containing calculation inputs
+    
+    Returns:
+        Dictionary with calculation results
+    """
+    
+    if cooling_type == "air_cooling":
         return calculate_air_cooling_capex(input_data)
-    elif cooling_solution_inputs['cooling_type'] == 'chassis_immersion':
-        input_data = {
-            'data_source': data_source['data_source'],
-            'chassis_technology': chassis_technology_inputs['chassis_technology'],
-            'cooling_capacity_limit': cooling_capacity_inputs['cooling_capacity_limit'],
-            'include_it_cost': cost_inclusion_inputs['include_it_cost']
-        }
+    elif cooling_type == "chassis_immersion":
         return calculate_chassis_immersion_capex(input_data)
-    return None
+    else:
+        raise ValueError(f"Unsupported cooling type: {cooling_type}")
+
+def compare_solutions(input_data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Compare air cooling vs chassis immersion solutions
+    
+    Args:
+        input_data: Dictionary containing calculation inputs
+    
+    Returns:
+        Dictionary with comparison results
+    """
+    
+    air_cooling_result = calculate_air_cooling_capex(input_data)
+    chassis_immersion_result = calculate_chassis_immersion_capex(input_data)
+    
+    # Calculate savings/differences
+    savings = {
+        'cooling_equipment_capex_difference': (
+            air_cooling_result['cooling_equipment_capex'] - 
+            chassis_immersion_result['cooling_equipment_capex']
+        ),
+        'total_cost_ownership_difference': (
+            air_cooling_result['total_cost_ownership_excl_it'] - 
+            chassis_immersion_result['total_cost_ownership_excl_it']
+        ),
+        'opex_lifetime_difference': (
+            air_cooling_result['opex_lifetime'] - 
+            chassis_immersion_result['opex_lifetime']
+        )
+    }
+    
+    return {
+        'air_cooling': air_cooling_result,
+        'chassis_immersion': chassis_immersion_result,
+        'savings': savings,
+        'recommendation': (
+            'chassis_immersion' if savings['total_cost_ownership_difference'] > 0 
+            else 'air_cooling'
+        )
+    }
