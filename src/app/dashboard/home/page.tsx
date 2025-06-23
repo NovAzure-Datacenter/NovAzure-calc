@@ -1,5 +1,8 @@
 'use client'
 
+// Force dynamic rendering to prevent static generation issues
+export const dynamic = 'force-dynamic';
+
 import { SidebarInset } from "@/components/ui/sidebar";
 import {
 	Card,
