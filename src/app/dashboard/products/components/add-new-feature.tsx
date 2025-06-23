@@ -29,25 +29,11 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import {
-	Command,
-	CommandEmpty,
-	CommandGroup,
-	CommandInput,
-	CommandItem,
-	CommandList,
-} from "@/components/ui/command";
-import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import {
 	ChevronRight,
 	ChevronLeft,
 	Check,
-	ChevronsUpDown,
 	X,
 	Plus,
 	Trash2,
@@ -79,7 +65,7 @@ interface Calculation {
 	description: string;
 }
 
-interface NewProductData {
+export interface NewProductData {
 	industry: string;
 	customIndustry?: string;
 	technologies: string[];
@@ -187,8 +173,8 @@ export default function AddNewFeature({
 		);
 	};
 
-	const [industryOpen, setIndustryOpen] = useState(false);
-	const [technologyOpen, setTechnologyOpen] = useState(false);
+	const [_industryOpen, _setIndustryOpen] = useState(false);
+	const [_technologyOpen, _setTechnologyOpen] = useState(false);
 	const [newFeature, setNewFeature] = useState("");
 
 	const handleNext = () => {

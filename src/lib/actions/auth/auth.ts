@@ -16,7 +16,24 @@ export interface LoginResponse {
     user?: UserData;
 }
 
-function convertToClientData(user: any) {
+interface MongoUser {
+    _id: ObjectId;
+    email: string;
+    passwordHash: string;
+    first_name?: string;
+    last_name?: string;
+    role: string;
+    work_number?: string;
+    mobile_number?: string;
+    profile_image?: string;
+    company_id: ObjectId;
+    timezone?: string;
+    currency?: string;
+    unit_system?: string;
+    created_at: Date;
+}
+
+function _convertToClientData(user: MongoUser) {
     return {
         ...user,
         _id: user._id.toString(),

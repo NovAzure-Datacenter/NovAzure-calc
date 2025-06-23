@@ -1,5 +1,4 @@
 import {
-	BarChart3,
 	GitCompare,
 	Filter,
 	CalculatorIcon,
@@ -10,7 +9,6 @@ import {
 	PieChart,
 	Frame,
 	Map,
-	Plus,
 	BookOpenIcon,
 	HomeIcon,
 	UsersIcon,
@@ -25,7 +23,7 @@ import {
 	DefaultItem,
 	Team,
 } from "./sidebar-items-types";
-import SolutionsForm from "@/app/dashboard/(solutions)/components/solutions-form";
+import _SolutionsForm from "@/app/dashboard/(solutions)/components/solutions-form";
 
 export const buyerSidebarTools: BuyerSidebarStructure = {
 	items: [

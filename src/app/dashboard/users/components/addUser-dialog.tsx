@@ -1,6 +1,6 @@
 import { User } from "../page";
 import { CompanyData } from "../../account/components/types";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
 	Dialog,
 	DialogContent,

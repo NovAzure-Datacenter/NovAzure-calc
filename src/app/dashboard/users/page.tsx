@@ -20,11 +20,9 @@ import {
 import {
 	ArrowUpDown,
 	ChevronDown,
-	MoreHorizontal,
 	UserIcon,
 	CheckCircle2,
 	XCircle,
-	Delete,
 	Trash2,
 } from "lucide-react";
 
@@ -33,9 +31,6 @@ import {
 	DropdownMenu,
 	DropdownMenuCheckboxItem,
 	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuLabel,
-	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -56,7 +51,7 @@ import { useUser } from "@/hooks/useUser";
 import { Badge } from "@/components/ui/badge";
 import { CompanyData } from "@/app/dashboard/account/components/types";
 import AddUserDialog from "./components/addUser-dialog";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useEffect } from "react";
 import { getUsersByCompany, deleteUser } from "@/lib/actions/user/user";
 import {
@@ -84,6 +79,54 @@ export type User = {
 	unit_system?: string;
 	profile_image?: string;
 	isVerified?: boolean;
+};
+
+const ActionsCell = ({ row, handleDeleteUser }: { row: Row<User>; handleDeleteUser: (userId: string) => Promise<void> }) => {
+	const [isOpen, setIsOpen] = useState(false);
+	const { user } = useUser();
+	const isCurrentUser = user?._id === row.original.id;
+
+	return (
+		<Dialog open={isOpen} onOpenChange={setIsOpen}>
+			<DialogTrigger asChild>
+				<Button
+					variant="ghost"
+					size="icon"
+					disabled={isCurrentUser}
+					className={isCurrentUser ? "cursor-not-allowed" : ""}
+				>
+					<Trash2
+						className={`h-4 w-4 ${
+							isCurrentUser ? "text-muted-foreground" : "text-red-500"
+						}`}
+					/>
+				</Button>
+			</DialogTrigger>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>Delete User</DialogTitle>
+					<DialogDescription>
+						Are you sure you want to remove this user? This action is
+						permanent and cannot be reversed.
+					</DialogDescription>
+				</DialogHeader>
+				<DialogFooter>
+					<Button variant="outline" onClick={() => setIsOpen(false)}>
+						Cancel
+					</Button>
+					<Button
+						variant="destructive"
+						onClick={() => {
+							handleDeleteUser(row.original.id);
+							setIsOpen(false);
+						}}
+					>
+						Delete
+					</Button>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
+	);
 };
 
 const createColumns = (
@@ -184,53 +227,9 @@ const createColumns = (
 	{
 		id: "actions",
 		enableHiding: false,
-		cell: ({ row }: { row: Row<User> }) => {
-			const [isOpen, setIsOpen] = useState(false);
-			const { user } = useUser();
-			const isCurrentUser = user?._id === row.original.id;
-
-			return (
-				<Dialog open={isOpen} onOpenChange={setIsOpen}>
-					<DialogTrigger asChild>
-						<Button
-							variant="ghost"
-							size="icon"
-							disabled={isCurrentUser}
-							className={isCurrentUser ? "cursor-not-allowed" : ""}
-						>
-							<Trash2
-								className={`h-4 w-4 ${
-									isCurrentUser ? "text-muted-foreground" : "text-red-500"
-								}`}
-							/>
-						</Button>
-					</DialogTrigger>
-					<DialogContent>
-						<DialogHeader>
-							<DialogTitle>Delete User</DialogTitle>
-							<DialogDescription>
-								Are you sure you want to remove this user? This action is
-								permanent and cannot be reversed.
-							</DialogDescription>
-						</DialogHeader>
-						<DialogFooter>
-							<Button variant="outline" onClick={() => setIsOpen(false)}>
-								Cancel
-							</Button>
-							<Button
-								variant="destructive"
-								onClick={() => {
-									handleDeleteUser(row.original.id);
-									setIsOpen(false);
-								}}
-							>
-								Delete
-							</Button>
-						</DialogFooter>
-					</DialogContent>
-				</Dialog>
-			);
-		},
+		cell: ({ row }: { row: Row<User> }) => (
+			<ActionsCell row={row} handleDeleteUser={handleDeleteUser} />
+		),
 	},
 ];
 
@@ -316,33 +315,34 @@ export default function CompanyUsersPage() {
 			}
 		}
 		fetchCompanyData();
+	}, [user]);
+
+	const fetchUsers = useCallback(async () => {
+		if (user?.company_id) {
+			try {
+				setIsLoadingUsers(true);
+				setUsersError(null);
+				const result = await getUsersByCompany(user.company_id);
+				if (result.success && result.users) {
+					setData(result.users);
+				} else {
+					console.error("Failed to fetch users:", result.error);
+					setUsersError(result.error || "Failed to fetch users");
+				}
+			} catch (error) {
+				console.error("Error fetching users:", error);
+				setUsersError("An error occurred while fetching users");
+			} finally {
+				setIsLoadingUsers(false);
+			}
+		} else {
+			setIsLoadingUsers(false);
+		}
 	}, [user?.company_id]);
 
 	useEffect(() => {
-		async function fetchUsers() {
-			if (user?.company_id) {
-				try {
-					setIsLoadingUsers(true);
-					setUsersError(null);
-					const result = await getUsersByCompany(user.company_id);
-					if (result.success && result.users) {
-						setData(result.users);
-					} else {
-						console.error("Failed to fetch users:", result.error);
-						setUsersError(result.error || "Failed to fetch users");
-					}
-				} catch (error) {
-					console.error("Error fetching users:", error);
-					setUsersError("An error occurred while fetching users");
-				} finally {
-					setIsLoadingUsers(false);
-				}
-			} else {
-				setIsLoadingUsers(false);
-			}
-		}
 		fetchUsers();
-	}, [user?.company_id]);
+	}, [fetchUsers]);
 
 	const handleAddUser = (newUser: User) => {
 		setData((prev) => [...prev, newUser]);

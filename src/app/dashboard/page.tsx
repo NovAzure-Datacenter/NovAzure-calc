@@ -10,7 +10,7 @@ export default function DashboardPage() {
 
 	useEffect(() => {
 		router.push("/dashboard/home");
-	}, []);
+	}, [router]);
 
 	return <UnderConstruction />;
 }

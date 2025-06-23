@@ -30,7 +30,6 @@ import {
 	Command,
 	CommandEmpty,
 	CommandGroup,
-	CommandItem,
 	CommandList,
 } from "@/components/ui/command";
 import {
@@ -39,7 +38,6 @@ import {
 	PopoverTrigger,
 } from "@/components/ui/popover";
 import {
-	ArrowLeft,
 	Building2,
 	Cpu,
 	Wrench,
@@ -50,14 +48,12 @@ import {
 	Gauge,
 	ChevronRight,
 	Star,
-	TrendingUp,
 	Plus,
 	Edit,
 } from "lucide-react";
-import { mockData, type Product, getIconForCategory } from "./constants";
+import { mockData, type Product, type SolutionVariant, type Industry, type Technology, type Solution, getIconForCategory } from "./constants";
 import Image from "next/image";
-import { Separator } from "@/components/ui/separator";
-import AddNewFeature from "./components/add-new-feature";
+import AddNewFeature, { type NewProductData } from "./components/add-new-feature";
 import { SidebarInset } from "@/components/ui/sidebar";
 
 type NavigationLevel =
@@ -97,10 +93,10 @@ export default function CRMProductNavigator() {
 	const [searchOpen, setSearchOpen] = useState(false);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [addDialogOpen, setAddDialogOpen] = useState(false);
-	const [newProducts, setNewProducts] = useState<any[]>([]);
+	const [_newProducts, setNewProducts] = useState<Product[]>([]);
 	const [comparisonDialogOpen, setComparisonDialogOpen] = useState(false);
 	const [selectedSolutionVariant, setSelectedSolutionVariant] =
-		useState<any>(null);
+		useState<SolutionVariant | null>(null);
 
 	// Auto-open search when user starts typing
 	const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -443,7 +439,7 @@ export default function CRMProductNavigator() {
 		}
 	};
 
-	const goBack = () => {
+	const _goBack = () => {
 		switch (navState.level) {
 			case "technology":
 				setNavState({ level: "industry" });
@@ -503,10 +499,28 @@ export default function CRMProductNavigator() {
 		}
 	};
 
-	const handleNewProductSubmit = (data: any) => {
+	const handleNewProductSubmit = (data: NewProductData) => {
 		console.log("New product data:", data);
-		setNewProducts((prev) => [...prev, data]);
-		// In the future, this will update the database
+		// Convert NewProductData to Product format if needed
+		const newProduct: Product = {
+			id: Date.now().toString(),
+			name: data.solutionName,
+			description: data.description,
+			model: "Custom Model",
+			category: data.industry,
+			efficiency: "High",
+			specifications: {
+				powerRating: "Custom",
+				coolingCapacity: "Custom",
+				dimensions: "Custom",
+				weight: "Custom",
+				operatingTemperature: "Custom",
+				certifications: "Custom",
+			},
+			features: [],
+		};
+		setNewProducts((prev) => [...prev, newProduct]);
+		setAddDialogOpen(false);
 	};
 
 	const currentData = getCurrentData();
@@ -707,7 +721,7 @@ export default function CRMProductNavigator() {
 					</div>
 
 					<div className="divide-y divide-gray-100">
-						{currentData.map((item: any, index) => (
+						{currentData.map((item, _index) => (
 							<div key={item.id} className="group">
 								{/* Main Item Row */}
 								<div
@@ -717,7 +731,7 @@ export default function CRMProductNavigator() {
 											setSelectedProduct(item as Product);
 										} else if (navState.level === "solutionVariant") {
 											// For solution variants, show comparison dialog
-											setSelectedSolutionVariant(item);
+											setSelectedSolutionVariant(item as SolutionVariant);
 											setComparisonDialogOpen(true);
 										} else {
 											let nextLevel: NavigationLevel;
@@ -795,15 +809,15 @@ export default function CRMProductNavigator() {
 										{navState.level !== "product" && (
 											<div className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full whitespace-nowrap">
 												{navState.level === "industry" &&
-													`${item.technologies?.length || 0} Technologies`}
+													`${(item as Industry).technologies?.length || 0} Technologies`}
 												{navState.level === "technology" &&
-													`${item.solutions?.length || 0} Solutions`}
+													`${(item as Technology).solutions?.length || 0} Solutions`}
 												{navState.level === "solution" &&
 													`${
-														item.solutionVariants?.length || 0
+														(item as Solution).solutionVariants?.length || 0
 													} Solution Variants`}
 												{navState.level === "solutionVariant" &&
-													`${item.products?.length || 0} Products`}
+													`${(item as SolutionVariant).products?.length || 0} Products`}
 											</div>
 										)}
 
@@ -1088,7 +1102,7 @@ export default function CRMProductNavigator() {
 								{selectedSolutionVariant?.name}
 							</DialogTitle>
 							<DialogDescription className="text-gray-600">
-								Choose how you'd like to explore this solution variant
+								Choose how you&apos;d like to explore this solution variant
 							</DialogDescription>
 						</DialogHeader>
 

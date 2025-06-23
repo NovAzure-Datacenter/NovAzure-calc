@@ -52,7 +52,7 @@ import {
 	DialogTrigger,
 } from "@/components/ui/dialog";
 
-export function TCOCalculator() {
+export default function TCOCalculator() {
 	// 1. Define the initial state object
 	const initialState = {
 		dataCentreType: "none",
@@ -1430,5 +1430,3 @@ export function TCOCalculator() {
 		</div>
 	);
 }
-
-export default TCOCalculator;
