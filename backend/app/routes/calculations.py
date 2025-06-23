@@ -9,7 +9,7 @@ from app.schemas.calculations import (
 )
 from app.services.calculations.solutions.air_cooling.capex import calculate_cooling_capex as calculate_air_cooling_capex
 from app.services.calculations.solutions.chassis_immersion.capex import calculate_cooling_capex as calculate_chassis_immersion_capex
-from app.services.calculations.air_cooling.opex import calculate_opex
+from app.services.calculations.solutions.air_cooling.opex import calculate_opex
 from app.services.calculations.main import compare_solutions
 
 router = APIRouter(prefix="/calculations", tags=["calculations"])
