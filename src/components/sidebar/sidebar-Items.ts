@@ -286,7 +286,8 @@ export const defautlSideBarItems: DefaultItem[] = [
 	{
 		title: "TCO Calculator",
 		icon: CalculatorIcon,
-		url: "/dashboard/tco-calculator",
+		//url: "/dashboard/tco-calculator",
+		url: "/tcocalculator",
 	},
 	{
 		title: "Users",
