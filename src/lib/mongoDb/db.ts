@@ -14,7 +14,7 @@ export async function getUsersCollection(): Promise<Collection> {
 
 export async function getCompaniesCollection(): Promise<Collection> {
     const db = await getDb();
-    return db.collection("companies");
+    return db.collection("vendors");
 }
 
 

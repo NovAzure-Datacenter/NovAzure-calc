@@ -3,6 +3,7 @@
 import * as React from "react";
 import Image from "next/image";
 import { signOut } from "next-auth/react";
+import { useRouter, usePathname } from "next/navigation";
 
 import {
 	BadgeCheck,
@@ -13,10 +14,11 @@ import {
 	Forward,
 	HeadsetIcon,
 	LogOut,
-	MoonIcon,
 	MoreHorizontal,
-	SunIcon,
 	Trash2,
+	UsersIcon,
+	Package,
+	CalculatorIcon,
 } from "lucide-react";
 
 import {
@@ -62,7 +64,6 @@ import { Separator } from "@/components/ui/separator";
 import { SidebarItem as MenuItem, Project } from "./sidebar-items-types";
 import { UserData, useUser } from "@/hooks/useUser";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { useTheme } from "next-themes";
 import { getCompanyDetails } from "@/lib/actions/company/company";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -81,13 +82,10 @@ const getSidebarTools = (type: SidebarType) => {
 };
 
 export default function CustomSidebar({
-	activeTab,
-	setActiveTab,
 	...props
-}: {
-	activeTab: string;
-	setActiveTab: (component: string) => void;
-} & React.ComponentProps<typeof Sidebar>) {
+}: React.ComponentProps<typeof Sidebar>) {
+	const router = useRouter();
+	const pathname = usePathname();
 	const [sideBarType, setSideBarType] = useState<SidebarType>("buyer");
 	const { user, isLoading: isUserLoading } = useUser();
 	const sidebarTools = getSidebarTools(sideBarType);
@@ -133,7 +131,7 @@ export default function CustomSidebar({
 			<>
 				<SidebarHeader className=" px-4 full">
 					<div className="flex items-center gap-6">
-						<div className="relative h-14 w-14 overflow-hidden rounded-full border border-border dark:bg-white">
+						<div className="relative h-14 w-14 overflow-hidden rounded-full border border-border">
 							{isCompanyLoading ? (
 								<Skeleton className="h-14 w-14 rounded-full" />
 							) : (
@@ -167,17 +165,13 @@ export default function CustomSidebar({
 				<Separator className="mb-4" />
 
 				<SidebarContent className="space-y-4">
-					<NavDefault
-						setActiveTab={setActiveTab}
-						activeTab={activeTab}
-						user={user}
-					/>
-					<NavMain
-						items={sidebarTools.items}
-						setActiveTab={setActiveTab}
-						activeTab={activeTab}
-					/>
-					<NavSecond projects={sidebarTools.projects} />
+					<NavDefault pathname={pathname} user={user} />
+					<NavProducts pathname={pathname} user={user} />
+					{/* <NavMain items={sidebarTools.items} pathname={pathname} /> */}
+					{/* <NavSecond projects={sidebarTools.projects} /> */}
+					{user?.role === "admin" || user?.role === "super-admin" && (
+						<NavAdmin pathname={pathname} user={user} />
+					)}
 				</SidebarContent>
 				<SidebarFooter>
 					{isUserLoading ? (
@@ -190,7 +184,7 @@ export default function CustomSidebar({
 							</div>
 						</div>
 					) : (
-						user && <NavUser user={user} setActiveTab={setActiveTab} />
+						user && <NavUser user={user} />
 					)}
 				</SidebarFooter>
 			</>
@@ -199,22 +193,20 @@ export default function CustomSidebar({
 }
 
 function NavDefault({
-	setActiveTab,
-	activeTab,
+	pathname,
 	user,
 }: {
-	setActiveTab: (tab: string) => void;
-	activeTab: string;
+	pathname: string;
 	user: UserData | null;
 } & React.ComponentProps<typeof Sidebar>) {
+	const router = useRouter();
 	const [isMenuItemHovered, setIsMenuItemHovered] = useState<string | null>(
 		null
 	);
 
-	// Check if user has admin or super-admin role - this needs be revisited as the sidebar content grows
-	const isAdminUser = user?.role === "admin" || user?.role === "super-admin";
+	// Filter out Users, Products, and TCO Calculator items since they're now handled by NavAdmin and NavProducts
 	const filteredItems = defautlSideBarItems.filter((item) => {
-		if (item.title === "Users" && !isAdminUser) {
+		if (item.title === "Users" || item.title === "Products" || item.title === "TCO Calculator") {
 			return false;
 		}
 		return true;
@@ -229,9 +221,17 @@ function NavDefault({
 							asChild
 							onClick={(e) => {
 								e.preventDefault();
-								setActiveTab(item.url);
+								router.push(item.url);
 							}}
-							className={isMenuItemHovered === item.title ? "bg-accent" : ""}
+							className={
+								isMenuItemHovered === item.title
+									? "bg-accent"
+									: pathname === item.url
+									? "bg-accent"
+									: item.active
+									? ""
+									: "text-muted-foreground cursor-not-allowed"
+							}
 							onMouseEnter={() => setIsMenuItemHovered(item.title)}
 							onMouseLeave={() => setIsMenuItemHovered(null)}
 						>
@@ -240,7 +240,7 @@ function NavDefault({
 								<span>{item.title}</span>
 								{item.title.toLowerCase() === "news" && (
 									<div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center min-w-[20px] h-5 rounded-full bg-custom-dark-blue text-primary-foreground text-xs font-medium">
-										3
+										2
 									</div>
 								)}
 							</a>
@@ -252,15 +252,219 @@ function NavDefault({
 	);
 }
 
-function NavMain({
-	items,
-	setActiveTab,
-	activeTab,
+function NavProducts({
+	pathname,
+	user,
 }: {
-	items: MenuItem[];
-	setActiveTab: (tab: string) => void;
-	activeTab: string;
-}) {
+	pathname: string;
+	user: UserData | null;
+} & React.ComponentProps<typeof Sidebar>) {
+	const router = useRouter();
+	const [isMenuItemHovered, setIsMenuItemHovered] = useState<string | null>(
+		null
+	);
+
+	const productItems = [
+		{
+			title: "Products",
+			icon: Package,
+			url: "/dashboard/products",
+		},
+		{
+			title: "TCO Calculator",
+			icon: CalculatorIcon,
+			url: "/dashboard/calculator",
+		},
+	];
+
+	return (
+		<SidebarGroup>
+			<SidebarGroupLabel>Products & Tools</SidebarGroupLabel>
+			<SidebarMenu>
+				{productItems.map((item) => (
+					<SidebarMenuItem key={item.title}>
+						<SidebarMenuButton
+							asChild
+							onClick={(e) => {
+								e.preventDefault();
+								router.push(item.url);
+							}}
+							className={
+								isMenuItemHovered === item.title
+									? "bg-accent"
+									: pathname === item.url
+									? "bg-accent"
+									: ""
+							}
+							onMouseEnter={() => setIsMenuItemHovered(item.title)}
+							onMouseLeave={() => setIsMenuItemHovered(null)}
+						>
+							<a href={item.url}>
+								{item.icon && <item.icon className="h-4 w-4" />}
+								<span>{item.title}</span>
+							</a>
+						</SidebarMenuButton>
+					</SidebarMenuItem>
+				))}
+			</SidebarMenu>
+		</SidebarGroup>
+	);
+}
+
+function NavAdmin({
+	pathname,
+	user,
+}: {
+	pathname: string;
+	user: UserData | null;
+} & React.ComponentProps<typeof Sidebar>) {
+	const router = useRouter();
+	const [isMenuItemHovered, setIsMenuItemHovered] = useState<string | null>(
+		null
+	);
+
+	// Check if user has admin or super-admin role
+	const isAdminUser = user?.role === "admin" || user?.role === "super-admin";
+
+	// Only render if user is admin
+	if (!isAdminUser) {
+		return null;
+	}
+
+	return (
+		<SidebarGroup>
+			<SidebarGroupLabel>Admin Tools</SidebarGroupLabel>
+			<SidebarMenu>
+				<SidebarMenuItem>
+					<SidebarMenuButton
+						asChild
+						onClick={(e) => {
+							e.preventDefault();
+							router.push("/dashboard/users");
+						}}
+						className={
+							isMenuItemHovered === "Users"
+								? "bg-accent"
+								: pathname === "/dashboard/users"
+								? "bg-accent"
+								: ""
+						}
+						onMouseEnter={() => setIsMenuItemHovered("Users")}
+						onMouseLeave={() => setIsMenuItemHovered(null)}
+					>
+						<a href="/dashboard/users">
+							<UsersIcon className="h-4 w-4" />
+							<span>Users</span>
+						</a>
+					</SidebarMenuButton>
+				</SidebarMenuItem>
+			</SidebarMenu>
+		</SidebarGroup>
+	);
+}
+
+function NavUser({ user }: { user: UserData }) {
+	const router = useRouter();
+	const { isMobile } = useSidebar();
+	const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+	const handleLogout = async () => {
+		setIsLoggingOut(true);
+		try {
+			await signOut({ callbackUrl: "/" });
+		} catch (error) {
+			console.error("Logout error:", error);
+		} finally {
+			setIsLoggingOut(false);
+		}
+	};
+
+	return (
+		<SidebarGroup>
+			<SidebarMenu>
+				{/* Support */}
+				<SidebarMenuItem>
+					<SidebarMenuButton>
+						<HeadsetIcon className="h-4 w-4" />
+						<span>Support</span>
+					</SidebarMenuButton>
+				</SidebarMenuItem>
+
+				<SidebarMenuItem>
+					<DropdownMenu>
+						<DropdownMenuTrigger asChild>
+							<SidebarMenuButton
+								size="lg"
+								className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+							>
+								<Avatar className="h-8 w-8 rounded-lg">
+									<AvatarImage
+										src={user.profile_image}
+										alt={user.first_name + " " + user.last_name}
+									/>
+									<AvatarFallback className="rounded-lg">CN</AvatarFallback>
+								</Avatar>
+								<div className="grid flex-1 text-left text-sm leading-tight">
+									<span className="truncate font-medium">
+										{user.first_name + " " + user.last_name}
+									</span>
+								</div>
+								<ChevronsUpDown className="ml-auto size-4" />
+							</SidebarMenuButton>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent
+							className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+							side={isMobile ? "bottom" : "right"}
+							align="end"
+							sideOffset={4}
+						>
+							<DropdownMenuLabel className="p-0 font-normal">
+								<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+									<Avatar className="h-8 w-8 rounded-lg">
+										<AvatarImage
+											src={user.profile_image}
+											alt={user.first_name + " " + user.last_name}
+										/>
+										<AvatarFallback className="rounded-lg">CN</AvatarFallback>
+									</Avatar>
+									<div className="grid flex-1 text-left text-sm leading-tight">
+										<span className="truncate font-medium">
+											{user.first_name + " " + user.last_name}
+										</span>
+									</div>
+								</div>
+							</DropdownMenuLabel>
+							<DropdownMenuSeparator />
+
+							<DropdownMenuGroup>
+								<DropdownMenuItem
+									onClick={() => router.push("/dashboard/account")}
+								>
+									<BadgeCheck />
+									Account
+								</DropdownMenuItem>
+
+								<DropdownMenuItem>
+									<Bell />
+									Notifications
+								</DropdownMenuItem>
+							</DropdownMenuGroup>
+							<DropdownMenuSeparator />
+							<DropdownMenuItem onClick={handleLogout} disabled={isLoggingOut}>
+								<LogOut className="h-4 w-4" />
+								{isLoggingOut ? "Logging out..." : "Log out"}
+							</DropdownMenuItem>
+						</DropdownMenuContent>
+					</DropdownMenu>
+				</SidebarMenuItem>
+			</SidebarMenu>
+		</SidebarGroup>
+	);
+}
+
+
+function NavMain({ items, pathname }: { items: MenuItem[]; pathname: string }) {
+	const router = useRouter();
 	const [openItem, setOpenItem] = useState<string | null>(null);
 	const [isMenuItemHovered, setIsMenuItemHovered] = useState<string | null>(
 		null
@@ -271,12 +475,12 @@ function NavMain({
 
 	const handleItemClick = (url: string, e: React.MouseEvent) => {
 		e.preventDefault();
-		setActiveTab(url);
+		router.push(url);
 	};
 
 	return (
 		<SidebarGroup>
-			<SidebarGroupLabel>Tools</SidebarGroupLabel>
+			<SidebarGroupLabel></SidebarGroupLabel>
 			<SidebarMenu>
 				{activeItems.map((item) =>
 					item.items ? (
@@ -464,113 +668,6 @@ function NavSecond({ projects }: { projects: Project[] }) {
 						</DropdownMenu>
 					</SidebarMenuItem>
 				))}
-			</SidebarMenu>
-		</SidebarGroup>
-	);
-}
-
-function NavUser({
-	user,
-	setActiveTab,
-}: {
-	user: UserData;
-	setActiveTab: (tab: string) => void;
-}) {
-	const { isMobile } = useSidebar();
-	const { theme, setTheme } = useTheme();
-
-	return (
-		<SidebarGroup>
-			<SidebarMenu>
-				{/* Suppert & Theme */}
-				<SidebarMenuItem>
-					<SidebarMenuButton>
-						<HeadsetIcon className="h-4 w-4" />
-						<span>Support</span>
-					</SidebarMenuButton>
-					<SidebarMenuButton
-						onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-					>
-						{theme === "dark" ? (
-							<SunIcon className="h-4 w-4" />
-						) : (
-							<MoonIcon className="h-4 w-4" />
-						)}
-						<span>{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
-					</SidebarMenuButton>
-				</SidebarMenuItem>
-
-				<SidebarMenuItem>
-					<DropdownMenu>
-						<DropdownMenuTrigger asChild>
-							<SidebarMenuButton
-								size="lg"
-								className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-							>
-								<Avatar className="h-8 w-8 rounded-lg">
-									<AvatarImage
-										src={user.profile_image}
-										alt={user.first_name + " " + user.last_name}
-									/>
-									<AvatarFallback className="rounded-lg">CN</AvatarFallback>
-								</Avatar>
-								<div className="grid flex-1 text-left text-sm leading-tight">
-									<span className="truncate font-medium">
-										{user.first_name + " " + user.last_name}
-									</span>
-								</div>
-								<ChevronsUpDown className="ml-auto size-4" />
-							</SidebarMenuButton>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent
-							className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-							side={isMobile ? "bottom" : "right"}
-							align="end"
-							sideOffset={4}
-						>
-							<DropdownMenuLabel className="p-0 font-normal">
-								<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-									<Avatar className="h-8 w-8 rounded-lg">
-										<AvatarImage
-											src={user.profile_image}
-											alt={user.first_name + " " + user.last_name}
-										/>
-										<AvatarFallback className="rounded-lg">CN</AvatarFallback>
-									</Avatar>
-									<div className="grid flex-1 text-left text-sm leading-tight">
-										<span className="truncate font-medium">
-											{user.first_name + " " + user.last_name}
-										</span>
-									</div>
-								</div>
-							</DropdownMenuLabel>
-							<DropdownMenuSeparator />
-
-							<DropdownMenuGroup>
-								<DropdownMenuItem
-									onClick={() => setActiveTab("/dashboard/account/settings")}
-								>
-									<BadgeCheck />
-									Account
-								</DropdownMenuItem>
-
-								<DropdownMenuItem>
-									<Bell />
-									Notifications
-								</DropdownMenuItem>
-							</DropdownMenuGroup>
-							<DropdownMenuSeparator />
-							<DropdownMenuItem
-								onClick={() => {
-									signOut({ callbackUrl: "/login" });
-								}}
-							>
-								<LogOut />
-								Log out
-							</DropdownMenuItem>
-						</DropdownMenuContent>
-					</DropdownMenu>
-				</SidebarMenuItem>
 			</SidebarMenu>
 		</SidebarGroup>
 	);

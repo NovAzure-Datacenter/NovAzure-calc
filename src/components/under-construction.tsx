@@ -3,7 +3,7 @@ import { Construction, Hammer, HardHat, Wrench } from "lucide-react";
 export default function UnderConstruction() {
 	return (
         
-		<div className="min-h-[calc(96vh)] flex items-center justify-center bg-gradient-to-br from-blue-50 to-sky-50 dark:from-blue-950 dark:to-sky-950">
+		<div className="min-h-[calc(96vh)] flex items-center justify-center bg-gradient-to-br from-blue-50 to-sky-50">
 			<div className="text-center space-y-8 ">
 				{/* Animated Construction Icons */}
 				<div className="relative flex justify-center items-center space-x-4 mb-8">
@@ -52,12 +52,12 @@ export default function UnderConstruction() {
 
 				{/* Main Content */}
 				<div className="space-y-4">
-					<h1 className="text-4xl font-bold text-gray-800 dark:text-gray-200 ">
+					<h1 className="text-4xl font-bold text-gray-800">
 						Under Construction
 					</h1>
 
 					<div className="relative">
-						<p className="text-lg text-gray-600 dark:text-gray-400 max-w-md mx-auto ">
+						<p className="text-lg text-gray-600 max-w-md mx-auto">
 							We&apos;re building something amazing! Our team is working hard to
 							bring you an incredible product.
 						</p>
