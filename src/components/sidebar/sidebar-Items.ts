@@ -23,7 +23,6 @@ import {
 	DefaultItem,
 	Team,
 } from "./sidebar-items-types";
-import _SolutionsForm from "@/app/dashboard/(solutions)/components/solutions-form";
 
 export const buyerSidebarTools: BuyerSidebarStructure = {
 	items: [

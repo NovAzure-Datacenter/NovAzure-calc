@@ -26,10 +26,6 @@ const nextConfig: NextConfig = {
     
     return config;
   },
-  // Disable static generation for problematic routes
-  async generateStaticParams() {
-    return [];
-  },
 };
 
 export default nextConfig;
