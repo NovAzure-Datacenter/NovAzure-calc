@@ -1,45 +1,31 @@
 "use client";
 
 import * as React from "react";
-import Image from "next/image";
+import _Image from "next/image";
 import { signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
 
 import {
 	BadgeCheck,
 	Bell,
-	ChevronRight,
 	ChevronsUpDown,
-	Folder,
-	Forward,
 	HeadsetIcon,
 	LogOut,
-	MoreHorizontal,
-	Trash2,
 	UsersIcon,
 	Package,
 	CalculatorIcon,
 } from "lucide-react";
 
 import {
-	Collapsible,
-	CollapsibleContent,
-	CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import {
 	SidebarGroup,
 	SidebarGroupLabel,
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
-	SidebarMenuSub,
-	SidebarMenuSubButton,
-	SidebarMenuSubItem,
 	Sidebar,
 	SidebarContent,
 	SidebarHeader,
 	useSidebar,
-	SidebarMenuAction,
 	SidebarFooter,
 } from "@/components/ui/sidebar";
 
@@ -61,7 +47,6 @@ import { DropdownMenu } from "@/components/ui/dropdown-menu";
 import { useEffect, useState } from "react";
 import { Separator } from "@/components/ui/separator";
 
-import { SidebarItem as MenuItem, Project } from "./sidebar-items-types";
 import { UserData, useUser } from "@/hooks/useUser";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { getCompanyDetails } from "@/lib/actions/company/company";
@@ -84,17 +69,17 @@ const getSidebarTools = (type: SidebarType) => {
 export default function CustomSidebar({
 	...props
 }: React.ComponentProps<typeof Sidebar>) {
-	const router = useRouter();
+	const _router = useRouter();
 	const pathname = usePathname();
 	const [sideBarType, setSideBarType] = useState<SidebarType>("buyer");
 	const { user, isLoading: isUserLoading } = useUser();
-	const sidebarTools = getSidebarTools(sideBarType);
+	const _sidebarTools = getSidebarTools(sideBarType);
 	const [companyDetails, setCompanyDetails] = useState<{
 		name: string;
 		logo: string;
 	} | null>(null);
 	const [isCompanyLoading, setIsCompanyLoading] = useState(true);
-	const [isMenuItemHovered, setIsMenuItemHovered] = useState<string | null>(
+	const [_isMenuItemHovered, _setIsMenuItemHovered] = useState<string | null>(
 		null
 	);
 
@@ -194,13 +179,13 @@ export default function CustomSidebar({
 
 function NavDefault({
 	pathname,
-	user,
+	user: _user,
 }: {
 	pathname: string;
 	user: UserData | null;
 } & React.ComponentProps<typeof Sidebar>) {
 	const router = useRouter();
-	const [isMenuItemHovered, setIsMenuItemHovered] = useState<string | null>(
+	const [_isMenuItemHovered, _setIsMenuItemHovered] = useState<string | null>(
 		null
 	);
 
@@ -224,7 +209,7 @@ function NavDefault({
 								router.push(item.url);
 							}}
 							className={
-								isMenuItemHovered === item.title
+								_isMenuItemHovered === item.title
 									? "bg-accent"
 									: pathname === item.url
 									? "bg-accent"
@@ -232,8 +217,8 @@ function NavDefault({
 									? ""
 									: "text-muted-foreground cursor-not-allowed"
 							}
-							onMouseEnter={() => setIsMenuItemHovered(item.title)}
-							onMouseLeave={() => setIsMenuItemHovered(null)}
+							onMouseEnter={() => _setIsMenuItemHovered(item.title)}
+							onMouseLeave={() => _setIsMenuItemHovered(null)}
 						>
 							<a href={item.url} className="relative">
 								{item.icon && <item.icon className="h-4 w-4" />}
@@ -254,13 +239,13 @@ function NavDefault({
 
 function NavProducts({
 	pathname,
-	user,
+	user: _user,
 }: {
 	pathname: string;
 	user: UserData | null;
 } & React.ComponentProps<typeof Sidebar>) {
 	const router = useRouter();
-	const [isMenuItemHovered, setIsMenuItemHovered] = useState<string | null>(
+	const [_isMenuItemHovered, _setIsMenuItemHovered] = useState<string | null>(
 		null
 	);
 
@@ -290,14 +275,14 @@ function NavProducts({
 								router.push(item.url);
 							}}
 							className={
-								isMenuItemHovered === item.title
+								_isMenuItemHovered === item.title
 									? "bg-accent"
 									: pathname === item.url
 									? "bg-accent"
 									: ""
 							}
-							onMouseEnter={() => setIsMenuItemHovered(item.title)}
-							onMouseLeave={() => setIsMenuItemHovered(null)}
+							onMouseEnter={() => _setIsMenuItemHovered(item.title)}
+							onMouseLeave={() => _setIsMenuItemHovered(null)}
 						>
 							<a href={item.url}>
 								{item.icon && <item.icon className="h-4 w-4" />}
@@ -319,7 +304,7 @@ function NavAdmin({
 	user: UserData | null;
 } & React.ComponentProps<typeof Sidebar>) {
 	const router = useRouter();
-	const [isMenuItemHovered, setIsMenuItemHovered] = useState<string | null>(
+	const [_isMenuItemHovered, _setIsMenuItemHovered] = useState<string | null>(
 		null
 	);
 
@@ -343,14 +328,14 @@ function NavAdmin({
 							router.push("/dashboard/users");
 						}}
 						className={
-							isMenuItemHovered === "Users"
+							_isMenuItemHovered === "Users"
 								? "bg-accent"
 								: pathname === "/dashboard/users"
 								? "bg-accent"
 								: ""
 						}
-						onMouseEnter={() => setIsMenuItemHovered("Users")}
-						onMouseLeave={() => setIsMenuItemHovered(null)}
+						onMouseEnter={() => _setIsMenuItemHovered("Users")}
+						onMouseLeave={() => _setIsMenuItemHovered(null)}
 					>
 						<a href="/dashboard/users">
 							<UsersIcon className="h-4 w-4" />
@@ -457,217 +442,6 @@ function NavUser({ user }: { user: UserData }) {
 						</DropdownMenuContent>
 					</DropdownMenu>
 				</SidebarMenuItem>
-			</SidebarMenu>
-		</SidebarGroup>
-	);
-}
-
-
-function NavMain({ items, pathname }: { items: MenuItem[]; pathname: string }) {
-	const router = useRouter();
-	const [openItem, setOpenItem] = useState<string | null>(null);
-	const [isMenuItemHovered, setIsMenuItemHovered] = useState<string | null>(
-		null
-	);
-
-	// Filter out inactive items
-	const activeItems = items.filter((item) => item.isActive !== false);
-
-	const handleItemClick = (url: string, e: React.MouseEvent) => {
-		e.preventDefault();
-		router.push(url);
-	};
-
-	return (
-		<SidebarGroup>
-			<SidebarGroupLabel></SidebarGroupLabel>
-			<SidebarMenu>
-				{activeItems.map((item) =>
-					item.items ? (
-						<Collapsible
-							key={item.title}
-							asChild
-							open={openItem === item.title}
-							onOpenChange={(isOpen) => {
-								setOpenItem(isOpen ? item.title : null);
-							}}
-						>
-							<SidebarMenuItem>
-								<CollapsibleTrigger asChild>
-									<SidebarMenuButton
-										tooltip={item.title}
-										className={
-											isMenuItemHovered === item.title ? "bg-accent" : ""
-										}
-										onMouseEnter={() => setIsMenuItemHovered(item.title)}
-										onMouseLeave={() => setIsMenuItemHovered(null)}
-									>
-										{item.icon && <item.icon className="h-4 w-4" />}
-										<span>{item.title}</span>
-										<ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 h-4 w-4" />
-									</SidebarMenuButton>
-								</CollapsibleTrigger>
-								<CollapsibleContent>
-									<SidebarMenuSub>
-										{item.items?.map((subItem) => (
-											<SidebarMenuSubItem key={subItem.title}>
-												{subItem.items ? (
-													<Collapsible asChild>
-														<CollapsibleTrigger asChild>
-															<SidebarMenuSubButton
-																className={
-																	isMenuItemHovered === subItem.title
-																		? "bg-accent"
-																		: ""
-																}
-																onMouseEnter={() =>
-																	setIsMenuItemHovered(subItem.title)
-																}
-																onMouseLeave={() => setIsMenuItemHovered(null)}
-															>
-																<span>{subItem.title}</span>
-																<ChevronRight className="ml-auto h-4 w-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-															</SidebarMenuSubButton>
-														</CollapsibleTrigger>
-														<CollapsibleContent>
-															<SidebarMenuSub className="pl-4">
-																{subItem.items.map((nestedItem) => (
-																	<SidebarMenuSubItem key={nestedItem.title}>
-																		<SidebarMenuSubButton
-																			onClick={(e) =>
-																				handleItemClick(nestedItem.url, e)
-																			}
-																			className={
-																				isMenuItemHovered === nestedItem.title
-																					? "bg-accent"
-																					: ""
-																			}
-																			onMouseEnter={() =>
-																				setIsMenuItemHovered(nestedItem.title)
-																			}
-																			onMouseLeave={() =>
-																				setIsMenuItemHovered(null)
-																			}
-																		>
-																			<span>{nestedItem.title}</span>
-																		</SidebarMenuSubButton>
-																	</SidebarMenuSubItem>
-																))}
-															</SidebarMenuSub>
-														</CollapsibleContent>
-													</Collapsible>
-												) : (
-													<SidebarMenuSubButton
-														asChild
-														onClick={(e) => handleItemClick(subItem.url, e)}
-														className={
-															isMenuItemHovered === subItem.title
-																? "bg-accent"
-																: ""
-														}
-														onMouseEnter={() =>
-															setIsMenuItemHovered(subItem.title)
-														}
-														onMouseLeave={() => setIsMenuItemHovered(null)}
-													>
-														<a
-															href={subItem.url}
-															className="text-xs items-center "
-														>
-															{subItem.icon && (
-																<subItem.icon className="h-4 w-4" />
-															)}
-															<span>{subItem.title}</span>
-															{subItem.description && (
-																<span className="text-xs text-muted-foreground">
-																	{subItem.description}
-																</span>
-															)}
-														</a>
-													</SidebarMenuSubButton>
-												)}
-											</SidebarMenuSubItem>
-										))}
-									</SidebarMenuSub>
-								</CollapsibleContent>
-							</SidebarMenuItem>
-						</Collapsible>
-					) : (
-						<SidebarMenuItem key={item.title}>
-							<SidebarMenuButton
-								asChild
-								onClick={(e) =>
-									handleItemClick(item.url || `/${item.title.toLowerCase()}`, e)
-								}
-								className={isMenuItemHovered === item.title ? "bg-accent" : ""}
-								onMouseEnter={() => setIsMenuItemHovered(item.title)}
-								onMouseLeave={() => setIsMenuItemHovered(null)}
-							>
-								<a href={item.url}>
-									{item.icon && <item.icon className="h-4 w-4" />}
-									<span>{item.title}</span>
-								</a>
-							</SidebarMenuButton>
-						</SidebarMenuItem>
-					)
-				)}
-			</SidebarMenu>
-		</SidebarGroup>
-	);
-}
-
-function NavSecond({ projects }: { projects: Project[] }) {
-	const { isMobile } = useSidebar();
-	const [isMenuItemHovered, setIsMenuItemHovered] = useState<string | null>(
-		null
-	);
-
-	return (
-		<SidebarGroup>
-			<SidebarGroupLabel>Saved Projects</SidebarGroupLabel>
-			<SidebarMenu>
-				{projects.map((item) => (
-					<SidebarMenuItem key={item.name}>
-						<SidebarMenuButton
-							asChild
-							className={isMenuItemHovered === item.name ? "bg-accent" : ""}
-							onMouseEnter={() => setIsMenuItemHovered(item.name)}
-							onMouseLeave={() => setIsMenuItemHovered(null)}
-						>
-							<a href={item.url}>
-								<item.icon className="h-4 w-4" />
-								<span>{item.name}</span>
-							</a>
-						</SidebarMenuButton>
-						<DropdownMenu>
-							<DropdownMenuTrigger asChild>
-								<SidebarMenuAction showOnHover>
-									<MoreHorizontal className="h-4 w-4" />
-									<span className="sr-only">More</span>
-								</SidebarMenuAction>
-							</DropdownMenuTrigger>
-							<DropdownMenuContent
-								className="w-48 rounded-lg"
-								side={isMobile ? "bottom" : "right"}
-								align={isMobile ? "end" : "start"}
-							>
-								<DropdownMenuItem>
-									<Folder className="text-muted-foreground" />
-									<span>View Project</span>
-								</DropdownMenuItem>
-								<DropdownMenuItem>
-									<Forward className="text-muted-foreground" />
-									<span>Share Project</span>
-								</DropdownMenuItem>
-								<DropdownMenuSeparator />
-								<DropdownMenuItem>
-									<Trash2 className="text-muted-foreground" />
-									<span>Delete Project</span>
-								</DropdownMenuItem>
-							</DropdownMenuContent>
-						</DropdownMenu>
-					</SidebarMenuItem>
-				))}
 			</SidebarMenu>
 		</SidebarGroup>
 	);

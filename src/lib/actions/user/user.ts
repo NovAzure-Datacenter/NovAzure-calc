@@ -18,12 +18,46 @@ export interface UpdateUserProfileData {
 	work_number?: string;
 }
 
-function convertToClientData(user: any) {
+function convertToClientData(user: unknown) {
+	if (!user || typeof user !== 'object') {
+		throw new Error('Invalid user document');
+	}
+	
+	const userDoc = user as { 
+		_id: unknown; 
+		company_id: unknown; 
+		created_at: Date; 
+		first_name?: string;
+		last_name?: string;
+		email?: string;
+		role?: string;
+		profile_image?: string;
+		mobile_number?: string;
+		work_number?: string;
+		timezone?: string;
+		currency?: string;
+		unit_system?: string;
+		account_type?: string;
+		company_name?: string;
+		[key: string]: unknown 
+	};
+	
 	return {
-		...user,
-		_id: user._id.toString(),
-		company_id: user.company_id.toString(),
-		created_at: user.created_at.toISOString(),
+		_id: String(userDoc._id),
+		company_id: String(userDoc.company_id),
+		first_name: userDoc.first_name || "",
+		last_name: userDoc.last_name || "",
+		email: userDoc.email || "",
+		role: userDoc.role || "",
+		account_type: userDoc.account_type || "",
+		profile_image: userDoc.profile_image || "",
+		company_name: userDoc.company_name || "",
+		mobile_number: userDoc.mobile_number || "",
+		work_number: userDoc.work_number || "",
+		timezone: userDoc.timezone || "",
+		currency: userDoc.currency || "",
+		unit_system: userDoc.unit_system || "",
+		created_at: userDoc.created_at.toISOString(),
 	};
 }
 

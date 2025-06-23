@@ -4,24 +4,14 @@ import Link from "next/link";
 import { Button } from "../ui/button";
 import NavbarText from "./navbar-text";
 import { useUser } from "@/hooks/useUser";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { LogOut } from "lucide-react";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import Image from "next/image";
 import { useState } from "react";
 
-type Role = "Seller" | "Buyer" | "Admin";
-
 export default function Navbar() {
 	const { menuItems, ctaButton } = NavbarText;
-	const { isUserLoggedIn, isLoading, logout, user } = useUser();
+	const { isUserLoggedIn, isLoading, logout, user: _user } = useUser();
 	const pathname = usePathname();
 	const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -35,8 +25,6 @@ export default function Navbar() {
 			setIsLoggingOut(false);
 		}
 	};
-
-
 
 	return (
 		<header className="border-b bg-background fixed top-0 left-0 right-0 z-50 h-12">

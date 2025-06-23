@@ -1,5 +1,3 @@
-import { Loader2, Circle, RotateCcw, Zap } from "lucide-react";
-
 export default function Loading() {
 	return (
 		<div className="min-h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-sky-50">
