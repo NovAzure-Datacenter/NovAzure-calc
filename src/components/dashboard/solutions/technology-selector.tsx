@@ -24,7 +24,7 @@ import {
 	Clock,
 	Lightbulb,
 } from "lucide-react";
-import SolutionsDisplay from "./components/solutions-display";
+import SolutionsDisplay from "./solutions-display";
 
 const technologies = [
 	{
@@ -207,11 +207,11 @@ export default function TechnologySelector() {
 		} else {
 			// For other technologies, show a placeholder or coming soon message
 			// alert(
-			//  `${technologies.find((t) => t.id === technologyId)?.name} - ${
-			//      getStatusInfo(
-			//          technologies.find((t) => t.id === technologyId)?.status || ""
-			//      ).label
-			//  }`
+			// 	`${technologies.find((t) => t.id === technologyId)?.name} - ${
+			// 		getStatusInfo(
+			// 			technologies.find((t) => t.id === technologyId)?.status || ""
+			// 		).label
+			// 	}`
 			// );
 		}
 	};
@@ -341,4 +341,4 @@ export default function TechnologySelector() {
 			</div>
 		</div>
 	);
-}
+} 
