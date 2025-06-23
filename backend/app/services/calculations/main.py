@@ -1,4 +1,5 @@
 from app.services.calculations.solutions.air_cooling.capex import calculate_cooling_capex as calculate_air_cooling_capex
+from app.services.calculations.solutions.air_cooling.opex import calculate_annual_opex as calculate_air_cooling_opex
 
 # Initialising User inputs that will be used in the calculations
 percentage_of_utilisation = { '%_of_utilisation': None }
@@ -23,11 +24,25 @@ def update_inputs(inputs):
         elif key in annualised_air_ppue:
             annualised_air_ppue[key] = value
         
-def calculate():
-    input_data = {
+async def calculate():
+    capex_input_data = {
         'data_hall_design_capacity_mw': data_hall_design_capacity_mw['data_hall_design_capacity_mw'],
         'first_year_of_operation': first_year_of_operation['first_year_of_operation'],
         'country': project_location['project_location']
     }
-    air_cooling_capex = calculate_air_cooling_capex(input_data)
-    return air_cooling_capex
+    
+    opex_input_data = {
+        'data_hall_design_capacity_mw': data_hall_design_capacity_mw['data_hall_design_capacity_mw'],
+        'annualised_air_ppue': annualised_air_ppue['annualised_air_ppue'],
+        'percentage_of_utilisation': percentage_of_utilisation['%_of_utilisation'],
+        'first_year_of_operation': first_year_of_operation['first_year_of_operation'],
+        'country': project_location['project_location']
+    }
+    
+    air_cooling_capex = calculate_air_cooling_capex(capex_input_data)
+    air_cooling_opex = await calculate_air_cooling_opex(opex_input_data, air_cooling_capex['total_capex'])
+    
+    return {
+        'capex': air_cooling_capex,
+        'opex': air_cooling_opex
+    }

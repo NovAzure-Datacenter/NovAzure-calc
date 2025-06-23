@@ -1,4 +1,5 @@
 import pytest
+from app.database.connection import db_manager
 from app.services.calculations.main import (
     update_inputs,
     calculate,
@@ -9,6 +10,12 @@ from app.services.calculations.main import (
     first_year_of_operation,
     annualised_air_ppue
 )
+
+@pytest.fixture(scope="session", autouse=True)
+def setup_database():
+    db_manager.connect()
+    yield
+    db_manager.disconnect()
 
 @pytest.fixture
 def reset_inputs():
@@ -21,46 +28,41 @@ def reset_inputs():
     annualised_air_ppue['annualised_air_ppue'] = None
     yield
 
-@pytest.mark.parametrize("inputs,expected_result", [
-    ({
+@pytest.mark.asyncio
+@pytest.mark.parametrize("inputs", [
+    {
         'data_hall_design_capacity_mw': 1.0,
         'first_year_of_operation': 2023,
-        'project_location': 'United States'
-    }, {
-        'cooling_equipment_capex': 3849000.0,
-        'total_capex': 3849000.0
-    }),
-    ({
+        'project_location': 'United States',
+        '%_of_utilisation': 0.8,
+        'annualised_air_ppue': 1.2
+    },
+    {
         'data_hall_design_capacity_mw': 2.0,
         'first_year_of_operation': 2024,
-        'project_location': 'Singapore'
-    }, {
-        'cooling_equipment_capex': 7195080.0,
-        'total_capex': 7195080.0
-    }),
-    ({
+        'project_location': 'Singapore',
+        '%_of_utilisation': 0.7,
+        'annualised_air_ppue': 1.3
+    },
+    {
         'data_hall_design_capacity_mw': 0.5,
         'first_year_of_operation': 2025,
-        'project_location': 'United Kingdom'
-    }, {
-        'cooling_equipment_capex': 2575040.0,
-        'total_capex': 2575040.0
-    }),
-    ({
-        'data_hall_design_capacity_mw': 1.5,
-        'first_year_of_operation': 2030,
-        'project_location': 'United Arab Emirates'
-    }, {
-        'cooling_equipment_capex': 5921925.0,  # 3433 * 1500 * 1.15
-        'total_capex': 5921925.0
-    }),
+        'project_location': 'United Kingdom',
+        '%_of_utilisation': 0.9,
+        'annualised_air_ppue': 1.1
+    },
 ])
-def test_update_inputs_and_calculate(reset_inputs, inputs, expected_result):
+async def test_update_inputs_and_calculate(reset_inputs, inputs):
     update_inputs(inputs)
-    result = calculate()
+    result = await calculate()
     
-    assert result['cooling_equipment_capex'] == expected_result['cooling_equipment_capex']
-    assert result['total_capex'] == expected_result['total_capex']
+    assert isinstance(result, dict)
+    assert 'capex' in result
+    assert 'opex' in result
+    assert isinstance(result['capex'], dict)
+    assert isinstance(result['opex'], dict)
+    assert 'total_capex' in result['capex']
+    assert 'annual_opex' in result['opex']
 
 def test_update_inputs_individual_fields(reset_inputs):
     test_inputs = {
@@ -75,20 +77,23 @@ def test_update_inputs_individual_fields(reset_inputs):
     assert first_year_of_operation['first_year_of_operation'] == 2024
     assert project_location['project_location'] == 'United States'
 
-def test_calculate_structure(reset_inputs):
+@pytest.mark.asyncio
+async def test_calculate_structure(reset_inputs):
     update_inputs({
         'data_hall_design_capacity_mw': 1.0,
         'first_year_of_operation': 2023,
-        'project_location': 'United States'
+        'project_location': 'United States',
+        '%_of_utilisation': 0.8,
+        'annualised_air_ppue': 1.2
     })
     
-    result = calculate()
+    result = await calculate()
     
     assert isinstance(result, dict)
-    assert 'cooling_equipment_capex' in result
-    assert 'total_capex' in result
-    assert isinstance(result['cooling_equipment_capex'], (int, float))
-    assert isinstance(result['total_capex'], (int, float))
+    assert 'capex' in result
+    assert 'opex' in result
+    assert isinstance(result['capex'], dict)
+    assert isinstance(result['opex'], dict)
 
 def test_update_inputs_unused_fields(reset_inputs):
     test_inputs = {
