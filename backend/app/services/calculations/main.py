@@ -9,6 +9,7 @@ cooling_solution_inputs = { 'cooling_type': None }
 cooling_capacity_inputs = { 'cooling_capacity_limit': None }
 cost_inclusion_inputs = { 'include_it_cost': None }
 chassis_technology_inputs = {'chassis_technology': None}
+planned_years_of_operation = {'planned_years_of_operation': None}
 
 def update_inputs(inputs):
     for key, value in inputs.items():

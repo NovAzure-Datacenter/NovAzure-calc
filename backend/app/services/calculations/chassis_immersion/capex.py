@@ -2,6 +2,8 @@ from app.mock_db.data_access import get_mock_data
 
 def calculate_cooling_equipment_capex(data_source, chassis_technology, cooling_capacity_limit):
     data = get_mock_data()
+    
+    # Cooling capacity limit used in chassis immersion cooling, why?
     if data_source == "typical":
         if chassis_technology == "KU:L 2":
             return int(data['chassis_solution_capex_in_absence_of_waterloop'][0]['value']) - int(data['chassis_total_it_cost'][0]['value'])
