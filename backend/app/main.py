@@ -2,6 +2,7 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.database.connection import db_manager, get_db
+from app.routes.calculations import router as calculations_router
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
 # Create the FastAPI app instance
@@ -25,6 +26,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include routers
+app.include_router(calculations_router)
 
 @app.on_event("startup")
 async def startup_event():
