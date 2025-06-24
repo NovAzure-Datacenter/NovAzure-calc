@@ -1,7 +1,7 @@
 'use server'
 
 import { getUsersCollection, getCompaniesCollection } from "../../mongoDb/db";
-import { compare } from "bcrypt";
+import { compare } from "bcryptjs";
 import { UserData } from "@/hooks/useUser";
 import { ObjectId } from "mongodb";
 
