@@ -2,7 +2,7 @@
 
 import { getUsersCollection, getCompaniesCollection } from "../../mongoDb/db";
 import { ObjectId } from "mongodb";
-import { hash } from "bcrypt";
+import { hash } from "bcryptjs";
 import { sendEmail, generateWelcomeEmail } from "../utils/SMTP-email-template";
 import crypto from "crypto";
 

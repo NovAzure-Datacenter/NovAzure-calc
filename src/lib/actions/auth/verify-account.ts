@@ -1,7 +1,7 @@
 "use server";
 
 import { getUsersCollection } from "../../mongoDb/db";
-import { hash } from "bcrypt";
+import { hash } from "bcryptjs";
 
 export async function verifyAccountToken(token: string) {
 	try {
