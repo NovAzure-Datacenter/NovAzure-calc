@@ -35,21 +35,24 @@ def reset_inputs():
         'first_year_of_operation': 2023,
         'project_location': 'United States',
         '%_of_utilisation': 0.8,
-        'annualised_air_ppue': 1.2
+        'annualised_air_ppue': 1.2,
+        'planned_years_of_operation': 10
     },
     {
         'data_hall_design_capacity_mw': 2.0,
         'first_year_of_operation': 2024,
         'project_location': 'Singapore',
         '%_of_utilisation': 0.7,
-        'annualised_air_ppue': 1.3
+        'annualised_air_ppue': 1.3,
+        'planned_years_of_operation': 15
     },
     {
         'data_hall_design_capacity_mw': 0.5,
         'first_year_of_operation': 2025,
         'project_location': 'United Kingdom',
         '%_of_utilisation': 0.9,
-        'annualised_air_ppue': 1.1
+        'annualised_air_ppue': 1.1,
+        'planned_years_of_operation': 20
     },
 ])
 async def test_update_inputs_and_calculate(reset_inputs, inputs):
@@ -59,10 +62,21 @@ async def test_update_inputs_and_calculate(reset_inputs, inputs):
     assert isinstance(result, dict)
     assert 'capex' in result
     assert 'opex' in result
+    assert 'total_opex_over_lifetime' in result
+    assert 'total_cost_of_ownership' in result
+    
     assert isinstance(result['capex'], dict)
     assert isinstance(result['opex'], dict)
+    assert isinstance(result['total_opex_over_lifetime'], dict)
+    assert isinstance(result['total_cost_of_ownership'], (int, float))
+    
     assert 'total_capex' in result['capex']
     assert 'annual_opex' in result['opex']
+    assert 'total_opex_over_lifetime' in result['total_opex_over_lifetime']
+    
+    # Verify total cost of ownership calculation
+    expected_tco = result['capex']['total_capex'] + result['total_opex_over_lifetime']['total_opex_over_lifetime']
+    assert abs(result['total_cost_of_ownership'] - expected_tco) < 0.01
 
 def test_update_inputs_individual_fields(reset_inputs):
     test_inputs = {
@@ -84,7 +98,8 @@ async def test_calculate_structure(reset_inputs):
         'first_year_of_operation': 2023,
         'project_location': 'United States',
         '%_of_utilisation': 0.8,
-        'annualised_air_ppue': 1.2
+        'annualised_air_ppue': 1.2,
+        'planned_years_of_operation': 10
     })
     
     result = await calculate()
@@ -92,8 +107,12 @@ async def test_calculate_structure(reset_inputs):
     assert isinstance(result, dict)
     assert 'capex' in result
     assert 'opex' in result
+    assert 'total_opex_over_lifetime' in result
+    assert 'total_cost_of_ownership' in result
     assert isinstance(result['capex'], dict)
     assert isinstance(result['opex'], dict)
+    assert isinstance(result['total_opex_over_lifetime'], dict)
+    assert isinstance(result['total_cost_of_ownership'], (int, float))
 
 def test_update_inputs_unused_fields(reset_inputs):
     test_inputs = {
@@ -114,3 +133,57 @@ def test_update_inputs_unused_fields(reset_inputs):
     assert percentage_of_utilisation['%_of_utilisation'] == 0.8
     assert planned_years_of_operation['planned_years_of_operation'] == 10
     assert annualised_air_ppue['annualised_air_ppue'] == 1.5
+
+@pytest.mark.asyncio
+async def test_total_cost_of_ownership_calculation(reset_inputs):
+    """Test that total cost of ownership is correctly calculated as CAPEX + lifetime OPEX"""
+    update_inputs({
+        'data_hall_design_capacity_mw': 1.5,
+        'first_year_of_operation': 2023,
+        'project_location': 'United States',
+        '%_of_utilisation': 0.75,
+        'annualised_air_ppue': 1.25,
+        'planned_years_of_operation': 12
+    })
+    
+    result = await calculate()
+    
+    capex = result['capex']['total_capex']
+    lifetime_opex = result['total_opex_over_lifetime']['total_opex_over_lifetime']
+    tco = result['total_cost_of_ownership']
+    
+    assert isinstance(capex, (int, float))
+    assert isinstance(lifetime_opex, (int, float))
+    assert isinstance(tco, (int, float))
+    
+    assert capex > 0
+    assert lifetime_opex > 0
+    assert tco > 0
+    
+    # TCO should equal CAPEX + lifetime OPEX
+    assert abs(tco - (capex + lifetime_opex)) < 0.01
+    
+    # TCO should be greater than either CAPEX or lifetime OPEX alone
+    assert tco > capex
+    assert tco > lifetime_opex
+
+@pytest.mark.asyncio
+async def test_lifetime_opex_structure(reset_inputs):
+    """Test that lifetime OPEX returns the expected structure"""
+    update_inputs({
+        'data_hall_design_capacity_mw': 1.0,
+        'first_year_of_operation': 2023,
+        'project_location': 'Singapore',
+        '%_of_utilisation': 0.8,
+        'annualised_air_ppue': 1.2,
+        'planned_years_of_operation': 8
+    })
+    
+    result = await calculate()
+    
+    lifetime_opex = result['total_opex_over_lifetime']
+    
+    assert isinstance(lifetime_opex, dict)
+    assert 'total_opex_over_lifetime' in lifetime_opex
+    assert isinstance(lifetime_opex['total_opex_over_lifetime'], (int, float))
+    assert lifetime_opex['total_opex_over_lifetime'] > 0
