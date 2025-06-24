@@ -26,6 +26,16 @@ export const authOptions: NextAuthOptions = {
 						return null;
 					}
 
+					// Ensure user has required fields
+					if (!user._id || !user.email || !user.passwordHash) {
+						console.error("User missing required fields:", { 
+							hasId: !!user._id, 
+							hasEmail: !!user.email, 
+							hasPasswordHash: !!user.passwordHash 
+						});
+						return null;
+					}
+
 					const isPasswordValid = await compare(
 						credentials.password,
 						user.passwordHash
@@ -37,11 +47,11 @@ export const authOptions: NextAuthOptions = {
 
 					// Return minimal user data to keep JWT small
 					return {
-						id: user._id.toString(),
+						id: user._id?.toString() || "",
 						email: user.email,
-						name: `${user.first_name} ${user.last_name}`,
-						role: user.role,
-						company_id: user.company_id.toString(),
+						name: `${user.first_name || ""} ${user.last_name || ""}`.trim() || "Unknown User",
+						role: user.role || "user",
+						company_id: user.company_id?.toString() || "",
 					};
 				} catch (error) {
 					console.error("Auth error:", error);
