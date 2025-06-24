@@ -1,36 +1,20 @@
-"use client";
-import { SidebarInset } from "@/components/ui/sidebar";
-import UnderConstruction from "@/components/under-construction";
-import { useActiveComponent } from "@/contexts/active-component-context";
-import AccountSettingsPage from "./(account)/settings/page";
-import CompanyUsersPage from "./(users)/page";
-import TCOCalculator from "./(tcocalculator)/page";
+import { Suspense } from "react";
+import Loading from "@/components/loading-main";
 
-export default function Page() {
-	const { activeComponent } = useActiveComponent();
+// Force dynamic rendering to prevent static generation issues
+export const dynamic = 'force-dynamic';
 
-	const renderComponent = () => {
-		switch (activeComponent) {
-			case "/dashboard/users":
-				return <CompanyUsersPage />;
-
-			case "/dashboard/tco-calculator":
-				return <TCOCalculator />;
-
-			case "/dashboard/account/settings":
-				return <AccountSettingsPage />;
-			default:
-				return <UnderConstruction />;
-		}
-	};
-
+export default function DashboardPage() {
 	return (
-		<SidebarInset>
-			<div className="flex-1 bg-gradient-to-br from-blue-50 to-sky-50 dark:from-blue-950 dark:to-sky-950 h-full">
-				<div className="h-full overflow-y-auto">
-					<div className="p-4">{renderComponent()}</div>
+		<Suspense fallback={<Loading />}>
+			<div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+				<div className="flex items-center justify-between space-y-2">
+					<h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+				</div>
+				<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+					{/* Dashboard content will be added here */}
 				</div>
 			</div>
-		</SidebarInset>
+		</Suspense>
 	);
 }

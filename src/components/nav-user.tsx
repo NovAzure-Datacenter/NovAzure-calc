@@ -33,6 +33,11 @@ export function NavUser({
 	user: UserData
 }) {
 	const { isMobile } = useSidebar();
+	
+	// Create full name from first and last name
+	const fullName = `${user.first_name} ${user.last_name}`.trim();
+	// Create initials for avatar fallback
+	const initials = `${user.first_name?.[0] || ''}${user.last_name?.[0] || ''}`.toUpperCase();
 
 	return (
 		<SidebarMenu>
@@ -44,11 +49,11 @@ export function NavUser({
 							className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
 						>
 							<Avatar className="h-8 w-8 rounded-lg">
-								<AvatarImage src={user.profile_image} alt={user.name} />
-								<AvatarFallback className="rounded-lg">CN</AvatarFallback>
+								<AvatarImage src={user.profile_image} alt={fullName} />
+								<AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
 							</Avatar>
 							<div className="grid flex-1 text-left text-sm leading-tight">
-								<span className="truncate font-medium">{user.name}</span>
+								<span className="truncate font-medium">{fullName}</span>
 								{/* <span className="truncate text-xs">{user.email}</span> */}
 							</div>
 							<ChevronsUpDown className="ml-auto size-4" />
@@ -63,11 +68,11 @@ export function NavUser({
 						<DropdownMenuLabel className="p-0 font-normal">
 							<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
 								<Avatar className="h-8 w-8 rounded-lg">
-									<AvatarImage src={user.profile_image} alt={user.name} />
-									<AvatarFallback className="rounded-lg">CN</AvatarFallback>
+									<AvatarImage src={user.profile_image} alt={fullName} />
+									<AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
 								</Avatar>
 								<div className="grid flex-1 text-left text-sm leading-tight">
-									<span className="truncate font-medium">{user.name}</span>
+									<span className="truncate font-medium">{fullName}</span>
 									{/* <span className="truncate text-xs">{user.email}</span> */}
 								</div>
 							</div>

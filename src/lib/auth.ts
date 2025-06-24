@@ -54,7 +54,7 @@ export const authOptions: NextAuthOptions = {
 		strategy: "jwt" as const,
 	},
 	callbacks: {
-		async jwt({ token, user }: { token: any; user: any }) {
+		async jwt({ token, user }) {
 			if (user) {
 				// Store only essential data in JWT
 				token.role = user.role;
@@ -62,12 +62,12 @@ export const authOptions: NextAuthOptions = {
 			}
 			return token;
 		},
-		async session({ session, token }: { session: any; token: any }) {
+		async session({ session, token }) {
 			if (token) {
 				// Add essential data to session
 				session.user.id = token.sub!;
-				session.user.role = token.role;
-				session.user.company_id = token.company_id;
+				session.user.role = token.role!;
+				session.user.company_id = token.company_id!;
 			}
 			return session;
 		},
@@ -76,6 +76,10 @@ export const authOptions: NextAuthOptions = {
 		signIn: "/login",
 	},
 	secret: process.env.NEXTAUTH_SECRET,
+	// Add NEXTAUTH_URL configuration for proper redirect handling
+	...(process.env.NEXTAUTH_URL && {
+		url: process.env.NEXTAUTH_URL,
+	}),
 };
 
 export default NextAuth(authOptions);

@@ -39,4 +39,5 @@ export type DefaultItem = {
   title: string;
   icon: LucideIcon;
   url: string;
+  active: boolean;
 } 

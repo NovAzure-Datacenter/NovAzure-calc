@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -33,18 +33,7 @@ export function VerifyAccountForm() {
 	const searchParams = useSearchParams();
 	const token = searchParams.get("token");
 
-	useEffect(() => {
-		if (!token) {
-			toast.error("Invalid verification link", {
-				description: "The verification link is missing or invalid.",
-			});
-			router.push("/login");
-			return;
-		}
-		verifyToken();
-	}, [token]);
-
-	async function verifyToken() {
+	const verifyToken = useCallback(async () => {
 		if (!token) return;
 
 		try {
@@ -73,7 +62,18 @@ export function VerifyAccountForm() {
 			});
 			setIsTokenValid(false);
 		}
-	}
+	}, [token]);
+
+	useEffect(() => {
+		if (!token) {
+			toast.error("Invalid verification link", {
+				description: "The verification link is missing or invalid.",
+			});
+			router.push("/login");
+			return;
+		}
+		verifyToken();
+	}, [token, router, verifyToken]);
 
 	async function handlePasswordSetup(e: React.FormEvent<HTMLFormElement>) {
 		e.preventDefault();
