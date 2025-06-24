@@ -11,7 +11,8 @@ class MainCalculationRequest(BaseModel):
     annualised_air_ppue: float = Field(..., description="Annualised Air pPUE")
 
 class MainCalculationResponse(BaseModel):
-    capex: Dict[str, Any] = Field(..., description="CAPEX calculation results")
+    air_cooling_capex: float = Field(..., description="Air cooling equipment CAPEX")
+    total_capex: float = Field(..., description="Total CAPEX")
     opex: Dict[str, Any] = Field(..., description="OPEX calculation results")
     total_opex_over_lifetime: Dict[str, Any] = Field(..., description="Total OPEX over lifetime")
     total_cost_of_ownership: float = Field(..., description="Total cost of ownership")
