@@ -1,6 +1,4 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
+const nextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
@@ -12,20 +10,20 @@ const nextConfig: NextConfig = {
         fs: false,
       };
     }
-    
+
     // Handle CSS modules and global CSS properly
-    config.module.rules.forEach((rule: any) => {
+    config.module.rules.forEach((rule) => {
       if (rule.oneOf) {
-        rule.oneOf.forEach((oneOfRule: any) => {
+        rule.oneOf.forEach((oneOfRule) => {
           if (oneOfRule.sideEffects === false) {
             oneOfRule.sideEffects = true;
           }
         });
       }
     });
-    
+
     return config;
   },
 };
 
-export default nextConfig;
+module.exports = nextConfig; 
