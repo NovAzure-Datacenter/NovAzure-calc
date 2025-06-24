@@ -5,12 +5,14 @@ from app.schemas.calculations import (
     FullCalculationRequest,
     CapexCalculationResponse,
     OpexCalculationResponse,
-    FullCalculationResponse
+    FullCalculationResponse,
+    MainCalculationRequest,
+    MainCalculationResponse
 )
 from app.services.calculations.solutions.air_cooling.capex import calculate_cooling_capex as calculate_air_cooling_capex
 from app.services.calculations.solutions.chassis_immersion.capex import calculate_cooling_capex as calculate_chassis_immersion_capex
 from app.services.calculations.solutions.air_cooling.opex import calculate_opex
-from app.services.calculations.main import compare_solutions
+from app.services.calculations.main import update_inputs, calculate
 
 router = APIRouter(prefix="/calculations", tags=["calculations"])
 
@@ -101,17 +103,59 @@ async def compare_cooling_solutions(request: CapexCalculationRequest):
     Compare air cooling vs chassis immersion solutions
     """
     try:
-        input_data = {
+        # Air cooling calculation
+        air_cooling_result = calculate_air_cooling_capex({
             'data_hall_design_capacity_mw': request.data_hall_design_capacity_mw,
             'base_year': request.base_year,
             'country': request.country
-        }
+        })
         
-        result = compare_solutions(input_data)
-        return result
+        # Chassis immersion calculation
+        chassis_immersion_result = calculate_chassis_immersion_capex({
+            'data_hall_design_capacity_mw': request.data_hall_design_capacity_mw,
+            'base_year': request.base_year,
+            'country': request.country
+        })
+        
+        # Return comparison results
+        return {
+            'air_cooling': air_cooling_result,
+            'chassis_immersion': chassis_immersion_result,
+            'comparison': {
+                'capex_difference': air_cooling_result.get('total_capex_excl_it', 0) - chassis_immersion_result.get('total_capex_excl_it', 0),
+                'capex_savings_percentage': round(((air_cooling_result.get('total_capex_excl_it', 0) - chassis_immersion_result.get('total_capex_excl_it', 0)) / air_cooling_result.get('total_capex_excl_it', 1)) * 100, 2) if air_cooling_result.get('total_capex_excl_it', 0) > 0 else 0
+            }
+        }
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Comparison error: {str(e)}")
+
+@router.post("/main", response_model=MainCalculationResponse)
+async def main_calculate(request: MainCalculationRequest):
+    """
+    Main calculation endpoint that uses the update_inputs and calculate functions from main.py
+    """
+    try:
+        # Prepare inputs for update_inputs function (using the exact keys expected by main.py)
+        inputs = {
+            '%_of_utilisation': request.percentage_of_utilisation,
+            'planned_years_of_operation': request.planned_years_of_operation,
+            'project_location': request.project_location,
+            'data_hall_design_capacity_mw': request.data_hall_design_capacity_mw,
+            'first_year_of_operation': request.first_year_of_operation,
+            'annualised_air_ppue': request.annualised_air_ppue
+        }
+        
+        # Update inputs in the main calculation service
+        update_inputs(inputs)
+        
+        # Run the calculation
+        result = await calculate()
+        
+        return MainCalculationResponse(**result)
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Main calculation error: {str(e)}")
 
 @router.get("/health")
 async def calculations_health():
