@@ -54,7 +54,8 @@ async def calculate():
     total_cost_of_ownership = total_opex_lifetime['total_opex_over_lifetime'] + air_cooling_capex['total_capex']
     
     return {
-        'capex': air_cooling_capex,
+        'air_cooling_capex': air_cooling_capex['cooling_equipment_capex'],
+        'total_capex': air_cooling_capex['total_capex'],
         'opex': air_cooling_opex,
         'total_opex_over_lifetime': total_opex_lifetime,
         'total_cost_of_ownership': total_cost_of_ownership
