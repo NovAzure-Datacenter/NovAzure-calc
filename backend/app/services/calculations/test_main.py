@@ -1,210 +1,189 @@
 import pytest
-from unittest.mock import patch
-from app.services.calculations.main import update_inputs, calculate, cooling_solution_inputs, cooling_capacity_inputs, cost_inclusion_inputs, chassis_technology_inputs, data_source
+from app.database.connection import db_manager
+from app.services.calculations.main import (
+    update_inputs,
+    calculate,
+    percentage_of_utilisation,
+    planned_years_of_operation,
+    project_location,
+    data_hall_design_capacity_mw,
+    first_year_of_operation,
+    annualised_air_ppue
+)
+
+@pytest.fixture(scope="session", autouse=True)
+def setup_database():
+    db_manager.connect()
+    yield
+    db_manager.disconnect()
 
 @pytest.fixture
 def reset_inputs():
-    """Reset all input dictionaries to their default state after each test"""
-    # Store original values
-    original_cooling_solution = dict(cooling_solution_inputs)
-    original_cooling_capacity = dict(cooling_capacity_inputs)
-    original_cost_inclusion = dict(cost_inclusion_inputs)
-    original_chassis_technology = dict(chassis_technology_inputs)
-    original_data_source = dict(data_source)
-    
-    # Reset values before test
-    cooling_solution_inputs.update({'cooling_type': None})
-    cooling_capacity_inputs.update({'cooling_capacity_limit': None})
-    cost_inclusion_inputs.update({'include_it_cost': None})
-    chassis_technology_inputs.update({'chassis_technology': None})
-    data_source.update({'data_source': 'typical'})
-    
+    """Reset all input dictionaries to their default state before each test"""
+    percentage_of_utilisation['%_of_utilisation'] = None
+    planned_years_of_operation['planned_years_of_operation'] = None
+    project_location['project_location'] = None
+    data_hall_design_capacity_mw['data_hall_design_capacity_mw'] = None
+    first_year_of_operation['first_year_of_operation'] = None
+    annualised_air_ppue['annualised_air_ppue'] = None
     yield
-    
-    # Reset values after test
-    cooling_solution_inputs.clear()
-    cooling_solution_inputs.update(original_cooling_solution)
-    cooling_capacity_inputs.clear()
-    cooling_capacity_inputs.update(original_cooling_capacity)
-    cost_inclusion_inputs.clear()
-    cost_inclusion_inputs.update(original_cost_inclusion)
-    chassis_technology_inputs.clear()
-    chassis_technology_inputs.update(original_chassis_technology)
-    data_source.clear()
-    data_source.update(original_data_source)
 
-def test_update_inputs(reset_inputs):
-    # Test updating all input types
+@pytest.mark.asyncio
+@pytest.mark.parametrize("inputs", [
+    {
+        'data_hall_design_capacity_mw': 1.0,
+        'first_year_of_operation': 2023,
+        'project_location': 'United States',
+        '%_of_utilisation': 0.8,
+        'annualised_air_ppue': 1.2,
+        'planned_years_of_operation': 10
+    },
+    {
+        'data_hall_design_capacity_mw': 2.0,
+        'first_year_of_operation': 2024,
+        'project_location': 'Singapore',
+        '%_of_utilisation': 0.7,
+        'annualised_air_ppue': 1.3,
+        'planned_years_of_operation': 15
+    },
+    {
+        'data_hall_design_capacity_mw': 0.5,
+        'first_year_of_operation': 2025,
+        'project_location': 'United Kingdom',
+        '%_of_utilisation': 0.9,
+        'annualised_air_ppue': 1.1,
+        'planned_years_of_operation': 20
+    },
+])
+async def test_update_inputs_and_calculate(reset_inputs, inputs):
+    update_inputs(inputs)
+    result = await calculate()
+    
+    assert isinstance(result, dict)
+    assert 'capex' in result
+    assert 'opex' in result
+    assert 'total_opex_over_lifetime' in result
+    assert 'total_cost_of_ownership' in result
+    
+    assert isinstance(result['capex'], dict)
+    assert isinstance(result['opex'], dict)
+    assert isinstance(result['total_opex_over_lifetime'], dict)
+    assert isinstance(result['total_cost_of_ownership'], (int, float))
+    
+    assert 'total_capex' in result['capex']
+    assert 'annual_opex' in result['opex']
+    assert 'total_opex_over_lifetime' in result['total_opex_over_lifetime']
+    
+    # Verify total cost of ownership calculation
+    expected_tco = result['capex']['total_capex'] + result['total_opex_over_lifetime']['total_opex_over_lifetime']
+    assert abs(result['total_cost_of_ownership'] - expected_tco) < 0.01
+
+def test_update_inputs_individual_fields(reset_inputs):
     test_inputs = {
-        'cooling_type': 'air_cooling',
-        'cooling_capacity_limit': 5,
-        'include_it_cost': True,
-        'chassis_technology': 'KU:L 2',
-        'data_source': 'customer'
+        'data_hall_design_capacity_mw': 2.0,
+        'first_year_of_operation': 2024,
+        'project_location': 'United States'
     }
     
     update_inputs(test_inputs)
     
-    assert cooling_solution_inputs['cooling_type'] == 'air_cooling'
-    assert cooling_capacity_inputs['cooling_capacity_limit'] == 5
-    assert cost_inclusion_inputs['include_it_cost'] == True
-    assert chassis_technology_inputs['chassis_technology'] == 'KU:L 2'
-    assert data_source['data_source'] == 'customer'
+    assert data_hall_design_capacity_mw['data_hall_design_capacity_mw'] == 2.0
+    assert first_year_of_operation['first_year_of_operation'] == 2024
+    assert project_location['project_location'] == 'United States'
 
-@patch('app.services.calculations.main.calculate_air_cooling_capex')
-def test_calculate_air_cooling(mock_air_cooling, reset_inputs):
-    # Mock the air cooling calculation result
-    expected_result = {
-        'cooling_equipment_capex': 37890204,
-        'it_equipment_capex': 97859534,
-        'total_capex': 135749738
+@pytest.mark.asyncio
+async def test_calculate_structure(reset_inputs):
+    update_inputs({
+        'data_hall_design_capacity_mw': 1.0,
+        'first_year_of_operation': 2023,
+        'project_location': 'United States',
+        '%_of_utilisation': 0.8,
+        'annualised_air_ppue': 1.2,
+        'planned_years_of_operation': 10
+    })
+    
+    result = await calculate()
+    
+    assert isinstance(result, dict)
+    assert 'capex' in result
+    assert 'opex' in result
+    assert 'total_opex_over_lifetime' in result
+    assert 'total_cost_of_ownership' in result
+    assert isinstance(result['capex'], dict)
+    assert isinstance(result['opex'], dict)
+    assert isinstance(result['total_opex_over_lifetime'], dict)
+    assert isinstance(result['total_cost_of_ownership'], (int, float))
+
+def test_update_inputs_unused_fields(reset_inputs):
+    test_inputs = {
+        'data_hall_design_capacity_mw': 1.0,
+        'first_year_of_operation': 2023,
+        'project_location': 'United States',
+        '%_of_utilisation': 0.8,
+        'planned_years_of_operation': 10,
+        'annualised_air_ppue': 1.5
     }
-    mock_air_cooling.return_value = expected_result
     
-    # Set up inputs for air cooling calculation
-    update_inputs({
-        'cooling_type': 'air_cooling',
-        'cooling_capacity_limit': 5,
-        'include_it_cost': True,
-        'data_source': 'typical'
-    })
+    update_inputs(test_inputs)
     
-    # Call calculate and verify results
-    result = calculate()
-    
-    assert result == expected_result
-    mock_air_cooling.assert_called_once_with({
-        'data_source': 'typical',
-        'cooling_capacity_limit': 5,
-        'include_it_cost': True
-    })
+    # Check that all fields are updated correctly
+    assert data_hall_design_capacity_mw['data_hall_design_capacity_mw'] == 1.0
+    assert first_year_of_operation['first_year_of_operation'] == 2023
+    assert project_location['project_location'] == 'United States'
+    assert percentage_of_utilisation['%_of_utilisation'] == 0.8
+    assert planned_years_of_operation['planned_years_of_operation'] == 10
+    assert annualised_air_ppue['annualised_air_ppue'] == 1.5
 
-@patch('app.services.calculations.main.calculate_chassis_immersion_capex')
-def test_calculate_chassis_immersion(mock_chassis_immersion, reset_inputs):
-    # Mock the chassis immersion calculation result
-    expected_result = {
-        'cooling_equipment_capex': 43510337,
-        'it_equipment_capex': 94837982,
-        'total_capex': 138348319
-    }
-    mock_chassis_immersion.return_value = expected_result
-    
-    # Set up inputs for chassis immersion calculation
+@pytest.mark.asyncio
+async def test_total_cost_of_ownership_calculation(reset_inputs):
+    """Test that total cost of ownership is correctly calculated as CAPEX + lifetime OPEX"""
     update_inputs({
-        'cooling_type': 'chassis_immersion',
-        'cooling_capacity_limit': 5,
-        'include_it_cost': True,
-        'chassis_technology': 'KU:L 2',
-        'data_source': 'typical'
+        'data_hall_design_capacity_mw': 1.5,
+        'first_year_of_operation': 2023,
+        'project_location': 'United States',
+        '%_of_utilisation': 0.75,
+        'annualised_air_ppue': 1.25,
+        'planned_years_of_operation': 12
     })
     
-    # Call calculate and verify results
-    result = calculate()
+    result = await calculate()
     
-    assert result == expected_result
-    mock_chassis_immersion.assert_called_once_with({
-        'data_source': 'typical',
-        'chassis_technology': 'KU:L 2',
-        'cooling_capacity_limit': 5,
-        'include_it_cost': True
-    })
+    capex = result['capex']['total_capex']
+    lifetime_opex = result['total_opex_over_lifetime']['total_opex_over_lifetime']
+    tco = result['total_cost_of_ownership']
+    
+    assert isinstance(capex, (int, float))
+    assert isinstance(lifetime_opex, (int, float))
+    assert isinstance(tco, (int, float))
+    
+    assert capex > 0
+    assert lifetime_opex > 0
+    assert tco > 0
+    
+    # TCO should equal CAPEX + lifetime OPEX
+    assert abs(tco - (capex + lifetime_opex)) < 0.01
+    
+    # TCO should be greater than either CAPEX or lifetime OPEX alone
+    assert tco > capex
+    assert tco > lifetime_opex
 
-@patch('app.services.calculations.main.calculate_chassis_immersion_capex')
-def test_calculate_chassis_immersion_different_tech(mock_chassis_immersion, reset_inputs):
-    # Mock the chassis immersion calculation result for different technology
-    expected_result = {
-        'cooling_equipment_capex': 43510337,
-        'it_equipment_capex': 94837982,
-        'total_capex': 138348319
-    }
-    mock_chassis_immersion.return_value = expected_result
-    
-    # Set up inputs with different technology and cooling capacity
+@pytest.mark.asyncio
+async def test_lifetime_opex_structure(reset_inputs):
+    """Test that lifetime OPEX returns the expected structure"""
     update_inputs({
-        'cooling_type': 'chassis_immersion',
-        'cooling_capacity_limit': 10,
-        'include_it_cost': False,
-        'chassis_technology': 'Purpose Optimized Multinode',
-        'data_source': 'typical'
+        'data_hall_design_capacity_mw': 1.0,
+        'first_year_of_operation': 2023,
+        'project_location': 'Singapore',
+        '%_of_utilisation': 0.8,
+        'annualised_air_ppue': 1.2,
+        'planned_years_of_operation': 8
     })
     
-    # Call calculate and verify results
-    result = calculate()
+    result = await calculate()
     
-    assert result == expected_result
-    mock_chassis_immersion.assert_called_once_with({
-        'data_source': 'typical',
-        'chassis_technology': 'Purpose Optimized Multinode',
-        'cooling_capacity_limit': 10,
-        'include_it_cost': False
-    })
-
-def test_calculate_unsupported_cooling_type(reset_inputs):
-    # Test with an unsupported cooling type
-    update_inputs({
-        'cooling_type': 'unsupported_type',
-        'data_source': 'typical'
-    })
+    lifetime_opex = result['total_opex_over_lifetime']
     
-    # Calculate should return None for unsupported cooling types
-    result = calculate()
-    
-    assert result is None
-
-@patch('app.services.calculations.main.calculate_air_cooling_capex')
-def test_calculate_air_cooling_with_customer_data(mock_air_cooling, reset_inputs):
-    # Mock the air cooling calculation result with customer data
-    expected_result = {
-        'cooling_equipment_capex': 38612686,
-        'it_equipment_capex': 97859534,
-        'total_capex': 136472220
-    }
-    mock_air_cooling.return_value = expected_result
-    
-    # Set up inputs for air cooling calculation with customer data
-    update_inputs({
-        'cooling_type': 'air_cooling',
-        'cooling_capacity_limit': 5,
-        'include_it_cost': True,
-        'data_source': 'customer'
-    })
-    
-    # Call calculate and verify results
-    result = calculate()
-    
-    assert result == expected_result
-    mock_air_cooling.assert_called_once_with({
-        'data_source': 'customer',
-        'cooling_capacity_limit': 5,
-        'include_it_cost': True
-    })
-
-@patch('app.services.calculations.main.calculate_chassis_immersion_capex')
-def test_calculate_chassis_immersion_customer_data(mock_chassis_immersion, reset_inputs):
-    # Mock the chassis immersion calculation result with customer data
-    expected_result = {
-        'cooling_equipment_capex': 43546299,
-        'it_equipment_capex': 12645.064,
-        'total_capex': 43558944.064
-    }
-    mock_chassis_immersion.return_value = expected_result
-    
-    # Set up inputs for chassis immersion calculation with customer data
-    update_inputs({
-        'cooling_type': 'chassis_immersion',
-        'cooling_capacity_limit': 5,
-        'include_it_cost': True,
-        'chassis_technology': 'KU:L 2',
-        'data_source': 'customer'
-    })
-    
-    # Call calculate and verify results
-    result = calculate()
-    
-    assert result == expected_result
-    mock_chassis_immersion.assert_called_once_with({
-        'data_source': 'customer',
-        'chassis_technology': 'KU:L 2',
-        'cooling_capacity_limit': 5,
-        'include_it_cost': True
-    })
+    assert isinstance(lifetime_opex, dict)
+    assert 'total_opex_over_lifetime' in lifetime_opex
+    assert isinstance(lifetime_opex['total_opex_over_lifetime'], (int, float))
+    assert lifetime_opex['total_opex_over_lifetime'] > 0
