@@ -60,22 +60,23 @@ async def test_update_inputs_and_calculate(reset_inputs, inputs):
     result = await calculate()
     
     assert isinstance(result, dict)
-    assert 'capex' in result
+    assert 'air_cooling_capex' in result
+    assert 'total_capex' in result
     assert 'opex' in result
     assert 'total_opex_over_lifetime' in result
     assert 'total_cost_of_ownership' in result
     
-    assert isinstance(result['capex'], dict)
+    assert isinstance(result['air_cooling_capex'], (int, float))
+    assert isinstance(result['total_capex'], (int, float))
     assert isinstance(result['opex'], dict)
     assert isinstance(result['total_opex_over_lifetime'], dict)
     assert isinstance(result['total_cost_of_ownership'], (int, float))
     
-    assert 'total_capex' in result['capex']
     assert 'annual_opex' in result['opex']
     assert 'total_opex_over_lifetime' in result['total_opex_over_lifetime']
     
     # Verify total cost of ownership calculation
-    expected_tco = result['capex']['total_capex'] + result['total_opex_over_lifetime']['total_opex_over_lifetime']
+    expected_tco = result['total_capex'] + result['total_opex_over_lifetime']['total_opex_over_lifetime']
     assert abs(result['total_cost_of_ownership'] - expected_tco) < 0.01
 
 def test_update_inputs_individual_fields(reset_inputs):
@@ -105,11 +106,13 @@ async def test_calculate_structure(reset_inputs):
     result = await calculate()
     
     assert isinstance(result, dict)
-    assert 'capex' in result
+    assert 'air_cooling_capex' in result
+    assert 'total_capex' in result
     assert 'opex' in result
     assert 'total_opex_over_lifetime' in result
     assert 'total_cost_of_ownership' in result
-    assert isinstance(result['capex'], dict)
+    assert isinstance(result['air_cooling_capex'], (int, float))
+    assert isinstance(result['total_capex'], (int, float))
     assert isinstance(result['opex'], dict)
     assert isinstance(result['total_opex_over_lifetime'], dict)
     assert isinstance(result['total_cost_of_ownership'], (int, float))
@@ -148,23 +151,29 @@ async def test_total_cost_of_ownership_calculation(reset_inputs):
     
     result = await calculate()
     
-    capex = result['capex']['total_capex']
+    total_capex = result['total_capex']
+    air_cooling_capex = result['air_cooling_capex']
     lifetime_opex = result['total_opex_over_lifetime']['total_opex_over_lifetime']
     tco = result['total_cost_of_ownership']
     
-    assert isinstance(capex, (int, float))
+    assert isinstance(total_capex, (int, float))
+    assert isinstance(air_cooling_capex, (int, float))
     assert isinstance(lifetime_opex, (int, float))
     assert isinstance(tco, (int, float))
     
-    assert capex > 0
+    assert total_capex > 0
+    assert air_cooling_capex > 0
     assert lifetime_opex > 0
     assert tco > 0
     
-    # TCO should equal CAPEX + lifetime OPEX
-    assert abs(tco - (capex + lifetime_opex)) < 0.01
+    # Air cooling capex should be part of total capex
+    assert air_cooling_capex <= total_capex
     
-    # TCO should be greater than either CAPEX or lifetime OPEX alone
-    assert tco > capex
+    # TCO should equal total CAPEX + lifetime OPEX
+    assert abs(tco - (total_capex + lifetime_opex)) < 0.01
+    
+    # TCO should be greater than either total CAPEX or lifetime OPEX alone
+    assert tco > total_capex
     assert tco > lifetime_opex
 
 @pytest.mark.asyncio
