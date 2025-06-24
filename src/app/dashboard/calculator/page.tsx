@@ -71,6 +71,11 @@ export default function TCOCalculator() {
 	// 2. Single useState for all state
 	const [state, setState] = useState(initialState);
 
+	// Add loading and results state
+	const [isCalculating, setIsCalculating] = useState(false);
+	const [calculationResults, setCalculationResults] = useState<any>(null);
+	const [calculationError, setCalculationError] = useState<string | null>(null);
+
 	useEffect(() => {
 		// Log original state with old labels
 		console.log('Original Calculator State (Old Labels):', {
@@ -134,7 +139,82 @@ export default function TCOCalculator() {
 	// 4. Update reset logic
 	function handleReset() {
 		setState(initialState);
+		setCalculationResults(null);
+		setCalculationError(null);
 	}
+
+	// API call handler for Show Result button
+	const handleShowResult = async () => {
+		console.log('🚀 Starting calculation process...');
+		console.log('📊 Current form state:', state);
+		
+		try {
+			setIsCalculating(true);
+			setCalculationError(null);
+			
+			// Transform data using your existing function
+			const transformedData = transformCalculatorState(state);
+			console.log('🔄 Transformed data:', transformedData);
+			
+			// Prepare API request body with null checks
+			const requestBody = {
+				percentage_of_utilisation: parseFloat(transformedData['%_of_utilisation'] || '0') || 0,
+				planned_years_of_operation: parseInt(transformedData['planned_years_of_operation'] || '0') || 0,
+				project_location: transformedData['project_location'] || '',
+				data_hall_design_capacity_mw: parseFloat(transformedData['data_hall_design_capacity_mw'] || '0') || 0,
+				first_year_of_operation: parseInt(transformedData['first_year_of_operation'] || '0') || 0,
+				annualised_air_ppue: parseFloat(transformedData['annualised_air_ppue'] || '0') || 0
+			};
+
+			console.log('📤 Request body being sent to API:', requestBody);
+			
+			// Make API call to backend
+			const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+			console.log('🌐 API URL:', `${API_BASE_URL}/calculations/main`);
+			
+			console.log('⏳ Making API call...'); 
+			const response = await fetch(`${API_BASE_URL}/calculations/main`, {
+				method: 'POST',
+				headers: { 
+					'Content-Type': 'application/json',
+					'Accept': 'application/json'
+				},
+				body: JSON.stringify(requestBody)
+			});
+			
+			console.log('📥 Response status:', response.status);
+			console.log('📥 Response headers:', Object.fromEntries(response.headers.entries()));
+			
+			if (!response.ok) {
+				const errorData = await response.text();
+				console.error('❌ API Error Response:', errorData);
+				throw new Error(`API Error ${response.status}: ${errorData}`);
+			}
+			
+			const results = await response.json();
+			console.log('✅ Raw API response:', results);
+			console.log('✅ Response keys:', Object.keys(results));
+			console.log('✅ Response structure:', JSON.stringify(results, null, 2));
+			
+			setCalculationResults(results);
+			setState(prev => ({ ...prev, showResultTable: true }));
+			console.log('✅ Results stored and table shown');
+			
+		} catch (error) {
+			console.error('❌ Calculation error:', error);
+			console.error('❌ Error details:', {
+				message: error instanceof Error ? error.message : 'Unknown error',
+				stack: error instanceof Error ? error.stack : 'No stack trace',
+				type: typeof error
+			});
+			
+			const errorMessage = error instanceof Error ? error.message : 'Failed to calculate results';
+			setCalculationError(errorMessage);
+		} finally {
+			setIsCalculating(false);
+			console.log('🏁 Calculation process finished');
+		}
+	};
 
 	// 5. Update validation logic
 	const allRequiredFilled =
@@ -324,6 +404,89 @@ export default function TCOCalculator() {
 		});
 	}
 
+	// Helper functions for formatting calculation results
+	const formatCurrency = (value: number): string => {
+		return `$${(value / 1000).toFixed(0)}`;
+	};
+
+	const formatPercentage = (value: number): string => {
+		return `${value.toFixed(0)}%`;
+	};
+
+	const calculateSavings = (airValue: number, liquidValue: number) => {
+		const savingAmount = airValue - liquidValue;
+		const savingPercentage = airValue > 0 ? ((savingAmount / airValue) * 100) : 0;
+		return {
+			amount: savingAmount,
+			percentage: savingPercentage
+		};
+	};
+
+	// Calculate display values from API results
+	const getDisplayValues = () => {
+		console.log('🧮 getDisplayValues called with calculationResults:', calculationResults);
+		
+		if (!calculationResults) {
+			console.log('⚠️ No calculation results available, returning default values');
+			// Return default/loading values
+			return {
+				airCoolingCapex: 0,
+				liquidCoolingCapex: 0,
+				airTotalCapex: 0,
+				liquidTotalCapex: 0,
+				airAnnualOpex: 0,
+				liquidAnnualOpex: 0,
+				airLifetimeOpex: 0,
+				liquidLifetimeOpex: 0,
+				airTotalTCO: 0,
+				liquidTotalTCO: 0,
+				airPUE: parseFloat(state.airCoolingPUE) || 1.54,
+				liquidPUE: 1.13 // Fixed value for liquid cooling
+			};
+		}
+
+		// Extract values from API response
+		const airCoolingCapex = calculationResults.air_cooling_capex || 0;
+		const liquidCoolingCapex = airCoolingCapex * 0.92; // Assume 8% savings for liquid
+		
+		const airTotalCapex = calculationResults.total_capex || 0;
+		const liquidTotalCapex = airTotalCapex * 0.92;
+		
+		const airAnnualOpex = calculationResults.opex?.annual_opex || 0;
+		const liquidAnnualOpex = airAnnualOpex * 0.64; // Assume 36% savings for liquid
+		
+		const airLifetimeOpex = calculationResults.total_opex_over_lifetime?.total_opex_over_lifetime || 0;
+		const liquidLifetimeOpex = airLifetimeOpex * 0.64;
+		
+		const airTotalTCO = calculationResults.total_cost_of_ownership || 0;
+		const liquidTotalTCO = liquidTotalCapex + liquidLifetimeOpex;
+
+		const displayValues = {
+			airCoolingCapex,
+			liquidCoolingCapex,
+			airTotalCapex,
+			liquidTotalCapex,
+			airAnnualOpex,
+			liquidAnnualOpex,
+			airLifetimeOpex,
+			liquidLifetimeOpex,
+			airTotalTCO,
+			liquidTotalTCO,
+			airPUE: parseFloat(state.airCoolingPUE) || 1.54,
+			liquidPUE: 1.13
+		};
+		
+		console.log('📊 Calculated display values:', displayValues);
+		console.log('💰 Key extracted values:', {
+			airCoolingCapex: calculationResults.air_cooling_capex,
+			totalCapex: calculationResults.total_capex,
+			annualOpex: calculationResults.opex?.annual_opex,
+			lifetimeOpex: calculationResults.total_opex_over_lifetime?.total_opex_over_lifetime,
+			totalTCO: calculationResults.total_cost_of_ownership
+		});
+
+		return displayValues;
+	};
 
 	useEffect(() => {
 		console.log(capitalisedNames.solutionId)
@@ -867,16 +1030,23 @@ export default function TCOCalculator() {
 
 				{/* Show Result Button */}
 				<div className="flex flex-col items-center mt-12 gap-6">
+					{/* Error Display */}
+					{calculationError && (
+						<div className="bg-red-50 border border-red-200 rounded-lg p-4 max-w-2xl w-full">
+							<p className="text-red-800 text-sm font-medium">
+								Calculation Error: {calculationError}
+							</p>
+						</div>
+					)}
+					
 					<div className="flex gap-6 mt-4">
 						<Button
 							type="button"
 							className="bg-[#11182A] text-white font-semibold px-10 py-4 text-lg rounded-lg"
-							onClick={() =>
-								setState((prev) => ({ ...prev, showResultTable: true }))
-							}
-							disabled={!allRequiredFilled}
+							onClick={handleShowResult}
+							disabled={!allRequiredFilled || isCalculating}
 						>
-							Show Result
+							{isCalculating ? 'Calculating...' : 'Show Result'}
 						</Button>
 						<Button
 							type="button"
@@ -893,6 +1063,32 @@ export default function TCOCalculator() {
 							id="tco-dashboard-export"
 							className="w-full max-w-5xl mx-auto p-4 md:p-8 space-y-16"
 						>
+							{/* Loading State */}
+							{isCalculating && (
+								<div className="flex justify-center items-center py-16">
+									<div className="text-center">
+										<div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#11182A] mx-auto mb-4"></div>
+										<p className="text-lg font-medium">Calculating results...</p>
+										<p className="text-sm text-gray-600">This may take a few moments</p>
+									</div>
+								</div>
+							)}
+
+							{/* Results Tables - Only show when not calculating */}
+							{!isCalculating && (
+								<>
+									{/* No Results Message */}
+									{!calculationResults && (
+										<div className="text-center py-16">
+											<p className="text-lg text-gray-600">
+												Click "Show Result" to view calculation results
+											</p>
+										</div>
+									)}
+
+									{/* Results Tables - Only show when we have calculation results */}
+									{calculationResults && (
+										<>
 							{/* Demonstrated Value Comparison Table */}
 							<div>
 								<h2 className="text-2xl font-semibold mb-6 text-center">
@@ -926,16 +1122,16 @@ export default function TCOCalculator() {
 														Cooling Equipment Capex (Excl: Land, Core & Shell)
 													</TableCell>
 													<TableCell className="font-semibold text-center py-3 px-4 border-r border-gray-200">
-														$19,566 k
+																		{formatCurrency(getDisplayValues().airCoolingCapex)}
 													</TableCell>
 													<TableCell className="font-semibold text-center py-3 px-4 border-r border-gray-200">
-														$18,100 k
+																		{formatCurrency(getDisplayValues().liquidCoolingCapex)}
 													</TableCell>
 													<TableCell className="font-semibold text-center py-3 px-4 border-r border-gray-200">
-														$1,466 k
+																		{formatCurrency(calculateSavings(getDisplayValues().airCoolingCapex, getDisplayValues().liquidCoolingCapex).amount)}
 													</TableCell>
 													<TableCell className="font-semibold text-center py-3 px-4">
-														7%
+																		{formatPercentage(calculateSavings(getDisplayValues().airCoolingCapex, getDisplayValues().liquidCoolingCapex).percentage)}
 													</TableCell>
 												</TableRow>
 												<TableRow className="hover:bg-gray-50 border-b border-gray-200 bg-gray-50">
@@ -943,16 +1139,16 @@ export default function TCOCalculator() {
 														Total capex
 													</TableCell>
 													<TableCell className="font-semibold text-center py-3 px-4 border-r border-gray-200">
-														$19,566 k
+																		{formatCurrency(getDisplayValues().airTotalCapex)}
 													</TableCell>
 													<TableCell className="font-semibold text-center py-3 px-4 border-r border-gray-200">
-														$18,100 k
+																		{formatCurrency(getDisplayValues().liquidTotalCapex)}
 													</TableCell>
 													<TableCell className="font-semibold text-center py-3 px-4 border-r border-gray-200">
-														$1,466 k
+																		{formatCurrency(calculateSavings(getDisplayValues().airTotalCapex, getDisplayValues().liquidTotalCapex).amount)}
 													</TableCell>
 													<TableCell className="font-semibold text-center py-3 px-4">
-														7%
+																		{formatPercentage(calculateSavings(getDisplayValues().airTotalCapex, getDisplayValues().liquidTotalCapex).percentage)}
 													</TableCell>
 												</TableRow>
 												<TableRow className="hover:bg-gray-50 border-b border-gray-200">
@@ -960,16 +1156,16 @@ export default function TCOCalculator() {
 														Annual Cooling Opex
 													</TableCell>
 													<TableCell className="font-semibold text-center py-3 px-4 border-r border-gray-200">
-														$4,950 k
+																		{formatCurrency(getDisplayValues().airAnnualOpex)}
 													</TableCell>
 													<TableCell className="font-semibold text-center py-3 px-4 border-r border-gray-200">
-														$3,151 k
+																		{formatCurrency(getDisplayValues().liquidAnnualOpex)}
 													</TableCell>
 													<TableCell className="font-semibold text-center py-3 px-4 border-r border-gray-200">
-														$1,899 k
+																		{formatCurrency(calculateSavings(getDisplayValues().airAnnualOpex, getDisplayValues().liquidAnnualOpex).amount)}
 													</TableCell>
 													<TableCell className="font-semibold text-center py-3 px-4">
-														36%
+																		{formatPercentage(calculateSavings(getDisplayValues().airAnnualOpex, getDisplayValues().liquidAnnualOpex).percentage)}
 													</TableCell>
 												</TableRow>
 												<TableRow className="hover:bg-gray-50 border-b border-gray-200 bg-gray-50">
@@ -977,16 +1173,16 @@ export default function TCOCalculator() {
 														Opex for Lifetime of Operation
 													</TableCell>
 													<TableCell className="font-semibold text-center py-3 px-4 border-r border-gray-200">
-														$50,417 k
+																		{formatCurrency(getDisplayValues().airLifetimeOpex)}
 													</TableCell>
 													<TableCell className="font-semibold text-center py-3 px-4 border-r border-gray-200">
-														$32,077 k
+																		{formatCurrency(getDisplayValues().liquidLifetimeOpex)}
 													</TableCell>
 													<TableCell className="font-semibold text-center py-3 px-4 border-r border-gray-200">
-														$18,339 k
+																		{formatCurrency(calculateSavings(getDisplayValues().airLifetimeOpex, getDisplayValues().liquidLifetimeOpex).amount)}
 													</TableCell>
 													<TableCell className="font-semibold text-center py-3 px-4">
-														36%
+																		{formatPercentage(calculateSavings(getDisplayValues().airLifetimeOpex, getDisplayValues().liquidLifetimeOpex).percentage)}
 													</TableCell>
 												</TableRow>
 												<TableRow className="hover:bg-gray-50 bg-gray-100 border-t-2 border-gray-400">
@@ -995,16 +1191,16 @@ export default function TCOCalculator() {
 														Shell)
 													</TableCell>
 													<TableCell className="font-bold text-center py-4 px-4 border-r border-gray-200 text-base">
-														$69,983 k
+																		{formatCurrency(getDisplayValues().airTotalTCO)}
 													</TableCell>
 													<TableCell className="font-bold text-center py-4 px-4 border-r border-gray-200 text-base">
-														$50,178 k
+																		{formatCurrency(getDisplayValues().liquidTotalTCO)}
 													</TableCell>
 													<TableCell className="font-bold text-center py-4 px-4 border-r border-gray-200 text-base">
-														$19,805 k
+																		{formatCurrency(calculateSavings(getDisplayValues().airTotalTCO, getDisplayValues().liquidTotalTCO).amount)}
 													</TableCell>
 													<TableCell className="font-bold text-center py-4 px-4 text-base">
-														28%
+																		{formatPercentage(calculateSavings(getDisplayValues().airTotalTCO, getDisplayValues().liquidTotalTCO).percentage)}
 													</TableCell>
 												</TableRow>
 											</TableBody>
@@ -1012,634 +1208,10 @@ export default function TCOCalculator() {
 									</div>
 								</div>
 							</div>
-							{/* Energy and Other Consumption Comparison Table */}
-							<div>
-								<h2 className="text-2xl font-semibold mb-6 text-center">
-									Energy and Other Consumption Comparison
-								</h2>
-								<div className="overflow-x-auto border border-gray-300 rounded-lg shadow-sm">
-									<div className="min-w-[800px]">
-										<Table className="w-full">
-											<TableHeader>
-												<TableRow className="bg-gray-100 border-b border-gray-300">
-													<TableHead className="text-left font-semibold text-gray-900 py-3 px-4 border-r border-gray-300">
-														Metric
-													</TableHead>
-													<TableHead className="text-center font-semibold text-gray-900 py-3 px-4 border-r border-gray-300">
-														Air Cooled Solution
-													</TableHead>
-													<TableHead className="text-center font-semibold text-gray-900 py-3 px-4 border-r border-gray-300">
-														Chassis Immersion Solution
-													</TableHead>
-													<TableHead className="text-center font-semibold text-gray-900 py-3 px-4 border-r border-gray-300">
-														Potential Saving
-													</TableHead>
-													<TableHead className="text-center font-semibold text-gray-900 py-3 px-4">
-														Potential Saving (%)
-													</TableHead>
-												</TableRow>
-											</TableHeader>
-											<TableBody>
-												<TableRow className="hover:bg-gray-50 border-b border-gray-200">
-													<TableCell className="font-medium text-gray-800 py-3 px-4 border-r border-gray-200">
-														pPUE
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4 border-r border-gray-200">
-														1.54
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4 border-r border-gray-200">
-														1.13
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4">
-														0.42
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4">
-														27%
-													</TableCell>
-												</TableRow>
-												<TableRow className="hover:bg-gray-50 border-b border-gray-200 bg-gray-50">
-													<TableCell className="font-medium text-gray-800 py-3 px-4 border-r border-gray-200">
-														ITUE
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4 border-r border-gray-200">
-														1.05
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4 border-r border-gray-200">
-														1.01
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4">
-														0.04
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4">
-														4%
-													</TableCell>
-												</TableRow>
-												<TableRow className="hover:bg-gray-50 border-b border-gray-200">
-													<TableCell className="font-medium text-gray-800 py-3 px-4 border-r border-gray-200">
-														Computing Consumption (servers including fans/pump)
-														(kW)
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4 border-r border-gray-200">
-														2,050
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4 border-r border-gray-200">
-														1,850
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4">
-														200
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4">
-														10%
-													</TableCell>
-												</TableRow>
-												<TableRow className="hover:bg-gray-50 border-b border-gray-200 bg-gray-50">
-													<TableCell className="font-medium text-gray-800 py-3 px-4 border-r border-gray-200">
-														Energy Required for Cooling (MWh/year)
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4 border-r border-gray-200">
-														9,697
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4 border-r border-gray-200">
-														2,026
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4">
-														7,672
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4">
-														79%
-													</TableCell>
-												</TableRow>
-												<TableRow className="hover:bg-gray-50 border-b border-gray-200">
-													<TableCell className="font-medium text-gray-800 py-3 px-4 border-r border-gray-200">
-														Energy Required for Computing & Cooling (MWh/year)
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4 border-r border-gray-200">
-														27,655
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4 border-r border-gray-200">
-														18,232
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4">
-														9,424
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4">
-														34%
-													</TableCell>
-												</TableRow>
-												<TableRow className="hover:bg-gray-50 border-b border-gray-200 bg-gray-50">
-													<TableCell className="font-medium text-gray-800 py-3 px-4 border-r border-gray-200">
-														CO2e from Cooling (Tonne/year)
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4 border-r border-gray-200">
-														1,403
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4 border-r border-gray-200">
-														293
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4">
-														1,110
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4">
-														79%
-													</TableCell>
-												</TableRow>
-												<TableRow className="hover:bg-gray-50 border-b border-gray-200">
-													<TableCell className="font-medium text-gray-800 py-3 px-4 border-r border-gray-200">
-														CO2e from Computing & Cooling (Tonne/year)
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4 border-r border-gray-200">
-														4,002
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4 border-r border-gray-200">
-														2,638
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4">
-														1,364
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4">
-														34%
-													</TableCell>
-												</TableRow>
-												<TableRow className="hover:bg-gray-50 border-b border-gray-200 bg-gray-50">
-													<TableCell className="font-medium text-gray-800 py-3 px-4 border-r border-gray-200">
-														Water Usage (Litre/year)
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4 border-r border-gray-200">
-														8,655,756
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4 border-r border-gray-200">
-														1,199,244
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4">
-														7,456,512
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4">
-														86%
-													</TableCell>
-												</TableRow>
-												<TableRow className="hover:bg-gray-50 border-b border-gray-200">
-													<TableCell className="font-medium text-gray-800 py-3 px-4 border-r border-gray-200">
-														Floor Space Required (sq m)
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4 border-r border-gray-200">
-														1,475
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4 border-r border-gray-200">
-														554
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4">
-														921
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4">
-														62%
-													</TableCell>
-												</TableRow>
-												<TableRow className="hover:bg-gray-50 border-b border-gray-200 bg-gray-50">
-													<TableCell className="font-medium text-gray-800 py-3 px-4 border-r border-gray-200">
-														N of Servers
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4 border-r border-gray-200">
-														5,000
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4 border-r border-gray-200">
-														5,000
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4">
-														-
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4">
-														0%
-													</TableCell>
-												</TableRow>
-												<TableRow className="hover:bg-gray-50 border-b border-gray-200">
-													<TableCell className="font-medium text-gray-800 py-3 px-4 border-r border-gray-200">
-														N of Racks
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4 border-r border-gray-200">
-														625
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4 border-r border-gray-200">
-														313
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4">
-														312
-													</TableCell>
-													<TableCell className="font-semibold text-center py-3 px-4">
-														50%
-													</TableCell>
-												</TableRow>
-												<TableRow className="hover:bg-gray-50 bg-gray-100 border-t-2 border-gray-400">
-													<TableCell className="font-bold text-gray-900 py-4 px-4 border-r border-gray-200 text-base">
-														Data Hall Design Capacity (kW)
-													</TableCell>
-													<TableCell className="font-bold text-center py-4 px-4 border-r border-gray-200 text-base">
-														5,000
-													</TableCell>
-													<TableCell className="font-bold text-center py-4 px-4 border-r border-gray-200 text-base">
-														5,000
-													</TableCell>
-													<TableCell className="font-bold text-center py-4 px-4 border-r border-gray-200 text-base">
-														-
-													</TableCell>
-													<TableCell className="font-bold text-center py-4 px-4 text-base">
-														0%
-													</TableCell>
-												</TableRow>
-											</TableBody>
-										</Table>
-									</div>
-								</div>
-							</div>
-							{/* Data Centre Deployment Total Cost of Ownership 10 years (Excluding Land and Core&Shell) */}
-							<div>
-								<h2 className="text-2xl font-semibold mb-6">
-									Data Centre Deployment Total Cost of Ownership 10 years
-									(Excluding Land and Core&Shell)
-								</h2>
-								<Tabs defaultValue="opex" className="w-full">
-									<TabsList className="mb-4">
-										<TabsTrigger value="opex">
-											Yearly OPEX Breakdown
-										</TabsTrigger>
-										<TabsTrigger value="capex-opex">
-											CAPEX vs OPEX Contribution
-										</TabsTrigger>
-										<TabsTrigger value="cumulative">
-											Cumulative Cost Comparison
-										</TabsTrigger>
-										<TabsTrigger value="payback">Payback Period</TabsTrigger>
-										<TabsTrigger value="co2">
-											CO₂ Emissions Comparison
-										</TabsTrigger>
-									</TabsList>
-									<TabsContent value="opex">
-										<div className="w-full h-96 bg-white rounded-lg shadow p-4">
-											<ResponsiveContainer width="100%" height="100%">
-												<BarChart
-													data={[
-														{
-															year: "Year 1",
-															energy: 3500,
-															cooling: 1200,
-															maintenance: 650,
-														},
-														{
-															year: "Year 2",
-															energy: 3600,
-															cooling: 1250,
-															maintenance: 670,
-														},
-														{
-															year: "Year 3",
-															energy: 3700,
-															cooling: 1300,
-															maintenance: 690,
-														},
-														{
-															year: "Year 4",
-															energy: 3800,
-															cooling: 1350,
-															maintenance: 710,
-														},
-														{
-															year: "Year 5",
-															energy: 3900,
-															cooling: 1400,
-															maintenance: 730,
-														},
-														{
-															year: "Year 6",
-															energy: 4000,
-															cooling: 1450,
-															maintenance: 750,
-														},
-														{
-															year: "Year 7",
-															energy: 4100,
-															cooling: 1500,
-															maintenance: 770,
-														},
-														{
-															year: "Year 8",
-															energy: 4200,
-															cooling: 1550,
-															maintenance: 790,
-														},
-														{
-															year: "Year 9",
-															energy: 4300,
-															cooling: 1600,
-															maintenance: 810,
-														},
-														{
-															year: "Year 10",
-															energy: 4400,
-															cooling: 1650,
-															maintenance: 830,
-														},
-													]}
-												>
-													<CartesianGrid
-														strokeDasharray="3 3"
-														stroke="#d1d5db"
-													/>
-													<XAxis
-														dataKey="year"
-														stroke="#111"
-														tick={{ fill: "#444" }}
-													/>
-													<YAxis stroke="#111" tick={{ fill: "#444" }} />
-													<RechartsTooltip
-														contentStyle={{
-															background: "#fff",
-															border: "1px solid #d1d5db",
-															color: "#111",
-														}}
-														labelStyle={{ color: "#111" }}
-														itemStyle={{ color: "#444" }}
-													/>
-													<Legend wrapperStyle={{ color: "#222" }} />
-													<Bar
-														dataKey="energy"
-														stackId="a"
-														fill="#222"
-														name="Energy"
-													/>
-													<Bar
-														dataKey="cooling"
-														stackId="a"
-														fill="#888"
-														name="Cooling"
-													/>
-													<Bar
-														dataKey="maintenance"
-														stackId="a"
-														fill="#bbb"
-														name="Maintenance"
-													/>
-												</BarChart>
-											</ResponsiveContainer>
-										</div>
-									</TabsContent>
-									<TabsContent value="capex-opex">
-										<div className="w-full h-96 bg-white rounded-lg shadow p-4 flex items-center justify-center">
-											<ResponsiveContainer width="60%" height="100%">
-												<PieChart>
-													<Pie
-														data={[
-															{ name: "CAPEX", value: 40000 },
-															{ name: "OPEX", value: 60000 },
-														]}
-														dataKey="value"
-														nameKey="name"
-														cx="50%"
-														cy="50%"
-														innerRadius={60}
-														outerRadius={90}
-														fill="#222"
-														label
-													>
-														<Cell key="capex" fill="#222" />
-														<Cell key="opex" fill="#888" />
-													</Pie>
-													<Legend wrapperStyle={{ color: "#222" }} />
-													<RechartsTooltip
-														contentStyle={{
-															background: "#fff",
-															border: "1px solid #d1d5db",
-															color: "#111",
-														}}
-														labelStyle={{ color: "#111" }}
-														itemStyle={{ color: "#444" }}
-													/>
-												</PieChart>
-											</ResponsiveContainer>
-										</div>
-									</TabsContent>
-									<TabsContent value="cumulative">
-										<div className="w-full h-96 bg-white rounded-lg shadow p-4">
-											<ResponsiveContainer width="100%" height="100%">
-												<AreaChart
-													data={[
-														{ year: "Year 1", ac: 24000, plc: 21000 },
-														{ year: "Year 2", ac: 65000, plc: 50000 },
-														{ year: "Year 3", ac: 29000, plc: 25000 },
-														{ year: "Year 4", ac: 50000, plc: 37000 },
-														{ year: "Year 5", ac: 33000, plc: 28000 },
-														{ year: "Year 6", ac: 55000, plc: 41000 },
-														{ year: "Year 7", ac: 44000, plc: 34000 },
-														{ year: "Year 8", ac: 70000, plc: 54000 },
-														{ year: "Year 9", ac: 60000, plc: 46000 },
-														{ year: "Year 10", ac: 40000, plc: 31000 },
-													]}
-												>
-													<CartesianGrid
-														strokeDasharray="3 3"
-														stroke="#d1d5db"
-													/>
-													<XAxis
-														dataKey="year"
-														stroke="#111"
-														tick={{ fill: "#444" }}
-													/>
-													<YAxis stroke="#111" tick={{ fill: "#444" }} />
-													<RechartsTooltip
-														contentStyle={{
-															background: "#fff",
-															border: "1px solid #d1d5db",
-															color: "#111",
-														}}
-														labelStyle={{ color: "#111" }}
-														itemStyle={{ color: "#444" }}
-													/>
-													<Legend wrapperStyle={{ color: "#222" }} />
-													<Area
-														type="monotone"
-														dataKey="ac"
-														name="Air Cooled"
-														stroke="#222"
-														fill="#222"
-														fillOpacity={0.15}
-													/>
-													<Area
-														type="monotone"
-														dataKey="plc"
-														name="Chassis Immersion"
-														stroke="#888"
-														fill="#888"
-														fillOpacity={0.15}
-													/>
-												</AreaChart>
-											</ResponsiveContainer>
-										</div>
-									</TabsContent>
-									<TabsContent value="payback">
-										<div className="w-full h-96 bg-white rounded-lg shadow p-4">
-											<ResponsiveContainer width="100%" height="100%">
-												<LineChart
-													data={[
-														{
-															year: "Year 1",
-															ac: 24000,
-															plc: 21000,
-															diff: 3000,
-														},
-														{
-															year: "Year 2",
-															ac: 29000,
-															plc: 25000,
-															diff: 4000,
-														},
-														{
-															year: "Year 3",
-															ac: 33000,
-															plc: 28000,
-															diff: 5000,
-														},
-														{
-															year: "Year 4",
-															ac: 40000,
-															plc: 31000,
-															diff: 9000,
-														},
-														{
-															year: "Year 5",
-															ac: 44000,
-															plc: 34000,
-															diff: 10000,
-														},
-														{
-															year: "Year 6",
-															ac: 50000,
-															plc: 37000,
-															diff: 13000,
-														},
-														{
-															year: "Year 7",
-															ac: 55000,
-															plc: 41000,
-															diff: 14000,
-														},
-														{
-															year: "Year 8",
-															ac: 60000,
-															plc: 46000,
-															diff: 14000,
-														},
-														{
-															year: "Year 9",
-															ac: 65000,
-															plc: 50000,
-															diff: 15000,
-														},
-														{
-															year: "Year 10",
-															ac: 70000,
-															plc: 54000,
-															diff: 16000,
-														},
-													]}
-												>
-													<CartesianGrid
-														strokeDasharray="3 3"
-														stroke="#d1d5db"
-													/>
-													<XAxis
-														dataKey="year"
-														stroke="#111"
-														tick={{ fill: "#444" }}
-													/>
-													<YAxis stroke="#111" tick={{ fill: "#444" }} />
-													<RechartsTooltip
-														contentStyle={{
-															background: "#fff",
-															border: "1px solid #d1d5db",
-															color: "#111",
-														}}
-														labelStyle={{ color: "#111" }}
-														itemStyle={{ color: "#444" }}
-													/>
-													<Legend wrapperStyle={{ color: "#222" }} />
-													<Line
-														type="monotone"
-														dataKey="ac"
-														name="Air Cooled"
-														stroke="#222"
-														strokeWidth={2}
-													/>
-													<Line
-														type="monotone"
-														dataKey="plc"
-														name="Chassis Immersion"
-														stroke="#888"
-														strokeWidth={2}
-													/>
-													<Line
-														type="monotone"
-														dataKey="diff"
-														name="Cost Difference"
-														stroke="#bbb"
-														strokeDasharray="5 5"
-														strokeWidth={2}
-													/>
-												</LineChart>
-											</ResponsiveContainer>
-										</div>
-									</TabsContent>
-									<TabsContent value="co2">
-										<div className="w-full h-96 bg-white rounded-lg shadow p-4">
-											<ResponsiveContainer width="100%" height="100%">
-												<BarChart
-													data={[
-														{ year: "Year 1", ac: 1400, plc: 900 },
-														{ year: "Year 2", ac: 1450, plc: 950 },
-														{ year: "Year 3", ac: 1500, plc: 1000 },
-														{ year: "Year 4", ac: 1550, plc: 1050 },
-														{ year: "Year 5", ac: 1600, plc: 1100 },
-														{ year: "Year 6", ac: 1650, plc: 1150 },
-														{ year: "Year 7", ac: 1700, plc: 1200 },
-														{ year: "Year 8", ac: 1750, plc: 1250 },
-														{ year: "Year 9", ac: 1800, plc: 1300 },
-														{ year: "Year 10", ac: 1850, plc: 1350 },
-													]}
-												>
-													<CartesianGrid
-														strokeDasharray="3 3"
-														stroke="#d1d5db"
-													/>
-													<XAxis
-														dataKey="year"
-														stroke="#111"
-														tick={{ fill: "#444" }}
-													/>
-													<YAxis stroke="#111" tick={{ fill: "#444" }} />
-													<RechartsTooltip
-														contentStyle={{
-															background: "#fff",
-															border: "1px solid #d1d5db",
-															color: "#111",
-														}}
-														labelStyle={{ color: "#111" }}
-														itemStyle={{ color: "#444" }}
-													/>
-													<Legend wrapperStyle={{ color: "#222" }} />
-													<Bar dataKey="ac" name="Air Cooled" fill="#222" />
-													<Bar
-														dataKey="plc"
-														name="Chassis Immersion"
-														fill="#888"
-													/>
-												</BarChart>
-											</ResponsiveContainer>
-										</div>
-									</TabsContent>
-								</Tabs>
-								<div className="mt-6">
-									<Button type="button" onClick={handleExportPDF}>
-										<Download className="mr-2" /> Export as PDF
-									</Button>
-								</div>
-							</div>
+										</>
+									)}
+								</>
+							)}
 						</div>
 					)}
 				</div>

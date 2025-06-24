@@ -14,7 +14,11 @@ app = FastAPI(
 
 # Configure CORS
 origins = [
-    settings.CLIENT_ORIGIN_URL
+    settings.CLIENT_ORIGIN_URL,
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:3001"
 ]
 # You can add more origins from a comma-separated string in your .env if needed
 # origins.extend(settings.ADDITIONAL_ORIGINS.split(','))

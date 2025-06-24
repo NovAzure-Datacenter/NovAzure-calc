@@ -11,7 +11,7 @@ from app.schemas.calculations import (
 )
 from app.services.calculations.solutions.air_cooling.capex import calculate_cooling_capex as calculate_air_cooling_capex
 from app.services.calculations.solutions.chassis_immersion.capex import calculate_cooling_capex as calculate_chassis_immersion_capex
-from app.services.calculations.solutions.air_cooling.opex import calculate_opex
+from app.services.calculations.solutions.air_cooling.opex import calculate_annual_opex
 from app.services.calculations.main import update_inputs, calculate
 
 router = APIRouter(prefix="/calculations", tags=["calculations"])
@@ -47,7 +47,7 @@ async def calculate_opex_endpoint(request: OpexCalculationRequest):
             'planned_years_of_operation': request.planned_years_of_operation
         }
         
-        result = calculate_opex(input_data)
+        result = await calculate_annual_opex(input_data, 1000000)  # Dummy total_capex for now
         return OpexCalculationResponse(**result)
     
     except Exception as e:
@@ -85,7 +85,7 @@ async def calculate_full(request: FullCalculationRequest):
                 'include_it_cost': False,      # Excluding IT as per new requirements
                 'planned_years_of_operation': request.planned_years_of_operation
             }
-            opex_result = calculate_opex(opex_input)
+            opex_result = await calculate_annual_opex(opex_input, capex_result.get('total_capex_excl_it', 1000000))
             opex_response = OpexCalculationResponse(**opex_result)
         
         return FullCalculationResponse(
