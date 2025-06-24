@@ -50,11 +50,13 @@ import {
 	Star,
 	Plus,
 	Edit,
+	Router,
 } from "lucide-react";
 import { mockData, type Product, type SolutionVariant, type Industry, type Technology, type Solution, getIconForCategory } from "./constants";
 import Image from "next/image";
 import AddNewFeature, { type NewProductData } from "./components/add-new-feature";
 import { SidebarInset } from "@/components/ui/sidebar";
+import { useRouter } from "next/navigation";
 
 type NavigationLevel =
 	| "industry"
@@ -97,6 +99,9 @@ export default function CRMProductNavigator() {
 	const [comparisonDialogOpen, setComparisonDialogOpen] = useState(false);
 	const [selectedSolutionVariant, setSelectedSolutionVariant] =
 		useState<SolutionVariant | null>(null);
+	const router = useRouter();
+
+
 
 	// Auto-open search when user starts typing
 	const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1096,7 +1101,7 @@ export default function CRMProductNavigator() {
 					open={comparisonDialogOpen}
 					onOpenChange={setComparisonDialogOpen}
 				>
-					<DialogContent className="max-w-4xl">
+					<DialogContent className="!w-[98vw] !max-w-[900px] max-h-[95vh] overflow-y-auto">
 						<DialogHeader>
 							<DialogTitle className="text-xl font-bold text-gray-900">
 								{selectedSolutionVariant?.name}
@@ -1158,11 +1163,15 @@ export default function CRMProductNavigator() {
 								className="cursor-pointer hover:shadow-md transition-shadow border-2 hover:border-blue-200"
 								onClick={() => {
 									setComparisonDialogOpen(false);
-									// TODO: Navigate to comparison calculator page
-									console.log(
-										"Navigate to comparison calculator for:",
-										selectedSolutionVariant?.name
-									);
+															
+									const params = new URLSearchParams();
+									if (navState.industryId) params.append('industryId', navState.industryId);
+									if (navState.technologyId) params.append('technologyId', navState.technologyId);
+									if (navState.solutionId) params.append('solutionId', navState.solutionId);
+									if (navState.solutionVariantId) params.append('solutionVariantId', navState.solutionVariantId);
+								
+									const calculatorUrl = `/dashboard/calculator${params.toString() ? `?${params.toString()}` : ''}`;
+									router.push(calculatorUrl);
 								}}
 							>
 								<CardHeader className="pb-4">
@@ -1188,11 +1197,11 @@ export default function CRMProductNavigator() {
 												variant="outline"
 												className="bg-blue-50 text-blue-700 border-blue-200"
 											>
-												ROI Analysis
+												TCO Analysis
 											</Badge>
 										</div>
 										<div className="text-sm text-gray-500">
-											Calculate ROI, efficiency gains, and cost savings vs.
+											Calculate TCO, efficiency gains, and cost savings vs.
 											alternatives
 										</div>
 									</div>

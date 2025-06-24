@@ -3,7 +3,7 @@ import { Construction, Hammer, HardHat, Wrench } from "lucide-react";
 export default function UnderConstruction() {
 	return (
         
-		<div className="min-h-[calc(96vh)] flex items-center justify-center bg-gradient-to-br from-blue-50 to-sky-50">
+		<div className="w-full min-h-[calc(96vh)] flex items-center justify-center bg-gradient-to-br from-blue-50 to-sky-50">
 			<div className="text-center space-y-8 ">
 				{/* Animated Construction Icons */}
 				<div className="relative flex justify-center items-center space-x-4 mb-8">

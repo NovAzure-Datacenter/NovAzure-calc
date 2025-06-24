@@ -1,7 +1,8 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import {
 	Tooltip,
 	TooltipContent,
@@ -51,6 +52,7 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
+import { transformCalculatorState } from "@/lib/backend-prep/key-relable";
 
 export default function TCOCalculator() {
 	// 1. Define the initial state object
@@ -68,6 +70,61 @@ export default function TCOCalculator() {
 
 	// 2. Single useState for all state
 	const [state, setState] = useState(initialState);
+
+	useEffect(() => {
+		// Log original state with old labels
+		console.log('Original Calculator State (Old Labels):', {
+			dataCentreType: state.dataCentreType,
+			utilisation: state.utilisation,
+			yearsOfOperation: state.yearsOfOperation,
+			projectLocation: state.projectLocation,
+			dataHallCapacity: state.dataHallCapacity,
+			firstYear: state.firstYear,
+			airCoolingPUE: state.airCoolingPUE,
+			liquidCoolingPUE: state.liquidCoolingPUE,
+			showResultTable: state.showResultTable,
+		});
+
+		// Transform and log state with new labels
+		const transformedState = transformCalculatorState(state);
+		console.log('Transformed Calculator State (New Labels):', transformedState);
+	}, [state])
+
+	const [capitalisedNames, setCapitalisedNames] = useState({
+		industryId: "",
+		technologyId: "",
+		solutionId: "",
+		solutionVariantId: "",
+	});
+	
+	const searchParams = useSearchParams();
+	
+	useEffect(() => {
+		const industryId = searchParams.get('industryId');
+		const technologyId = searchParams.get('technologyId');
+		const solutionId = searchParams.get('solutionId');
+		const solutionVariantId = searchParams.get('solutionVariantId');
+		
+		// if (industryId || technologyId || solutionId || solutionVariantId) {
+		// 	console.log('Calculator Page - Navigation State from URL:', {
+		// 		industryId: industryId || 'Not provided',
+		// 		technologyId: technologyId || 'Not provided',
+		// 		solutionId: solutionId || 'Not provided',
+		// 		solutionVariantId: solutionVariantId || 'Not provided'
+		// 	});
+		// }
+
+		const capitalisedNames = {
+			industryId: industryId ? industryId.charAt(0).toUpperCase() + industryId.slice(1) : "",
+			technologyId: technologyId ? technologyId.charAt(0).toUpperCase() + technologyId.slice(1) : "",
+			solutionId: solutionId ? solutionId.charAt(0).toUpperCase() + solutionId.slice(1) : "",
+			solutionVariantId: solutionVariantId ? solutionVariantId.charAt(0).toUpperCase() + solutionVariantId.slice(1) : ""
+		};
+		setCapitalisedNames(capitalisedNames);
+
+
+
+	}, [searchParams]);
 
 	// 3. Update all usages: state.field, setState(prev => ({ ...prev, field: value }))
 	// Example for userName:
@@ -89,6 +146,153 @@ export default function TCOCalculator() {
 		!!state.airCoolingPUE;
 
 	const dataCentreTypeOptions = ["General Purpose", "HPC/AI"];
+	
+	// Get dynamic header text based on selected industry
+	const getDynamicHeaderText = () => {
+		if (!capitalisedNames.industryId) return "Data Centre Configuration";
+		
+		switch (capitalisedNames.industryId.toLowerCase()) {
+			case "data centres":
+				return "Data Centre Configuration";
+			case "renewable energy":
+				return "Renewable Energy Configuration";
+			case "transportation":
+				return "Transportation Infrastructure Configuration";
+			case "buildings & hvac":
+				return "Building & HVAC Configuration";
+			default:
+				return `${capitalisedNames.industryId} Configuration`;
+		}
+	};
+
+	// Get dynamic solution configuration text based on selected technology
+	const getSolutionConfigText = () => {
+		if (!capitalisedNames.technologyId) return "Solution Configuration";
+		
+		switch (capitalisedNames.technologyId.toLowerCase()) {
+			case "cooling systems":
+				return "Cooling Solution Configuration";
+			case "energy management":
+				return "Energy Management Configuration";
+			case "solar systems":
+				return "Solar System Configuration";
+			case "ev charging":
+				return "EV Charging Configuration";
+			case "building automation":
+				return "Building Automation Configuration";
+			default:
+				return `${capitalisedNames.technologyId} Configuration`;
+		}
+	};
+
+	// Get dynamic solution variant configuration text based on selected solution
+	const getSolutionVariantConfigText = () => {
+		if (!capitalisedNames.solutionId) return "Solution Variant Configuration";
+		
+		switch (capitalisedNames.solutionId.toLowerCase()) {
+			case "liquid cooling":
+				return "Liquid Cooling Variant Configuration";
+			case "free air cooling":
+				return "Free Air Cooling Variant Configuration";
+			case "adiabatic cooling":
+				return "Adiabatic Cooling Variant Configuration";
+			case "power monitoring":
+				return "Power Monitoring Variant Configuration";
+			case "solar inverters":
+				return "Solar Inverter Variant Configuration";
+			case "fast charging":
+				return "Fast Charging Variant Configuration";
+			case "hvac controls":
+				return "HVAC Control Variant Configuration";
+			default:
+				return `${capitalisedNames.solutionId} Variant Configuration`;
+		}
+	};
+
+	// Get dynamic facility type label based on selected industry
+	const getFacilityTypeLabel = () => {
+		if (!capitalisedNames.industryId) return "Data Centre Type";
+		
+		switch (capitalisedNames.industryId.toLowerCase()) {
+			case "data centres":
+				return "Data Centre Type";
+			case "renewable energy":
+				return "Energy Facility Type";
+			case "transportation":
+				return "Transportation Hub Type";
+			case "buildings & hvac":
+				return "Building Type";
+			default:
+				return `${capitalisedNames.industryId} Type`;
+		}
+	};
+
+	// Get dynamic capacity label based on selected industry
+	const getCapacityLabel = () => {
+		if (!capitalisedNames.industryId) return "Data Hall Design Capacity MW";
+		
+		switch (capitalisedNames.industryId.toLowerCase()) {
+			case "data centres":
+				return "Data Hall Design Capacity MW";
+			case "renewable energy":
+				return "Solar Farm Capacity MW";
+			case "transportation":
+				return "Charging Station Capacity kW";
+			case "buildings & hvac":
+				return "Building Load Capacity kW";
+			default:
+				return `${capitalisedNames.industryId} Capacity MW`;
+		}
+	};
+
+	// Get dynamic solution name based on selected solution variant
+	const getSolutionName = () => {
+		if (!capitalisedNames.solutionVariantId) return "Chassis Immersion Precision Liquid Cooling";
+		
+		switch (capitalisedNames.solutionVariantId.toLowerCase()) {
+			case "direct-to-chip":
+				return "Direct-to-Chip Liquid Cooling";
+			case "immersion-cooling":
+				return "Immersion Cooling System";
+			case "economizer-systems":
+				return "Air-Side Economizer System";
+			case "evaporative-enhancement":
+				return "Evaporative Cooling Enhancement";
+			case "smart-meters":
+				return "Smart Power Metering System";
+			case "string-inverters":
+				return "String Inverter System";
+			case "ultra-fast-chargers":
+				return "Ultra-Fast DC Charging System";
+			case "smart-thermostats":
+				return "Smart Thermostat System";
+			default:
+				return capitalisedNames.solutionVariantId;
+		}
+	};
+
+	// Get dynamic efficiency label based on selected solution
+	const getEfficiencyLabel = () => {
+		if (!capitalisedNames.solutionId) return "Annualised Air pPUE";
+		
+		switch (capitalisedNames.solutionId.toLowerCase()) {
+			case "liquid cooling":
+			case "free air cooling":
+			case "adiabatic cooling":
+				return "Annualised Air pPUE";
+			case "power monitoring":
+				return "Power Monitoring Efficiency";
+			case "solar inverters":
+				return "Solar Inverter Efficiency";
+			case "fast charging":
+				return "Charging Station Efficiency";
+			case "hvac controls":
+				return "HVAC System Efficiency";
+			default:
+				return `${capitalisedNames.solutionId} Efficiency`;
+		}
+	};
+
 	const utilisationOptions = [
 		"20%",
 		"30%",
@@ -100,7 +304,7 @@ export default function TCOCalculator() {
 		"90%",
 		"100%",
 	];
-	const projectLocationOptions = ["USA", "UK", "Singapore", "UAE"];
+	const projectLocationOptions = ["United States", "United Kingdom", "Singapore", "United Arab Emirates"];
 	const yearOptions = Array.from({ length: 21 }, (_, i) =>
 		(2020 + i).toString()
 	);
@@ -120,19 +324,25 @@ export default function TCOCalculator() {
 		});
 	}
 
+
+	useEffect(() => {
+		console.log(capitalisedNames.solutionId)
+	}, [])
+
 	return (
-		<div className="flex justify-center w-full min-h-screen bg-muted">
+		<div className="flex justify-center w-full bg-muted min-h-screen overflow-y-auto">
 			<div className="w-full max-w-5xl space-y-6 p-4 md:p-8">
 				<div className="flex justify-between items-center">
 					<div>
 						<h1 className="text-3xl font-bold tracking-tight">
-							Chassis Immersion Vs. Air Cooling Solutions
+							{capitalisedNames.solutionId} Vs. Base {capitalisedNames.technologyId} Solution
 						</h1>
 						<p className="text-muted-foreground">
 							Please ensure ALL entries are filled out before clicking show
 							result
 						</p>
 					</div>
+					{/* Definitions & Assumptions */}
 					<Dialog>
 						<DialogTrigger asChild>
 							<Button
@@ -246,13 +456,15 @@ export default function TCOCalculator() {
 						</DialogContent>
 					</Dialog>
 				</div>
+
+				{/* Industry Type */}
 				<div className="grid gap-6">
 					<Card className="shadow-lg">
 						<CardContent>
-							{/* Data Centre Configuration */}
+							{/* Solution Configuration */}
 							<div className="w-full mb-10">
 								<h2 className="text-xl font-semibold mb-4">
-									Data Centre Configuration
+									{getSolutionConfigText()}
 								</h2>
 								<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 									<div>
@@ -261,7 +473,7 @@ export default function TCOCalculator() {
 												className="text-xs text-muted-foreground mb-2"
 												htmlFor="dataCentreType"
 											>
-												Data Centre Type *
+												{getFacilityTypeLabel()} *
 											</Label>
 											<TooltipProvider>
 												<Tooltip>
@@ -444,7 +656,7 @@ export default function TCOCalculator() {
 												className="text-xs text-muted-foreground"
 												htmlFor="dataHallCapacity"
 											>
-												Data Hall Design Capacity MW *
+												{getCapacityLabel()} *
 											</Label>
 											<TooltipProvider>
 												<Tooltip>
@@ -531,10 +743,10 @@ export default function TCOCalculator() {
 									</div>
 								</div>
 							</div>
-							{/* Cooling Configuration */}
+							{/* Solution Variant Configuration */}
 							<div className="w-full mb-10">
 								<h2 className="text-xl font-semibold mb-4">
-									Cooling Configuration
+									{getSolutionVariantConfigText()}
 								</h2>
 								<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 									<div>
@@ -542,9 +754,9 @@ export default function TCOCalculator() {
 											<Label
 												className="text-xs text-muted-foreground"
 												htmlFor="airCoolingPUE"
-												title="Annualized partial Power Usage Effectiveness for Air Cooling at selected utilization"
+												title={getEfficiencyLabel()}
 											>
-												Annualised Air pPUE (at selected % of utilisation) *
+												{getEfficiencyLabel()} *
 											</Label>
 											<span className="text-xs text-muted-foreground font-semibold ml-1">
 												1.54
@@ -590,10 +802,11 @@ export default function TCOCalculator() {
 											/>
 										</div>
 									</div>
-									<div>
+
+									{capitalisedNames.solutionId === "liquid cooling" && <div>
 										<div className="flex items-center gap-2 mb-1">
 											<h3 className="text-md font-semibold">
-												Chassis Immersion Precision Liquid Cooling
+												{getSolutionName()}
 											</h3>
 											<TooltipProvider>
 												<Tooltip>
@@ -637,7 +850,7 @@ export default function TCOCalculator() {
 												1.13
 											</span>
 										</div>
-									</div>
+									</div>}
 								</div>
 								{/* Always show Advanced button, warning, and asterisk note below the Cooling Configuration section */}
 								<div className="flex flex-col items-start gap-2 mt-4 mb-8">
@@ -651,6 +864,8 @@ export default function TCOCalculator() {
 						</CardContent>
 					</Card>
 				</div>
+
+				{/* Show Result Button */}
 				<div className="flex flex-col items-center mt-12 gap-6">
 					<div className="flex gap-6 mt-4">
 						<Button
@@ -671,6 +886,8 @@ export default function TCOCalculator() {
 							Reset
 						</Button>
 					</div>
+
+					{/* Show Result Table */}
 					{state.showResultTable && (
 						<div
 							id="tco-dashboard-export"
