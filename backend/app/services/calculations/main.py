@@ -48,7 +48,7 @@ async def calculate():
         'country': project_location['project_location']
     }
     
-    air_cooling_capex = calculate_air_cooling_capex(capex_input_data)
+    air_cooling_capex = await calculate_air_cooling_capex(capex_input_data)
     air_cooling_opex = await calculate_air_cooling_opex(opex_input_data, air_cooling_capex['total_capex'])
     total_opex_lifetime = await calculate_total_opex_lifetime(lifetime_opex_input_data, air_cooling_capex['total_capex'])
     total_cost_of_ownership = total_opex_lifetime['total_opex_over_lifetime'] + air_cooling_capex['total_capex']

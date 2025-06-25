@@ -1,8 +1,15 @@
 import pytest
+from app.database.connection import db_manager
 from app.services.calculations.solutions.air_cooling.capex import (
     calculate_cooling_equipment_capex,
     calculate_cooling_capex
 )
+
+@pytest.fixture(scope="session", autouse=True)
+def setup_database():
+    db_manager.connect()
+    yield
+    db_manager.disconnect()
 
 @pytest.mark.parametrize("country,base_year,capacity_mw,expected_capex", [
     ("United States", 2023, 1.0, 3849000.0),  # 3849 * 1000 * 1.0
@@ -13,8 +20,9 @@ from app.services.calculations.solutions.air_cooling.capex import (
     ("United States", 2025, 1.0, 4002960.0),  # 3849 * 1000 * 1.04
     ("United States", 2030, 1.0, 4426350.0), 
 ])
-def test_calculate_cooling_equipment_capex(country, base_year, capacity_mw, expected_capex):
-    result = calculate_cooling_equipment_capex(base_year, capacity_mw, country)
+@pytest.mark.asyncio
+async def test_calculate_cooling_equipment_capex(country, base_year, capacity_mw, expected_capex):
+    result = await calculate_cooling_equipment_capex(base_year, capacity_mw, country)
     assert result == expected_capex
 
 @pytest.mark.parametrize("input_data,expected_equipment_capex", [
@@ -34,20 +42,22 @@ def test_calculate_cooling_equipment_capex(country, base_year, capacity_mw, expe
         'country': 'United Kingdom'
     }, 2575040.0),  # 4952 * 500 * 1.04
 ])
-def test_calculate_cooling_capex(input_data, expected_equipment_capex):
-    result = calculate_cooling_capex(input_data)
+@pytest.mark.asyncio
+async def test_calculate_cooling_capex(input_data, expected_equipment_capex):
+    result = await calculate_cooling_capex(input_data)
     
     assert result['cooling_equipment_capex'] == expected_equipment_capex
     assert result['total_capex'] == expected_equipment_capex
     assert len(result) == 2
 
-def test_calculate_cooling_capex_structure():
+@pytest.mark.asyncio
+async def test_calculate_cooling_capex_structure():
     input_data = {
         'data_hall_design_capacity_mw': 1.0,
         'first_year_of_operation': 2023,
         'country': 'United States'
     }
-    result = calculate_cooling_capex(input_data)
+    result = await calculate_cooling_capex(input_data)
     
     assert isinstance(result, dict)
     assert 'cooling_equipment_capex' in result

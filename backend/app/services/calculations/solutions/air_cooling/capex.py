@@ -1,10 +1,4 @@
-# Country-specific multipliers (USD per kW)
-COUNTRY_MULTIPLIERS = {
-    "United States": 3849,
-    "Singapore": 3527, 
-    "United Kingdom": 4952,
-    "United Arab Emirates": 3433
-}
+from app.database.queries.country_rates import get_cooling_capex_rate
 
 # UK Capex Inflation factors applied universally to all countries
 INFLATION_FACTORS = {
@@ -39,15 +33,15 @@ INFLATION_FACTORS = {
 }
 
     
-def calculate_cooling_equipment_capex(first_year_of_operation: int, capacity_mw: float, country: str):
+async def calculate_cooling_equipment_capex(first_year_of_operation: int, capacity_mw: float, country: str):
 
     nameplate_power_kw = capacity_mw * 1000
-    country_multiplier = COUNTRY_MULTIPLIERS[country]
+    country_multiplier = await get_cooling_capex_rate(country)
     base_capex = country_multiplier * nameplate_power_kw
     inflation_factor = INFLATION_FACTORS[first_year_of_operation]
     return base_capex * inflation_factor
 
-def calculate_cooling_capex(input_data):
+async def calculate_cooling_capex(input_data):
     '''
     Calculates the cooling CAPEX for an air cooling solution.
 
@@ -63,7 +57,7 @@ def calculate_cooling_capex(input_data):
     country = input_data.get('country')
     
     # Equipment Capex (EXCL: Land, Core, Shell)
-    cooling_equipment_capex = calculate_cooling_equipment_capex(first_year_of_operation, capacity_mw, country)
+    cooling_equipment_capex = await calculate_cooling_equipment_capex(first_year_of_operation, capacity_mw, country)
 
     # Total Capex (EXCL: IT, Land, Core, Shell)
     total_capex= cooling_equipment_capex
