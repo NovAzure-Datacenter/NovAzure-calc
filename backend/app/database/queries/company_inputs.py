@@ -1,4 +1,4 @@
-from app.database.connection import get_db
+from ..connection import get_db
 
 
 async def get_cooling_maintenance_rate(country: str):

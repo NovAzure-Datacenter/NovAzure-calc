@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from app.schemas.calculations import (
+from ..schemas.calculations import (
     CapexCalculationRequest,
     OpexCalculationRequest, 
     FullCalculationRequest,
@@ -9,10 +9,10 @@ from app.schemas.calculations import (
     MainCalculationRequest,
     MainCalculationResponse
 )
-from app.services.calculations.solutions.air_cooling.capex import calculate_cooling_capex as calculate_air_cooling_capex
-from app.services.calculations.solutions.chassis_immersion.capex import calculate_cooling_capex as calculate_chassis_immersion_capex
-from app.services.calculations.solutions.air_cooling.opex import calculate_annual_opex
-from app.services.calculations.main import update_inputs, calculate
+from ..services.calculations.solutions.air_cooling.capex import calculate_cooling_capex as calculate_air_cooling_capex
+from ..services.calculations.solutions.chassis_immersion.capex import calculate_cooling_capex as calculate_chassis_immersion_capex
+from ..services.calculations.solutions.air_cooling.opex import calculate_annual_opex
+from ..services.calculations.main import update_inputs, calculate
 
 router = APIRouter(prefix="/calculations", tags=["calculations"])
 

@@ -1,5 +1,5 @@
-from app.services.calculations.solutions.air_cooling.capex import calculate_cooling_capex as calculate_air_cooling_capex
-from app.services.calculations.solutions.air_cooling.opex import calculate_annual_opex as calculate_air_cooling_opex, calculate_total_opex_over_lifetime as calculate_total_opex_lifetime
+from .solutions.air_cooling.capex import calculate_cooling_capex as calculate_air_cooling_capex
+from .solutions.air_cooling.opex import calculate_annual_opex as calculate_air_cooling_opex, calculate_total_opex_over_lifetime as calculate_total_opex_lifetime
 
 # Initialising User inputs that will be used in the calculations
 percentage_of_utilisation = { '%_of_utilisation': None }

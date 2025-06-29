@@ -1,8 +1,8 @@
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from app.core.config import settings
-from app.database.connection import db_manager, get_db
-from app.routes.calculations import router as calculations_router
+from .core.config import settings
+from .database.connection import db_manager, get_db
+from .routes.calculations import router as calculations_router
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
 # Create the FastAPI app instance
