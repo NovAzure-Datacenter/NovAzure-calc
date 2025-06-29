@@ -43,30 +43,11 @@ next-env.d.ts
 # Backend
 backend/venv/
 backend/.env
-**/__pycache__/
 
-# Python
-*/pyrightconfig.json
-*.pyc
-*.pyo
-*.pyd
+# Python 
 __pycache__/
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
+**/__pycache__/
+*.py[cod]
 
 # Cursor
 .cursor/rules

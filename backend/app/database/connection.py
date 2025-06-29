@@ -1,5 +1,5 @@
 import motor.motor_asyncio
-from app.core.config import settings
+from ..core.config import settings
 
 class Database:
     def __init__(self):

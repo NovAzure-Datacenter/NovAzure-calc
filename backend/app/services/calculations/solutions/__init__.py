@@ -1,1 +1,0 @@
-# Solutions module for different cooling technologies 

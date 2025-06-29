@@ -1,4 +1,4 @@
-from app.database.connection import get_db
+from ..connection import get_db
 
 async def get_co2e_intensity_per_kwh(country: str):
     db = get_db()
