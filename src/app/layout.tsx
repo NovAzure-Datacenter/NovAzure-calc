@@ -26,7 +26,9 @@ export default function RootLayout({
 			>
 				<Providers>
 					<SidebarProvider className="flex ">
-						<SidebarInset>{children}</SidebarInset>
+						<SidebarInset>
+							{children}
+							</SidebarInset>
 					</SidebarProvider>
 				</Providers>
 			</body>

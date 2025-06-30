@@ -20,7 +20,6 @@ export default function DashboardClientWrapper({
 			if (user?.company_id) {
 				const result = await getCompanyDetails(user.company_id);
 				if (result.success && result.company) {
-					// Company details loaded successfully
 				}
 			}
 			setIsCompanyLoading(false);
@@ -32,7 +31,6 @@ export default function DashboardClientWrapper({
 	}, [user?.company_id, isUserLoading, user]);
 
 	useEffect(() => {
-		// Show loading while either user data or company details are loading
 		setIsLoading(isUserLoading || isCompanyLoading);
 	}, [isUserLoading, isCompanyLoading]);
 

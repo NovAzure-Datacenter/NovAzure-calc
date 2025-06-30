@@ -55,7 +55,7 @@ export default function Navbar() {
 						<div className="flex items-center pr-4 gap-2">
 							{isUserLoggedIn ? (
 								<div className="flex items-center gap-2">
-									<Link href="/dashboard">
+									<Link href="/home">
 										<Button size="sm" variant="default" className="hidden sm:flex">
 											Go to Dashboard
 										</Button>
