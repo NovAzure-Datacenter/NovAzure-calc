@@ -4,6 +4,7 @@ import { getCompaniesCollection } from "../../mongoDb/db";
 import { ObjectId } from "mongodb";
 
 export async function getCompanyDetails(companyId: string) {
+
     try {
         const companiesCollection = await getCompaniesCollection();
         const company = await companiesCollection.findOne({ _id: new ObjectId(companyId) });

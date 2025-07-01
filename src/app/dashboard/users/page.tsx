@@ -284,7 +284,7 @@ export default function CompanyUsersPage() {
 				try {
 					setIsLoadingCompany(true);
 					setCompanyError(null);
-					console.log(user)
+				
 					const result = await getCompanyDetails(user.company_id);
 					if (result.success && result.company) {
 						const transformedData: CompanyData = {
@@ -323,6 +323,7 @@ export default function CompanyUsersPage() {
 				setIsLoadingUsers(true);
 				setUsersError(null);
 				const result = await getUsersByCompany(user.company_id);
+				console.log(result)
 				if (result.success && result.users) {
 					setData(result.users);
 				} else {
