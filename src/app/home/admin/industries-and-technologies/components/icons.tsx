@@ -1,18 +1,20 @@
 "use client";
 
 import type React from "react";
-
-
-
-
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export function TechnologyIcons({
-	iconSize = 4,
-	textSize = 'xs',
+	iconSize = 3,
+	textSize = "xs",
 	technologies,
-	maxVisible = 4,
+	maxVisible = 3,
 }: {
-	iconSize?: number;	
+	iconSize?: number;
 	textSize?: string;
 	technologies: any[];
 	maxVisible?: number;
@@ -23,18 +25,34 @@ export function TechnologyIcons({
 	return (
 		<div className="flex items-center gap-1">
 			{visibleTechs.map((tech, index) => (
-				<div key={index} className="relative">
-					<tech.icon className={`h-${iconSize} w-${iconSize} text-muted-foreground`} />
-				</div>
+				<Tooltip key={index}>
+					<TooltipTrigger asChild>
+						<div className="p-1 bg-gray-100 rounded">
+							<tech.icon
+								className={`h-${iconSize} w-${iconSize} text-gray-600`}
+							/>
+						</div>
+					</TooltipTrigger>
+					<TooltipContent>
+						<p className="text-xs">{tech.name}</p>
+					</TooltipContent>
+				</Tooltip>
 			))}
 			{remainingCount > 0 && (
-				<div className="relative">
-					<div className={`h-${iconSize} w-${iconSize} rounded-full bg-muted flex items-center justify-center`}>
-						<span className={`text-${textSize}font-medium text-muted-foreground`}>
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<div className="p-1 bg-gray-100 rounded text-xs font-medium">
 							+{remainingCount}
-						</span>
-					</div>
-				</div>
+						</div>
+					</TooltipTrigger>
+					<TooltipContent>
+						<div className="text-xs">
+							{technologies.slice(maxVisible).map((tech, index) => (
+								<div key={index}>{tech.name}</div>
+							))}
+						</div>
+					</TooltipContent>
+				</Tooltip>
 			)}
 		</div>
 	);
@@ -42,9 +60,9 @@ export function TechnologyIcons({
 
 export function CompanyIcons({
 	companies,
-	maxVisible = 4,
+	maxVisible = 3,
 	iconSize = 4,
-	textSize = 'xs',
+	textSize = "xs",
 }: {
 	companies: any[];
 	maxVisible?: number;
@@ -57,19 +75,35 @@ export function CompanyIcons({
 	return (
 		<div className="flex items-center gap-1">
 			{visibleCompanies.map((company, index) => (
-				<div key={index} className="relative">
-					<company.icon className={`h-${iconSize} w-${iconSize} text-muted-foreground`} />
-				</div>
+				<Tooltip key={index}>
+					<TooltipTrigger asChild>
+						<div className="p-1 bg-gray-100 rounded">
+							<company.icon
+								className={`h-${iconSize} w-${iconSize} text-gray-600`}
+							/>
+						</div>
+					</TooltipTrigger>
+					<TooltipContent>
+						<p className="text-xs">{company.name}</p>
+					</TooltipContent>
+				</Tooltip>
 			))}
 			{remainingCount > 0 && (
-				<div className="relative">
-						<div className={`h-${iconSize} w-${iconSize} rounded-full bg-muted flex items-center justify-center`}>
-						<span className={`text-${textSize} font-medium text-muted-foreground`}>
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<div className="p-1 bg-gray-100 rounded text-xs font-medium">
 							+{remainingCount}
-						</span>
-					</div>
-				</div>
+						</div>
+					</TooltipTrigger>
+					<TooltipContent>
+						<div className="text-xs">
+							{companies.slice(maxVisible).map((company, index) => (
+								<div key={index}>{company.name}</div>
+							))}
+						</div>
+					</TooltipContent>
+				</Tooltip>
 			)}
 		</div>
 	);
-} 
+}

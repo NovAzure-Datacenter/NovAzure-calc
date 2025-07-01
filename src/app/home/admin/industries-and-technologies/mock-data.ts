@@ -18,7 +18,656 @@ import {
 	ShoppingBag,
 	Ship,
 } from "lucide-react";
-import type { Industry } from "./types";
+import type { Industry, Technology } from "./types";
+
+export const sampleTechnologies: Technology[] = [
+	{
+		id: "tech-1",
+		name: "Advanced Cooling Systems",
+		description:
+			"High-efficiency cooling systems using evaporative cooling and smart temperature control algorithms to reduce energy consumption in data centers and industrial facilities.",
+		icon: Wind,
+		status: "verified",
+		applicableIndustries: ["1", "5", "12"],
+		parameters: [
+			{
+				name: "Efficiency",
+				value: 92,
+				unit: "%",
+				description: "System efficiency rating",
+				category: "performance",
+			},
+			{
+				name: "Cost",
+				value: 150000,
+				unit: "USD",
+				description: "Implementation cost",
+				category: "cost",
+			},
+			{
+				name: "Energy Savings",
+				value: 35,
+				unit: "%",
+				description: "Expected energy savings",
+				category: "performance",
+			},
+		],
+	},
+	{
+		id: "tech-2",
+		name: "Smart Energy Management",
+		description:
+			"AI-powered energy management systems that optimize power consumption in real-time across multiple facilities and equipment.",
+		icon: Zap,
+		status: "verified",
+		applicableIndustries: ["1", "2", "5", "6", "10"],
+		parameters: [
+			{
+				name: "Efficiency",
+				value: 88,
+				unit: "%",
+				description: "System efficiency rating",
+				category: "performance",
+			},
+			{
+				name: "Cost",
+				value: 75000,
+				unit: "USD",
+				description: "Implementation cost",
+				category: "cost",
+			},
+			{
+				name: "Energy Savings",
+				value: 25,
+				unit: "%",
+				description: "Expected energy savings",
+				category: "performance",
+			},
+		],
+	},
+	{
+		id: "tech-3",
+		name: "Waste Heat Recovery",
+		description:
+			"Systems that capture and reuse waste heat from industrial processes to generate additional power or provide heating for other operations.",
+		icon: Server,
+		status: "verified",
+		applicableIndustries: ["2", "6", "12", "18"],
+		parameters: [
+			{
+				name: "Efficiency",
+				value: 78,
+				unit: "%",
+				description: "System efficiency rating",
+				category: "performance",
+			},
+			{
+				name: "Cost",
+				value: 200000,
+				unit: "USD",
+				description: "Implementation cost",
+				category: "cost",
+			},
+			{
+				name: "Energy Savings",
+				value: 40,
+				unit: "%",
+				description: "Expected energy savings",
+				category: "performance",
+			},
+		],
+	},
+	{
+		id: "tech-4",
+		name: "Renewable Energy Integration",
+		description:
+			"Hybrid systems that integrate solar, wind, and battery storage to provide reliable renewable energy for industrial operations.",
+		icon: Recycle,
+		status: "verified",
+		applicableIndustries: ["1", "3", "5", "8", "12"],
+		parameters: [
+			{
+				name: "Efficiency",
+				value: 85,
+				unit: "%",
+				description: "System efficiency rating",
+				category: "performance",
+			},
+			{
+				name: "Cost",
+				value: 500000,
+				unit: "USD",
+				description: "Implementation cost",
+				category: "cost",
+			},
+			{
+				name: "Energy Savings",
+				value: 60,
+				unit: "%",
+				description: "Expected energy savings",
+				category: "performance",
+			},
+		],
+	},
+	{
+		id: "tech-5",
+		name: "IoT Monitoring Systems",
+		description:
+			"Comprehensive IoT sensor networks that monitor equipment performance, energy consumption, and environmental conditions in real-time.",
+		icon: Server,
+		status: "verified",
+		applicableIndustries: ["1", "2", "5", "6", "7", "10", "16"],
+		parameters: [
+			{
+				name: "Efficiency",
+				value: 95,
+				unit: "%",
+				description: "System efficiency rating",
+				category: "performance",
+			},
+			{
+				name: "Cost",
+				value: 45000,
+				unit: "USD",
+				description: "Implementation cost",
+				category: "cost",
+			},
+			{
+				name: "Energy Savings",
+				value: 15,
+				unit: "%",
+				description: "Expected energy savings",
+				category: "performance",
+			},
+		],
+	},
+	{
+		id: "tech-6",
+		name: "Automated Process Control",
+		description:
+			"Advanced automation systems that optimize manufacturing processes, reduce waste, and improve energy efficiency through intelligent control algorithms.",
+		icon: Wrench,
+		status: "verified",
+		applicableIndustries: ["6", "12", "18", "20", "21"],
+		parameters: [
+			{
+				name: "Efficiency",
+				value: 90,
+				unit: "%",
+				description: "System efficiency rating",
+				category: "performance",
+			},
+			{
+				name: "Cost",
+				value: 120000,
+				unit: "USD",
+				description: "Implementation cost",
+				category: "cost",
+			},
+			{
+				name: "Energy Savings",
+				value: 30,
+				unit: "%",
+				description: "Expected energy savings",
+				category: "performance",
+			},
+		],
+	},
+	{
+		id: "tech-7",
+		name: "Water Management Systems",
+		description:
+			"Smart water treatment and recycling systems that reduce water consumption and improve efficiency in industrial processes.",
+		icon: Droplets,
+		status: "verified",
+		applicableIndustries: ["2", "8", "13", "18", "21"],
+		parameters: [
+			{
+				name: "Efficiency",
+				value: 87,
+				unit: "%",
+				description: "System efficiency rating",
+				category: "performance",
+			},
+			{
+				name: "Cost",
+				value: 180000,
+				unit: "USD",
+				description: "Implementation cost",
+				category: "cost",
+			},
+			{
+				name: "Energy Savings",
+				value: 20,
+				unit: "%",
+				description: "Expected energy savings",
+				category: "performance",
+			},
+		],
+	},
+	{
+		id: "tech-8",
+		name: "Electric Vehicle Infrastructure",
+		description:
+			"Comprehensive EV charging infrastructure with smart grid integration and renewable energy sources for sustainable transportation.",
+		icon: Car,
+		status: "pending",
+		applicableIndustries: ["4", "9", "20"],
+		parameters: [
+			{
+				name: "Efficiency",
+				value: 82,
+				unit: "%",
+				description: "System efficiency rating",
+				category: "performance",
+			},
+			{
+				name: "Cost",
+				value: 300000,
+				unit: "USD",
+				description: "Implementation cost",
+				category: "cost",
+			},
+			{
+				name: "Energy Savings",
+				value: 45,
+				unit: "%",
+				description: "Expected energy savings",
+				category: "performance",
+			},
+		],
+	},
+	{
+		id: "tech-9",
+		name: "Building Management Systems",
+		description:
+			"Integrated building automation systems that control HVAC, lighting, and security while optimizing energy consumption.",
+		icon: Building2,
+		status: "verified",
+		applicableIndustries: ["5", "7", "9", "10", "17"],
+		parameters: [
+			{
+				name: "Efficiency",
+				value: 89,
+				unit: "%",
+				description: "System efficiency rating",
+				category: "performance",
+			},
+			{
+				name: "Cost",
+				value: 95000,
+				unit: "USD",
+				description: "Implementation cost",
+				category: "cost",
+			},
+			{
+				name: "Energy Savings",
+				value: 28,
+				unit: "%",
+				description: "Expected energy savings",
+				category: "performance",
+			},
+		],
+	},
+	{
+		id: "tech-10",
+		name: "Precision Farming Technology",
+		description:
+			"Advanced agricultural technology including GPS-guided equipment, soil sensors, and automated irrigation systems for optimal crop management.",
+		icon: Wrench,
+		status: "verified",
+		applicableIndustries: ["3", "8", "13", "15"],
+		parameters: [
+			{
+				name: "Efficiency",
+				value: 91,
+				unit: "%",
+				description: "System efficiency rating",
+				category: "performance",
+			},
+			{
+				name: "Cost",
+				value: 250000,
+				unit: "USD",
+				description: "Implementation cost",
+				category: "cost",
+			},
+			{
+				name: "Energy Savings",
+				value: 22,
+				unit: "%",
+				description: "Expected energy savings",
+				category: "performance",
+			},
+		],
+	},
+	{
+		id: "tech-11",
+		name: "Smart Grid Solutions",
+		description:
+			"Intelligent electrical grid systems that optimize power distribution, reduce losses, and integrate renewable energy sources efficiently.",
+		icon: Zap,
+		status: "pending",
+		applicableIndustries: ["3", "9", "16"],
+		parameters: [
+			{
+				name: "Efficiency",
+				value: 94,
+				unit: "%",
+				description: "System efficiency rating",
+				category: "performance",
+			},
+			{
+				name: "Cost",
+				value: 800000,
+				unit: "USD",
+				description: "Implementation cost",
+				category: "cost",
+			},
+			{
+				name: "Energy Savings",
+				value: 35,
+				unit: "%",
+				description: "Expected energy savings",
+				category: "performance",
+			},
+		],
+	},
+	{
+		id: "tech-12",
+		name: "Waste-to-Energy Systems",
+		description:
+			"Advanced waste processing technologies that convert organic waste into renewable energy through anaerobic digestion and thermal treatment.",
+		icon: Recycle,
+		status: "verified",
+		applicableIndustries: ["15", "21"],
+		parameters: [
+			{
+				name: "Efficiency",
+				value: 76,
+				unit: "%",
+				description: "System efficiency rating",
+				category: "performance",
+			},
+			{
+				name: "Cost",
+				value: 400000,
+				unit: "USD",
+				description: "Implementation cost",
+				category: "cost",
+			},
+			{
+				name: "Energy Savings",
+				value: 50,
+				unit: "%",
+				description: "Expected energy savings",
+				category: "performance",
+			},
+		],
+	},
+	{
+		id: "tech-13",
+		name: "Clean Room Energy Management",
+		description:
+			"Specialized energy management systems for clean room environments in semiconductor and pharmaceutical manufacturing.",
+		icon: Wind,
+		status: "verified",
+		applicableIndustries: ["12", "19"],
+		parameters: [
+			{
+				name: "Efficiency",
+				value: 93,
+				unit: "%",
+				description: "System efficiency rating",
+				category: "performance",
+			},
+			{
+				name: "Cost",
+				value: 350000,
+				unit: "USD",
+				description: "Implementation cost",
+				category: "cost",
+			},
+			{
+				name: "Energy Savings",
+				value: 40,
+				unit: "%",
+				description: "Expected energy savings",
+				category: "performance",
+			},
+		],
+	},
+	{
+		id: "tech-14",
+		name: "Marine Fuel Optimization",
+		description:
+			"Advanced fuel management and propulsion systems for maritime vessels that reduce fuel consumption and emissions.",
+		icon: Fuel,
+		status: "verified",
+		applicableIndustries: ["11"],
+		parameters: [
+			{
+				name: "Efficiency",
+				value: 86,
+				unit: "%",
+				description: "System efficiency rating",
+				category: "performance",
+			},
+			{
+				name: "Cost",
+				value: 600000,
+				unit: "USD",
+				description: "Implementation cost",
+				category: "cost",
+			},
+			{
+				name: "Energy Savings",
+				value: 25,
+				unit: "%",
+				description: "Expected energy savings",
+				category: "performance",
+			},
+		],
+	},
+	{
+		id: "tech-15",
+		name: "Sustainable Aviation Fuels",
+		description:
+			"Bio-based aviation fuels and hybrid-electric propulsion systems for reducing carbon emissions in aviation.",
+		icon: Fuel,
+		status: "pending",
+		applicableIndustries: ["14"],
+		parameters: [
+			{
+				name: "Efficiency",
+				value: 80,
+				unit: "%",
+				description: "System efficiency rating",
+				category: "performance",
+			},
+			{
+				name: "Cost",
+				value: 1200000,
+				unit: "USD",
+				description: "Implementation cost",
+				category: "cost",
+			},
+			{
+				name: "Energy Savings",
+				value: 30,
+				unit: "%",
+				description: "Expected energy savings",
+				category: "performance",
+			},
+		],
+	},
+	{
+		id: "tech-16",
+		name: "5G Energy Optimization",
+		description:
+			"Energy-efficient 5G network infrastructure with intelligent power management and renewable energy integration.",
+		icon: Zap,
+		status: "pending",
+		applicableIndustries: ["16"],
+		parameters: [
+			{
+				name: "Efficiency",
+				value: 88,
+				unit: "%",
+				description: "System efficiency rating",
+				category: "performance",
+			},
+			{
+				name: "Cost",
+				value: 250000,
+				unit: "USD",
+				description: "Implementation cost",
+				category: "cost",
+			},
+			{
+				name: "Energy Savings",
+				value: 20,
+				unit: "%",
+				description: "Expected energy savings",
+				category: "performance",
+			},
+		],
+	},
+	{
+		id: "tech-17",
+		name: "Green Building Materials",
+		description:
+			"Sustainable construction materials and techniques that reduce environmental impact and improve energy efficiency.",
+		icon: Building2,
+		status: "verified",
+		applicableIndustries: ["17"],
+		parameters: [
+			{
+				name: "Efficiency",
+				value: 85,
+				unit: "%",
+				description: "System efficiency rating",
+				category: "performance",
+			},
+			{
+				name: "Cost",
+				value: 180000,
+				unit: "USD",
+				description: "Implementation cost",
+				category: "cost",
+			},
+			{
+				name: "Energy Savings",
+				value: 35,
+				unit: "%",
+				description: "Expected energy savings",
+				category: "performance",
+			},
+		],
+	},
+	{
+		id: "tech-18",
+		name: "Process Optimization Systems",
+		description:
+			"Advanced process control and optimization systems for chemical and petrochemical manufacturing.",
+		icon: Server,
+		status: "verified",
+		applicableIndustries: ["18"],
+		parameters: [
+			{
+				name: "Efficiency",
+				value: 92,
+				unit: "%",
+				description: "System efficiency rating",
+				category: "performance",
+			},
+			{
+				name: "Cost",
+				value: 280000,
+				unit: "USD",
+				description: "Implementation cost",
+				category: "cost",
+			},
+			{
+				name: "Energy Savings",
+				value: 28,
+				unit: "%",
+				description: "Expected energy savings",
+				category: "performance",
+			},
+		],
+	},
+	{
+		id: "tech-19",
+		name: "Laboratory Energy Management",
+		description:
+			"Specialized energy management systems for research laboratories and pharmaceutical facilities.",
+		icon: Zap,
+		status: "verified",
+		applicableIndustries: ["7", "19"],
+		parameters: [
+			{
+				name: "Efficiency",
+				value: 87,
+				unit: "%",
+				description: "System efficiency rating",
+				category: "performance",
+			},
+			{
+				name: "Cost",
+				value: 120000,
+				unit: "USD",
+				description: "Implementation cost",
+				category: "cost",
+			},
+			{
+				name: "Energy Savings",
+				value: 25,
+				unit: "%",
+				description: "Expected energy savings",
+				category: "performance",
+			},
+		],
+	},
+	{
+		id: "tech-20",
+		name: "Battery Technology Systems",
+		description:
+			"Advanced battery manufacturing and energy storage systems for electric vehicles and renewable energy applications.",
+		icon: Zap,
+		status: "pending",
+		applicableIndustries: ["4", "20"],
+		parameters: [
+			{
+				name: "Efficiency",
+				value: 89,
+				unit: "%",
+				description: "System efficiency rating",
+				category: "performance",
+			},
+			{
+				name: "Cost",
+				value: 500000,
+				unit: "USD",
+				description: "Implementation cost",
+				category: "cost",
+			},
+			{
+				name: "Energy Savings",
+				value: 45,
+				unit: "%",
+				description: "Expected energy savings",
+				category: "performance",
+			},
+		],
+	},
+];
+
+function getTech(name: string): Technology {
+	const tech = sampleTechnologies.find((t) => t.name === name);
+	if (!tech) throw new Error(`Technology not found: ${name}`);
+	return tech;
+}
 
 export const sampleData: Industry[] = [
 	{
@@ -28,12 +677,11 @@ export const sampleData: Industry[] = [
 		description:
 			"High-performance computing facilities with advanced cooling and energy management systems",
 		technologies: [
-			{ name: "Cooling Systems", icon: Wind },
-			{ name: "Energy Management", icon: Zap },
-			{ name: "Renewable Energy Integration", icon: Recycle },
-			{ name: "Waste Heat Recovery", icon: Server },
-			{ name: "Water Management", icon: Droplets },
-			{ name: "Infrastructure Efficiency", icon: Wrench },
+			getTech("Advanced Cooling Systems"),
+			getTech("Smart Energy Management"),
+			getTech("Renewable Energy Integration"),
+			getTech("Waste Heat Recovery"),
+			getTech("Water Management Systems"),
 		],
 		companies: [
 			{ name: "Shell", icon: Shell },
@@ -48,44 +696,44 @@ export const sampleData: Industry[] = [
 				value: 1.54,
 				unit: "",
 				description: "Power Usage Effectiveness - industry average",
-				category: "performance"
+				category: "performance",
 			},
 			{
 				name: "Cooling CAPEX per kW",
 				value: 3849,
 				unit: "USD/kW",
 				description: "Average cooling equipment capital expenditure",
-				category: "cost"
+				category: "cost",
 			},
 			{
 				name: "Annual Energy Cost",
 				value: 0.12,
 				unit: "USD/kWh",
 				description: "Average electricity cost for data centers",
-				category: "cost"
+				category: "cost",
 			},
 			{
 				name: "Water Usage",
 				value: 1.8,
 				unit: "L/kWh",
 				description: "Water consumption per kilowatt-hour",
-				category: "environmental"
+				category: "environmental",
 			},
 			{
 				name: "Carbon Footprint",
 				value: 0.5,
 				unit: "kg CO2/kWh",
 				description: "Carbon emissions per kilowatt-hour",
-				category: "environmental"
+				category: "environmental",
 			},
 			{
 				name: "Maintenance Cost",
 				value: 0.1,
 				unit: "% of CAPEX/year",
 				description: "Annual maintenance cost as percentage of CAPEX",
-				category: "cost"
-			}
-		]
+				category: "cost",
+			},
+		],
 	},
 	{
 		id: "2",
@@ -94,10 +742,9 @@ export const sampleData: Industry[] = [
 		description:
 			"Energy sector focusing on extraction, refining, and distribution of petroleum products",
 		technologies: [
-			{ name: "Drilling Technology", icon: Server },
-			{ name: "Pipeline Management", icon: Wrench },
-			{ name: "Environmental Monitoring", icon: Droplets },
-			{ name: "Safety Systems", icon: Wind },
+			getTech("Smart Energy Management"),
+			getTech("Waste Heat Recovery"),
+			getTech("Water Management Systems"),
 		],
 		companies: [
 			{ name: "Shell", icon: Shell },
@@ -110,37 +757,37 @@ export const sampleData: Industry[] = [
 				value: 85,
 				unit: "%",
 				description: "Average extraction efficiency rate",
-				category: "performance"
+				category: "performance",
 			},
 			{
 				name: "Infrastructure CAPEX",
 				value: 2500000,
 				unit: "USD/MW",
 				description: "Capital expenditure per megawatt of capacity",
-				category: "cost"
+				category: "cost",
 			},
 			{
 				name: "Operational Cost",
 				value: 45,
 				unit: "USD/barrel",
 				description: "Average operational cost per barrel",
-				category: "cost"
+				category: "cost",
 			},
 			{
 				name: "Carbon Intensity",
 				value: 0.4,
 				unit: "kg CO2/kWh",
 				description: "Carbon emissions per kilowatt-hour",
-				category: "environmental"
+				category: "environmental",
 			},
 			{
 				name: "Safety Index",
 				value: 95,
 				unit: "%",
 				description: "Safety performance index",
-				category: "operational"
-			}
-		]
+				category: "other",
+			},
+		],
 	},
 	{
 		id: "3",
@@ -149,11 +796,8 @@ export const sampleData: Industry[] = [
 		description:
 			"Clean energy solutions including wind, solar, and hydroelectric power generation",
 		technologies: [
-			{ name: "Wind Turbines", icon: Wind },
-			{ name: "Solar Panels", icon: Zap },
-			{ name: "Energy Storage", icon: Server },
-			{ name: "Grid Integration", icon: Wrench },
-			{ name: "Smart Monitoring", icon: Droplets },
+			getTech("Renewable Energy Integration"),
+			getTech("Smart Grid Solutions"),
 		],
 		companies: [
 			{ name: "Google", icon: Chrome },
@@ -166,37 +810,37 @@ export const sampleData: Industry[] = [
 				value: 35,
 				unit: "%",
 				description: "Average capacity utilization factor",
-				category: "performance"
+				category: "performance",
 			},
 			{
 				name: "Installation CAPEX",
 				value: 1500000,
 				unit: "USD/MW",
 				description: "Capital expenditure per megawatt installed",
-				category: "cost"
+				category: "cost",
 			},
 			{
 				name: "Levelized Cost",
 				value: 0.04,
 				unit: "USD/kWh",
 				description: "Levelized cost of energy",
-				category: "cost"
+				category: "cost",
 			},
 			{
 				name: "Carbon Reduction",
 				value: 0.9,
 				unit: "kg CO2/kWh avoided",
 				description: "Carbon emissions avoided per kilowatt-hour",
-				category: "environmental"
+				category: "environmental",
 			},
 			{
 				name: "Maintenance Cost",
 				value: 0.02,
 				unit: "USD/kWh",
 				description: "Annual maintenance cost per kilowatt-hour",
-				category: "cost"
-			}
-		]
+				category: "cost",
+			},
+		],
 	},
 	{
 		id: "4",
@@ -204,10 +848,7 @@ export const sampleData: Industry[] = [
 		name: "Transportation",
 		description:
 			"Sector focused on developing and implementing sustainable and efficient modes of transport.",
-		technologies: [
-			{ name: "Alternative Fuels", icon: Fuel },
-			{ name: "Electric Vehicle Infrastructure", icon: Zap },
-		],
+		technologies: [getTech("Electric Vehicle Infrastructure")],
 		companies: [
 			{ name: "Tesla", icon: Car },
 			{ name: "Ford", icon: Car },
@@ -220,37 +861,37 @@ export const sampleData: Industry[] = [
 				value: 25,
 				unit: "mpg",
 				description: "Average fuel efficiency for conventional vehicles",
-				category: "performance"
+				category: "performance",
 			},
 			{
 				name: "EV Range",
 				value: 250,
 				unit: "miles",
 				description: "Average electric vehicle range",
-				category: "performance"
+				category: "performance",
 			},
 			{
 				name: "Infrastructure Cost",
 				value: 50000,
 				unit: "USD/charging station",
 				description: "Cost per charging station installation",
-				category: "cost"
+				category: "cost",
 			},
 			{
 				name: "Carbon Emissions",
 				value: 0.4,
 				unit: "kg CO2/mile",
 				description: "Average carbon emissions per mile",
-				category: "environmental"
+				category: "environmental",
 			},
 			{
 				name: "Battery Cost",
 				value: 150,
 				unit: "USD/kWh",
 				description: "Battery cost per kilowatt-hour",
-				category: "cost"
-			}
-		]
+				category: "cost",
+			},
+		],
 	},
 	{
 		id: "5",
@@ -258,10 +899,7 @@ export const sampleData: Industry[] = [
 		name: "Buildings & HVAC",
 		description:
 			"Optimizing energy efficiency and comfort in residential and commercial buildings through advanced heating, ventilation, and air conditioning systems.",
-		technologies: [
-			{ name: "Building Management Systems", icon: Wrench },
-			{ name: "Heat Pumps", icon: Wind },
-		],
+		technologies: [getTech("Building Management Systems")],
 		companies: [
 			{ name: "Siemens", icon: Building2 },
 			{ name: "Daikin", icon: Wind },
@@ -274,37 +912,37 @@ export const sampleData: Industry[] = [
 				value: 3.5,
 				unit: "",
 				description: "Average energy efficiency ratio for HVAC systems",
-				category: "performance"
+				category: "performance",
 			},
 			{
 				name: "Installation Cost",
 				value: 8000,
 				unit: "USD/ton",
 				description: "HVAC installation cost per ton of cooling",
-				category: "cost"
+				category: "cost",
 			},
 			{
 				name: "Annual Energy Cost",
 				value: 0.15,
 				unit: "USD/kWh",
 				description: "Average energy cost for building operations",
-				category: "cost"
+				category: "cost",
 			},
 			{
 				name: "Carbon Footprint",
 				value: 0.6,
 				unit: "kg CO2/kWh",
 				description: "Carbon emissions per kilowatt-hour",
-				category: "environmental"
+				category: "environmental",
 			},
 			{
 				name: "Maintenance Cost",
 				value: 0.08,
 				unit: "% of CAPEX/year",
 				description: "Annual maintenance cost as percentage of CAPEX",
-				category: "cost"
-			}
-		]
+				category: "cost",
+			},
+		],
 	},
 	{
 		id: "6",
@@ -312,10 +950,7 @@ export const sampleData: Industry[] = [
 		name: "Manufacturing",
 		description:
 			"Industries involved in the production of goods, focusing on process optimization and energy monitoring.",
-		technologies: [
-			{ name: "Process Heating", icon: Server },
-			{ name: "Energy Monitoring", icon: Zap },
-		],
+		technologies: [getTech("Automated Process Control")],
 		companies: [
 			{ name: "General Electric", icon: Wrench },
 			{ name: "Caterpillar", icon: Server },
@@ -328,37 +963,37 @@ export const sampleData: Industry[] = [
 				value: 0.8,
 				unit: "kWh/USD output",
 				description: "Energy consumption per dollar of output",
-				category: "performance"
+				category: "performance",
 			},
 			{
 				name: "Equipment CAPEX",
 				value: 500000,
 				unit: "USD/MW",
 				description: "Capital expenditure per megawatt of production",
-				category: "cost"
+				category: "cost",
 			},
 			{
 				name: "Operational Efficiency",
 				value: 78,
 				unit: "%",
 				description: "Average operational efficiency",
-				category: "performance"
+				category: "performance",
 			},
 			{
 				name: "Carbon Intensity",
 				value: 0.7,
 				unit: "kg CO2/kWh",
 				description: "Carbon emissions per kilowatt-hour",
-				category: "environmental"
+				category: "environmental",
 			},
 			{
 				name: "Maintenance Cost",
 				value: 0.12,
 				unit: "% of CAPEX/year",
 				description: "Annual maintenance cost as percentage of CAPEX",
-				category: "cost"
-			}
-		]
+				category: "cost",
+			},
+		],
 	},
 	{
 		id: "7",
@@ -367,10 +1002,8 @@ export const sampleData: Industry[] = [
 		description:
 			"Providing medical services and developing innovative solutions for patient care and facility management.",
 		technologies: [
-			{ name: "Medical Imaging", icon: Zap },
-			{ name: "Telemedicine", icon: Droplets },
-			{ name: "Hospital Energy Efficiency", icon: Recycle },
-			{ name: "Smart Building Systems", icon: Building2 },
+			getTech("Building Management Systems"),
+			getTech("Water Management Systems"),
 		],
 		companies: [
 			{ name: "Philips", icon: Zap },
@@ -384,37 +1017,37 @@ export const sampleData: Industry[] = [
 				value: 250,
 				unit: "kWh/bed/day",
 				description: "Average energy consumption per hospital bed per day",
-				category: "performance"
+				category: "performance",
 			},
 			{
 				name: "Equipment CAPEX",
 				value: 150000,
 				unit: "USD/bed",
 				description: "Medical equipment capital expenditure per bed",
-				category: "cost"
+				category: "cost",
 			},
 			{
 				name: "Operational Cost",
 				value: 0.18,
 				unit: "USD/kWh",
 				description: "Average operational cost per kilowatt-hour",
-				category: "cost"
+				category: "cost",
 			},
 			{
 				name: "Carbon Footprint",
 				value: 0.5,
 				unit: "kg CO2/kWh",
 				description: "Carbon emissions per kilowatt-hour",
-				category: "environmental"
+				category: "environmental",
 			},
 			{
 				name: "Patient Safety Index",
 				value: 98,
 				unit: "%",
 				description: "Patient safety performance index",
-				category: "operational"
-			}
-		]
+				category: "other",
+			},
+		],
 	},
 	{
 		id: "8",
@@ -423,10 +1056,8 @@ export const sampleData: Industry[] = [
 		description:
 			"Focusing on sustainable farming practices, crop optimization, and resource management.",
 		technologies: [
-			{ name: "Precision Farming", icon: Wrench },
-			{ name: "Water Management", icon: Droplets },
-			{ name: "Renewable Energy in Farms", icon: Wind },
-			{ name: "Crop Monitoring", icon: Server },
+			getTech("Precision Farming Technology"),
+			getTech("Water Management Systems"),
 		],
 		companies: [
 			{ name: "John Deere", icon: Wrench },
@@ -440,37 +1071,37 @@ export const sampleData: Industry[] = [
 				value: 85,
 				unit: "%",
 				description: "Water use efficiency in irrigation systems",
-				category: "performance"
+				category: "performance",
 			},
 			{
 				name: "Equipment CAPEX",
 				value: 200000,
 				unit: "USD/hectare",
 				description: "Agricultural equipment capital expenditure per hectare",
-				category: "cost"
+				category: "cost",
 			},
 			{
 				name: "Energy per Hectare",
 				value: 1200,
 				unit: "kWh/hectare/year",
 				description: "Energy consumption per hectare per year",
-				category: "performance"
+				category: "performance",
 			},
 			{
 				name: "Carbon Sequestration",
 				value: 2.5,
 				unit: "ton CO2/hectare/year",
 				description: "Carbon sequestration potential per hectare",
-				category: "environmental"
+				category: "environmental",
 			},
 			{
 				name: "Yield Improvement",
 				value: 25,
 				unit: "%",
 				description: "Average yield improvement with smart farming",
-				category: "performance"
-			}
-		]
+				category: "performance",
+			},
+		],
 	},
 	{
 		id: "9",
@@ -479,10 +1110,8 @@ export const sampleData: Industry[] = [
 		description:
 			"Integrating technology and innovative solutions to enhance urban sustainability, efficiency, and quality of life.",
 		technologies: [
-			{ name: "Smart Grids", icon: Zap },
-			{ name: "Intelligent Transportation Systems", icon: Car },
-			{ name: "Waste Management Systems", icon: Server },
-			{ name: "Public Safety Solutions", icon: Wind },
+			getTech("Smart Grid Solutions"),
+			getTech("Building Management Systems"),
 		],
 		companies: [
 			{ name: "Cisco", icon: Building2 },
@@ -496,37 +1125,38 @@ export const sampleData: Industry[] = [
 				value: 30,
 				unit: "%",
 				description: "Average energy savings with smart city solutions",
-				category: "performance"
+				category: "performance",
 			},
 			{
 				name: "Infrastructure CAPEX",
 				value: 5000000,
 				unit: "USD/km²",
-				description: "Smart city infrastructure capital expenditure per square kilometer",
-				category: "cost"
+				description:
+					"Smart city infrastructure capital expenditure per square kilometer",
+				category: "cost",
 			},
 			{
 				name: "Operational Efficiency",
 				value: 85,
 				unit: "%",
 				description: "Overall operational efficiency improvement",
-				category: "performance"
+				category: "performance",
 			},
 			{
 				name: "Carbon Reduction",
 				value: 40,
 				unit: "%",
 				description: "Carbon emissions reduction potential",
-				category: "environmental"
+				category: "environmental",
 			},
 			{
 				name: "Citizen Satisfaction",
 				value: 92,
 				unit: "%",
 				description: "Citizen satisfaction index with smart city services",
-				category: "operational"
-			}
-		]
+				category: "other",
+			},
+		],
 	},
 	{
 		id: "10",
@@ -535,10 +1165,8 @@ export const sampleData: Industry[] = [
 		description:
 			"Optimizing operations and customer experience in retail environments through smart technologies and energy management.",
 		technologies: [
-			{ name: "Energy Management in Stores", icon: Zap },
-			{ name: "Smart Lighting Systems", icon: Wind },
-			{ name: "HVAC Optimization", icon: Server },
-			{ name: "Building Management Systems", icon: Wrench },
+			getTech("Smart Energy Management"),
+			getTech("Building Management Systems"),
 		],
 		companies: [
 			{ name: "Walmart", icon: Building2 },
@@ -552,37 +1180,37 @@ export const sampleData: Industry[] = [
 				value: 500000,
 				unit: "kWh/store/year",
 				description: "Average energy consumption per retail store per year",
-				category: "performance"
+				category: "performance",
 			},
 			{
 				name: "Store CAPEX",
 				value: 2000000,
 				unit: "USD/store",
 				description: "Capital expenditure per retail store",
-				category: "cost"
+				category: "cost",
 			},
 			{
 				name: "Energy Cost Savings",
 				value: 25,
 				unit: "%",
 				description: "Energy cost savings with smart retail solutions",
-				category: "cost"
+				category: "cost",
 			},
 			{
 				name: "Carbon Footprint",
 				value: 0.4,
 				unit: "kg CO2/kWh",
 				description: "Carbon emissions per kilowatt-hour",
-				category: "environmental"
+				category: "environmental",
 			},
 			{
 				name: "Customer Experience Score",
 				value: 88,
 				unit: "%",
 				description: "Customer experience improvement score",
-				category: "operational"
-			}
-		]
+				category: "other",
+			},
+		],
 	},
 	{
 		id: "11",
@@ -590,12 +1218,7 @@ export const sampleData: Industry[] = [
 		name: "Marine & Shipping",
 		description:
 			"Innovating for sustainable and efficient maritime operations, including propulsion and port management.",
-		technologies: [
-			{ name: "Alternative Marine Fuels", icon: Fuel },
-			{ name: "Port Energy Management", icon: Zap },
-			{ name: "Fleet Efficiency", icon: Car },
-			{ name: "Emissions Monitoring", icon: Droplets },
-		],
+		technologies: [getTech("Marine Fuel Optimization")],
 		companies: [
 			{ name: "Maersk", icon: Building2 },
 			{ name: "CMA CGM", icon: Fuel },
@@ -608,37 +1231,37 @@ export const sampleData: Industry[] = [
 				value: 12,
 				unit: "g/kWh",
 				description: "Fuel consumption per kilowatt-hour",
-				category: "performance"
+				category: "performance",
 			},
 			{
 				name: "Vessel CAPEX",
 				value: 80000000,
 				unit: "USD/vessel",
 				description: "Average vessel capital expenditure",
-				category: "cost"
+				category: "cost",
 			},
 			{
 				name: "Operational Cost",
 				value: 0.08,
 				unit: "USD/kWh",
 				description: "Operational cost per kilowatt-hour",
-				category: "cost"
+				category: "cost",
 			},
 			{
 				name: "Carbon Emissions",
 				value: 0.3,
 				unit: "kg CO2/kWh",
 				description: "Carbon emissions per kilowatt-hour",
-				category: "environmental"
+				category: "environmental",
 			},
 			{
 				name: "Safety Index",
 				value: 96,
 				unit: "%",
 				description: "Maritime safety performance index",
-				category: "operational"
-			}
-		]
+				category: "other",
+			},
+		],
 	},
 	{
 		id: "12",
@@ -647,10 +1270,9 @@ export const sampleData: Industry[] = [
 		description:
 			"Manufacturing of electronic components and semiconductor devices with focus on energy efficiency and sustainable production.",
 		technologies: [
-			{ name: "Clean Room Energy Management", icon: Wind },
-			{ name: "Process Cooling Systems", icon: Droplets },
-			{ name: "Waste Heat Recovery", icon: Server },
-			{ name: "Renewable Energy Integration", icon: Recycle },
+			getTech("Clean Room Energy Management"),
+			getTech("Waste Heat Recovery"),
+			getTech("Renewable Energy Integration"),
 		],
 		companies: [
 			{ name: "Intel", icon: Server },
@@ -664,37 +1286,37 @@ export const sampleData: Industry[] = [
 				value: 92,
 				unit: "%",
 				description: "Manufacturing process efficiency",
-				category: "performance"
+				category: "performance",
 			},
 			{
 				name: "Fab CAPEX",
 				value: 10000000000,
 				unit: "USD/fab",
 				description: "Semiconductor fabrication facility capital expenditure",
-				category: "cost"
+				category: "cost",
 			},
 			{
 				name: "Energy per Wafer",
 				value: 1500,
 				unit: "kWh/wafer",
 				description: "Energy consumption per wafer processed",
-				category: "performance"
+				category: "performance",
 			},
 			{
 				name: "Carbon Footprint",
 				value: 0.6,
 				unit: "kg CO2/kWh",
 				description: "Carbon emissions per kilowatt-hour",
-				category: "environmental"
+				category: "environmental",
 			},
 			{
 				name: "Yield Rate",
 				value: 95,
 				unit: "%",
 				description: "Manufacturing yield rate",
-				category: "operational"
-			}
-		]
+				category: "other",
+			},
+		],
 	},
 	{
 		id: "13",
@@ -702,12 +1324,7 @@ export const sampleData: Industry[] = [
 		name: "Water & Wastewater",
 		description:
 			"Water treatment, purification, and wastewater management systems with energy-efficient processes.",
-		technologies: [
-			{ name: "Membrane Filtration", icon: Droplets },
-			{ name: "Energy Recovery Systems", icon: Zap },
-			{ name: "Smart Water Networks", icon: Server },
-			{ name: "Biological Treatment", icon: Recycle },
-		],
+		technologies: [getTech("Water Management Systems")],
 		companies: [
 			{ name: "Veolia", icon: Droplets },
 			{ name: "Suez", icon: Building2 },
@@ -720,37 +1337,37 @@ export const sampleData: Industry[] = [
 				value: 98,
 				unit: "%",
 				description: "Water treatment efficiency rate",
-				category: "performance"
+				category: "performance",
 			},
 			{
 				name: "Plant CAPEX",
 				value: 5000000,
 				unit: "USD/MLD",
 				description: "Capital expenditure per million liters per day capacity",
-				category: "cost"
+				category: "cost",
 			},
 			{
 				name: "Energy per Liter",
 				value: 0.8,
 				unit: "kWh/m³",
 				description: "Energy consumption per cubic meter of water treated",
-				category: "performance"
+				category: "performance",
 			},
 			{
 				name: "Carbon Footprint",
 				value: 0.3,
 				unit: "kg CO2/m³",
 				description: "Carbon emissions per cubic meter of water treated",
-				category: "environmental"
+				category: "environmental",
 			},
 			{
 				name: "Water Recovery Rate",
 				value: 85,
 				unit: "%",
 				description: "Water recovery rate in treatment processes",
-				category: "operational"
-			}
-		]
+				category: "other",
+			},
+		],
 	},
 	{
 		id: "14",
@@ -758,12 +1375,7 @@ export const sampleData: Industry[] = [
 		name: "Aviation & Aerospace",
 		description:
 			"Aviation industry focusing on sustainable aviation fuels, electric propulsion, and energy-efficient aircraft systems.",
-		technologies: [
-			{ name: "Sustainable Aviation Fuels", icon: Fuel },
-			{ name: "Electric Propulsion", icon: Zap },
-			{ name: "Aircraft Energy Management", icon: Server },
-			{ name: "Ground Support Equipment", icon: Wrench },
-		],
+		technologies: [getTech("Sustainable Aviation Fuels")],
 		companies: [
 			{ name: "Boeing", icon: Building2 },
 			{ name: "Airbus", icon: Wind },
@@ -776,37 +1388,37 @@ export const sampleData: Industry[] = [
 				value: 3.5,
 				unit: "L/100km",
 				description: "Fuel consumption per 100 kilometers",
-				category: "performance"
+				category: "performance",
 			},
 			{
 				name: "Aircraft CAPEX",
 				value: 100000000,
 				unit: "USD/aircraft",
 				description: "Average aircraft capital expenditure",
-				category: "cost"
+				category: "cost",
 			},
 			{
 				name: "Operational Cost",
 				value: 0.15,
 				unit: "USD/km",
 				description: "Operational cost per kilometer",
-				category: "cost"
+				category: "cost",
 			},
 			{
 				name: "Carbon Emissions",
 				value: 0.25,
 				unit: "kg CO2/km",
 				description: "Carbon emissions per kilometer",
-				category: "environmental"
+				category: "environmental",
 			},
 			{
 				name: "Safety Index",
 				value: 99.9,
 				unit: "%",
 				description: "Aviation safety performance index",
-				category: "operational"
-			}
-		]
+				category: "other",
+			},
+		],
 	},
 	{
 		id: "15",
@@ -814,12 +1426,7 @@ export const sampleData: Industry[] = [
 		name: "Waste Management & Recycling",
 		description:
 			"Waste collection, processing, and recycling operations with energy recovery and circular economy solutions.",
-		technologies: [
-			{ name: "Waste-to-Energy", icon: Zap },
-			{ name: "Automated Sorting Systems", icon: Server },
-			{ name: "Biogas Production", icon: Fuel },
-			{ name: "Circular Economy Platforms", icon: Recycle },
-		],
+		technologies: [getTech("Waste-to-Energy Systems")],
 		companies: [
 			{ name: "Waste Management Inc", icon: Recycle },
 			{ name: "Republic Services", icon: Building2 },
@@ -832,37 +1439,37 @@ export const sampleData: Industry[] = [
 				value: 65,
 				unit: "%",
 				description: "Average recycling rate",
-				category: "performance"
+				category: "performance",
 			},
 			{
 				name: "Facility CAPEX",
 				value: 30000000,
 				unit: "USD/facility",
 				description: "Waste processing facility capital expenditure",
-				category: "cost"
+				category: "cost",
 			},
 			{
 				name: "Energy Recovery",
 				value: 0.6,
 				unit: "kWh/kg",
 				description: "Energy recovered per kilogram of waste",
-				category: "performance"
+				category: "performance",
 			},
 			{
 				name: "Carbon Reduction",
 				value: 2.1,
 				unit: "kg CO2/kg waste",
 				description: "Carbon emissions avoided per kilogram of waste",
-				category: "environmental"
+				category: "environmental",
 			},
 			{
 				name: "Processing Efficiency",
 				value: 88,
 				unit: "%",
 				description: "Waste processing efficiency",
-				category: "operational"
-			}
-		]
+				category: "other",
+			},
+		],
 	},
 	{
 		id: "16",
@@ -871,10 +1478,8 @@ export const sampleData: Industry[] = [
 		description:
 			"Network infrastructure and communication systems with focus on energy-efficient data transmission and network management.",
 		technologies: [
-			{ name: "5G Energy Optimization", icon: Zap },
-			{ name: "Data Center Cooling", icon: Wind },
-			{ name: "Network Virtualization", icon: Server },
-			{ name: "Smart Grid Communications", icon: Building2 },
+			getTech("5G Energy Optimization"),
+			getTech("Smart Grid Solutions"),
 		],
 		companies: [
 			{ name: "Cisco", icon: Server },
@@ -888,37 +1493,38 @@ export const sampleData: Industry[] = [
 				value: 94,
 				unit: "%",
 				description: "Network transmission efficiency",
-				category: "performance"
+				category: "performance",
 			},
 			{
 				name: "Infrastructure CAPEX",
 				value: 2000000,
 				unit: "USD/tower",
-				description: "Telecommunications infrastructure capital expenditure per tower",
-				category: "cost"
+				description:
+					"Telecommunications infrastructure capital expenditure per tower",
+				category: "cost",
 			},
 			{
 				name: "Energy per GB",
 				value: 0.06,
 				unit: "kWh/GB",
 				description: "Energy consumption per gigabyte of data transmitted",
-				category: "performance"
+				category: "performance",
 			},
 			{
 				name: "Carbon Footprint",
 				value: 0.02,
 				unit: "kg CO2/GB",
 				description: "Carbon emissions per gigabyte of data",
-				category: "environmental"
+				category: "environmental",
 			},
 			{
 				name: "Network Reliability",
 				value: 99.9,
 				unit: "%",
 				description: "Network uptime reliability",
-				category: "operational"
-			}
-		]
+				category: "other",
+			},
+		],
 	},
 	{
 		id: "17",
@@ -927,10 +1533,9 @@ export const sampleData: Industry[] = [
 		description:
 			"Building and infrastructure development with sustainable materials, energy-efficient construction methods, and smart building technologies.",
 		technologies: [
-			{ name: "Green Building Materials", icon: Recycle },
-			{ name: "Energy-Efficient Construction", icon: Wind },
-			{ name: "Smart Building Systems", icon: Server },
-			{ name: "Renewable Energy Integration", icon: Zap },
+			getTech("Green Building Materials"),
+			getTech("Building Management Systems"),
+			getTech("Renewable Energy Integration"),
 		],
 		companies: [
 			{ name: "Bechtel", icon: Building2 },
@@ -944,37 +1549,37 @@ export const sampleData: Industry[] = [
 				value: 82,
 				unit: "%",
 				description: "Construction process efficiency",
-				category: "performance"
+				category: "performance",
 			},
 			{
 				name: "Project CAPEX",
 				value: 2500,
 				unit: "USD/m²",
 				description: "Construction capital expenditure per square meter",
-				category: "cost"
+				category: "cost",
 			},
 			{
 				name: "Energy per m²",
 				value: 120,
 				unit: "kWh/m²/year",
 				description: "Energy consumption per square meter per year",
-				category: "performance"
+				category: "performance",
 			},
 			{
 				name: "Carbon Footprint",
 				value: 0.8,
 				unit: "kg CO2/m²",
 				description: "Carbon emissions per square meter",
-				category: "environmental"
+				category: "environmental",
 			},
 			{
 				name: "Project Delivery Time",
 				value: 85,
 				unit: "%",
 				description: "Projects delivered on time",
-				category: "operational"
-			}
-		]
+				category: "other",
+			},
+		],
 	},
 	{
 		id: "18",
@@ -983,10 +1588,8 @@ export const sampleData: Industry[] = [
 		description:
 			"Chemical manufacturing and processing with energy-efficient production methods and sustainable chemical solutions.",
 		technologies: [
-			{ name: "Process Optimization", icon: Server },
-			{ name: "Catalytic Technologies", icon: Zap },
-			{ name: "Waste Heat Recovery", icon: Wind },
-			{ name: "Green Chemistry", icon: Recycle },
+			getTech("Process Optimization Systems"),
+			getTech("Waste Heat Recovery"),
 		],
 		companies: [
 			{ name: "BASF", icon: Building2 },
@@ -1000,37 +1603,38 @@ export const sampleData: Industry[] = [
 				value: 89,
 				unit: "%",
 				description: "Chemical process efficiency",
-				category: "performance"
+				category: "performance",
 			},
 			{
 				name: "Plant CAPEX",
 				value: 5000000,
 				unit: "USD/ton/year",
-				description: "Chemical plant capital expenditure per ton of annual capacity",
-				category: "cost"
+				description:
+					"Chemical plant capital expenditure per ton of annual capacity",
+				category: "cost",
 			},
 			{
 				name: "Energy per Ton",
 				value: 800,
 				unit: "kWh/ton",
 				description: "Energy consumption per ton of product",
-				category: "performance"
+				category: "performance",
 			},
 			{
 				name: "Carbon Footprint",
 				value: 1.2,
 				unit: "kg CO2/kg product",
 				description: "Carbon emissions per kilogram of product",
-				category: "environmental"
+				category: "environmental",
 			},
 			{
 				name: "Safety Index",
 				value: 97,
 				unit: "%",
 				description: "Chemical plant safety performance index",
-				category: "operational"
-			}
-		]
+				category: "other",
+			},
+		],
 	},
 	{
 		id: "19",
@@ -1039,10 +1643,8 @@ export const sampleData: Industry[] = [
 		description:
 			"Drug development and biotech research with energy-efficient laboratory operations and sustainable manufacturing processes.",
 		technologies: [
-			{ name: "Laboratory Energy Management", icon: Zap },
-			{ name: "Clean Room Systems", icon: Wind },
-			{ name: "Bioreactor Optimization", icon: Server },
-			{ name: "Sustainable Manufacturing", icon: Recycle },
+			getTech("Laboratory Energy Management"),
+			getTech("Clean Room Energy Management"),
 		],
 		companies: [
 			{ name: "Pfizer", icon: Hospital },
@@ -1056,37 +1658,37 @@ export const sampleData: Industry[] = [
 				value: 76,
 				unit: "%",
 				description: "Research and development efficiency",
-				category: "performance"
+				category: "performance",
 			},
 			{
 				name: "Facility CAPEX",
 				value: 10000000,
 				unit: "USD/facility",
 				description: "Pharmaceutical facility capital expenditure",
-				category: "cost"
+				category: "cost",
 			},
 			{
 				name: "Energy per Drug",
 				value: 5000,
 				unit: "kWh/drug developed",
 				description: "Energy consumption per drug developed",
-				category: "performance"
+				category: "performance",
 			},
 			{
 				name: "Carbon Footprint",
 				value: 0.9,
 				unit: "kg CO2/kWh",
 				description: "Carbon emissions per kilowatt-hour",
-				category: "environmental"
+				category: "environmental",
 			},
 			{
 				name: "Regulatory Compliance",
 				value: 99.5,
 				unit: "%",
 				description: "Regulatory compliance rate",
-				category: "operational"
-			}
-		]
+				category: "other",
+			},
+		],
 	},
 	{
 		id: "20",
@@ -1095,10 +1697,8 @@ export const sampleData: Industry[] = [
 		description:
 			"Vehicle manufacturing and mobility solutions with electric vehicles, autonomous systems, and sustainable transportation technologies.",
 		technologies: [
-			{ name: "Electric Vehicle Manufacturing", icon: Zap },
-			{ name: "Battery Technology", icon: Server },
-			{ name: "Autonomous Systems", icon: Building2 },
-			{ name: "Mobility-as-a-Service", icon: Car },
+			getTech("Battery Technology Systems"),
+			getTech("Automated Process Control"),
 		],
 		companies: [
 			{ name: "Tesla", icon: Car },
@@ -1112,37 +1712,37 @@ export const sampleData: Industry[] = [
 				value: 88,
 				unit: "%",
 				description: "Vehicle manufacturing efficiency",
-				category: "performance"
+				category: "performance",
 			},
 			{
 				name: "Factory CAPEX",
 				value: 500000000,
 				unit: "USD/factory",
 				description: "Automotive factory capital expenditure",
-				category: "cost"
+				category: "cost",
 			},
 			{
 				name: "Energy per Vehicle",
 				value: 3000,
 				unit: "kWh/vehicle",
 				description: "Energy consumption per vehicle manufactured",
-				category: "performance"
+				category: "performance",
 			},
 			{
 				name: "Carbon Footprint",
 				value: 2.5,
 				unit: "ton CO2/vehicle",
 				description: "Carbon emissions per vehicle manufactured",
-				category: "environmental"
+				category: "environmental",
 			},
 			{
 				name: "Quality Index",
 				value: 96,
 				unit: "%",
 				description: "Vehicle quality performance index",
-				category: "operational"
-			}
-		]
+				category: "other",
+			},
+		],
 	},
 	{
 		id: "21",
@@ -1150,12 +1750,7 @@ export const sampleData: Industry[] = [
 		name: "Food & Beverage",
 		description:
 			"Food processing and beverage production with energy-efficient manufacturing, sustainable packaging, and waste reduction technologies.",
-		technologies: [
-			{ name: "Food Processing Efficiency", icon: Server },
-			{ name: "Sustainable Packaging", icon: Recycle },
-			{ name: "Cold Chain Management", icon: Wind },
-			{ name: "Waste Reduction Systems", icon: Droplets },
-		],
+		technologies: [],
 		companies: [
 			{ name: "Nestlé", icon: ShoppingBag },
 			{ name: "Coca-Cola", icon: Droplets },
@@ -1168,36 +1763,37 @@ export const sampleData: Industry[] = [
 				value: 91,
 				unit: "%",
 				description: "Food processing efficiency",
-				category: "performance"
+				category: "performance",
 			},
 			{
 				name: "Plant CAPEX",
 				value: 3000000,
 				unit: "USD/ton/year",
-				description: "Food processing plant capital expenditure per ton of annual capacity",
-				category: "cost"
+				description:
+					"Food processing plant capital expenditure per ton of annual capacity",
+				category: "cost",
 			},
 			{
 				name: "Energy per Ton",
 				value: 400,
 				unit: "kWh/ton",
 				description: "Energy consumption per ton of food processed",
-				category: "performance"
+				category: "performance",
 			},
 			{
 				name: "Carbon Footprint",
 				value: 0.8,
 				unit: "kg CO2/kg food",
 				description: "Carbon emissions per kilogram of food produced",
-				category: "environmental"
+				category: "environmental",
 			},
 			{
 				name: "Food Safety Index",
 				value: 99.8,
 				unit: "%",
 				description: "Food safety performance index",
-				category: "operational"
-			}
-		]
+				category: "other",
+			},
+		],
 	},
 ];

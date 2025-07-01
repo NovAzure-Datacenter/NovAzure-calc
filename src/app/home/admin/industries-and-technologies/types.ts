@@ -1,8 +1,13 @@
 export type Technology = {
+	id?: string;
 	name: string;
+	description: string;
 	icon: React.ComponentType<{ className?: string }>;
 	iconSize?: number;
 	textSize?: string;
+	status?: "pending" | "verified";
+	applicableIndustries?: string[]; 
+	parameters?: TechnologyParameter[];
 };
 
 export type Company = {
@@ -17,7 +22,15 @@ export type IndustryParameter = {
 	value: number;
 	unit: string;
 	description: string;
-	category: "cost" | "performance" | "environmental" | "operational";
+	category: "cost" | "performance" | "environmental" | "other";
+};
+
+export type TechnologyParameter = {
+	name: string;
+	value: number;
+	unit: string;
+	description: string;
+	category: "cost" | "performance" | "environmental" | "other";
 };
 
 export type Industry = {
