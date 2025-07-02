@@ -174,5 +174,5 @@ async def calculate():
         'opex': air_cooling_opex,
         'total_opex_over_lifetime': total_opex_lifetime,
         'total_cost_of_ownership': total_cost_of_ownership,
-        'include_it_cost': include_it_cost.get('include_it_cost', 'No')  # Show if IT costs were included
+        'include_it_cost': include_it_cost.get('include_it_cost') or 'No'  # Show if IT costs were included
     }

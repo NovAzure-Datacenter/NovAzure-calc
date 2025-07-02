@@ -304,14 +304,19 @@ def calculate_total_network_cost_per_server(total_network_cost_per_rack=None, se
         servers_per_rack: Number of servers per rack (default: 14)
         
     Returns:
-        float: Network cost per server in USD
+        float: Network cost per server in USD, or 0 if no servers
         
     Business Logic:
         Network infrastructure is shared across all servers in a rack,
         so costs are divided equally among all servers for cost modeling.
+        If there are no servers, the cost per server is 0.
     """
     rack_cost = total_network_cost_per_rack if total_network_cost_per_rack is not None else calculate_total_network_cost_per_rack()
     servers = servers_per_rack if servers_per_rack is not None else DEFAULT_SERVERS_PER_RACK
+    
+    # Handle division by zero case
+    if servers == 0:
+        return 0.0
     
     return rack_cost / servers
 
