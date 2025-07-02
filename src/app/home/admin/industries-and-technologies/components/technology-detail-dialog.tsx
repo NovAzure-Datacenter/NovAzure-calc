@@ -45,7 +45,7 @@ import {
 	iconComponentToString,
 	stringToIconComponent,
 	iconOptions,
-} from "../utils/icon-utils";
+} from "@/lib/icons/lucide-icons";
 import { updateTechnology, deleteTechnology } from "@/lib/actions/technology/technology";
 import React from "react";
 
@@ -279,8 +279,8 @@ export function TechnologyDetailDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="min-w-[70vw] max-h-[90vh] overflow-y-auto">
-				<DialogHeader className="pb-4">
+			<DialogContent className="min-w-[70vw] max-h-[90vh] flex flex-col">
+				<DialogHeader className="pb-4 flex-shrink-0">
 					<DialogTitle className="text-xl">Technology Details</DialogTitle>
 					<DialogDescription>
 						View detailed information about {currentTechnology?.name} including
@@ -288,177 +288,179 @@ export function TechnologyDetailDialog({
 					</DialogDescription>
 				</DialogHeader>
 
-				{/* Header Section */}
-				<Card className="bg-muted/50 rounded-lg px-3 py-3 mb-4">
-					<div className="flex items-start gap-3 mb-3">
-						<div className="bg-background p-2 rounded-lg shadow-sm relative">
-							{isEditing && (
-								<div className="absolute -top-1 -right-1 bg-primary text-primary-foreground rounded-full w-4 h-4 flex items-center justify-center">
-									<Edit className="h-2.5 w-2.5" />
-								</div>
-							)}
-							<button
-								onClick={() => isEditing && setIsIconSelectorOpen(true)}
-								className={`${isEditing ? 'cursor-pointer hover:bg-muted/50 rounded transition-colors' : ''}`}
-								disabled={!isEditing}
-							>
-								<currentTechnology.icon className="h-6 w-6 text-primary" />
-							</button>
-						</div>
-						<div className="flex-1 min-w-0">
-							{/* Name and Stats on same horizontal line */}
-							<div className="flex items-center justify-between gap-3 mb-2">
-								<div className="flex items-center gap-2">
-									{isEditing ? (
-										<div className="flex-1">
-											<label className="text-xs font-medium text-muted-foreground block mb-1">
-												Technology Name
-											</label>
-											<Input
-												value={currentTechnology?.name || ""}
-												onChange={(e) =>
-													handleFieldChange("name", e.target.value)
-												}
-												className="text-lg font-bold h-8 border-0 bg-transparent p-0 focus-visible:ring-0"
-											/>
-										</div>
-									) : (
-										<h2 className="text-lg font-bold text-foreground">
-											{currentTechnology?.name}
-										</h2>
-									)}
-									{!isEditing && (
-										<Badge
-											variant={
-												currentTechnology?.status === "verified"
-													? "default"
-													: "secondary"
-											}
-											className="text-xs px-1.5 py-0.5"
-										>
-											{currentTechnology?.status || "pending"}
-										</Badge>
-									)}
-								</div>
-
-								{/* Stats Badges */}
-								<div className="flex gap-1">
-									<Badge
-										variant="outline"
-										className="flex items-center gap-1 px-2 py-1"
-									>
-										<Building2 className="h-3 w-3" />
-										<span className="text-xs">Industries</span>
-										<span className="text-xs font-bold">
-											{applicableIndustries.length}
-										</span>
-									</Badge>
-									<Badge
-										variant="outline"
-										className="flex items-center gap-1 px-2 py-1"
-									>
-										<BarChart3 className="h-3 w-3" />
-										<span className="text-xs">Params</span>
-										<span className="text-xs font-bold">
-											{currentTechnology?.parameters?.length || 0}
-										</span>
-									</Badge>
-								</div>
+				<div className="flex-1 overflow-y-auto space-y-4">
+					{/* Header Section */}
+					<Card className="bg-muted/50 rounded-lg px-3 py-3 mb-4">
+						<div className="flex items-start gap-3 mb-3">
+							<div className="bg-background p-2 rounded-lg shadow-sm relative">
+								{isEditing && (
+									<div className="absolute -top-1 -right-1 bg-primary text-primary-foreground rounded-full w-4 h-4 flex items-center justify-center">
+										<Edit className="h-2.5 w-2.5" />
+									</div>
+								)}
+								<button
+									onClick={() => isEditing && setIsIconSelectorOpen(true)}
+									className={`${isEditing ? 'cursor-pointer hover:bg-muted/50 rounded transition-colors' : ''}`}
+									disabled={!isEditing}
+								>
+									<currentTechnology.icon className="h-6 w-6 text-primary" />
+								</button>
 							</div>
-
-							{/* Icon Selection in Edit Mode */}
-							{isEditing && (
-								<div className="mb-3">
-									<label className="text-xs font-medium text-muted-foreground block mb-1">
-										Technology Icon
-									</label>
+							<div className="flex-1 min-w-0">
+								{/* Name and Stats on same horizontal line */}
+								<div className="flex items-center justify-between gap-3 mb-2">
 									<div className="flex items-center gap-2">
-										<div className="flex items-center justify-center w-8 h-8 border rounded-md bg-gray-50">
-											{React.createElement(currentTechnology.icon, { className: "h-4 w-4 text-gray-600" })}
-										</div>
-										<Select 
-											onValueChange={handleIconChange} 
-											value={iconComponentToString(currentTechnology.icon)}
+										{isEditing ? (
+											<div className="flex-1">
+												<label className="text-xs font-medium text-muted-foreground block mb-1">
+													Technology Name
+												</label>
+												<Input
+													value={currentTechnology?.name || ""}
+													onChange={(e) =>
+														handleFieldChange("name", e.target.value)
+													}
+													className="text-lg font-bold h-8 border-0 bg-transparent p-0 focus-visible:ring-0"
+												/>
+											</div>
+										) : (
+											<h2 className="text-lg font-bold text-foreground">
+												{currentTechnology?.name}
+											</h2>
+										)}
+										{!isEditing && (
+											<Badge
+												variant={
+													currentTechnology?.status === "verified"
+														? "default"
+														: "secondary"
+												}
+												className="text-xs px-1.5 py-0.5"
+											>
+												{currentTechnology?.status || "pending"}
+											</Badge>
+										)}
+									</div>
+
+									{/* Stats Badges */}
+									<div className="flex gap-1">
+										<Badge
+											variant="outline"
+											className="flex items-center gap-1 px-2 py-1"
 										>
-											<SelectTrigger className="text-xs h-8 flex-1">
-												<SelectValue placeholder="Select an icon" />
-											</SelectTrigger>
-											<SelectContent>
-												{iconOptions.map((option) => (
-													<SelectItem key={option.value} value={option.value}>
-														<div className="flex items-center gap-2">
-															<option.icon className="h-4 w-4" />
-															<span>{option.label}</span>
-														</div>
-													</SelectItem>
-												))}
-											</SelectContent>
-										</Select>
+											<Building2 className="h-3 w-3" />
+											<span className="text-xs">Industries</span>
+											<span className="text-xs font-bold">
+												{applicableIndustries.length}
+											</span>
+										</Badge>
+										<Badge
+											variant="outline"
+											className="flex items-center gap-1 px-2 py-1"
+										>
+											<BarChart3 className="h-3 w-3" />
+											<span className="text-xs">Params</span>
+											<span className="text-xs font-bold">
+												{currentTechnology?.parameters?.length || 0}
+											</span>
+										</Badge>
 									</div>
 								</div>
-							)}
 
-							{/* Description below */}
-							{isEditing ? (
-								<div className="flex-1">
-									<label className="text-xs font-medium text-muted-foreground block mb-1">
-										Description
-									</label>
-									<Textarea
-										value={currentTechnology?.description || ""}
-										onChange={(e) =>
-											handleFieldChange("description", e.target.value)
-										}
-										className="text-sm resize-y border rounded-md p-2 min-h-[60px]"
-										rows={2}
-									/>
-								</div>
-							) : (
-								<p className="text-muted-foreground text-sm leading-relaxed">
-									{currentTechnology?.description}
-								</p>
-							)}
+								{/* Icon Selection in Edit Mode */}
+								{isEditing && (
+									<div className="mb-3">
+										<label className="text-xs font-medium text-muted-foreground block mb-1">
+											Technology Icon
+										</label>
+										<div className="flex items-center gap-2">
+											<div className="flex items-center justify-center w-8 h-8 border rounded-md bg-gray-50">
+												{React.createElement(currentTechnology.icon, { className: "h-4 w-4 text-gray-600" })}
+											</div>
+											<Select 
+												onValueChange={handleIconChange} 
+												value={iconComponentToString(currentTechnology.icon)}
+											>
+												<SelectTrigger className="text-xs h-8 flex-1">
+													<SelectValue placeholder="Select an icon" />
+												</SelectTrigger>
+												<SelectContent>
+													{iconOptions.map((option) => (
+														<SelectItem key={option.value} value={option.value}>
+															<div className="flex items-center gap-2">
+																<option.icon className="h-4 w-4" />
+																<span>{option.label}</span>
+															</div>
+														</SelectItem>
+													))}
+												</SelectContent>
+											</Select>
+										</div>
+									</div>
+								)}
+
+								{/* Description below */}
+								{isEditing ? (
+									<div className="flex-1">
+										<label className="text-xs font-medium text-muted-foreground block mb-1">
+											Description
+										</label>
+										<Textarea
+											value={currentTechnology?.description || ""}
+											onChange={(e) =>
+												handleFieldChange("description", e.target.value)
+											}
+											className="text-sm resize-y border rounded-md p-2 min-h-[60px]"
+											rows={2}
+										/>
+									</div>
+								) : (
+									<p className="text-muted-foreground text-sm leading-relaxed">
+										{currentTechnology?.description}
+									</p>
+								)}
+							</div>
 						</div>
-					</div>
-				</Card>
+					</Card>
 
-				<Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-					<TabsList className="grid w-full grid-cols-2 bg-background border border-border mb-6">
-						<TabsTrigger
-							value="overview"
-							className="data-[state=active]:!bg-primary data-[state=active]:!text-primary-foreground text-muted-foreground"
-						>
-							Overview
-						</TabsTrigger>
-						<TabsTrigger
-							value="parameters"
-							className="data-[state=active]:!bg-primary data-[state=active]:!text-primary-foreground text-muted-foreground"
-						>
-							Parameters ({currentTechnology?.parameters?.length || 0})
-						</TabsTrigger>
-					</TabsList>
+					<Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+						<TabsList className="grid w-full grid-cols-2 bg-background border border-border mb-6">
+							<TabsTrigger
+								value="overview"
+								className="data-[state=active]:!bg-primary data-[state=active]:!text-primary-foreground text-muted-foreground"
+							>
+								Overview
+							</TabsTrigger>
+							<TabsTrigger
+								value="parameters"
+								className="data-[state=active]:!bg-primary data-[state=active]:!text-primary-foreground text-muted-foreground"
+							>
+								Parameters ({currentTechnology?.parameters?.length || 0})
+							</TabsTrigger>
+						</TabsList>
 
-					<TabsContent value="overview" className="space-y-2">
-						<TabContentOverview
-							currentTechnology={currentTechnology}
-							parameterSummary={parameterSummary}
-							applicableIndustries={applicableIndustries}
-						/>
-					</TabsContent>
-					<TabsContent value="parameters" className="space-y-4">
-						<TabContentParameters
-							currentTechnology={currentTechnology}
-							parameterSummary={parameterSummary}
-							isEditing={isEditing}
-							onParameterChange={handleParameterChange}
-							onAddParameter={handleAddParameter}
-							onRemoveParameter={handleRemoveParameter}
-						/>
-					</TabsContent>
-				</Tabs>
+						<TabsContent value="overview" className="space-y-2">
+							<TabContentOverview
+								currentTechnology={currentTechnology}
+								parameterSummary={parameterSummary}
+								applicableIndustries={applicableIndustries}
+							/>
+						</TabsContent>
+						<TabsContent value="parameters" className="space-y-4">
+							<TabContentParameters
+								currentTechnology={currentTechnology}
+								parameterSummary={parameterSummary}
+								isEditing={isEditing}
+								onParameterChange={handleParameterChange}
+								onAddParameter={handleAddParameter}
+								onRemoveParameter={handleRemoveParameter}
+							/>
+						</TabsContent>
+					</Tabs>
+				</div>
 
-				{/* Footer with Action Buttons */}
-				<div className="flex justify-end gap-3 pt-6 border-t mt-6">
+				{/* Footer with Action Buttons - Always visible */}
+				<div className="flex justify-end gap-3 pt-6 border-t mt-6 flex-shrink-0">
 					{isEditing ? (
 						<>
 							<Button

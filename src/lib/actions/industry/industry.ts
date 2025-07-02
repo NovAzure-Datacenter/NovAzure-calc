@@ -9,8 +9,8 @@ import { ObjectId } from "mongodb";
 export interface CreateIndustryData {
 	name: string;
 	description: string;
-	technologies: string[]; // Array of technology IDs
-	icon?: string; // Store icon name as string for MongoDB
+	technologies: string[];
+	icon?: string; 
 	parameters: Array<{
 		name: string;
 		value: number;
@@ -24,12 +24,12 @@ export interface IndustryData {
 	_id: string;
 	name: string;
 	description: string;
-	technologies: string[]; // Array of technology IDs
+	technologies: string[]; 
 	companies: Array<{
 		name: string;
 		icon?: string;
 	}>;
-	icon?: string; // Store icon name as string for MongoDB
+	icon?: string; 
 	status: "verified" | "pending";
 	parameters: Array<{
 		name: string;
@@ -45,8 +45,8 @@ export interface IndustryData {
 export interface UpdateIndustryData {
 	name?: string;
 	description?: string;
-	technologies?: string[]; // Array of technology IDs
-	icon?: string; // Store icon name as string for MongoDB
+	technologies?: string[]; 
+	icon?: string; 
 	parameters?: Array<{
 		name: string;
 		value: number;
@@ -64,7 +64,7 @@ export async function createIndustry(data: CreateIndustryData) {
 			name: data.name,
 			description: data.description,
 			technologies: data.technologies,
-			icon: data.icon || "Building2", // Default to Building2 if no icon provided
+			icon: data.icon || "Building2", 
 			companies: [],
 			status: "pending" as const,
 			parameters: data.parameters,
@@ -219,7 +219,7 @@ export async function getIndustryById(industryId: string) {
 							  }
 							: null;
 					})
-					.filter(Boolean), // Remove null entries
+					.filter(Boolean), 
 				companies: industry.companies || [],
 				status: industry.status,
 				parameters: industry.parameters || [],
@@ -290,7 +290,10 @@ export async function deleteIndustry(industryId: string) {
 	}
 }
 
-export async function updateIndustry(industryId: string, data: UpdateIndustryData) {
+export async function updateIndustry(
+	industryId: string,
+	data: UpdateIndustryData
+) {
 	try {
 		const industriesCollection = await getIndustriesCollection();
 
@@ -298,10 +301,11 @@ export async function updateIndustry(industryId: string, data: UpdateIndustryDat
 			updated_at: new Date(),
 		};
 
-		// Only include fields that are provided
 		if (data.name !== undefined) updateData.name = data.name;
-		if (data.description !== undefined) updateData.description = data.description;
-		if (data.technologies !== undefined) updateData.technologies = data.technologies;
+		if (data.description !== undefined)
+			updateData.description = data.description;
+		if (data.technologies !== undefined)
+			updateData.technologies = data.technologies;
 		if (data.icon !== undefined) updateData.icon = data.icon;
 		if (data.parameters !== undefined) updateData.parameters = data.parameters;
 
@@ -325,5 +329,137 @@ export async function updateIndustry(industryId: string, data: UpdateIndustryDat
 	} catch (error) {
 		console.error("Error updating industry:", error);
 		return { error: "Failed to update industry" };
+	}
+}
+
+export async function updateIndustryCompanies(
+	industryIds: string[],
+	companyId: string
+): Promise<{
+	success?: boolean;
+	error?: string;
+}> {
+	try {
+		const collection = await getIndustriesCollection();
+
+		// Update all specified industries to add the company ID to their companies array
+		const updatePromises = industryIds.map(async (industryId) => {
+			const result = await collection.updateOne(
+				{ _id: new ObjectId(industryId) },
+				{
+					$push: {
+						companies: {
+							name: companyId,
+						},
+					} as any,
+					$set: {
+						updated_at: new Date(),
+					},
+				}
+			);
+			return result;
+		});
+
+		await Promise.all(updatePromises);
+
+		return { success: true };
+	} catch (error) {
+		console.error("Error updating industry companies:", error);
+		return { error: "Failed to update industry companies" };
+	}
+}
+
+export async function removeCompanyFromIndustries(
+	industryIds: string[],
+	companyId: string
+): Promise<{
+	success?: boolean;
+	error?: string;
+}> {
+	try {
+		const collection = await getIndustriesCollection();
+
+		// Update all specified industries to remove the company ID from their companies array
+		const updatePromises = industryIds.map(async (industryId) => {
+			const result = await collection.updateOne(
+				{ _id: new ObjectId(industryId) },
+				{
+					$pull: {
+						companies: {
+							name: companyId,
+						},
+					} as any,
+					$set: {
+						updated_at: new Date(),
+					},
+				}
+			);
+			return result;
+		});
+
+		await Promise.all(updatePromises);
+
+		return { success: true };
+	} catch (error) {
+		console.error("Error removing company from industries:", error);
+		return { error: "Failed to remove company from industries" };
+	}
+}
+
+export async function cleanupIndustryCompanies(): Promise<{
+	success?: boolean;
+	error?: string;
+	cleanedCount?: number;
+	totalIndustries?: number;
+}> {
+	try {
+		const collection = await getIndustriesCollection();
+
+		// Get all industries
+		const industries = await collection.find({}).toArray();
+		let totalCleaned = 0;
+
+		// Process each industry
+		for (const industry of industries) {
+			if (!industry.companies || !Array.isArray(industry.companies)) {
+				continue;
+			}
+
+			// Filter out text-based entries (keep only MongoDB ObjectId strings)
+			const originalCount = industry.companies.length;
+			const cleanedCompanies = industry.companies.filter((company: any) => {
+				// Check if company.name is a valid MongoDB ObjectId string (24 hex characters)
+				return (
+					company.name &&
+					typeof company.name === "string" &&
+					/^[0-9a-fA-F]{24}$/.test(company.name)
+				);
+			});
+
+			const removedCount = originalCount - cleanedCompanies.length;
+
+			// Only update if there were changes
+			if (removedCount > 0) {
+				await collection.updateOne(
+					{ _id: industry._id },
+					{
+						$set: {
+							companies: cleanedCompanies,
+							updated_at: new Date(),
+						},
+					}
+				);
+				totalCleaned += removedCount;
+			}
+		}
+
+		return {
+			success: true,
+			cleanedCount: totalCleaned,
+			totalIndustries: industries.length,
+		};
+	} catch (error) {
+		console.error("Error cleaning up industry companies:", error);
+		return { error: "Failed to clean up industry companies" };
 	}
 }

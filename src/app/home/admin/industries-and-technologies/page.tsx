@@ -2,7 +2,7 @@
 
 import type React from "react";
 import { useState, useEffect } from "react";
-import { Search, Grid3X3, List, Building2, Zap } from "lucide-react";
+import { Search, Grid3X3, List, Building2, Zap, RefreshCw } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,7 +16,7 @@ import type { Industry, Technology } from "./types";
 import { TechnologyGridView } from "./components/technology-grid-view";
 import { getIndustries, createIndustry, deleteIndustry } from "@/lib/actions/industry/industry";
 import { getTechnologies, createTechnology, deleteTechnology, updateTechnology } from "@/lib/actions/technology/technology";
-import { stringToIconComponent, iconComponentToString } from "./utils/icon-utils";
+import { stringToIconComponent, iconComponentToString } from "@/lib/icons/lucide-icons";
 import { toast } from "sonner";
 
 export default function IndustriesAndTechnologies() {
@@ -58,9 +58,7 @@ export default function IndustriesAndTechnologies() {
 						})) as Technology[],
 						companies: (industry.companies || []).map((company: any) => ({
 							...company,
-							icon: company.icon
-								? stringToIconComponent(company.icon)
-								: Building2,
+							// Don't transform company.icon since companies only have 'name' property (client ID)
 						})),
 						status: industry.status,
 						parameters: industry.parameters || [],
@@ -216,7 +214,10 @@ export default function IndustriesAndTechnologies() {
 		await loadData();
 	};
 
-
+	const handleRefresh = () => {
+		// Trigger a refresh of the data
+		loadData();
+	};
 
 	return (
 		<div className="w-full min-h-full p-8 bg-gradient-to-br from-blue-50 to-sky-50 relative">
@@ -235,6 +236,16 @@ export default function IndustriesAndTechnologies() {
 								/>
 							</div>
 							<div className="flex items-center gap-2">
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={handleRefresh}
+									className="text-xs"
+									disabled={isLoading}
+								>
+									<RefreshCw className="h-4 w-4 mr-2" />
+									Refresh
+								</Button>
 								<CreateIndustryDialog onCreate={handleCreateIndustry} />
 								<CreateTechnologyDialog onCreate={handleCreateTechnology} />
 
