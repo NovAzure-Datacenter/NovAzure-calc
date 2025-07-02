@@ -3,19 +3,26 @@ import { getConnectedClient } from "./dbConnect";
 
 // These functions ensure a connection is established before returning the db or collection
 export async function getDb(): Promise<Db> {
-    const { db } = await getConnectedClient();
-    return db;
+	const { db } = await getConnectedClient();
+	return db;
 }
 
 export async function getUsersCollection(): Promise<Collection> {
-    const db = await getDb();
-    return db.collection("users");
+	const db = await getDb();
+	return db.collection("users");
 }
 
 export async function getCompaniesCollection(): Promise<Collection> {
-    const db = await getDb();
-    return db.collection("vendors");
+	const db = await getDb();
+	return db.collection("vendors");
 }
 
+export async function getIndustriesCollection(): Promise<Collection> {
+	const db = await getDb();
+	return db.collection("industry");
+}
 
-
+export async function getTechnologiesCollection(): Promise<Collection> {
+	const db = await getDb();
+	return db.collection("technologies");
+}
