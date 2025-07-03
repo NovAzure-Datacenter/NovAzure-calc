@@ -120,13 +120,13 @@ export async function getUsersByCompany(companyId: string) {
 		const companyName = company?.name || "Unknown Company";
 
 		const users = await usersCollection
-			.find({ company_id: new ObjectId(companyId) })
+			.find({ vendor_id: new ObjectId(companyId) })
 			.toArray();
 
 		if (!users) {
 			return { error: "No users found for this company" };
 		}
-
+		console.log(users, companyId)
 		const safeUsers = users.map((user) => ({
 			id: user._id.toString(),
 			first_name: user.first_name || "",
