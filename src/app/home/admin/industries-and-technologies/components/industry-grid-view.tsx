@@ -9,11 +9,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { Industry } from "../types";
-import { TechnologyIcons, CompanyIcons } from "./icons";
+import { TechnologyIcons, CompanyIcons } from "@/components/icons/technology-company-icons";
 import { IndustryDetailDialog } from "./industry-detail-dialog";
 import { deleteIndustry } from "@/lib/actions/industry/industry";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { getIndustryStatusColor, getParameterCategoryColor } from "../utils/color-utils";
+import { getClients, ClientData } from "@/lib/actions/client/client";
 
 export function GridView({ data, onIndustryDeleted }: { 
 	data: Industry[];
@@ -27,6 +28,23 @@ export function GridView({ data, onIndustryDeleted }: {
 	const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 	const [isRemoving, setIsRemoving] = useState<string | null>(null);
 	const [isConfirmingRemove, setIsConfirmingRemove] = useState(false);
+	const [clients, setClients] = useState<ClientData[]>([]);
+
+	// Load clients data to resolve company IDs to names
+	const loadClients = async () => {
+		try {
+			const result = await getClients();
+			if (result.clients) {
+				setClients(result.clients);
+			}
+		} catch (error) {
+			console.error("Error loading clients:", error);
+		}
+	};
+
+	useEffect(() => {
+		loadClients();
+	}, []);
 
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
@@ -123,7 +141,7 @@ export function GridView({ data, onIndustryDeleted }: {
 											</div>
 											<Separator orientation="vertical" className="h-6" />
 											<div className="flex-1">
-												<CompanyIcons companies={industry.companies} />
+												<CompanyIcons companies={industry.companies} clients={clients} />
 											</div>
 										</div>
 

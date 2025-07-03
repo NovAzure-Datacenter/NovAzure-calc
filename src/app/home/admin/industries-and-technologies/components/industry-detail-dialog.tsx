@@ -20,8 +20,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { TechnologyIcons } from "./icons";
-import { CompanyIcons } from "./icons";
+import { TechnologyIcons, CompanyIcons } from "@/components/icons/technology-company-icons";
 import {
 	DollarSign,
 	Zap,
@@ -38,15 +37,12 @@ import {
 	AlertTriangle,
 } from "lucide-react";
 import { useState, useEffect } from "react";
-import {
-	iconComponentToString,
-	stringToIconComponent,
-	iconOptions,
-} from "../utils/icon-utils";
+import { iconComponentToString, stringToIconComponent, iconOptions } from "@/lib/icons/lucide-icons";
 import React from "react";
 import { updateIndustry } from "@/lib/actions/industry/industry";
 import { deleteIndustry } from "@/lib/actions/industry/industry";
 import { toast } from "sonner";
+import { getClients, ClientData } from "@/lib/actions/client/client";
 
 interface IndustryDetailDialogProps {
 	industry: Industry | null;
@@ -114,6 +110,7 @@ export function IndustryDetailDialog({
 	);
 	const [isSaving, setIsSaving] = useState(false);
 	const [isIconSelectorOpen, setIsIconSelectorOpen] = useState(false);
+	const [clients, setClients] = useState<ClientData[]>([]);
 
 	useEffect(() => {
 		if (industry && open) {
@@ -121,6 +118,24 @@ export function IndustryDetailDialog({
 			setIsEditing(isEditMode || false);
 		}
 	}, [industry, open, isEditMode]);
+
+	// Load clients data to resolve company IDs to names
+	const loadClients = async () => {
+		try {
+			const result = await getClients();
+			if (result.clients) {
+				setClients(result.clients);
+			}
+		} catch (error) {
+			console.error("Error loading clients:", error);
+		}
+	};
+
+	useEffect(() => {
+		if (open) {
+			loadClients();
+		}
+	}, [open]);
 
 	const handleEdit = () => {
 		setIsEditing(true);
@@ -263,8 +278,8 @@ export function IndustryDetailDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="min-w-[70vw] max-h-[90vh] overflow-y-auto">
-				<DialogHeader className="pb-4">
+			<DialogContent className="min-w-[70vw] max-h-[90vh] flex flex-col">
+				<DialogHeader className="pb-4 flex-shrink-0">
 					<DialogTitle className="text-xl">Industry Details</DialogTitle>
 					<DialogDescription>
 						View detailed information about {currentIndustry?.name} including
@@ -272,158 +287,161 @@ export function IndustryDetailDialog({
 					</DialogDescription>
 				</DialogHeader>
 
-				{/* Header Section */}
-				<Card className="bg-muted/50 rounded-lg px-3 py-3 mb-4">
-					<div className="flex items-start gap-3 mb-3">
-						<div className="bg-background p-2 rounded-lg shadow-sm relative">
-							{isEditing && (
-								<div className="absolute -top-1 -right-1 bg-primary text-primary-foreground rounded-full w-4 h-4 flex items-center justify-center">
-									<Edit className="h-2.5 w-2.5" />
-								</div>
-							)}
-							<button
-								onClick={() => isEditing && setIsIconSelectorOpen(true)}
-								className={`${
-									isEditing
-										? "cursor-pointer hover:bg-muted/50 rounded transition-colors"
-										: ""
-								}`}
-								disabled={!isEditing}
-							>
-								<currentIndustry.logo className="h-6 w-6 text-primary" />
-							</button>
-						</div>
-						<div className="flex-1 min-w-0">
-							{/* Name and Stats on same horizontal line */}
-							<div className="flex items-center justify-between gap-3 mb-2">
-								<div className="flex items-center gap-2">
-									{isEditing ? (
-										<div className="flex-1">
-											<label className="text-xs font-medium text-muted-foreground block mb-1">
-												Industry Name
-											</label>
-											<Input
-												value={currentIndustry?.name || ""}
-												onChange={(e) =>
-													handleFieldChange("name", e.target.value)
-												}
-												className="text-lg font-bold h-8 border-0 bg-transparent p-0 focus-visible:ring-0"
-											/>
-										</div>
-									) : (
-										<h2 className="text-lg font-bold text-foreground">
-											{currentIndustry?.name}
-										</h2>
-									)}
-									{!isEditing && (
-										<Badge
-											variant={
-												currentIndustry?.status === "verified"
-													? "default"
-													: "secondary"
-											}
-											className="text-xs px-1.5 py-0.5"
-										>
-											{currentIndustry?.status}
-										</Badge>
-									)}
-								</div>
-
-								{/* Stats Badges */}
-								<div className="flex gap-1">
-									<Badge
-										variant="outline"
-										className="flex items-center gap-1 px-2 py-1"
-									>
-										<Zap className="h-3 w-3" />
-										<span className="text-xs">Tech</span>
-										<span className="text-xs font-bold">
-											{currentIndustry?.technologies?.length || 0}
-										</span>
-									</Badge>
-									<Badge
-										variant="outline"
-										className="flex items-center gap-1 px-2 py-1"
-									>
-										<Building2 className="h-3 w-3" />
-										<span className="text-xs">Companies</span>
-										<span className="text-xs font-bold">
-											{currentIndustry?.companies?.length || 0}
-										</span>
-									</Badge>
-									<Badge
-										variant="outline"
-										className="flex items-center gap-1 px-2 py-1"
-									>
-										<BarChart3 className="h-3 w-3" />
-										<span className="text-xs">Params</span>
-										<span className="text-xs font-bold">
-											{currentIndustry?.parameters?.length || 0}
-										</span>
-									</Badge>
-								</div>
+				<div className="flex-1 overflow-y-auto space-y-4">
+					{/* Header Section */}
+					<Card className="bg-muted/50 rounded-lg px-3 py-3 mb-4">
+						<div className="flex items-start gap-3 mb-3">
+							<div className="bg-background p-2 rounded-lg shadow-sm relative">
+								{isEditing && (
+									<div className="absolute -top-1 -right-1 bg-primary text-primary-foreground rounded-full w-4 h-4 flex items-center justify-center">
+										<Edit className="h-2.5 w-2.5" />
+									</div>
+								)}
+								<button
+									onClick={() => isEditing && setIsIconSelectorOpen(true)}
+									className={`${
+										isEditing
+											? "cursor-pointer hover:bg-muted/50 rounded transition-colors"
+											: ""
+									}`}
+									disabled={!isEditing}
+								>
+									<currentIndustry.logo className="h-6 w-6 text-primary" />
+								</button>
 							</div>
+							<div className="flex-1 min-w-0">
+								{/* Name and Stats on same horizontal line */}
+								<div className="flex items-center justify-between gap-3 mb-2">
+									<div className="flex items-center gap-2">
+										{isEditing ? (
+											<div className="flex-1">
+												<label className="text-xs font-medium text-muted-foreground block mb-1">
+													Industry Name
+												</label>
+												<Input
+													value={currentIndustry?.name || ""}
+													onChange={(e) =>
+														handleFieldChange("name", e.target.value)
+													}
+													className="text-lg font-bold h-8 border-0 bg-transparent p-0 focus-visible:ring-0"
+												/>
+											</div>
+										) : (
+											<h2 className="text-lg font-bold text-foreground">
+												{currentIndustry?.name}
+											</h2>
+										)}
+										{!isEditing && (
+											<Badge
+												variant={
+													currentIndustry?.status === "verified"
+														? "default"
+														: "secondary"
+												}
+												className="text-xs px-1.5 py-0.5"
+											>
+												{currentIndustry?.status}
+											</Badge>
+										)}
+									</div>
 
-							{/* Description below */}
-							{isEditing ? (
-								<div className="flex-1">
-									<label className="text-xs font-medium text-muted-foreground block mb-1">
-										Description
-									</label>
-									<Textarea
-										value={currentIndustry?.description || ""}
-										onChange={(e) =>
-											handleFieldChange("description", e.target.value)
-										}
-										className="text-sm resize-y border rounded-md p-2 min-h-[60px]"
-										rows={2}
-									/>
+									{/* Stats Badges */}
+									<div className="flex gap-1">
+										<Badge
+											variant="outline"
+											className="flex items-center gap-1 px-2 py-1"
+										>
+											<Zap className="h-3 w-3" />
+											<span className="text-xs">Tech</span>
+											<span className="text-xs font-bold">
+												{currentIndustry?.technologies?.length || 0}
+											</span>
+										</Badge>
+										<Badge
+											variant="outline"
+											className="flex items-center gap-1 px-2 py-1"
+										>
+											<Building2 className="h-3 w-3" />
+											<span className="text-xs">Companies</span>
+											<span className="text-xs font-bold">
+												{currentIndustry?.companies?.length || 0}
+											</span>
+										</Badge>
+										<Badge
+											variant="outline"
+											className="flex items-center gap-1 px-2 py-1"
+										>
+											<BarChart3 className="h-3 w-3" />
+											<span className="text-xs">Params</span>
+											<span className="text-xs font-bold">
+												{currentIndustry?.parameters?.length || 0}
+											</span>
+										</Badge>
+									</div>
 								</div>
-							) : (
-								<p className="text-muted-foreground text-sm leading-relaxed">
-									{currentIndustry?.description}
-								</p>
-							)}
+
+								{/* Description below */}
+								{isEditing ? (
+									<div className="flex-1">
+										<label className="text-xs font-medium text-muted-foreground block mb-1">
+											Description
+										</label>
+										<Textarea
+											value={currentIndustry?.description || ""}
+											onChange={(e) =>
+												handleFieldChange("description", e.target.value)
+											}
+											className="text-sm resize-y border rounded-md p-2 min-h-[60px]"
+											rows={2}
+										/>
+									</div>
+								) : (
+									<p className="text-muted-foreground text-sm leading-relaxed">
+										{currentIndustry?.description}
+									</p>
+								)}
+							</div>
 						</div>
-					</div>
-				</Card>
+					</Card>
 
-				<Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-					<TabsList className="grid w-full grid-cols-2 bg-background border border-border mb-6">
-						<TabsTrigger
-							value="overview"
-							className="data-[state=active]:!bg-primary data-[state=active]:!text-primary-foreground text-muted-foreground"
-						>
-							Overview
-						</TabsTrigger>
-						<TabsTrigger
-							value="parameters"
-							className="data-[state=active]:!bg-primary data-[state=active]:!text-primary-foreground text-muted-foreground"
-						>
-							Parameters ({currentIndustry?.parameters?.length || 0})
-						</TabsTrigger>
-					</TabsList>
+					<Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+						<TabsList className="grid w-full grid-cols-2 bg-background border border-border mb-6">
+							<TabsTrigger
+								value="overview"
+								className="data-[state=active]:!bg-primary data-[state=active]:!text-primary-foreground text-muted-foreground"
+							>
+								Overview
+							</TabsTrigger>
+							<TabsTrigger
+								value="parameters"
+								className="data-[state=active]:!bg-primary data-[state=active]:!text-primary-foreground text-muted-foreground"
+							>
+								Parameters ({currentIndustry?.parameters?.length || 0})
+							</TabsTrigger>
+						</TabsList>
 
-					<TabsContent value="overview" className="space-y-2">
-						<TabContentOverview
-							currentIndustry={currentIndustry}
-							parameterSummary={parameterSummary}
-						/>
-					</TabsContent>
-					<TabsContent value="parameters" className="space-y-4">
-						<TabContentParameters
-							currentIndustry={currentIndustry}
-							parameterSummary={parameterSummary}
-							isEditing={isEditing}
-							onParameterChange={handleParameterChange}
-							onAddParameter={handleAddParameter}
-							onRemoveParameter={handleRemoveParameter}
-						/>
-					</TabsContent>
-				</Tabs>
+						<TabsContent value="overview" className="space-y-2">
+							<TabContentOverview
+								currentIndustry={currentIndustry}
+								parameterSummary={parameterSummary}
+								clients={clients}
+							/>
+						</TabsContent>
+						<TabsContent value="parameters" className="space-y-4">
+							<TabContentParameters
+								currentIndustry={currentIndustry}
+								parameterSummary={parameterSummary}
+								isEditing={isEditing}
+								onParameterChange={handleParameterChange}
+								onAddParameter={handleAddParameter}
+								onRemoveParameter={handleRemoveParameter}
+							/>
+						</TabsContent>
+					</Tabs>
+				</div>
 
-				{/* Footer with Action Buttons */}
-				<div className="flex justify-end gap-3 pt-6 border-t mt-6">
+				{/* Footer with Action Buttons - Always visible */}
+				<div className="flex justify-end gap-3 pt-6 border-t mt-6 flex-shrink-0">
 					{isEditing ? (
 						<>
 							<Button
@@ -486,9 +504,11 @@ export function IndustryDetailDialog({
 function TabContentOverview({
 	currentIndustry,
 	parameterSummary,
+	clients,
 }: {
 	currentIndustry: Industry;
 	parameterSummary?: Record<string, number> | null;
+	clients: ClientData[];
 }) {
 	return (
 		<>
@@ -540,6 +560,7 @@ function TabContentOverview({
 									iconSize={6}
 									textSize="sm"
 									maxVisible={12}
+									clients={clients}
 								/>
 							</div>
 						) : (

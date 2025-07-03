@@ -6,7 +6,7 @@ import { ObjectId } from "mongodb";
 export interface CreateTechnologyData {
 	name: string;
 	description: string;
-	icon?: string; // Store icon name as string for MongoDB
+	icon?: string; 
 	status?: "pending" | "verified";
 	applicableIndustries?: string[];
 	parameters?: Array<{
@@ -166,7 +166,6 @@ export async function updateTechnology(
 			updated_at: new Date(),
 		};
 
-		// Only update fields that are provided
 		if (data.name !== undefined) updateData.name = data.name;
 		if (data.description !== undefined) updateData.description = data.description;
 		if (data.icon !== undefined) updateData.icon = data.icon;

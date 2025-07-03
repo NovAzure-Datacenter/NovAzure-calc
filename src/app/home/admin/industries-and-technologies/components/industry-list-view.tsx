@@ -38,14 +38,13 @@ import {
 	DialogTitle,
 	DialogDescription,
 } from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Industry } from "../types";
-import { TechnologyIcons, CompanyIcons } from "./icons";
+import { TechnologyIcons, CompanyIcons } from "@/components/icons/technology-company-icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { IndustryDetailDialog } from "./industry-detail-dialog";
 import { deleteIndustry } from "@/lib/actions/industry/industry";
+import { getClients, ClientData } from "@/lib/actions/client/client";
 
 interface IndustryDetailDialogProps {
 	industry: Industry | null;
@@ -55,7 +54,10 @@ interface IndustryDetailDialogProps {
 	isEditMode: boolean;
 }
 
-export function TableView({ data, onIndustryDeleted }: { 
+export function TableView({
+	data,
+	onIndustryDeleted,
+}: {
 	data: Industry[];
 	onIndustryDeleted?: () => Promise<void>;
 }) {
@@ -67,22 +69,44 @@ export function TableView({ data, onIndustryDeleted }: {
 	const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 	const [isRemoving, setIsRemoving] = useState<string | null>(null);
 	const [isConfirmingRemove, setIsConfirmingRemove] = useState(false);
+	const [clients, setClients] = useState<ClientData[]>([]);
 
 	const statusColors = {
 		pending: "bg-yellow-100 text-yellow-800",
 		verified: "bg-green-100 text-green-800",
 	};
 
+
+	const loadClients = async () => {
+		try {
+			const result = await getClients();
+			if (result.clients) {
+				setClients(result.clients);
+			}
+		} catch (error) {
+			console.error("Error loading clients:", error);
+		}
+	};
+
+
+
+	useEffect(() => {
+		loadClients();
+	}, []);
+
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
-			if (openDropdown && !(event.target as Element).closest('.dropdown-container')) {
+			if (
+				openDropdown &&
+				!(event.target as Element).closest(".dropdown-container")
+			) {
 				setOpenDropdown(null);
 			}
 		};
 
-		document.addEventListener('mousedown', handleClickOutside);
+		document.addEventListener("mousedown", handleClickOutside);
 		return () => {
-			document.removeEventListener('mousedown', handleClickOutside);
+			document.removeEventListener("mousedown", handleClickOutside);
 		};
 	}, [openDropdown]);
 
@@ -92,17 +116,23 @@ export function TableView({ data, onIndustryDeleted }: {
 		setIsEditMode(false);
 	};
 
-	const handleDropdownButtonClick = (e: React.MouseEvent, industryName: string) => {
+	const handleDropdownButtonClick = (
+		e: React.MouseEvent,
+		industryName: string
+	) => {
 		e.stopPropagation();
 		setOpenDropdown(openDropdown === industryName ? null : industryName);
 	};
 
-	const handleDropdownItemClick = async (action: string, industryName: string) => {
+	const handleDropdownItemClick = async (
+		action: string,
+		industryName: string
+	) => {
 		setOpenDropdown(null);
-		
-		const industry = data.find(ind => ind.name === industryName);
+
+		const industry = data.find((ind) => ind.name === industryName);
 		if (!industry) return;
-		
+
 		if (action === "View") {
 			setSelectedIndustry(industry);
 			setIsEditMode(false);
@@ -149,10 +179,7 @@ export function TableView({ data, onIndustryDeleted }: {
 						</TableHeader>
 						<TableBody>
 							{data.map((industry) => (
-								<TableRow
-									key={industry.id}
-									className="hover:bg-muted/50"
-								>
+								<TableRow key={industry.id} className="hover:bg-muted/50">
 									<TableCell className="h-10 px-2 py-1">
 										<div className="flex items-center justify-center bg-gray-100 rounded">
 											<industry.logo className="h-4 w-4 text-gray-600" />
@@ -176,12 +203,17 @@ export function TableView({ data, onIndustryDeleted }: {
 										<TechnologyIcons technologies={industry.technologies} />
 									</TableCell>
 									<TableCell className="h-10 px-2 py-1">
-										<CompanyIcons companies={industry.companies} />
+										<CompanyIcons
+											companies={industry.companies}
+											clients={clients}
+										/>
 									</TableCell>
 									<TableCell className="h-10 px-2 py-1">
-										<Badge 
-											variant="outline" 
-											className={`text-xs px-2 py-0.5 ${statusColors[industry.status]}`}
+										<Badge
+											variant="outline"
+											className={`text-xs px-2 py-0.5 ${
+												statusColors[industry.status]
+											}`}
 										>
 											{industry.status}
 										</Badge>
@@ -192,34 +224,44 @@ export function TableView({ data, onIndustryDeleted }: {
 											<Button
 												variant="ghost"
 												className="h-6 w-6 p-0"
-												onClick={(e) => handleDropdownButtonClick(e, industry.name)}
+												onClick={(e) =>
+													handleDropdownButtonClick(e, industry.name)
+												}
 											>
 												<MoreHorizontal className="h-3 w-3" />
 											</Button>
-											
+
 											{openDropdown === industry.name && (
 												<div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-[9999] min-w-[120px]">
 													<button
 														className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
-														onClick={() => handleDropdownItemClick('View', industry.name)}
+														onClick={() =>
+															handleDropdownItemClick("View", industry.name)
+														}
 													>
 														<Eye className="h-3 w-3" />
 														View
 													</button>
 													<button
 														className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
-														onClick={() => handleDropdownItemClick('Edit', industry.name)}
+														onClick={() =>
+															handleDropdownItemClick("Edit", industry.name)
+														}
 													>
 														<Edit className="h-3 w-3" />
 														Edit
 													</button>
 													<button
 														className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-														onClick={() => handleDropdownItemClick('Remove', industry.name)}
+														onClick={() =>
+															handleDropdownItemClick("Remove", industry.name)
+														}
 														disabled={isRemoving === industry.id}
 													>
 														<Trash2 className="h-3 w-3" />
-														{isRemoving === industry.id ? "Removing..." : "Remove"}
+														{isRemoving === industry.id
+															? "Removing..."
+															: "Remove"}
 													</button>
 												</div>
 											)}
@@ -276,7 +318,7 @@ export function TableView({ data, onIndustryDeleted }: {
 									setIsRemoving(selectedIndustry.id);
 									try {
 										const result = await deleteIndustry(selectedIndustry.id);
-										
+
 										if (result.error) {
 											toast.error(result.error);
 										} else {
@@ -287,7 +329,9 @@ export function TableView({ data, onIndustryDeleted }: {
 											}
 										}
 									} catch (error) {
-										toast.error("An unexpected error occurred while removing the industry");
+										toast.error(
+											"An unexpected error occurred while removing the industry"
+										);
 									} finally {
 										setIsRemoving(null);
 									}
@@ -297,7 +341,9 @@ export function TableView({ data, onIndustryDeleted }: {
 								disabled={isRemoving === selectedIndustry.id}
 							>
 								<Trash2 className="h-4 w-4 mr-2" />
-								{isRemoving === selectedIndustry.id ? "Removing..." : "Remove Industry"}
+								{isRemoving === selectedIndustry.id
+									? "Removing..."
+									: "Remove Industry"}
 							</Button>
 						</div>
 					</DialogContent>
@@ -306,5 +352,3 @@ export function TableView({ data, onIndustryDeleted }: {
 		</div>
 	);
 }
-
-

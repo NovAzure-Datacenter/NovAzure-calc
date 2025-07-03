@@ -1,20 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-	Plus,
-	Building2,
-	Zap,
-	Wind,
-	Droplets,
-	Server,
-	Wrench,
-	Recycle,
-	Car,
-	Fuel,
-	X,
-	ChevronDown,
-} from "lucide-react";
+import { Plus, Building2, ChevronDown, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -50,24 +37,13 @@ import { getIndustries as getIndustriesAction } from "@/lib/actions/industry/ind
 import {
 	iconComponentToString,
 	stringToIconComponent,
-} from "../utils/icon-utils";
+	iconOptions,
+} from "@/lib/icons/lucide-icons";
 import { getCreateDialogCategoryColor } from "../utils/color-utils";
 
 const technologyStatuses = [
 	{ value: "verified", label: "Verified" },
 	{ value: "pending", label: "Pending" },
-];
-
-const iconOptions = [
-	{ value: "Building2", label: "Building", icon: Building2 },
-	{ value: "Zap", label: "Energy", icon: Zap },
-	{ value: "Wind", label: "Cooling", icon: Wind },
-	{ value: "Droplets", label: "Water", icon: Droplets },
-	{ value: "Server", label: "Server", icon: Server },
-	{ value: "Wrench", label: "Tools", icon: Wrench },
-	{ value: "Recycle", label: "Recycling", icon: Recycle },
-	{ value: "Car", label: "Transport", icon: Car },
-	{ value: "Fuel", label: "Fuel", icon: Fuel },
 ];
 
 interface CreateTechnologyDialogProps {

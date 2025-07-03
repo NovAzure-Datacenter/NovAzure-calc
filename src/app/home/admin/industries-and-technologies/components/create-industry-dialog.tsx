@@ -1,26 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { 
-	Plus, 
-	X, 
-	Building2, 
-	ChevronDown,
-	Zap,
-	Wind,
-	Droplets,
-	Server,
-	Wrench,
-	Recycle,
-	Car,
-	Fuel,
-	Cpu,
-	Monitor,
-	Settings,
-	Leaf,
-	Shield,
-	Gauge
-} from "lucide-react";
+import { Plus, X, Building2, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -60,7 +41,7 @@ import {
 	iconComponentToString,
 	stringToIconComponent,
 	iconOptions,
-} from "../utils/icon-utils";
+} from "@/lib/icons/lucide-icons";
 import { getCreateDialogCategoryColor } from "../utils/color-utils";
 import React from "react";
 
@@ -80,7 +61,8 @@ export function CreateIndustryDialog({ onCreate }: CreateIndustryDialogProps) {
 	const [parameters, setParameters] = useState<IndustryParameter[]>([]);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [isLoadingTechnologies, setIsLoadingTechnologies] = useState(false);
-	const [selectedIcon, setSelectedIcon] = useState<React.ComponentType<{ className?: string }>>(Building2);
+	const [selectedIcon, setSelectedIcon] =
+		useState<React.ComponentType<{ className?: string }>>(Building2);
 	const [paramName, setParamName] = useState("");
 	const [paramValue, setParamValue] = useState("");
 	const [paramUnit, setParamUnit] = useState("");
@@ -327,9 +309,14 @@ export function CreateIndustryDialog({ onCreate }: CreateIndustryDialogProps) {
 							<Label className="text-xs font-medium">Industry Icon</Label>
 							<div className="flex items-center gap-2 mt-1">
 								<div className="flex items-center justify-center w-8 h-8 border rounded-md bg-gray-50">
-									{React.createElement(selectedIcon, { className: "h-4 w-4 text-gray-600" })}
+									{React.createElement(selectedIcon, {
+										className: "h-4 w-4 text-gray-600",
+									})}
 								</div>
-								<Select onValueChange={handleIconChange} value={iconComponentToString(selectedIcon)}>
+								<Select
+									onValueChange={handleIconChange}
+									value={iconComponentToString(selectedIcon)}
+								>
 									<SelectTrigger className="text-xs h-8 flex-1">
 										<SelectValue placeholder="Select an icon" />
 									</SelectTrigger>
