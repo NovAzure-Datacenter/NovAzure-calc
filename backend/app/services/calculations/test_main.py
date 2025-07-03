@@ -13,7 +13,8 @@ from app.services.calculations.main import (
     # IT Configuration inputs
     include_it_cost,
     data_center_type,
-    air_rack_cooling_capacity_kw_per_rack
+    air_rack_cooling_capacity_kw_per_rack,
+    advanced
 )
 
 @pytest.fixture(scope="session", autouse=True)
@@ -25,6 +26,8 @@ def setup_database():
 @pytest.fixture
 def reset_inputs():
     """Reset all input dictionaries to their default state before each test"""
+    import app.services.calculations.main as main_module
+    main_module.advanced = False  # Reset advanced mode to default
     percentage_of_utilisation['%_of_utilisation'] = None
     planned_years_of_operation['planned_years_of_operation'] = None
     project_location['project_location'] = None
@@ -213,7 +216,7 @@ async def test_lifetime_opex_structure(reset_inputs):
 def test_update_inputs_with_it_configuration(reset_inputs):
     """Test that update_inputs correctly handles IT configuration inputs."""
     test_inputs = {
-        'include_it_cost': 'yes',
+        'include_it_cost': True,
         'data_center_type': 'HPC/AI',
         'air_rack_cooling_capacity_kw_per_rack': 12.0,
         'data_hall_design_capacity_mw': 10.0,
@@ -221,7 +224,7 @@ def test_update_inputs_with_it_configuration(reset_inputs):
     
     update_inputs(test_inputs)
     
-    assert include_it_cost['include_it_cost'] == 'yes'
+    assert include_it_cost['include_it_cost'] == True
     assert data_center_type['data_center_type'] == 'HPC/AI'
     assert air_rack_cooling_capacity_kw_per_rack['air_rack_cooling_capacity_kw_per_rack'] == 12.0
 
@@ -332,8 +335,9 @@ async def test_calculate_with_it_costs_included(reset_inputs):
         '%_of_utilisation': 0.8,
         'annualised_air_ppue': 1.2,
         'planned_years_of_operation': 10,
-        # IT Configuration
-        'include_it_cost': 'yes',
+        # Enable advanced mode and IT Configuration
+        'advanced': True,
+        'include_it_cost': True,
         'data_center_type': 'General Purpose',
         'air_rack_cooling_capacity_kw_per_rack': 12.0
     }
@@ -350,8 +354,9 @@ async def test_calculate_with_it_costs_included(reset_inputs):
     assert 'total_capex' in result
     assert result['total_capex'] > result['air_cooling_capex']
     
-    # Should indicate IT costs were included
-    assert result['include_it_cost'] == 'yes'
+    # Should indicate IT costs were included and advanced mode enabled
+    assert result['include_it_cost'] == True
+    assert result['advanced_mode'] == True
 
 
 @pytest.mark.asyncio
@@ -365,7 +370,7 @@ async def test_calculate_with_it_costs_excluded(reset_inputs):
         'annualised_air_ppue': 1.2,
         'planned_years_of_operation': 10,
         # IT Configuration - explicitly exclude
-        'include_it_cost': 'no',
+        'include_it_cost': False,
         'data_center_type': 'General Purpose',
         'air_rack_cooling_capacity_kw_per_rack': 12.0
     }
@@ -381,7 +386,7 @@ async def test_calculate_with_it_costs_excluded(reset_inputs):
     assert result['total_capex'] == result['air_cooling_capex']
     
     # Should indicate IT costs were not included
-    assert result['include_it_cost'] == 'no'
+    assert result['include_it_cost'] == False
 
 
 @pytest.mark.asyncio
@@ -408,26 +413,17 @@ async def test_calculate_without_it_configuration(reset_inputs):
     assert result['total_capex'] == result['air_cooling_capex']
     
     # Should indicate IT costs were not included
-    assert result['include_it_cost'] == 'No'
+    assert result['include_it_cost'] == False
 
 
 @pytest.mark.parametrize("include_it_value,should_include", [
-    ("yes", True),
-    ("Yes", True),
-    ("YES", True),
-    ("true", True),
-    ("True", True),
-    ("1", True),
-    ("no", False),
-    ("No", False),
-    ("false", False),
-    ("0", False),
-    ("", False),
-    ("maybe", False),  # Invalid value should default to False
+    (True, True),
+    (False, False),
+    (None, False),  # None should default to False
 ])
 @pytest.mark.asyncio
 async def test_calculate_it_cost_inclusion_logic(reset_inputs, include_it_value, should_include):
-    """Test different values for include_it_cost parameter."""
+    """Test boolean values for include_it_cost parameter."""
     inputs = {
         'data_hall_design_capacity_mw': 5.0,
         'first_year_of_operation': 2023,
@@ -435,6 +431,7 @@ async def test_calculate_it_cost_inclusion_logic(reset_inputs, include_it_value,
         '%_of_utilisation': 0.8,
         'annualised_air_ppue': 1.2,
         'planned_years_of_operation': 10,
+        'advanced': True,  # Enable advanced mode
         'include_it_cost': include_it_value,
         'data_center_type': 'General Purpose',
         'air_rack_cooling_capacity_kw_per_rack': 12.0
@@ -463,7 +460,8 @@ async def test_calculate_total_cost_of_ownership_with_it(reset_inputs):
         '%_of_utilisation': 0.8,
         'annualised_air_ppue': 1.2,
         'planned_years_of_operation': 10,
-        'include_it_cost': 'yes',
+        'advanced': True,  # Enable advanced mode
+        'include_it_cost': True,
         'data_center_type': 'General Purpose',
         'air_rack_cooling_capacity_kw_per_rack': 12.0
     }
@@ -478,6 +476,57 @@ async def test_calculate_total_cost_of_ownership_with_it(reset_inputs):
     # TCO should be higher than just cooling costs
     cooling_only_tco = result['air_cooling_capex'] + result['total_opex_over_lifetime']['total_opex_over_lifetime']
     assert result['total_cost_of_ownership'] > cooling_only_tco
+
+
+@pytest.mark.asyncio
+async def test_calculate_advanced_mode_disabled_it_costs_ignored(reset_inputs):
+    """Test that IT costs are ignored when advanced mode is disabled, even if include_it_cost is yes."""
+    inputs = {
+        'data_hall_design_capacity_mw': 5.0,
+        'first_year_of_operation': 2023,
+        'project_location': 'United States',
+        '%_of_utilisation': 0.8,
+        'annualised_air_ppue': 1.2,
+        'planned_years_of_operation': 10,
+        'advanced': False,  # Advanced mode disabled
+        'include_it_cost': True,  # This should be ignored
+        'data_center_type': 'General Purpose',
+        'air_rack_cooling_capacity_kw_per_rack': 12.0
+    }
+    
+    update_inputs(inputs)
+    result = await calculate()
+    
+    # IT costs should not be included because advanced mode is disabled
+    assert result['it_capex']['total_it_capex'] == 0
+    assert result['total_capex'] == result['air_cooling_capex']
+    assert result['advanced_mode'] == False
+
+
+@pytest.mark.asyncio
+async def test_calculate_advanced_mode_enabled_but_it_costs_disabled(reset_inputs):
+    """Test that IT costs are not included when advanced mode is enabled but include_it_cost is no."""
+    inputs = {
+        'data_hall_design_capacity_mw': 5.0,
+        'first_year_of_operation': 2023,
+        'project_location': 'United States',
+        '%_of_utilisation': 0.8,
+        'annualised_air_ppue': 1.2,
+        'planned_years_of_operation': 10,
+        'advanced': True,  # Advanced mode enabled
+        'include_it_cost': False,  # IT costs disabled
+        'data_center_type': 'General Purpose',
+        'air_rack_cooling_capacity_kw_per_rack': 12.0
+    }
+    
+    update_inputs(inputs)
+    result = await calculate()
+    
+    # IT costs should not be included because include_it_cost is no
+    assert result['it_capex']['total_it_capex'] == 0
+    assert result['total_capex'] == result['air_cooling_capex']
+    assert result['advanced_mode'] == True
+    assert result['include_it_cost'] == False
 
 
 # =============================================================================
@@ -507,3 +556,63 @@ def test_it_capex_refresh_calculation(planned_years, expected_refreshes):
         # Refresh CAPEX should be initial CAPEX × number of refreshes
         expected_refresh_capex = result['it_servers_capex'] * expected_refreshes
         assert result['it_refresh_capex'] == expected_refresh_capex
+
+
+def test_calculate_it_capex_utilization_parameter():
+    """Test that utilization parameter affects IT capacity calculations correctly."""
+    capacity_mw = 10.0  # 10MW data hall
+    dc_type = "General Purpose"  # 1kW per server
+    cooling_capacity = 12.0  # 12kW per rack
+    planned_years = 10
+    
+    # Test with 60% utilization
+    result_60 = calculate_it_capex(capacity_mw, dc_type, cooling_capacity, planned_years, 0.6)
+    
+    # Test with 80% utilization  
+    result_80 = calculate_it_capex(capacity_mw, dc_type, cooling_capacity, planned_years, 0.8)
+    
+    # Test with no utilization (should default to 80%)
+    result_default = calculate_it_capex(capacity_mw, dc_type, cooling_capacity, planned_years)
+    
+    # 60% should have fewer servers than 80%
+    assert result_60['estimated_servers'] < result_80['estimated_servers']
+    assert result_60['total_it_capex'] < result_80['total_it_capex']
+    
+    # Default should equal 80% explicitly specified
+    assert result_default['estimated_servers'] == result_80['estimated_servers']
+    assert result_default['total_it_capex'] == result_80['total_it_capex']
+    
+    # Verify calculations:
+    # 10MW * 0.6 = 6MW = 6000kW IT capacity, 6000 servers @ 1kW each
+    assert result_60['estimated_servers'] == 6000
+    # 10MW * 0.8 = 8MW = 8000kW IT capacity, 8000 servers @ 1kW each  
+    assert result_80['estimated_servers'] == 8000
+
+
+@pytest.mark.asyncio
+async def test_calculate_uses_actual_utilization_data(reset_inputs):
+    """Test that the main calculate function uses actual user utilization data for IT calculations."""
+    inputs = {
+        'data_hall_design_capacity_mw': 5.0,
+        'first_year_of_operation': 2023,
+        'project_location': 'United States',
+        '%_of_utilisation': 0.6,  # 60% utilization instead of default 80%
+        'annualised_air_ppue': 1.2,
+        'planned_years_of_operation': 10,
+        'advanced': True,
+        'include_it_cost': True,
+        'data_center_type': 'General Purpose',
+        'air_rack_cooling_capacity_kw_per_rack': 12.0
+    }
+    
+    update_inputs(inputs)
+    result = await calculate()
+    
+    # IT CAPEX should be calculated based on 60% utilization
+    # 5MW * 0.6 = 3MW = 3000kW IT capacity = 3000 servers @ 1kW each
+    assert result['it_capex']['estimated_servers'] == 3000
+    
+    # Compare with what we'd get if it used 80% (the old hardcoded value)
+    # 5MW * 0.8 = 4MW = 4000kW IT capacity = 4000 servers @ 1kW each
+    # So our result should be less than that
+    assert result['it_capex']['estimated_servers'] < 4000
