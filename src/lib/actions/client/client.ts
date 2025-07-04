@@ -1,8 +1,11 @@
 "use server";
 
-import { getClientsCollection } from "@/lib/mongoDb/db";
+import { getClientsCollection, getUsersCollection } from "@/lib/mongoDb/db";
 import { ObjectId } from "mongodb";
 import { removeCompanyFromIndustries } from "../industry/industry";
+import { hash } from "bcryptjs";
+import crypto from "crypto";
+import { sendEmail, generateWelcomeEmail } from "../utils/SMTP-email-template";
 
 export interface ClientData {
 	id?: string;
@@ -45,38 +48,40 @@ export async function getClients(): Promise<{
 		const collection = await getClientsCollection();
 		const clients = await collection.find({}).toArray();
 
-		const transformedClients: ClientData[] = clients.map((client) => ({
-			id: client._id.toString(),
-			logo: client.logo || "Building2",
-			companyName: client.companyName,
-			website: client.website,
-			mainContactEmail: client.mainContactEmail,
-			mainContactFirstName: client.mainContactFirstName,
-			mainContactLastName: client.mainContactLastName,
-			mainContactPhone: client.mainContactPhone,
-			techContactFirstName: client.techContactFirstName,
-			techContactLastName: client.techContactLastName,
-			techContactEmail: client.techContactEmail,
-			techContactPhone: client.techContactPhone,
-			companyIndustry: client.companyIndustry,
-			companySize: client.companySize,
-			street: client.street,
-			city: client.city,
-			stateProvince: client.stateProvince,
-			zipcodePostalCode: client.zipcodePostalCode,
-			country: client.country,
-			timezone: client.timezone,
-			clientStatus: client.clientStatus || "prospect",
-			additionalNotes: client.additionalNotes,
-			selectedIndustries: client.selectedIndustries || [],
-			selectedTechnologies: client.selectedTechnologies || [],
-			userCount: client.userCount || 0,
-			productCount: client.productCount || 0,
-			productPendingCount: client.productPendingCount || 0,
-			scenarioCount: client.scenarioCount || 0,
-			createdAt: client.createdAt,
-			updatedAt: client.updatedAt,
-		}));
+		const transformedClients: ClientData[] = clients
+			.filter((client) => client._id.toString() !== "684ad0ca270ad70b516c4bd0")
+			.map((client) => ({
+				id: client._id.toString(),
+				logo: client.logo || "Building2",
+				companyName: client.companyName,
+				website: client.website,
+				mainContactEmail: client.mainContactEmail,
+				mainContactFirstName: client.mainContactFirstName,
+				mainContactLastName: client.mainContactLastName,
+				mainContactPhone: client.mainContactPhone,
+				techContactFirstName: client.techContactFirstName,
+				techContactLastName: client.techContactLastName,
+				techContactEmail: client.techContactEmail,
+				techContactPhone: client.techContactPhone,
+				companyIndustry: client.companyIndustry,
+				companySize: client.companySize,
+				street: client.street,
+				city: client.city,
+				stateProvince: client.stateProvince,
+				zipcodePostalCode: client.zipcodePostalCode,
+				country: client.country,
+				timezone: client.timezone,
+				clientStatus: client.clientStatus || "prospect",
+				additionalNotes: client.additionalNotes,
+				selectedIndustries: client.selectedIndustries || [],
+				selectedTechnologies: client.selectedTechnologies || [],
+				userCount: client.userCount || 0,
+				productCount: client.productCount || 0,
+				productPendingCount: client.productPendingCount || 0,
+				scenarioCount: client.scenarioCount || 0,
+				createdAt: client.createdAt,
+				updatedAt: client.updatedAt,
+			}));
 
 		return { clients: transformedClients };
 	} catch (error) {
@@ -107,6 +112,17 @@ export async function createClient(
 		const result = await collection.insertOne(newClient);
 
 		if (result.insertedId) {
+			// Create a user account for the main contact
+			const userCreationResult = await createClientUser(
+				clientData,
+				result.insertedId.toString()
+			);
+
+			if (userCreationResult.error) {
+				console.error("Warning: Failed to create user account:", userCreationResult.error);
+				// Don't fail the client creation, just log the warning
+			}
+
 			return { clientId: result.insertedId.toString() };
 		} else {
 			return { error: "Failed to create client" };
@@ -115,6 +131,125 @@ export async function createClient(
 		console.error("Error creating client:", error);
 		return { error: "Failed to create client" };
 	}
+}
+
+// Function to create a user account for a client's main contact
+async function createClientUser(
+	clientData: Omit<ClientData, "id" | "createdAt" | "updatedAt">,
+	clientId: string
+): Promise<{
+	success?: boolean;
+	error?: string;
+}> {
+	try {
+		const usersCollection = await getUsersCollection();
+
+		// Generate login email
+		const loginEmail = generateClientLoginEmail(
+			clientData.mainContactFirstName || "",
+			clientData.mainContactLastName || "",
+			clientData.companyName
+		);
+
+		if (!loginEmail) {
+			return { error: "Unable to generate login email - missing contact information" };
+		}
+
+		// Check if user with this email already exists
+		const existingUser = await usersCollection.findOne({
+			email: loginEmail.toLowerCase(),
+		});
+
+		if (existingUser) {
+			return { error: "User with this email already exists" };
+		}
+
+		// Generate a temporary password hash (user will need to reset password)
+		const tempPassword = Math.random().toString(36).slice(-8);
+		const passwordHash = await hash(tempPassword, 10);
+
+		// Generate a reset token for initial password setup (1 week expiration)
+		const resetToken = crypto.randomBytes(32).toString("hex");
+		const resetTokenExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+
+		const newUser = {
+			first_name: clientData.mainContactFirstName || "",
+			last_name: clientData.mainContactLastName || "",
+			email: loginEmail.toLowerCase(),
+			passwordHash,
+			role: "admin",
+			client_id: new ObjectId(clientId),
+			mobile_number: clientData.mainContactPhone || "",
+			work_number: "",
+			timezone: clientData.timezone || "UTC",
+			currency: "USD",
+			unit_system: "metric",
+			created_at: new Date(),
+			isVerified: false,
+			profile_image: "",
+			resetToken,
+			resetTokenExpiry,
+		};
+
+		const result = await usersCollection.insertOne(newUser);
+
+		if (!result.acknowledged) {
+			return { error: "Failed to create user account" };
+		}
+
+		// Send welcome email to the main contact email (not the generated login email)
+		try {
+			await sendEmail({
+				to: clientData.mainContactEmail.toLowerCase(),
+				subject: `Welcome to NovAzure - ${clientData.companyName}`,
+				html: generateWelcomeEmail(
+					clientData.mainContactFirstName || "",
+					clientData.mainContactLastName || "",
+					clientData.companyName,
+					resetToken,
+					loginEmail // Pass the login email to include in the welcome message
+				),
+			});
+		} catch (emailError) {
+			console.error("Error sending welcome email:", emailError);
+			// Don't fail user creation if email fails
+		}
+
+		console.log(`User account created for client ${clientData.companyName}: ${loginEmail}`);
+		return { success: true };
+	} catch (error) {
+		console.error("Error creating client user:", error);
+		return { error: "Failed to create user account" };
+	}
+}
+
+// Function to generate login email for client
+function generateClientLoginEmail(
+	firstName: string,
+	lastName: string,
+	companyName: string
+): string {
+	if (!firstName || !lastName || !companyName) {
+		return "";
+	}
+
+	// Clean and normalize inputs
+	const cleanFirstName = firstName.replace(/[^a-zA-Z]/g, "").toLowerCase();
+	const cleanLastName = lastName.replace(/[^a-zA-Z]/g, "").toLowerCase();
+	const cleanCompanyName = companyName
+		.replace(/[^a-zA-Z0-9]/g, "")
+		.replace(/\s+/g, "")
+		.toLowerCase();
+
+	if (!cleanFirstName || !cleanLastName || !cleanCompanyName) {
+		return "";
+	}
+
+	// Generate email: firstLetter + lastName + "-" + companyName + "@novazure.com"
+	const firstLetter = cleanFirstName.charAt(0).toUpperCase();
+	const email = `${firstLetter}${cleanLastName}-${cleanCompanyName}@novazure.com`;
+
+	return email;
 }
 
 export async function updateClient(
