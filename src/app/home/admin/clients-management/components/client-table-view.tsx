@@ -360,8 +360,6 @@ export function ClientsTableView({
 		);
 	}
 
-	console.log(clients)
-
 	return (
 		<div className="h-[calc(100vh-200px)] overflow-y-auto">
 			<Card className="rounded-md border p-2">

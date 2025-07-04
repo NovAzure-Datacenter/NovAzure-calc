@@ -218,6 +218,37 @@ export async function deleteClient(clientId: string): Promise<{
 	}
 }
 
+export async function getClientDetails(clientId: string) {
+	try {
+		const collection = await getClientsCollection();
+		const client = await collection.findOne({ _id: new ObjectId(clientId) });
+		if (!client) {
+			return { error: "Client not found" };
+		}
+
+		return {
+			success: true,
+			client: {
+				name: client.company_name,
+				_id: client._id.toString(),
+				industry: client.company_industry,
+				contact_email: client.main_contact_email,
+				contact_number: client.main_contact_phone,
+				website: client.website,
+				logo: client.logo,
+				country: client.country,
+				currency: "USD", // Default currency for clients
+				address: `${client.street || ""} ${client.city || ""} ${client.state_province || ""} ${client.zipcode_postal_code || ""}`.trim(),
+				plan: "standard", // Default plan for clients
+				created_at: client.created_at
+			}
+		};
+	} catch (error) {
+		console.error("Error fetching client details:", error);
+		return { error: "Failed to fetch client details" };
+	}
+}
+
 // Function to create a user account for a client's main contact
 async function createClientUser(
 	clientData: Omit<ClientData, "id" | "created_at" | "updated_at">,

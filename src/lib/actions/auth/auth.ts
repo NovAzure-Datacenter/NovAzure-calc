@@ -1,6 +1,6 @@
 'use server'
 
-import { getUsersCollection, getCompaniesCollection } from "../../mongoDb/db";
+import { getUsersCollection, getClientsCollection } from "../../mongoDb/db";
 import { compare } from "bcryptjs";
 import { UserData } from "@/hooks/useUser";
 import { ObjectId } from "mongodb";
@@ -26,7 +26,7 @@ interface MongoUser {
     work_number?: string;
     mobile_number?: string;
     profile_image?: string;
-    company_id: ObjectId;
+    client_id: ObjectId;
     timezone?: string;
     currency?: string;
     unit_system?: string;
@@ -37,7 +37,7 @@ function _convertToClientData(user: MongoUser) {
     return {
         ...user,
         _id: user._id.toString(),
-        company_id: user.company_id.toString(),
+        client_id: user.client_id.toString(),
         created_at: user.created_at.toISOString()
     };
 }
@@ -60,12 +60,12 @@ export async function login(data: LoginData): Promise<LoginResponse> {
             return { error: "Invalid password" };
         }
 
-        // Fetch company name based on company_id
+        // Fetch client name based on client_id
         let companyName = "Unknown Company";
-        if (user.company_id) {
-            const companiesCollection = await getCompaniesCollection();
-            const company = await companiesCollection.findOne({ _id: user.company_id });
-            companyName = company?.name || "Unknown Company";
+        if (user.client_id) {
+            const clientsCollection = await getClientsCollection();
+            const client = await clientsCollection.findOne({ _id: user.client_id });
+            companyName = client?.company_name || "Unknown Company";
         }
 
         // Transform MongoDB user to UserData type
@@ -77,7 +77,7 @@ export async function login(data: LoginData): Promise<LoginResponse> {
             mobile_number: user.mobile_number || "",
             profile_image: user.profile_image || "/images/profile/default-profile-pic.png",
             company_name: companyName,
-            company_id: user.company_id.toString(),
+            client_id: user.client_id.toString(),
             email: user.email,
             timezone: user.timezone || "UTC",
             currency: user.currency || "USD",

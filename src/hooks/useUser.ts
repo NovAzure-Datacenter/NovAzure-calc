@@ -57,7 +57,7 @@ export function useUser() {
 	const logout = async () => {
 		await signOut({ callbackUrl: "/" });
 	};
-
+	
 	return {
 		user: userData,
 		updateUser,

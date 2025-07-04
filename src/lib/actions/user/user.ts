@@ -1,6 +1,6 @@
 "use server";
 
-import { getUsersCollection, getCompaniesCollection } from "../../mongoDb/db";
+import { getUsersCollection, getClientsCollection } from "../../mongoDb/db";
 import { ObjectId } from "mongodb";
 import { hash } from "bcryptjs";
 import { sendEmail, generateWelcomeEmail } from "../utils/SMTP-email-template";
@@ -108,32 +108,32 @@ export async function updateUserProfile(
 	}
 }
 
-export async function getUsersByCompany(companyId: string) {
+export async function getUsersByCompany(clientId: string) {
 	try {
 		const usersCollection = await getUsersCollection();
-		const companiesCollection = await getCompaniesCollection();
+		const clientsCollection = await getClientsCollection();
 
-		// First get the company name
-		const company = await companiesCollection.findOne({
-			_id: new ObjectId(companyId),
+		// First get the client name
+		const client = await clientsCollection.findOne({
+			_id: new ObjectId(clientId),
 		});
-		const companyName = company?.name || "Unknown Company";
+		const companyName = client?.company_name || "Unknown Company";
 
 		const users = await usersCollection
-			.find({ vendor_id: new ObjectId(companyId) })
+			.find({ client_id: new ObjectId(clientId) })
 			.toArray();
 
 		if (!users) {
 			return { error: "No users found for this company" };
 		}
-		console.log(users, companyId)
+	
 		const safeUsers = users.map((user) => ({
 			id: user._id.toString(),
 			first_name: user.first_name || "",
 			last_name: user.last_name || "",
 			email: user.email,
 			role: user.role || "user",
-			company_name: companyName, // Use the fetched company name
+			company_name: companyName, 
 			mobile_number: user.mobile_number || "",
 			work_number: user.work_number || "",
 			timezone: user.timezone || "",

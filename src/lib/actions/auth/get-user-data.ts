@@ -18,7 +18,7 @@ export async function getUserData(userId: string): Promise<UserData | null> {
 		if (user.client_id) {
 			const companiesCollection = await getClientsCollection();
 			const company = await companiesCollection.findOne({ _id: user.client_id });
-			companyName = company?.companyName || "Unknown Company";
+			companyName = company?.company_name || "Unknown Company";
 		}
 		return {
 			first_name: user.first_name || "Unknown",
@@ -27,7 +27,7 @@ export async function getUserData(userId: string): Promise<UserData | null> {
 			profile_image:
 				user.profile_image || "/images/profile/default-profile-pic.png",
 			company_name: companyName,
-			client_id: user.client_id.toString(),
+			client_id: user.client_id,
 			email: user.email,
 			work_number: user.work_number || "",
 			mobile_number: user.mobile_number || "",
