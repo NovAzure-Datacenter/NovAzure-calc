@@ -20,6 +20,13 @@ include_it_cost = {'include_it_cost': None}
 data_center_type = {'data_center_type': None}
 air_rack_cooling_capacity_kw_per_rack = {'air_rack_cooling_capacity_kw_per_rack': None}
 
+# Advanced Data Centre Configuration inputs (used when advanced = True)
+inlet_temperature = {'inlet_temperature': 27}
+electricity_price_per_kwh = {'electricity_price_per_kwh': 0.1}
+water_price_per_litre = {'water_price_per_litre': 0.0001}
+waterloop_enabled = {'waterloop_enabled': True}
+required_increase_electrical_kw = {'required_increase_electrical_kw': 1000}
+
 def update_inputs(inputs):
     global advanced
     
@@ -45,7 +52,38 @@ def update_inputs(inputs):
             data_center_type[key] = value
         elif key in air_rack_cooling_capacity_kw_per_rack:
             air_rack_cooling_capacity_kw_per_rack[key] = value
-        
+        # Handle advanced data centre configuration inputs
+        elif key in inlet_temperature:
+            inlet_temperature[key] = value
+        elif key in electricity_price_per_kwh:
+            electricity_price_per_kwh[key] = value
+        elif key in water_price_per_litre:
+            water_price_per_litre[key] = value
+        elif key in waterloop_enabled:
+            waterloop_enabled[key] = value
+        elif key in required_increase_electrical_kw:
+            required_increase_electrical_kw[key] = value
+
+def build_advanced_config():
+    """
+    Build the advanced configuration dictionary from the global variables.
+    Only includes non-None values to avoid overriding defaults unnecessarily.
+    """
+    advanced_config = {}
+    
+    if inlet_temperature.get('inlet_temperature') is not None:
+        advanced_config['inlet_temperature'] = inlet_temperature['inlet_temperature']
+    if electricity_price_per_kwh.get('electricity_price_per_kwh') is not None:
+        advanced_config['electricity_price_per_kwh'] = electricity_price_per_kwh['electricity_price_per_kwh']
+    if water_price_per_litre.get('water_price_per_litre') is not None:
+        advanced_config['water_price_per_litre'] = water_price_per_litre['water_price_per_litre']
+    if waterloop_enabled.get('waterloop_enabled') is not None:
+        advanced_config['waterloop_enabled'] = waterloop_enabled['waterloop_enabled']
+    if required_increase_electrical_kw.get('required_increase_electrical_kw') is not None:
+        advanced_config['required_increase_electrical_kw'] = required_increase_electrical_kw['required_increase_electrical_kw']
+    
+    return advanced_config if advanced_config else None
+
 def calculate_it_capex(data_hall_capacity_mw, data_center_type, air_rack_cooling_capacity_kw_per_rack, planned_years):
     """
     Calculate IT equipment CAPEX based on data hall capacity and configuration.
@@ -134,12 +172,16 @@ async def calculate():
     # Use advanced mode if explicitly set OR if IT inputs are provided
     use_advanced_mode = advanced or has_it_inputs
     
+    # Build advanced configuration if any advanced parameters are set
+    advanced_config = build_advanced_config()
+    
     if not use_advanced_mode:
         # Basic mode - only cooling calculations
         capex_input_data = {
             'data_hall_design_capacity_mw': data_hall_design_capacity_mw['data_hall_design_capacity_mw'],
             'first_year_of_operation': first_year_of_operation['first_year_of_operation'],
-            'country': project_location['project_location']
+            'country': project_location['project_location'],
+            'advanced_config': advanced_config
         }
         
         opex_input_data = {
@@ -147,7 +189,8 @@ async def calculate():
             'annualised_air_ppue': annualised_air_ppue['annualised_air_ppue'],
             'percentage_of_utilisation': percentage_of_utilisation['%_of_utilisation'],
             'first_year_of_operation': first_year_of_operation['first_year_of_operation'],
-            'country': project_location['project_location']
+            'country': project_location['project_location'],
+            'advanced_config': advanced_config
         }
         
         lifetime_opex_input_data = {
@@ -156,7 +199,8 @@ async def calculate():
             'percentage_of_utilisation': percentage_of_utilisation['%_of_utilisation'],
             'first_year_of_operation': first_year_of_operation['first_year_of_operation'],
             'planned_years_of_operation': planned_years_of_operation['planned_years_of_operation'],
-            'country': project_location['project_location']
+            'country': project_location['project_location'],
+            'advanced_config': advanced_config
         }
         
         air_cooling_capex = calculate_air_cooling_capex(capex_input_data)
@@ -172,14 +216,20 @@ async def calculate():
             'total_opex_over_lifetime': total_opex_lifetime,
             'total_cost_of_ownership': total_cost_of_ownership,
             'include_it_cost': 'No',  # Show IT costs were not included
-            'advanced_mode': False
+            'advanced_mode': False,
+            'advanced_config_used': advanced_config is not None,
+            'advanced_adjustments': {
+                'capex_adjustments': air_cooling_capex.get('advanced_adjustments'),
+                'opex_adjustments': total_opex_lifetime.get('advanced_adjustments')
+            }
         }
     else:
-        # Advanced mode - includes IT configuration
+        # Advanced mode - includes IT configuration and advanced data centre configuration
         capex_input_data = {
             'data_hall_design_capacity_mw': data_hall_design_capacity_mw['data_hall_design_capacity_mw'],
             'first_year_of_operation': first_year_of_operation['first_year_of_operation'],
-            'country': project_location['project_location']
+            'country': project_location['project_location'],
+            'advanced_config': advanced_config
         }
         
         opex_input_data = {
@@ -187,7 +237,8 @@ async def calculate():
             'annualised_air_ppue': annualised_air_ppue['annualised_air_ppue'],
             'percentage_of_utilisation': percentage_of_utilisation['%_of_utilisation'],
             'first_year_of_operation': first_year_of_operation['first_year_of_operation'],
-            'country': project_location['project_location']
+            'country': project_location['project_location'],
+            'advanced_config': advanced_config
         }
         
         lifetime_opex_input_data = {
@@ -196,7 +247,8 @@ async def calculate():
             'percentage_of_utilisation': percentage_of_utilisation['%_of_utilisation'],
             'first_year_of_operation': first_year_of_operation['first_year_of_operation'],
             'planned_years_of_operation': planned_years_of_operation['planned_years_of_operation'],
-            'country': project_location['project_location']
+            'country': project_location['project_location'],
+            'advanced_config': advanced_config
         }
         
         # Calculate cooling CAPEX
@@ -232,5 +284,10 @@ async def calculate():
             'total_opex_over_lifetime': total_opex_lifetime,
             'total_cost_of_ownership': total_cost_of_ownership,
             'include_it_cost': include_it_cost.get('include_it_cost') or 'No',  # Show if IT costs were included
-            'advanced_mode': True
+            'advanced_mode': True,
+            'advanced_config_used': advanced_config is not None,
+            'advanced_adjustments': {
+                'capex_adjustments': air_cooling_capex.get('advanced_adjustments'),
+                'opex_adjustments': total_opex_lifetime.get('advanced_adjustments')
+            }
         }
