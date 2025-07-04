@@ -1,4 +1,22 @@
-import { Industry, IndustryParameter } from "../types";
+"use client";
+
+import { useState, useEffect } from "react";
+import { 
+	X, 
+	DollarSign, 
+	Zap, 
+	Leaf, 
+	Clock, 
+	TrendingUp,
+	Edit,
+	Trash2,
+	Save,
+	Plus,
+	AlertTriangle,
+	Building2,
+	BarChart3,
+	Users
+} from "lucide-react";
 import {
 	Dialog,
 	DialogContent,
@@ -20,35 +38,24 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { TechnologyIcons, CompanyIcons } from "@/components/icons/technology-company-icons";
-import {
-	DollarSign,
-	Zap,
-	Leaf,
-	Settings,
-	Building2,
-	Edit,
-	Trash2,
-	Save,
-	X,
-	Users,
-	BarChart3,
-	Plus,
-	AlertTriangle,
-} from "lucide-react";
-import { useState, useEffect } from "react";
-import { iconComponentToString, stringToIconComponent, iconOptions } from "@/lib/icons/lucide-icons";
-import React from "react";
-import { updateIndustry } from "@/lib/actions/industry/industry";
-import { deleteIndustry } from "@/lib/actions/industry/industry";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { getClients, ClientData } from "@/lib/actions/client/client";
+import { Technology, TechnologyParameter, Industry } from "../types";
+import {
+	iconComponentToString,
+	stringToIconComponent,
+	iconOptions,
+} from "@/lib/icons/lucide-icons";
+import { updateTechnology, deleteTechnology } from "@/lib/actions/technology/technology";
+import React from "react";
 
-interface IndustryDetailDialogProps {
-	industry: Industry | null;
+interface TechnologyDetailDialogProps {
+	technology: Technology | null;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	onIndustryDeleted?: () => Promise<void>;
+	industries: Industry[];
+	onTechnologyDeleted?: () => Promise<void>;
+	onTechnologyUpdated?: () => Promise<void>;
 	isEditMode?: boolean;
 }
 
@@ -76,98 +83,86 @@ const getCategoryIcon = (category: string) => {
 		case "environmental":
 			return <Leaf className="h-4 w-4" />;
 		case "other":
-			return <Settings className="h-4 w-4" />;
+			return <TrendingUp className="h-4 w-4" />;
 		default:
 			return null;
 	}
 };
 
-const groupParametersByCategory = (parameters: Industry["parameters"]) => {
+const groupParametersByCategory = (parameters: Technology["parameters"]) => {
+	if (!parameters) return {};
+	
 	const grouped = parameters.reduce((acc, param) => {
 		if (!acc[param.category]) {
 			acc[param.category] = [];
 		}
 		acc[param.category].push(param);
 		return acc;
-	}, {} as Record<string, IndustryParameter[]>);
+	}, {} as Record<string, TechnologyParameter[]>);
 
 	return grouped;
 };
 
-export function IndustryDetailDialog({
-	industry,
+export function TechnologyDetailDialog({
+	technology,
 	open,
 	onOpenChange,
-	onIndustryDeleted,
+	industries,
+	onTechnologyDeleted,
+	onTechnologyUpdated,
 	isEditMode,
-}: IndustryDetailDialogProps) {
+}: TechnologyDetailDialogProps) {
 	const [isEditing, setIsEditing] = useState(false);
-	const [editedIndustry, setEditedIndustry] = useState<Industry | null>(null);
+	const [editedTechnology, setEditedTechnology] = useState<Technology | null>(null);
 	const [activeTab, setActiveTab] = useState("overview");
 	const [isConfirmingRemove, setIsConfirmingRemove] = useState(false);
-	const [parameterToRemove, setParameterToRemove] = useState<number | null>(
-		null
-	);
+	const [parameterToRemove, setParameterToRemove] = useState<number | null>(null);
 	const [isSaving, setIsSaving] = useState(false);
 	const [isIconSelectorOpen, setIsIconSelectorOpen] = useState(false);
-	const [clients, setClients] = useState<ClientData[]>([]);
 
+	// Initialize edited technology when dialog opens
 	useEffect(() => {
-		if (industry && open) {
-			setEditedIndustry({ ...industry });
+		if (technology && open) {
+			setEditedTechnology({ ...technology });
 			setIsEditing(isEditMode || false);
 		}
-	}, [industry, open, isEditMode]);
-
-	// Load clients data to resolve company IDs to names
-	const loadClients = async () => {
-		try {
-			const result = await getClients();
-			if (result.clients) {
-				setClients(result.clients);
-			}
-		} catch (error) {
-			console.error("Error loading clients:", error);
-		}
-	};
-
-	useEffect(() => {
-		if (open) {
-			loadClients();
-		}
-	}, [open]);
+	}, [technology, open, isEditMode]);
 
 	const handleEdit = () => {
 		setIsEditing(true);
-		setEditedIndustry({ ...industry! });
+		setEditedTechnology({ ...technology! });
 		setActiveTab("parameters");
 	};
 
 	const handleSave = async () => {
-		if (!editedIndustry || !industry) return;
+		if (!editedTechnology || !technology) return;
 
 		setIsSaving(true);
 		try {
-			const updateData = {
-				name: editedIndustry.name,
-				description: editedIndustry.description,
-				icon: iconComponentToString(editedIndustry.logo),
-				parameters: editedIndustry.parameters,
-			};
-
-			const result = await updateIndustry(industry.id, updateData);
+			const iconString = iconComponentToString(editedTechnology.icon);
+			
+			const result = await updateTechnology(technology.id || "", {
+				name: editedTechnology.name,
+				description: editedTechnology.description,
+				icon: iconString,
+				status: editedTechnology.status,
+				applicableIndustries: editedTechnology.applicableIndustries,
+				parameters: editedTechnology.parameters,
+			});
 
 			if (result.error) {
 				toast.error(result.error);
-				return;
+			} else {
+				toast.success("Technology updated successfully!");
+				setIsEditing(false);
+				onOpenChange(false);
+				if (onTechnologyUpdated) {
+					await onTechnologyUpdated();
+				}
 			}
-
-			Object.assign(industry, editedIndustry);
-			toast.success("Industry updated successfully!");
-			setIsEditing(false);
 		} catch (error) {
-			console.error("Error updating industry:", error);
-			toast.error("Failed to update industry. Please try again.");
+			console.error("Error updating technology:", error);
+			toast.error("Failed to update technology. Please try again.");
 		} finally {
 			setIsSaving(false);
 		}
@@ -175,35 +170,35 @@ export function IndustryDetailDialog({
 
 	const handleCancel = () => {
 		setIsEditing(false);
-		setEditedIndustry({ ...industry! });
+		setEditedTechnology({ ...technology! });
 	};
 
 	const handleRemove = () => {
 		setIsConfirmingRemove(true);
 	};
 
-	const handleFieldChange = (field: keyof Industry, value: any) => {
-		if (editedIndustry) {
-			setEditedIndustry({
-				...editedIndustry,
+	const handleFieldChange = (field: keyof Technology, value: any) => {
+		if (editedTechnology) {
+			setEditedTechnology({
+				...editedTechnology,
 				[field]: value,
 			});
 		}
 	};
 
 	const handleIconChange = (iconName: string) => {
-		if (editedIndustry) {
+		if (editedTechnology) {
 			const selectedIconComponent = stringToIconComponent(iconName);
-			setEditedIndustry({
-				...editedIndustry,
-				logo: selectedIconComponent,
+			setEditedTechnology({
+				...editedTechnology,
+				icon: selectedIconComponent,
 			});
 		}
 	};
 
-	const handleAddParameter = (category?: IndustryParameter["category"]) => {
-		if (editedIndustry) {
-			const newParameter: IndustryParameter = {
+	const handleAddParameter = (category?: TechnologyParameter["category"]) => {
+		if (editedTechnology) {
+			const newParameter: TechnologyParameter = {
 				name: "New Parameter",
 				description: "Parameter description",
 				value: 0,
@@ -211,27 +206,27 @@ export function IndustryDetailDialog({
 				category: category || "other",
 			};
 
-			setEditedIndustry({
-				...editedIndustry,
-				parameters: [...(editedIndustry.parameters || []), newParameter],
+			setEditedTechnology({
+				...editedTechnology,
+				parameters: [...(editedTechnology.parameters || []), newParameter],
 			});
 		}
 	};
 
 	const handleParameterChange = (
 		index: number,
-		field: keyof IndustryParameter,
+		field: keyof TechnologyParameter,
 		value: any
 	) => {
-		if (editedIndustry && editedIndustry.parameters) {
-			const updatedParameters = [...editedIndustry.parameters];
+		if (editedTechnology && editedTechnology.parameters) {
+			const updatedParameters = [...editedTechnology.parameters];
 			updatedParameters[index] = {
 				...updatedParameters[index],
 				[field]: value,
 			};
 
-			setEditedIndustry({
-				...editedIndustry,
+			setEditedTechnology({
+				...editedTechnology,
 				parameters: updatedParameters,
 			});
 		}
@@ -243,22 +238,22 @@ export function IndustryDetailDialog({
 
 	const confirmRemoveParameter = () => {
 		if (
-			editedIndustry &&
-			editedIndustry.parameters &&
+			editedTechnology &&
+			editedTechnology.parameters &&
 			parameterToRemove !== null
 		) {
-			const updatedParameters = editedIndustry.parameters.filter(
+			const updatedParameters = editedTechnology.parameters.filter(
 				(_, i) => i !== parameterToRemove
 			);
-			setEditedIndustry({
-				...editedIndustry,
+			setEditedTechnology({
+				...editedTechnology,
 				parameters: updatedParameters,
 			});
 			setParameterToRemove(null);
 		}
 	};
 
-	const getParameterSummary = (parameters: Industry["parameters"]) => {
+	const getParameterSummary = (parameters: Technology["parameters"]) => {
 		if (!parameters || parameters.length === 0) return null;
 
 		const categories = parameters.reduce((acc, param) => {
@@ -269,21 +264,27 @@ export function IndustryDetailDialog({
 		return categories;
 	};
 
-	if (!industry) return null;
+	if (!technology) return null;
 
-	const parameterSummary = getParameterSummary(industry.parameters);
-	const currentIndustry = isEditing ? editedIndustry : industry;
+	const parameterSummary = getParameterSummary(technology.parameters);
+	const currentTechnology = isEditing ? editedTechnology : technology;
 
-	if (!currentIndustry) return null;
+	if (!currentTechnology) return null;
+
+	const applicableIndustries = currentTechnology.applicableIndustries
+		? currentTechnology.applicableIndustries
+				.map((industryId) => industries.find((ind) => ind.id === industryId))
+				.filter((industry): industry is Industry => industry !== undefined)
+		: [];
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="min-w-[70vw] max-h-[90vh] flex flex-col">
 				<DialogHeader className="pb-4 flex-shrink-0">
-					<DialogTitle className="text-xl">Industry Details</DialogTitle>
+					<DialogTitle className="text-xl">Technology Details</DialogTitle>
 					<DialogDescription>
-						View detailed information about {currentIndustry?.name} including
-						technologies, companies, and parameters.
+						View detailed information about {currentTechnology?.name} including
+						applicable industries and parameters.
 					</DialogDescription>
 				</DialogHeader>
 
@@ -299,14 +300,10 @@ export function IndustryDetailDialog({
 								)}
 								<button
 									onClick={() => isEditing && setIsIconSelectorOpen(true)}
-									className={`${
-										isEditing
-											? "cursor-pointer hover:bg-muted/50 rounded transition-colors"
-											: ""
-									}`}
+									className={`${isEditing ? 'cursor-pointer hover:bg-muted/50 rounded transition-colors' : ''}`}
 									disabled={!isEditing}
 								>
-									<currentIndustry.logo className="h-6 w-6 text-primary" />
+									<currentTechnology.icon className="h-6 w-6 text-primary" />
 								</button>
 							</div>
 							<div className="flex-1 min-w-0">
@@ -316,10 +313,10 @@ export function IndustryDetailDialog({
 										{isEditing ? (
 											<div className="flex-1">
 												<label className="text-xs font-medium text-muted-foreground block mb-1">
-													Industry Name
+													Technology Name
 												</label>
 												<Input
-													value={currentIndustry?.name || ""}
+													value={currentTechnology?.name || ""}
 													onChange={(e) =>
 														handleFieldChange("name", e.target.value)
 													}
@@ -328,19 +325,19 @@ export function IndustryDetailDialog({
 											</div>
 										) : (
 											<h2 className="text-lg font-bold text-foreground">
-												{currentIndustry?.name}
+												{currentTechnology?.name}
 											</h2>
 										)}
 										{!isEditing && (
 											<Badge
 												variant={
-													currentIndustry?.status === "verified"
+													currentTechnology?.status === "verified"
 														? "default"
 														: "secondary"
 												}
 												className="text-xs px-1.5 py-0.5"
 											>
-												{currentIndustry?.status}
+												{currentTechnology?.status || "pending"}
 											</Badge>
 										)}
 									</div>
@@ -351,20 +348,10 @@ export function IndustryDetailDialog({
 											variant="outline"
 											className="flex items-center gap-1 px-2 py-1"
 										>
-											<Zap className="h-3 w-3" />
-											<span className="text-xs">Tech</span>
-											<span className="text-xs font-bold">
-												{currentIndustry?.technologies?.length || 0}
-											</span>
-										</Badge>
-										<Badge
-											variant="outline"
-											className="flex items-center gap-1 px-2 py-1"
-										>
 											<Building2 className="h-3 w-3" />
-											<span className="text-xs">Companies</span>
+											<span className="text-xs">Industries</span>
 											<span className="text-xs font-bold">
-												{currentIndustry?.companies?.length || 0}
+												{applicableIndustries.length}
 											</span>
 										</Badge>
 										<Badge
@@ -374,11 +361,43 @@ export function IndustryDetailDialog({
 											<BarChart3 className="h-3 w-3" />
 											<span className="text-xs">Params</span>
 											<span className="text-xs font-bold">
-												{currentIndustry?.parameters?.length || 0}
+												{currentTechnology?.parameters?.length || 0}
 											</span>
 										</Badge>
 									</div>
 								</div>
+
+								{/* Icon Selection in Edit Mode */}
+								{isEditing && (
+									<div className="mb-3">
+										<label className="text-xs font-medium text-muted-foreground block mb-1">
+											Technology Icon
+										</label>
+										<div className="flex items-center gap-2">
+											<div className="flex items-center justify-center w-8 h-8 border rounded-md bg-gray-50">
+												{React.createElement(currentTechnology.icon, { className: "h-4 w-4 text-gray-600" })}
+											</div>
+											<Select 
+												onValueChange={handleIconChange} 
+												value={iconComponentToString(currentTechnology.icon)}
+											>
+												<SelectTrigger className="text-xs h-8 flex-1">
+													<SelectValue placeholder="Select an icon" />
+												</SelectTrigger>
+												<SelectContent>
+													{iconOptions.map((option) => (
+														<SelectItem key={option.value} value={option.value}>
+															<div className="flex items-center gap-2">
+																<option.icon className="h-4 w-4" />
+																<span>{option.label}</span>
+															</div>
+														</SelectItem>
+													))}
+												</SelectContent>
+											</Select>
+										</div>
+									</div>
+								)}
 
 								{/* Description below */}
 								{isEditing ? (
@@ -387,7 +406,7 @@ export function IndustryDetailDialog({
 											Description
 										</label>
 										<Textarea
-											value={currentIndustry?.description || ""}
+											value={currentTechnology?.description || ""}
 											onChange={(e) =>
 												handleFieldChange("description", e.target.value)
 											}
@@ -397,7 +416,7 @@ export function IndustryDetailDialog({
 									</div>
 								) : (
 									<p className="text-muted-foreground text-sm leading-relaxed">
-										{currentIndustry?.description}
+										{currentTechnology?.description}
 									</p>
 								)}
 							</div>
@@ -416,20 +435,20 @@ export function IndustryDetailDialog({
 								value="parameters"
 								className="data-[state=active]:!bg-primary data-[state=active]:!text-primary-foreground text-muted-foreground"
 							>
-								Parameters ({currentIndustry?.parameters?.length || 0})
+								Parameters ({currentTechnology?.parameters?.length || 0})
 							</TabsTrigger>
 						</TabsList>
 
 						<TabsContent value="overview" className="space-y-2">
 							<TabContentOverview
-								currentIndustry={currentIndustry}
+								currentTechnology={currentTechnology}
 								parameterSummary={parameterSummary}
-								clients={clients}
+								applicableIndustries={applicableIndustries}
 							/>
 						</TabsContent>
 						<TabsContent value="parameters" className="space-y-4">
 							<TabContentParameters
-								currentIndustry={currentIndustry}
+								currentTechnology={currentTechnology}
 								parameterSummary={parameterSummary}
 								isEditing={isEditing}
 								onParameterChange={handleParameterChange}
@@ -462,11 +481,11 @@ export function IndustryDetailDialog({
 						<>
 							<Button variant="destructive" onClick={handleRemove} size="sm">
 								<Trash2 className="h-4 w-4 mr-2" />
-								Remove Industry
+								Remove Technology
 							</Button>
 							<Button onClick={handleEdit} size="sm">
 								<Edit className="h-4 w-4 mr-2" />
-								Edit Industry
+								Edit Technology
 							</Button>
 						</>
 					)}
@@ -474,16 +493,16 @@ export function IndustryDetailDialog({
 			</DialogContent>
 
 			{isConfirmingRemove && (
-				<RenderIndustryRemoveDialog
-					industry={industry}
+				<RenderTechnologyRemoveDialog
+					technology={technology}
 					isConfirmingRemove={isConfirmingRemove}
 					setIsConfirmingRemove={setIsConfirmingRemove}
-					onIndustryDeleted={onIndustryDeleted}
+					onTechnologyDeleted={onTechnologyDeleted}
 				/>
 			)}
 			{parameterToRemove !== null && (
 				<RenderParameterRemoveDialog
-					industry={industry}
+					technology={technology}
 					parameterToRemove={parameterToRemove}
 					setParameterToRemove={setParameterToRemove}
 					confirmRemoveParameter={confirmRemoveParameter}
@@ -491,7 +510,7 @@ export function IndustryDetailDialog({
 			)}
 			{isIconSelectorOpen && (
 				<RenderIconSelectorDialog
-					currentIcon={currentIndustry.logo}
+					currentIcon={currentTechnology.icon}
 					isOpen={isIconSelectorOpen}
 					onOpenChange={setIsIconSelectorOpen}
 					onIconChange={handleIconChange}
@@ -502,83 +521,60 @@ export function IndustryDetailDialog({
 }
 
 function TabContentOverview({
-	currentIndustry,
+	currentTechnology,
 	parameterSummary,
-	clients,
+	applicableIndustries,
 }: {
-	currentIndustry: Industry;
+	currentTechnology: Technology;
 	parameterSummary?: Record<string, number> | null;
-	clients: ClientData[];
+	applicableIndustries: Industry[];
 }) {
 	return (
 		<>
-			{/* Technologies and Companies Section*/}
-			<div className="grid grid-cols-2 gap-3">
-				<Card className="border shadow-sm py-2 gap-1">
-					<CardHeader className="">
-						<CardTitle className="text-lg flex items-center gap-2">
-							<Zap className="h-5 w-5 text-primary" />
-							Technologies
-						</CardTitle>
-					</CardHeader>
-					<CardContent className="my-2">
-						{currentIndustry?.technologies &&
-						currentIndustry.technologies.length > 0 ? (
-							<div className="space-y-2">
-								<TechnologyIcons
-									technologies={currentIndustry.technologies}
-									iconSize={6}
-									textSize="sm"
-									maxVisible={12}
-								/>
-							</div>
-						) : (
-							<div className="text-center py-8 text-muted-foreground">
-								<Zap className="h-12 w-12 mx-auto mb-3 text-muted-foreground/30" />
-								<p className="text-sm">
-									No technologies associated with this industry
-								</p>
-							</div>
-						)}
-					</CardContent>
-				</Card>
-
-				{/* Companies Section */}
-				<Card className="border shadow-sm py-2 gap-1">
-					<CardHeader className="pb-3">
-						<CardTitle className="text-lg flex items-center gap-2">
-							<Building2 className="h-5 w-5 text-primary" />
-							Companies
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						{currentIndustry?.companies &&
-						currentIndustry.companies.length > 0 ? (
-							<div className="space-y-2">
-								<CompanyIcons
-									companies={currentIndustry.companies}
-									iconSize={6}
-									textSize="sm"
-									maxVisible={12}
-									clients={clients}
-								/>
-							</div>
-						) : (
-							<div className="text-center py-8 text-muted-foreground">
-								<Users className="h-12 w-12 mx-auto mb-3 text-muted-foreground/30" />
-								<p className="text-sm">
-									No companies associated with this industry
-								</p>
-							</div>
-						)}
-					</CardContent>
-				</Card>
-			</div>
+			{/* Applicable Industries Section */}
+			<Card className="border shadow-sm py-2 gap-1">
+				<CardHeader>
+					<CardTitle className="text-lg flex items-center gap-2">
+						<Building2 className="h-5 w-5 text-primary" />
+						Applicable Industries
+					</CardTitle>
+				</CardHeader>
+				<CardContent className="my-2">
+					{applicableIndustries.length > 0 ? (
+						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+							{applicableIndustries.map((industry) => (
+								<Card key={industry.id} className="p-3">
+									<CardContent className="p-0">
+										<div className="flex items-center gap-3">
+											<industry.logo className="h-6 w-6 flex-shrink-0" />
+											<div className="min-w-0">
+												<h4 className="font-medium text-sm truncate">
+													{industry.name}
+												</h4>
+												<p className="text-xs text-muted-foreground line-clamp-2">
+													{industry.description}
+												</p>
+											</div>
+										</div>
+									</CardContent>
+								</Card>
+							))}
+						</div>
+					) : (
+						<div className="text-center py-8 text-muted-foreground">
+							<Users className="h-12 w-12 mx-auto mb-3 text-muted-foreground/30" />
+							<p className="text-sm">
+								No industries associated with this technology
+							</p>
+						</div>
+					)}
+				</CardContent>
+			</Card>
 
 			{/* Parameters Summary */}
 			{parameterSummary && (
-				<Card className="border shadow-sm py-2 gap-1 ">
-					<CardHeader className="">
+				<Card className="border shadow-sm py-2 gap-1">
+					<CardHeader>
 						<CardTitle className="text-lg flex items-center gap-2">
 							<BarChart3 className="h-5 w-5 text-primary" />
 							Parameters Overview
@@ -589,7 +585,7 @@ function TabContentOverview({
 							{Object.entries(parameterSummary).map(([category, count]) => (
 								<div
 									key={category}
-									className={`flex items-center gap-3 p-3 rounded-lg border flex-1 `}
+									className={`flex items-center gap-3 p-3 rounded-lg border flex-1`}
 								>
 									{getCategoryIcon(category)}
 									<div className="flex-1">
@@ -609,32 +605,32 @@ function TabContentOverview({
 }
 
 function TabContentParameters({
-	currentIndustry,
+	currentTechnology,
 	parameterSummary,
 	isEditing,
 	onParameterChange,
 	onAddParameter,
 	onRemoveParameter,
 }: {
-	currentIndustry: Industry;
+	currentTechnology: Technology;
 	parameterSummary?: Record<string, number> | null;
 	isEditing?: boolean;
 	onParameterChange: (
 		index: number,
-		field: keyof IndustryParameter,
+		field: keyof TechnologyParameter,
 		value: any
 	) => void;
-	onAddParameter: (category?: IndustryParameter["category"]) => void;
+	onAddParameter: (category?: TechnologyParameter["category"]) => void;
 	onRemoveParameter: (index: number) => void;
 }) {
 	return (
 		<TabsContent value="parameters" className="space-y-4">
-			{currentIndustry?.parameters && currentIndustry.parameters.length > 0 ? (
+			{currentTechnology?.parameters && currentTechnology.parameters.length > 0 ? (
 				<div className="space-y-4">
 					{Object.entries(
-						groupParametersByCategory(currentIndustry.parameters)
+						groupParametersByCategory(currentTechnology.parameters)
 					).map(([category, params]) => (
-						<Card key={category} className="border shadow-sm p-4 px-0  gap-2">
+						<Card key={category} className="border shadow-sm p-4 px-0 gap-2">
 							<CardHeader>
 								<CardTitle className="text-base flex items-center gap-2">
 									{getCategoryIcon(category)}
@@ -648,9 +644,9 @@ function TabContentParameters({
 							<CardContent className="pt-0">
 								<div className="grid gap-3">
 									{params.map(
-										(param: IndustryParameter, categoryIndex: number) => {
+										(param: TechnologyParameter, categoryIndex: number) => {
 											const globalIndex =
-												currentIndustry.parameters?.findIndex(
+												currentTechnology.parameters?.findIndex(
 													(p) => p === param
 												) ?? -1;
 
@@ -783,7 +779,7 @@ function TabContentParameters({
 										<Button
 											onClick={() =>
 												onAddParameter(
-													category as IndustryParameter["category"]
+													category as TechnologyParameter["category"]
 												)
 											}
 											size="sm"
@@ -823,7 +819,7 @@ function TabContentParameters({
 							No Parameters
 						</h3>
 						<p className="text-muted-foreground text-sm">
-							This industry doesn't have any parameters defined yet.
+							This technology doesn't have any parameters defined yet.
 						</p>
 						{isEditing && (
 							<Button
@@ -842,39 +838,38 @@ function TabContentParameters({
 	);
 }
 
-function RenderIndustryRemoveDialog({
-	industry,
+function RenderTechnologyRemoveDialog({
+	technology,
 	isConfirmingRemove,
 	setIsConfirmingRemove,
-	onIndustryDeleted,
+	onTechnologyDeleted,
 }: {
-	industry: Industry;
+	technology: Technology;
 	isConfirmingRemove: boolean;
 	setIsConfirmingRemove: (isConfirmingRemove: boolean) => void;
-	onIndustryDeleted?: () => Promise<void>;
+	onTechnologyDeleted?: () => Promise<void>;
 }) {
 	const [isRemoving, setIsRemoving] = useState(false);
 
 	const handleRemove = async () => {
-		if (!industry) return;
+		if (!technology) return;
 
 		setIsRemoving(true);
 		try {
-			const result = await deleteIndustry(industry.id);
-
+			const result = await deleteTechnology(technology.id || "");
+			
 			if (result.error) {
 				toast.error(result.error);
-				return;
-			}
-
-			toast.success("Industry removed successfully!");
-			setIsConfirmingRemove(false);
-			if (onIndustryDeleted) {
-				await onIndustryDeleted();
+			} else {
+				toast.success("Technology removed successfully!");
+				setIsConfirmingRemove(false);
+				if (onTechnologyDeleted) {
+					await onTechnologyDeleted();
+				}
 			}
 		} catch (error) {
-			console.error("Error removing industry:", error);
-			toast.error("Failed to remove industry. Please try again.");
+			console.error("Error removing technology:", error);
+			toast.error("Failed to remove technology. Please try again.");
 		} finally {
 			setIsRemoving(false);
 		}
@@ -887,15 +882,15 @@ function RenderIndustryRemoveDialog({
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2">
 						<AlertTriangle className="h-5 w-5 text-destructive" />
-						Remove Industry
+						Remove Technology
 					</DialogTitle>
 					<DialogDescription className="space-y-2">
 						<p>
 							Are you sure you want to remove{" "}
-							<strong>"{industry?.name}"</strong>?
+							<strong>"{technology?.name}"</strong>?
 						</p>
 						<p className="text-sm text-muted-foreground">
-							This will permanently delete the industry
+							This will permanently delete the technology
 						</p>
 
 						<p className="text-sm font-medium text-destructive">
@@ -919,7 +914,7 @@ function RenderIndustryRemoveDialog({
 						disabled={isRemoving}
 					>
 						<Trash2 className="h-4 w-4 mr-2" />
-						{isRemoving ? "Removing..." : "Remove Industry"}
+						{isRemoving ? "Removing..." : "Remove Technology"}
 					</Button>
 				</div>
 			</DialogContent>
@@ -928,12 +923,12 @@ function RenderIndustryRemoveDialog({
 }
 
 function RenderParameterRemoveDialog({
-	industry,
+	technology,
 	parameterToRemove,
 	setParameterToRemove,
 	confirmRemoveParameter,
 }: {
-	industry: Industry;
+	technology: Technology;
 	parameterToRemove: number | null;
 	setParameterToRemove: (parameterToRemove: number | null) => void;
 	confirmRemoveParameter: () => void;
@@ -993,9 +988,9 @@ function RenderIconSelectorDialog({
 		<Dialog open={isOpen} onOpenChange={onOpenChange}>
 			<DialogContent className="max-w-md">
 				<DialogHeader>
-					<DialogTitle>Select Industry Icon</DialogTitle>
+					<DialogTitle>Select Technology Icon</DialogTitle>
 					<DialogDescription>
-						Choose an icon that best represents this industry
+						Choose an icon that best represents this technology
 					</DialogDescription>
 				</DialogHeader>
 				<div className="grid grid-cols-6 gap-3 max-h-[300px] overflow-y-auto">
@@ -1009,17 +1004,15 @@ function RenderIconSelectorDialog({
 									onOpenChange(false);
 								}}
 								className={`p-3 rounded-lg border-2 transition-all hover:bg-muted/50 ${
-									isSelected
-										? "border-primary bg-primary/10"
-										: "border-border hover:border-primary/50"
+									isSelected 
+										? 'border-primary bg-primary/10' 
+										: 'border-border hover:border-primary/50'
 								}`}
 							>
 								<div className="flex flex-col items-center gap-2">
-									<option.icon
-										className={`h-8 w-8 ${
-											isSelected ? "text-primary" : "text-muted-foreground"
-										}`}
-									/>
+									<option.icon className={`h-8 w-8 ${
+										isSelected ? 'text-primary' : 'text-muted-foreground'
+									}`} />
 								</div>
 							</button>
 						);
@@ -1037,4 +1030,4 @@ function RenderIconSelectorDialog({
 			</DialogContent>
 		</Dialog>
 	);
-}
+} 

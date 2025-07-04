@@ -4,7 +4,6 @@ import UnderConstruction from "@/components/under-construction";
 import { getServerSession } from "next-auth/next";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
-import IndustriesAndTechnologies from "./admin/industries-and-technologies/page";
 
 export default async function DashboardPage() {
 	const session = await getServerSession(authOptions);
@@ -15,7 +14,7 @@ export default async function DashboardPage() {
 
 	return (
 		<Suspense fallback={<Loading />}>
-			<IndustriesAndTechnologies />
+			<UnderConstruction title="Navigate to other pages using the dashboard navigation" />
 		</Suspense>
 	);
 }

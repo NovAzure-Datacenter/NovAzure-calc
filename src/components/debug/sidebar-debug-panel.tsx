@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Bug } from "lucide-react";
+import { Bug, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -11,6 +11,8 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { toast } from "sonner";
+import { cleanupIndustryCompanies } from "@/lib/actions/industry/industry";
 
 type AccountType = "novazure-superuser" | "novazure-user" | "company-admin" | "company-user";
 
@@ -26,10 +28,31 @@ export function SidebarDebugPanel({
 	originalAccountType 
 }: SidebarDebugPanelProps) {
 	const [isVisible, setIsVisible] = useState(false);
+	const [isCleaning, setIsCleaning] = useState(false);
 
 	if (process.env.NODE_ENV === "production") {
 		return null;
 	}
+
+	const handleCleanupIndustries = async () => {
+		setIsCleaning(true);
+		try {
+			const result = await cleanupIndustryCompanies();
+			
+			if (result.error) {
+				toast.error(result.error);
+			} else {
+				toast.success(
+					`Cleaned up ${result.cleanedCount} text-based entries from ${result.totalIndustries} industries!`
+				);
+			}
+		} catch (error) {
+			console.error("Error during cleanup:", error);
+			toast.error("Failed to clean up industries");
+		} finally {
+			setIsCleaning(false);
+		}
+	};
 
 	return (
 		<div className="fixed top-4 right-4 z-50">
@@ -84,7 +107,24 @@ export function SidebarDebugPanel({
 								)}
 							</div>
 							
-						
+							<div>
+								<label className="text-xs font-medium text-gray-700 mb-1 block">
+									Database Cleanup
+								</label>
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={handleCleanupIndustries}
+									disabled={isCleaning}
+									className="w-full h-8 text-xs bg-red-50 border-red-200 text-red-700 hover:bg-red-100"
+								>
+									<Trash2 className="h-3 w-3 mr-1" />
+									{isCleaning ? "Cleaning..." : "Clean Industry Companies"}
+								</Button>
+								<span className="text-xs text-gray-500 block mt-1">
+									Removes text-based entries from industry companies arrays
+								</span>
+							</div>
 						</div>
 					</CardContent>
 				</Card>

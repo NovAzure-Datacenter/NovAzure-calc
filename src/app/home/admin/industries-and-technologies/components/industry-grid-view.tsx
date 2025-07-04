@@ -2,23 +2,50 @@
 
 import type React from "react";
 import { useState, useEffect } from "react";
-import { MoreHorizontal, Plus, Edit, Trash2 } from "lucide-react";
+import { MoreHorizontal, Plus, Edit, Trash2, Eye, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { toast } from "sonner";
 import { Industry } from "../types";
-import { TechnologyIcons, CompanyIcons } from "./icons";
+import { TechnologyIcons, CompanyIcons } from "@/components/icons/technology-company-icons";
 import { IndustryDetailDialog } from "./industry-detail-dialog";
+import { deleteIndustry } from "@/lib/actions/industry/industry";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { getIndustryStatusColor, getParameterCategoryColor } from "../utils/color-utils";
+import { getClients, ClientData } from "@/lib/actions/client/client";
 
-export function GridView({ data }: { data: Industry[] }) {
+export function GridView({ data, onIndustryDeleted }: { 
+	data: Industry[];
+	onIndustryDeleted?: () => Promise<void>;
+}) {
 	const [selectedIndustry, setSelectedIndustry] = useState<Industry | null>(
 		null
 	);
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
+	const [isEditMode, setIsEditMode] = useState(false);
 	const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+	const [isRemoving, setIsRemoving] = useState<string | null>(null);
+	const [isConfirmingRemove, setIsConfirmingRemove] = useState(false);
+	const [clients, setClients] = useState<ClientData[]>([]);
 
-	// Close dropdown when clicking outside
+	// Load clients data to resolve company IDs to names
+	const loadClients = async () => {
+		try {
+			const result = await getClients();
+			if (result.clients) {
+				setClients(result.clients);
+			}
+		} catch (error) {
+			console.error("Error loading clients:", error);
+		}
+	};
+
+	useEffect(() => {
+		loadClients();
+	}, []);
+
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
 			if (
@@ -35,21 +62,6 @@ export function GridView({ data }: { data: Industry[] }) {
 		};
 	}, [openDropdown]);
 
-	const getCategoryColor = (category: string) => {
-		switch (category) {
-			case "cost":
-				return "bg-param-cost text-param-cost";
-			case "performance":
-				return "bg-param-performance text-param-performance";
-			case "environmental":
-				return "bg-param-environmental text-param-environmental";
-			case "operational":
-				return "bg-param-operational text-param-operational";
-			default:
-				return "bg-gray-100 text-gray-800";
-		}
-	};
-
 	const getParameterSummary = (parameters: Industry["parameters"]) => {
 		if (!parameters || parameters.length === 0) return null;
 
@@ -61,14 +73,10 @@ export function GridView({ data }: { data: Industry[] }) {
 		return categories;
 	};
 
-	const handleCardClick = (industry: Industry) => {
-		setSelectedIndustry(industry);
-		setIsDialogOpen(true);
-	};
-
 	const handleDialogClose = () => {
 		setIsDialogOpen(false);
 		setSelectedIndustry(null);
+		setIsEditMode(false);
 	};
 
 	const handleDropdownButtonClick = (
@@ -79,8 +87,24 @@ export function GridView({ data }: { data: Industry[] }) {
 		setOpenDropdown(openDropdown === industryName ? null : industryName);
 	};
 
-	const handleDropdownItemClick = (action: string, industryName: string) => {
+	const handleDropdownItemClick = async (action: string, industryName: string) => {
 		setOpenDropdown(null);
+		
+		const industry = data.find(ind => ind.name === industryName);
+		if (!industry) return;
+		
+		if (action === "View") {
+			setSelectedIndustry(industry);
+			setIsEditMode(false);
+			setIsDialogOpen(true);
+		} else if (action === "Edit") {
+			setSelectedIndustry(industry);
+			setIsEditMode(true);
+			setIsDialogOpen(true);
+		} else if (action === "Remove") {
+			setSelectedIndustry(industry);
+			setIsConfirmingRemove(true);
+		}
 	};
 
 	return (
@@ -94,8 +118,7 @@ export function GridView({ data }: { data: Industry[] }) {
 							return (
 								<Card
 									key={industry.id}
-									className="p-4 cursor-pointer hover:shadow-md transition-shadow duration-200"
-									onClick={() => handleCardClick(industry)}
+									className="p-4 hover:shadow-md transition-shadow duration-200"
 								>
 									<CardContent className="p-0 space-y-4">
 										<div className="flex items-start justify-between">
@@ -118,7 +141,7 @@ export function GridView({ data }: { data: Industry[] }) {
 											</div>
 											<Separator orientation="vertical" className="h-6" />
 											<div className="flex-1">
-												<CompanyIcons companies={industry.companies} />
+												<CompanyIcons companies={industry.companies} clients={clients} />
 											</div>
 										</div>
 
@@ -126,7 +149,7 @@ export function GridView({ data }: { data: Industry[] }) {
 										{parameterSummary && (
 											<>
 												<Separator />
-												<div>
+												<div className="h-16">
 													<h4 className="text-xs font-medium text-muted-foreground mb-2">
 														Parameters ({industry.parameters?.length || 0})
 													</h4>
@@ -135,7 +158,7 @@ export function GridView({ data }: { data: Industry[] }) {
 															([category, count]) => (
 																<Badge
 																	key={category}
-																	className={`text-xs px-2 py-0.5 ${getCategoryColor(
+																	className={`text-xs px-2 py-0.5 ${getParameterCategoryColor(
 																		category
 																	)}`}
 																>
@@ -153,15 +176,11 @@ export function GridView({ data }: { data: Industry[] }) {
 										<Separator />
 
 										<div className="flex items-center justify-between">
-											<Badge
-												variant={
-													industry.status === "verified"
-														? "default"
-														: "secondary"
-												}
-											>
-												{industry.status}
-											</Badge>
+											<div className="flex gap-2">
+												<Badge className={getIndustryStatusColor(industry.status)}>
+													{industry.status || "pending"}
+												</Badge>
+											</div>
 
 											{/* Custom Simple Dropdown */}
 											<div className="relative dropdown-container">
@@ -176,19 +195,19 @@ export function GridView({ data }: { data: Industry[] }) {
 												</Button>
 
 												{openDropdown === industry.name && (
-													<div className="absolute right-9 -top-1 mt-1 bg-white border border-gray-200 rounded-md shadow-lg  min-w-[120px]">
+													<div className="absolute right-9 -top-1 mt-1 bg-white border border-gray-200 rounded-md shadow-lg min-w-[120px]">
 														<button
 															className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
-															onClick={() =>
-																handleDropdownItemClick("Add", industry.name)
+															onClick={(e) =>
+																handleDropdownItemClick("View", industry.name)
 															}
 														>
-															<Plus className="h-4 w-4" />
-															Add
+															<Eye className="h-4 w-4" />
+															View
 														</button>
 														<button
 															className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
-															onClick={() =>
+															onClick={(e) =>
 																handleDropdownItemClick("Edit", industry.name)
 															}
 														>
@@ -196,13 +215,14 @@ export function GridView({ data }: { data: Industry[] }) {
 															Edit
 														</button>
 														<button
-															className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
-															onClick={() =>
+															className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+															onClick={(e) =>
 																handleDropdownItemClick("Remove", industry.name)
 															}
+															disabled={isRemoving === industry.id}
 														>
 															<Trash2 className="h-4 w-4" />
-															Remove
+															{isRemoving === industry.id ? "Removing..." : "Remove"}
 														</button>
 													</div>
 												)}
@@ -220,7 +240,73 @@ export function GridView({ data }: { data: Industry[] }) {
 				industry={selectedIndustry}
 				open={isDialogOpen}
 				onOpenChange={handleDialogClose}
+				onIndustryDeleted={onIndustryDeleted}
+				isEditMode={isEditMode}
 			/>
+
+			{/* Confirmation Dialog for Remove */}
+			{isConfirmingRemove && selectedIndustry && (
+				<Dialog open={isConfirmingRemove} onOpenChange={setIsConfirmingRemove}>
+					<DialogContent>
+						<DialogHeader>
+							<DialogTitle className="flex items-center gap-2">
+								<AlertTriangle className="h-5 w-5 text-destructive" />
+								Remove Industry
+							</DialogTitle>
+							<DialogDescription className="space-y-2">
+								<p>
+									Are you sure you want to remove{" "}
+									<strong>"{selectedIndustry.name}"</strong>?
+								</p>
+								<p className="text-sm text-muted-foreground">
+									This will permanently delete the industry
+								</p>
+								<p className="text-sm font-medium text-destructive">
+									This action cannot be undone.
+								</p>
+							</DialogDescription>
+						</DialogHeader>
+						<div className="flex justify-end gap-3 pt-6 border-t mt-6">
+							<Button
+								variant="outline"
+								onClick={() => setIsConfirmingRemove(false)}
+								size="sm"
+								disabled={isRemoving === selectedIndustry.id}
+							>
+								Cancel
+							</Button>
+							<Button
+								onClick={async () => {
+									setIsRemoving(selectedIndustry.id);
+									try {
+										const result = await deleteIndustry(selectedIndustry.id);
+										
+										if (result.error) {
+											toast.error(result.error);
+										} else {
+											toast.success("Industry removed successfully!");
+											setIsConfirmingRemove(false);
+											if (onIndustryDeleted) {
+												await onIndustryDeleted();
+											}
+										}
+									} catch (error) {
+										toast.error("An unexpected error occurred while removing the industry");
+									} finally {
+										setIsRemoving(null);
+									}
+								}}
+								size="sm"
+								variant="destructive"
+								disabled={isRemoving === selectedIndustry.id}
+							>
+								<Trash2 className="h-4 w-4 mr-2" />
+								{isRemoving === selectedIndustry.id ? "Removing..." : "Remove Industry"}
+							</Button>
+						</div>
+					</DialogContent>
+				</Dialog>
+			)}
 		</>
 	);
 }
