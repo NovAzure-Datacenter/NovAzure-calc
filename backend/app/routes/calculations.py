@@ -28,6 +28,12 @@ async def calculate_capex(request: CapexCalculationRequest):
             'country': request.country
         }
         
+        # Add advanced configuration if provided
+        if request.advanced_config:
+            # Convert Pydantic model to dict for the calculation service
+            advanced_config_dict = request.advanced_config.model_dump(exclude_none=True)
+            input_data['advanced_config'] = advanced_config_dict
+        
         # Default to air cooling for now - can be extended to support cooling type selection
         result = calculate_air_cooling_capex(input_data)
         return CapexCalculationResponse(**result)
@@ -46,6 +52,12 @@ async def calculate_opex_endpoint(request: OpexCalculationRequest):
             'include_it_cost': request.include_it_cost,
             'planned_years_of_operation': request.planned_years_of_operation
         }
+        
+        # Add advanced configuration if provided
+        if request.advanced_config:
+            # Convert Pydantic model to dict for the calculation service
+            advanced_config_dict = request.advanced_config.model_dump(exclude_none=True)
+            input_data['advanced_config'] = advanced_config_dict
         
         result = await calculate_annual_opex(input_data, 1000000)  # Dummy total_capex for now
         return OpexCalculationResponse(**result)
@@ -66,6 +78,12 @@ async def calculate_full(request: FullCalculationRequest):
             'country': request.country
         }
         
+        # Add advanced configuration if provided
+        if request.advanced_config:
+            # Convert Pydantic model to dict for the calculation service
+            advanced_config_dict = request.advanced_config.model_dump(exclude_none=True)
+            capex_input['advanced_config'] = advanced_config_dict
+        
         if request.cooling_type == "air_cooling":
             capex_result = calculate_air_cooling_capex(capex_input)
         elif request.cooling_type == "chassis_immersion":
@@ -85,6 +103,13 @@ async def calculate_full(request: FullCalculationRequest):
                 'include_it_cost': False,      # Excluding IT as per new requirements
                 'planned_years_of_operation': request.planned_years_of_operation
             }
+            
+            # Add advanced configuration if provided
+            if request.advanced_config:
+                # Convert Pydantic model to dict for the calculation service
+                advanced_config_dict = request.advanced_config.model_dump(exclude_none=True)
+                opex_input['advanced_config'] = advanced_config_dict
+            
             opex_result = await calculate_annual_opex(opex_input, capex_result.get('total_capex_excl_it', 1000000))
             opex_response = OpexCalculationResponse(**opex_result)
         
@@ -103,19 +128,24 @@ async def compare_cooling_solutions(request: CapexCalculationRequest):
     Compare air cooling vs chassis immersion solutions
     """
     try:
-        # Air cooling calculation
-        air_cooling_result = calculate_air_cooling_capex({
+        # Prepare base input data
+        base_input = {
             'data_hall_design_capacity_mw': request.data_hall_design_capacity_mw,
             'base_year': request.base_year,
             'country': request.country
-        })
+        }
+        
+        # Add advanced configuration if provided
+        if request.advanced_config:
+            # Convert Pydantic model to dict for the calculation service
+            advanced_config_dict = request.advanced_config.model_dump(exclude_none=True)
+            base_input['advanced_config'] = advanced_config_dict
+        
+        # Air cooling calculation
+        air_cooling_result = calculate_air_cooling_capex(base_input)
         
         # Chassis immersion calculation
-        chassis_immersion_result = calculate_chassis_immersion_capex({
-            'data_hall_design_capacity_mw': request.data_hall_design_capacity_mw,
-            'base_year': request.base_year,
-            'country': request.country
-        })
+        chassis_immersion_result = calculate_chassis_immersion_capex(base_input)
         
         # Return comparison results
         return {

@@ -47,6 +47,9 @@ INFLATION_FACTORS = {
     2050: 1.70,
 }
 
+# Electrical infrastructure cost per kW
+ELECTRICAL_COST_PER_KW = 1500  # USD per kW for electrical infrastructure
+
 def get_inflation_factor(base_year: int) -> float:
     """
     Get inflation factor for the given base year using UK Capex Inflation data
@@ -71,6 +74,7 @@ def calculate_cooling_capex(input_data: Dict[str, Any]) -> Dict[str, Any]:
             - data_hall_design_capacity_mw: float (Maximum Nameplate Input in MW)
             - base_year: int (For inflation calculations)
             - country: str (USA, Singapore, UK, UAE)
+            - advanced_config: Optional[dict] (Advanced configuration parameters)
     
     Returns:
         Dictionary with calculation results
@@ -80,6 +84,7 @@ def calculate_cooling_capex(input_data: Dict[str, Any]) -> Dict[str, Any]:
     capacity_mw = input_data['data_hall_design_capacity_mw']
     base_year = input_data['base_year']
     country = input_data['country']
+    advanced_config = input_data.get('advanced_config')
     
     # Validate country
     if country not in COUNTRY_MULTIPLIERS:
@@ -96,6 +101,17 @@ def calculate_cooling_capex(input_data: Dict[str, Any]) -> Dict[str, Any]:
     
     # Get inflation factor (using UK data universally)
     inflation_factor = get_inflation_factor(base_year)
+    
+    # Apply advanced configuration adjustments
+    advanced_adjustments = {}
+    
+    # Add electrical capacity increase cost if specified
+    if advanced_config and advanced_config.get('required_increase_electrical_kw'):
+        electrical_increase_kw = advanced_config['required_increase_electrical_kw']
+        electrical_increase_cost = electrical_increase_kw * ELECTRICAL_COST_PER_KW * inflation_factor
+        base_capex_before_inflation += electrical_increase_cost
+        advanced_adjustments['electrical_increase_cost'] = electrical_increase_cost
+        advanced_adjustments['electrical_increase_kw'] = electrical_increase_kw
     
     # Calculate final CAPEX with inflation
     cooling_equipment_capex = base_capex_before_inflation * inflation_factor
@@ -127,5 +143,8 @@ def calculate_cooling_capex(input_data: Dict[str, Any]) -> Dict[str, Any]:
         'nameplate_power_kw': nameplate_power_kw,
         'country_multiplier': country_multiplier,
         'inflation_factor': inflation_factor,
-        'base_capex_before_inflation': round(base_capex_before_inflation, 2)
+        'base_capex_before_inflation': round(base_capex_before_inflation, 2),
+        
+        # Advanced configuration details
+        'advanced_adjustments': advanced_adjustments if advanced_adjustments else None
     }

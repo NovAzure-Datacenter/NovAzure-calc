@@ -35,7 +35,7 @@ ELECTRICITY_RATES = {
 }
 
 async def calculate_cost_of_energy(capacity_mw: float, ppue: float, utilisation: float, 
-                                 first_year_of_operation: int, country: str):
+                                 first_year_of_operation: int, country: str, advanced_config=None):
     budgeted_it_energy = await get_budget_IT_energy()
     budgeted_fan_energy = await get_budget_fan_energy()
     actual_fan_power = await get_actual_fan_power()
@@ -46,12 +46,17 @@ async def calculate_cost_of_energy(capacity_mw: float, ppue: float, utilisation:
     
     energy_per_year = (fan_power + it_power) * 365 * 24
     total_energy = ppue * energy_per_year
-    electricity_rate = ELECTRICITY_RATES[country][first_year_of_operation]
+    
+    # Use custom electricity price if provided in advanced config
+    if advanced_config and advanced_config.get('electricity_price_per_kwh'):
+        electricity_rate = advanced_config['electricity_price_per_kwh']
+    else:
+        electricity_rate = ELECTRICITY_RATES[country][first_year_of_operation]
     
     return total_energy * electricity_rate
 
 async def calculate_cost_of_energy_over_planned_period(capacity_mw: float, ppue: float, utilisation: float, 
-                                                     first_year_of_operation: int, planned_years: int, country: str):
+                                                     first_year_of_operation: int, planned_years: int, country: str, advanced_config=None):
     budgeted_it_energy = await get_budget_IT_energy()
     budgeted_fan_energy = await get_budget_fan_energy()
     actual_fan_power = await get_actual_fan_power()
@@ -63,22 +68,35 @@ async def calculate_cost_of_energy_over_planned_period(capacity_mw: float, ppue:
     energy_per_year = (fan_power + it_power) * 365 * 24
     total_energy_per_year = ppue * energy_per_year
     
+    # Use custom electricity price if provided in advanced config
+    custom_electricity_rate = None
+    if advanced_config and advanced_config.get('electricity_price_per_kwh'):
+        custom_electricity_rate = advanced_config['electricity_price_per_kwh']
+    
     total_energy_cost = 0
     for year_offset in range(planned_years):
         current_year = first_year_of_operation + year_offset
-        if current_year in ELECTRICITY_RATES[country]:
+        
+        if custom_electricity_rate:
+            electricity_rate = custom_electricity_rate
+        elif current_year in ELECTRICITY_RATES[country]:
             electricity_rate = ELECTRICITY_RATES[country][current_year]
-            total_energy_cost += total_energy_per_year * electricity_rate
         else:
             # Use the last available year's rate if beyond forecast
             last_year = max(ELECTRICITY_RATES[country].keys())
             electricity_rate = ELECTRICITY_RATES[country][last_year]
-            total_energy_cost += total_energy_per_year * electricity_rate
+        
+        total_energy_cost += total_energy_per_year * electricity_rate
     
     return total_energy_cost
 
-async def calculate_cost_of_water_annually(energy_required_per_year_kwh: float):
-    water_price = await get_water_price_per_litre()
+async def calculate_cost_of_water_annually(energy_required_per_year_kwh: float, advanced_config=None):
+    # Use custom water price if provided in advanced config
+    if advanced_config and advanced_config.get('water_price_per_litre'):
+        water_price = advanced_config['water_price_per_litre']
+    else:
+        water_price = await get_water_price_per_litre()
+    
     water_use = await get_water_use_per_kwh()
     
     water_required = energy_required_per_year_kwh * water_use
@@ -99,7 +117,8 @@ async def calculate_total_opex_over_lifetime(input_data, total_capex: float):
         'percentage_of_utilisation': float,
         'first_year_of_operation': int,
         'planned_years_of_operation': int,
-        'country': str
+        'country': str,
+        'advanced_config': Optional[dict]  # New advanced configuration
     }
     And the total_capex value calculated separately.
     '''
@@ -109,10 +128,11 @@ async def calculate_total_opex_over_lifetime(input_data, total_capex: float):
     first_year_of_operation = input_data.get('first_year_of_operation')
     planned_years = input_data.get('planned_years_of_operation')
     country = input_data.get('country')
+    advanced_config = input_data.get('advanced_config')
     
     # Cost of energy over planned period with varying electricity rates
     cost_of_energy_planned_period = await calculate_cost_of_energy_over_planned_period(
-        capacity_mw, ppue, utilisation, first_year_of_operation, planned_years, country
+        capacity_mw, ppue, utilisation, first_year_of_operation, planned_years, country, advanced_config
     )
     
     # Annual water and maintenance costs
@@ -125,7 +145,7 @@ async def calculate_total_opex_over_lifetime(input_data, total_capex: float):
     it_power = capacity_kw * budgeted_it_energy * utilisation
     energy_per_year = (fan_power + it_power) * 365 * 24
     
-    annual_water_cost = await calculate_cost_of_water_annually(energy_per_year)
+    annual_water_cost = await calculate_cost_of_water_annually(energy_per_year, advanced_config)
     annual_maintenance_cost = await calculate_cooling_maintenance_annually(total_capex, country)
     
     # Total water and maintenance costs over planned years
@@ -135,8 +155,19 @@ async def calculate_total_opex_over_lifetime(input_data, total_capex: float):
     # Total OPEX over lifetime
     total_opex_lifetime = cost_of_energy_planned_period + total_water_cost + total_maintenance_cost
     
+    # Prepare advanced adjustments for response
+    advanced_adjustments = {}
+    if advanced_config:
+        if advanced_config.get('electricity_price_per_kwh'):
+            advanced_adjustments['custom_electricity_rate'] = advanced_config['electricity_price_per_kwh']
+        if advanced_config.get('water_price_per_litre'):
+            advanced_adjustments['custom_water_rate'] = advanced_config['water_price_per_litre']
+        if advanced_config.get('waterloop_enabled'):
+            advanced_adjustments['waterloop_enabled'] = advanced_config['waterloop_enabled']
+    
     return {
-        'total_opex_over_lifetime': total_opex_lifetime
+        'total_opex_over_lifetime': total_opex_lifetime,
+        'advanced_adjustments': advanced_adjustments if advanced_adjustments else None
     }
 
 async def calculate_annual_opex(input_data, total_capex: float):
@@ -149,7 +180,8 @@ async def calculate_annual_opex(input_data, total_capex: float):
         'annualised_air_ppue': float,
         'percentage_of_utilisation': float,
         'first_year_of_operation': int,
-        'country': str
+        'country': str,
+        'advanced_config': Optional[dict]  # New advanced configuration
     }
     And the total_capex value calculated separately.
     '''
@@ -158,9 +190,10 @@ async def calculate_annual_opex(input_data, total_capex: float):
     utilisation = input_data.get('percentage_of_utilisation')
     first_year_of_operation = input_data.get('first_year_of_operation')
     country = input_data.get('country')
+    advanced_config = input_data.get('advanced_config')
     
     cost_of_energy = await calculate_cost_of_energy(
-        capacity_mw, ppue, utilisation, first_year_of_operation, country
+        capacity_mw, ppue, utilisation, first_year_of_operation, country, advanced_config
     )
     
     budgeted_it_energy = await get_budget_IT_energy()
@@ -172,11 +205,22 @@ async def calculate_annual_opex(input_data, total_capex: float):
     it_power = capacity_kw * budgeted_it_energy * utilisation
     energy_per_year = (fan_power + it_power) * 365 * 24
     
-    cost_of_water = await calculate_cost_of_water_annually(energy_per_year)
+    cost_of_water = await calculate_cost_of_water_annually(energy_per_year, advanced_config)
     maintenance_cost = await calculate_cooling_maintenance_annually(total_capex, country)
     
     annual_opex = cost_of_energy + cost_of_water + maintenance_cost
     
+    # Prepare advanced adjustments for response
+    advanced_adjustments = {}
+    if advanced_config:
+        if advanced_config.get('electricity_price_per_kwh'):
+            advanced_adjustments['custom_electricity_rate'] = advanced_config['electricity_price_per_kwh']
+        if advanced_config.get('water_price_per_litre'):
+            advanced_adjustments['custom_water_rate'] = advanced_config['water_price_per_litre']
+        if advanced_config.get('waterloop_enabled'):
+            advanced_adjustments['waterloop_enabled'] = advanced_config['waterloop_enabled']
+    
     return {
-        'annual_opex': annual_opex
+        'annual_opex': annual_opex,
+        'advanced_adjustments': advanced_adjustments if advanced_adjustments else None
     }

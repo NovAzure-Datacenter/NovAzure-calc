@@ -1,6 +1,15 @@
 from pydantic import BaseModel, Field
 from typing import Optional, Literal, Dict, Any
 
+# Advanced Data Centre Configuration Schema
+class AdvancedDataCentreConfig(BaseModel):
+    inlet_temperature: Optional[float] = Field(None, description="Inlet temperature in °C")
+    electricity_price_per_kwh: Optional[float] = Field(None, description="Electricity price per kWh in $")
+    water_price_per_litre: Optional[float] = Field(None, description="Water price per litre in $")
+    waterloop_enabled: Optional[bool] = Field(None, description="True if using waterloop")
+    air_replacement_capex_pct: Optional[float] = Field(None, description="Air replacement CAPEX percentage (e.g., 0.4 for 40%)")
+    required_increase_electrical_kw: Optional[float] = Field(None, description="Required increase in electrical capacity in kW")
+
 # Main Calculation Schemas (for main.py integration)
 class MainCalculationRequest(BaseModel):
     percentage_of_utilisation: float = Field(..., description="Percentage of utilisation (actual IT power vs maximum IT design)")
@@ -22,11 +31,13 @@ class CapexCalculationRequest(BaseModel):
     data_hall_design_capacity_mw: float = Field(..., description="Data Hall Design Capacity in MW (Maximum Nameplate Input)")
     base_year: int = Field(..., description="Base year for inflation calculations")
     country: Literal["USA", "Singapore", "UK", "UAE"] = Field(..., description="Country for region-specific calculations")
+    advanced_config: Optional[AdvancedDataCentreConfig] = Field(None, description="Advanced data centre configuration")
 
 class OpexCalculationRequest(BaseModel):
     cooling_capacity_limit: int = Field(..., description="Cooling capacity limit (5 or 10)")
     include_it_cost: bool = Field(..., description="Whether to include IT costs in calculation")
     planned_years_of_operation: int = Field(..., description="Planned years of operation")
+    advanced_config: Optional[AdvancedDataCentreConfig] = Field(None, description="Advanced data centre configuration")
 
 class FullCalculationRequest(BaseModel):
     cooling_type: Literal["air_cooling", "chassis_immersion"] = Field(..., description="Type of cooling solution")
@@ -34,6 +45,7 @@ class FullCalculationRequest(BaseModel):
     base_year: int = Field(..., description="Base year for inflation calculations")
     country: Literal["USA", "Singapore", "UK", "UAE"] = Field(..., description="Country for region-specific calculations")
     planned_years_of_operation: Optional[int] = Field(None, description="Planned years of operation (for OPEX)")
+    advanced_config: Optional[AdvancedDataCentreConfig] = Field(None, description="Advanced data centre configuration")
 
 # Response Schemas
 class CapexCalculationResponse(BaseModel):
@@ -48,11 +60,17 @@ class CapexCalculationResponse(BaseModel):
     country_multiplier: float = Field(..., description="Country-specific multiplier used")
     inflation_factor: float = Field(..., description="Inflation factor applied")
     base_capex_before_inflation: float = Field(..., description="Base CAPEX before inflation adjustment")
+    
+    # Advanced configuration details
+    advanced_adjustments: Optional[Dict[str, Any]] = Field(None, description="Adjustments made due to advanced configuration")
 
 class OpexCalculationResponse(BaseModel):
     annual_cooling_opex: int = Field(..., description="Annual cooling OPEX")
     annual_it_equipment_maintenance: int = Field(..., description="Annual IT equipment maintenance")
     opex_lifetime: int = Field(..., description="OPEX over lifetime of operation")
+    
+    # Advanced configuration details
+    advanced_adjustments: Optional[Dict[str, Any]] = Field(None, description="Adjustments made due to advanced configuration")
 
 class FullCalculationResponse(BaseModel):
     capex: CapexCalculationResponse
