@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo, useCallback, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -18,22 +18,30 @@ interface ClientAddressInformationProps {
 	onFieldChange: (field: keyof ClientData, value: any) => void;
 }
 
-export function ClientAddressInformation({
+export const ClientAddressInformation = memo(({
 	client,
 	isEditing,
 	onFieldChange,
-}: ClientAddressInformationProps) {
+}: ClientAddressInformationProps) => {
+	const handleFieldChange = useCallback((field: keyof ClientData, value: any) => {
+		onFieldChange(field, value);
+	}, [onFieldChange]);
+
+	const handleInputChange = useCallback((field: keyof ClientData) => (e: React.ChangeEvent<HTMLInputElement>) => {
+		onFieldChange(field, e.target.value);
+	}, [onFieldChange]);
+
 	// Format address
-	const formatAddress = () => {
+	const fullAddress = useMemo(() => {
 		const parts = [
 			client.street,
 			client.city,
-			client.stateProvince,
-			client.zipcodePostalCode,
+			client.state_province,
+			client.zipcode_postal_code,
 			client.country,
 		].filter(Boolean);
-		return parts.length > 0 ? parts.join(", ") : "No address provided";
-	};
+		return parts.join(", ");
+	}, [client.street, client.city, client.state_province, client.zipcode_postal_code, client.country]);
 
 	return (
 		<Card>
@@ -46,36 +54,34 @@ export function ClientAddressInformation({
 					<div className="space-y-3">
 						<Input
 							value={client.street || ""}
-							onChange={(e) => onFieldChange("street", e.target.value)}
+							onChange={handleInputChange("street")}
 							placeholder="Street Address"
 							className="text-sm h-8"
 						/>
 						<div className="grid grid-cols-2 gap-3">
 							<Input
 								value={client.city || ""}
-								onChange={(e) => onFieldChange("city", e.target.value)}
+								onChange={handleInputChange("city")}
 								placeholder="City"
 								className="text-sm h-8"
 							/>
 							<Input
-								value={client.stateProvince || ""}
-								onChange={(e) => onFieldChange("stateProvince", e.target.value)}
+								value={client.state_province || ""}
+								onChange={handleInputChange("state_province")}
 								placeholder="State/Province"
 								className="text-sm h-8"
 							/>
 						</div>
 						<div className="grid grid-cols-2 gap-3">
 							<Input
-								value={client.zipcodePostalCode || ""}
-								onChange={(e) =>
-									onFieldChange("zipcodePostalCode", e.target.value)
-								}
+								value={client.zipcode_postal_code || ""}
+								onChange={handleInputChange("zipcode_postal_code")}
 								placeholder="ZIP/Postal Code"
 								className="text-sm h-8"
 							/>
 							<Select
 								value={client.country || ""}
-								onValueChange={(value) => onFieldChange("country", value)}
+								onValueChange={(value) => handleFieldChange("country", value)}
 							>
 								<SelectTrigger className="text-sm h-8">
 									<SelectValue placeholder="Select country" />
@@ -95,9 +101,11 @@ export function ClientAddressInformation({
 						</div>
 					</div>
 				) : (
-					<div className="text-sm">{formatAddress()}</div>
+					<div className="text-sm">{fullAddress}</div>
 				)}
 			</CardContent>
 		</Card>
 	);
-}
+});
+
+ClientAddressInformation.displayName = "ClientAddressInformation";

@@ -64,8 +64,8 @@ export function ClientRemoveConfirmationDialog({
 					</DialogTitle>
 					<DialogDescription className="space-y-2">
 						<p>
-							Are you sure you want to remove{" "}
-							<strong>"{client.companyName}"</strong>?
+							Are you sure you want to remove the client{" "}
+							<strong>"{client.company_name}"</strong>?
 						</p>
 						<p className="text-sm text-muted-foreground">
 							This will permanently delete the client and all associated data

@@ -322,7 +322,7 @@ export function ClientsTableView({
 		setIsUpdatingStatus(clientId);
 
 		try {
-			const result = await updateClient(clientId, { clientStatus: newStatus });
+			const result = await updateClient(clientId, { client_status: newStatus });
 
 			if (result.error) {
 				toast.error(result.error);
@@ -335,7 +335,7 @@ export function ClientsTableView({
 			setClients((prevClients) =>
 				prevClients.map((client) =>
 					client.id === clientId
-						? { ...client, clientStatus: newStatus }
+						? { ...client, client_status: newStatus }
 						: client
 				)
 			);
@@ -359,6 +359,8 @@ export function ClientsTableView({
 			</div>
 		);
 	}
+
+	console.log(clients)
 
 	return (
 		<div className="h-[calc(100vh-200px)] overflow-y-auto">
@@ -426,7 +428,7 @@ export function ClientsTableView({
 									const IconComponent = stringToIconComponent(client.logo);
 									const currentStatus =
 										statusOptions.find(
-											(option) => option.value === client.clientStatus
+											(option) => option.value === client.client_status
 										) || statusOptions[0];
 
 									return (
@@ -440,11 +442,11 @@ export function ClientsTableView({
 											<TableCell className="h-10 px-2 py-1 font-medium text-sm">
 												<div>
 													<div className="font-medium">
-														{client.companyName}
+														{client.company_name}
 													</div>
-													{client.companyIndustry && (
+													{client.company_industry && (
 														<div className="text-xs text-muted-foreground">
-															{client.companyIndustry}
+															{client.company_industry}
 														</div>
 													)}
 												</div>
@@ -453,12 +455,12 @@ export function ClientsTableView({
 											<TableCell className="h-10 px-2 py-1">
 												<div>
 													<div className="text-sm font-medium">
-														{client.mainContactFirstName}{" "}
-														{client.mainContactLastName}
+														{client.main_contact_first_name}{" "}
+														{client.main_contact_last_name}
 													</div>
-													{client.mainContactPhone && (
+													{client.main_contact_phone && (
 														<div className="text-xs text-muted-foreground">
-															{client.mainContactPhone}
+															{client.main_contact_phone}
 														</div>
 													)}
 												</div>
@@ -500,7 +502,7 @@ export function ClientsTableView({
 																	>
 																		{status.label}
 																	</Badge>
-																	{client.clientStatus === status.value && (
+																	{client.client_status === status.value && (
 																		<Check className="h-3 w-3 text-green-600" />
 																	)}
 																</button>
@@ -511,9 +513,9 @@ export function ClientsTableView({
 											</TableCell>
 
 											<TableCell className="h-10 px-2 py-1">
-												{client.companySize ? (
+												{client.company_size ? (
 													<span className="text-xs text-muted-foreground">
-														{client.companySize}
+														{client.company_size}
 													</span>
 												) : (
 													<span className="text-xs text-muted-foreground">
@@ -524,14 +526,14 @@ export function ClientsTableView({
 
 											<TableCell className="h-10 px-2 py-1">
 												<IndustryIcons
-													industryIds={client.selectedIndustries || []}
+													industryIds={client.selected_industries || []}
 													industries={industries}
 												/>
 											</TableCell>
 
 											<TableCell className="h-10 px-2 py-1">
 												<TechnologyIcons
-													technologyIds={client.selectedTechnologies || []}
+													technologyIds={client.selected_technologies || []}
 													technologies={technologies}
 												/>
 											</TableCell>
@@ -571,13 +573,13 @@ export function ClientsTableView({
 															size="sm"
 															className="h-6 px-2 text-xs text-blue-600 hover:text-blue-800"
 															onClick={() =>
-																handleEmailClick(client.mainContactEmail)
+																handleEmailClick(client.main_contact_email)
 															}
 														>
 															<Mail className="h-3 w-3 mr-1" />
-															{client.mainContactEmail ? (
+															{client.main_contact_email ? (
 																<span className="truncate max-w-[120px]">
-																	{client.mainContactEmail}
+																	{client.main_contact_email}
 																</span>
 															) : (
 																"Email"
@@ -586,7 +588,7 @@ export function ClientsTableView({
 													</TooltipTrigger>
 													<TooltipContent>
 														<p className="text-sm">
-															{client.mainContactEmail || "No email"}
+															{client.main_contact_email || "No email"}
 														</p>
 													</TooltipContent>
 												</Tooltip>
@@ -597,7 +599,7 @@ export function ClientsTableView({
 													variant="outline"
 													className="text-xs px-2 py-0.5"
 												>
-													{client.userCount || 0}
+													{client.user_count || 0}
 												</Badge>
 											</TableCell>
 
@@ -606,7 +608,7 @@ export function ClientsTableView({
 													variant="outline"
 													className="text-xs px-2 py-0.5 bg-green-50 text-green-700 border-green-200"
 												>
-													{client.productCount || 0}
+													{client.product_count || 0}
 												</Badge>
 											</TableCell>
 
@@ -615,7 +617,7 @@ export function ClientsTableView({
 													variant="outline"
 													className="text-xs px-2 py-0.5 bg-yellow-50 text-yellow-700 border-yellow-200"
 												>
-													{client.productPendingCount || 0}
+													{client.product_pending_count || 0}
 												</Badge>
 											</TableCell>
 
@@ -624,7 +626,7 @@ export function ClientsTableView({
 													variant="outline"
 													className="text-xs px-2 py-0.5 bg-blue-50 text-blue-700 border-blue-200"
 												>
-													{client.scenarioCount || 0}
+													{client.scenario_count || 0}
 												</Badge>
 											</TableCell>
 
@@ -710,7 +712,7 @@ export function ClientsTableView({
 							<DialogDescription className="space-y-2">
 								<p>
 									Are you sure you want to remove{" "}
-									<strong>"{selectedClient.companyName}"</strong>?
+									<strong>"{selectedClient.company_name}"</strong>?
 								</p>
 								<p className="text-sm text-muted-foreground">
 									This will permanently delete the client and all associated

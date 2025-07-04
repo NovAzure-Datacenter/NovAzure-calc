@@ -52,7 +52,8 @@ export function generateWelcomeEmail(
 	firstName: string,
 	lastName: string,
 	companyName: string,
-	resetToken: string
+	resetToken: string,
+	loginEmail: string
 ) {
 	const resetLink = `${
 		process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
@@ -63,6 +64,8 @@ export function generateWelcomeEmail(
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #0b519f;">Welcome to NovAzure</h2>
             <p>Hello ${firstName} ${lastName},</p>
+            <p>Welcome to NovAzure! Your account has been created for <strong>${companyName}</strong>.</p>
+            <p><strong>Your login email:</strong> ${loginEmail}</p>
             <p>To get started, you'll need to set up your account password. Please click the button below to create your password:</p>
             <div style="text-align: center; margin: 30px 0;">
                 <a href="${resetLink}" 
@@ -70,7 +73,7 @@ export function generateWelcomeEmail(
                     Set Up Your Password
                 </a>
             </div>
-            <p>This link will expire in 24 hours for security reasons.</p>
+            <p>This link will expire in 1 week for security reasons.</p>
             <p>If you have any questions, please don't hesitate to contact our support team.</p>
             <hr style="border: 1px solid #eee; margin: 20px 0;" />
             <p style="color: #666; font-size: 12px;">This is an automated message, please do not reply to this email.</p>

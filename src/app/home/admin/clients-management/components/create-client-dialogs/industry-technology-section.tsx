@@ -16,8 +16,8 @@ import { stringToIconComponent } from "@/lib/icons/lucide-icons";
 
 interface IndustryTechnologySectionProps {
 	formData: {
-		selectedIndustries: string[];
-		selectedTechnologies: string[];
+		selected_industries: string[];
+		selected_technologies: string[];
 	};
 	availableIndustries: Array<{ id: string; name: string; icon: React.ComponentType<{ className?: string }> }>;
 	availableTechnologies: Array<{ id: string; name: string; icon: React.ComponentType<{ className?: string }> }>;
@@ -56,7 +56,7 @@ export function IndustryTechnologySection({
 								<span>
 									{isLoadingIndustries
 										? "Loading industries..."
-										: `Select Industries (${formData.selectedIndustries.length} selected)`}
+										: `Select Industries (${formData.selected_industries.length} selected)`}
 								</span>
 								<ChevronDown className="h-3 w-3" />
 							</Button>
@@ -73,7 +73,7 @@ export function IndustryTechnologySection({
 								) : (
 									<div className="grid grid-cols-2 gap-1 max-h-[150px] overflow-y-auto">
 										{availableIndustries.map((industry) => {
-											const isSelected = formData.selectedIndustries.includes(industry.id);
+											const isSelected = formData.selected_industries.includes(industry.id);
 											return (
 												<div
 													key={industry.id}
@@ -106,13 +106,13 @@ export function IndustryTechnologySection({
 					</Collapsible>
 
 					{/* Selected industries display */}
-					{formData.selectedIndustries.length > 0 && (
+					{formData.selected_industries.length > 0 && (
 						<div className="space-y-1">
 							<div className="text-xs font-medium text-gray-700">
 								Selected Industries:
 							</div>
 							<div className="flex flex-wrap gap-1">
-								{formData.selectedIndustries.map((industryId) => {
+								{formData.selected_industries.map((industryId) => {
 									const industry = availableIndustries.find(
 										(i) => i.id === industryId
 									);
@@ -156,7 +156,7 @@ export function IndustryTechnologySection({
 								<span>
 									{isLoadingTechnologies
 										? "Loading technologies..."
-										: `Select Technologies (${formData.selectedTechnologies.length} selected)`}
+										: `Select Technologies (${formData.selected_technologies.length} selected)`}
 								</span>
 								<ChevronDown className="h-3 w-3" />
 							</Button>
@@ -173,7 +173,7 @@ export function IndustryTechnologySection({
 								) : (
 									<div className="grid grid-cols-2 gap-1 max-h-[150px] overflow-y-auto">
 										{availableTechnologies.map((technology) => {
-											const isSelected = formData.selectedTechnologies.includes(technology.id);
+											const isSelected = formData.selected_technologies.includes(technology.id);
 											return (
 												<div
 													key={technology.id}
@@ -206,13 +206,13 @@ export function IndustryTechnologySection({
 					</Collapsible>
 
 					{/* Selected technologies display */}
-					{formData.selectedTechnologies.length > 0 && (
+					{formData.selected_technologies.length > 0 && (
 						<div className="space-y-1">
 							<div className="text-xs font-medium text-gray-700">
 								Selected Technologies:
 							</div>
 							<div className="flex flex-wrap gap-1">
-								{formData.selectedTechnologies.map((technologyId) => {
+								{formData.selected_technologies.map((technologyId) => {
 									const technology = availableTechnologies.find(
 										(t) => t.id === technologyId
 									);

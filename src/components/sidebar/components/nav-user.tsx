@@ -88,7 +88,7 @@ export function NavUser({ user }: NavUserProps) {
 									{user.first_name + " " + user.last_name}
 								</span>
 								<span className="truncate text-xs text-muted-foreground">
-									{user.role || "User"}
+									{user.company_name}
 								</span>
 							</div>
 							<ChevronsUpDown className="ml-auto size-4" />

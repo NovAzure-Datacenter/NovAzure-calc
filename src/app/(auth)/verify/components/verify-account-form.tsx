@@ -128,7 +128,7 @@ export function VerifyAccountForm() {
 				});
 
 				if (signInResult?.ok) {
-					router.push("/dashboard");
+					router.push("/home");
 				} else {
 					router.push("/login");
 				}

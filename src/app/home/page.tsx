@@ -14,7 +14,7 @@ export default async function DashboardPage() {
 
 	return (
 		<Suspense fallback={<Loading />}>
-			<UnderConstruction title="Navigate to other pages using the dashboard navigation" />
+			<UnderConstruction title="Navigate to other pages using the sidebar" />
 		</Suspense>
 	);
 }

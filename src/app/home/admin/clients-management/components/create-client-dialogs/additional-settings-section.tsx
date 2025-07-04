@@ -14,8 +14,8 @@ import {
 interface AdditionalSettingsSectionProps {
 	formData: {
 		timezone: string;
-		clientStatus: string;
-		additionalNotes: string;
+		client_status: string;
+		additional_notes: string;
 	};
 	onInputChange: (field: string, value: string) => void;
 }
@@ -116,13 +116,13 @@ export function AdditionalSettingsSection({ formData, onInputChange }: Additiona
 					</Select>
 				</div>
 				<div>
-					<Label htmlFor="clientStatus" className="text-xs font-medium">
+					<Label htmlFor="client_status" className="text-xs font-medium">
 						Client Status
 					</Label>
 					<Select
-						value={formData.clientStatus}
+						value={formData.client_status}
 						onValueChange={(value) =>
-							onInputChange("clientStatus", value)
+							onInputChange("client_status", value)
 						}
 					>
 						<SelectTrigger className="text-xs h-8">
@@ -141,12 +141,12 @@ export function AdditionalSettingsSection({ formData, onInputChange }: Additiona
 
 			{/* Additional Notes */}
 			<div>
-				<Label htmlFor="additionalNotes" className="text-xs font-medium">
+				<Label htmlFor="additional_notes" className="text-xs font-medium">
 					Additional Notes
 				</Label>
 				<OptimizedTextarea
-					id="additionalNotes"
-					value={formData.additionalNotes}
+					id="additional_notes"
+					value={formData.additional_notes}
 					onChange={onInputChange}
 					placeholder="Any additional information about the client..."
 				/>

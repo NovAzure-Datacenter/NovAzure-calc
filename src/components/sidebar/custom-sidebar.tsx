@@ -126,7 +126,6 @@ const validateAccountType = (accountType: string): AccountType => {
 export default function CustomSidebar({
 	...props
 }: React.ComponentProps<typeof Sidebar>) {
-	const _router = useRouter();
 	const pathname = usePathname();
 	const [accountType, setAccountType] = useState<AccountType>("company-user");
 	const { user, isLoading: isUserLoading } = useUser();
@@ -144,13 +143,15 @@ export default function CustomSidebar({
 			const validatedAccountType = validateAccountType(user.account_type);
 			setAccountType(validatedAccountType);
 		}
+		console.log(user)
 	}, [user, isUserLoading]);
+
 
 	useEffect(() => {
 		async function fetchCompanyDetails() {
 			setIsCompanyLoading(true);
-			if (user?.company_id) {
-				const result = await getCompanyDetails(user.company_id);
+			if (user?.client_id) {
+				const result = await getCompanyDetails(user.client_id);
 				if (result.success && result.company) {
 					setCompanyDetails({
 						name: result.company.name,
@@ -161,10 +162,12 @@ export default function CustomSidebar({
 			setIsCompanyLoading(false);
 		}
 		fetchCompanyDetails();
-	}, [user?.company_id]);
+	}, [user?.client_id]);
 
 	const quickActions = getQuickActionsByAccountType(accountType);
 	const recentItems = getRecentItemsByAccountType(accountType);
+
+
 
 	return (
 		<>

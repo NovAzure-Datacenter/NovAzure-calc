@@ -25,7 +25,7 @@ function convertToClientData(user: unknown) {
 	
 	const userDoc = user as { 
 		_id: unknown; 
-		company_id: unknown; 
+		client_id: unknown; 
 		created_at: Date; 
 		first_name?: string;
 		last_name?: string;
@@ -44,7 +44,7 @@ function convertToClientData(user: unknown) {
 	
 	return {
 		_id: String(userDoc._id),
-		company_id: String(userDoc.company_id),
+		client_id: String(userDoc.client_id),
 		first_name: userDoc.first_name || "",
 		last_name: userDoc.last_name || "",
 		email: userDoc.email || "",
@@ -161,7 +161,7 @@ export interface CreateUserData {
 	mobile_number?: string;
 	work_number?: string;
 	role: "super-admin" | "admin" | "user" | "seller" | "buyer";
-	company_id: string;
+	client_id: string;
 	timezone?: string;
 	currency?: string;
 	unit_system?: "metric" | "imperial";
@@ -187,7 +187,7 @@ export async function createUser(data: CreateUserData) {
 
 		// Generate a reset token
 		const resetToken = crypto.randomBytes(32).toString("hex");
-		const resetTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+		const resetTokenExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
 		const newUser = {
 			first_name: data.first_name,
@@ -195,7 +195,7 @@ export async function createUser(data: CreateUserData) {
 			email: normalizedEmail,
 			passwordHash,
 			role: data.role,
-			company_id: new ObjectId(data.company_id),
+			client_id: new ObjectId(data.client_id),
 			mobile_number: data.mobile_number || "",
 			work_number: data.work_number || "",
 			timezone: data.timezone || "UTC",
@@ -229,7 +229,8 @@ export async function createUser(data: CreateUserData) {
 					data.first_name,
 					data.last_name,
 					data.company_name,
-					resetToken
+					resetToken,
+					normalizedEmail // Pass the login email
 				),
 			});
 		} catch (emailError) {

@@ -13,11 +13,6 @@ export async function getUsersCollection(): Promise<Collection> {
 	return db.collection("users");
 }
 
-// Vendors Collection probs remove this at some point, migrate to clients
-export async function getCompaniesCollection(): Promise<Collection> {
-	const db = await getDb();
-	return db.collection("vendors");
-}
 
 // Industries Collection
 export async function getIndustriesCollection(): Promise<Collection> {

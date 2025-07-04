@@ -13,6 +13,7 @@ import {
 import { ExternalLink, Users } from "lucide-react";
 import { stringToIconComponent } from "@/lib/icons/lucide-icons";
 import { companySizeOptions } from "../../utils/constants";
+import { toast } from "sonner";
 import type { ClientData } from "@/lib/actions/client/client";
 
 interface ClientCompanyOverviewProps {
@@ -30,15 +31,8 @@ export function ClientCompanyOverview({
 }: ClientCompanyOverviewProps) {
 	const IconComponent = stringToIconComponent(client.logo);
 
-	// Generate login email if possible
-	const loginEmail =
-		client.mainContactFirstName &&
-		client.mainContactLastName &&
-		client.companyName
-			? `${client.mainContactFirstName[0].toUpperCase()}${client.mainContactLastName.toLowerCase()}-${client.companyName
-					.replace(/[^a-zA-Z0-9]/g, "")
-					.toLowerCase()}@novazure.com`
-			: undefined;
+	// Use the stored login email from client data
+	const loginEmail = client.login_email;
 
 	return (
 		<Card>
@@ -61,26 +55,26 @@ export function ClientCompanyOverview({
 						<div className="flex items-center gap-2 mb-1">
 							{isEditing ? (
 								<Input
-									value={client.companyName || ""}
-									onChange={(e) => onFieldChange("companyName", e.target.value)}
+									value={client.company_name || ""}
+									onChange={(e) => onFieldChange("company_name", e.target.value)}
 									className="text-lg font-bold border-0 bg-transparent p-0 focus-visible:ring-0"
 								/>
 							) : (
-								<h3 className="font-semibold text-lg">{client.companyName}</h3>
+								<h3 className="font-semibold text-lg">{client.company_name}</h3>
 							)}
-							{client.companyIndustry && (
+							{client.company_industry && (
 								<Badge variant="outline" className="text-xs">
 									{isEditing ? (
 										<Input
-											value={client.companyIndustry || ""}
+											value={client.company_industry || ""}
 											onChange={(e) =>
-												onFieldChange("companyIndustry", e.target.value)
+												onFieldChange("company_industry", e.target.value)
 											}
 											className="text-xs border-0 bg-transparent p-0 focus-visible:ring-0"
 											placeholder="Industry"
 										/>
 									) : (
-										client.companyIndustry
+										client.company_industry
 									)}
 								</Badge>
 							)}
@@ -106,14 +100,14 @@ export function ClientCompanyOverview({
 									)}
 								</Button>
 							)}
-							{client.companySize && (
+							{client.company_size && (
 								<span className="flex items-center gap-1">
 									<Users className="h-3 w-3" />
 									{isEditing ? (
 										<Select
-											value={client.companySize}
+											value={client.company_size}
 											onValueChange={(value) =>
-												onFieldChange("companySize", value)
+												onFieldChange("company_size", value)
 											}
 										>
 											<SelectTrigger className="text-xs h-6 w-auto border-0 bg-transparent p-0">
@@ -132,7 +126,7 @@ export function ClientCompanyOverview({
 											</SelectContent>
 										</Select>
 									) : (
-										client.companySize
+										client.company_size
 									)}
 								</span>
 							)}
@@ -152,7 +146,7 @@ export function ClientCompanyOverview({
 									className="text-xs h-6 px-2"
 									onClick={() => {
 										navigator.clipboard.writeText(loginEmail);
-										// Note: toast should be handled by parent component
+										toast.success("Login email copied to clipboard");
 									}}
 								>
 									Copy

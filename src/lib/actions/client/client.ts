@@ -10,34 +10,35 @@ import { sendEmail, generateWelcomeEmail } from "../utils/SMTP-email-template";
 export interface ClientData {
 	id?: string;
 	logo: string;
-	companyName: string;
+	company_name: string;
 	website: string;
-	mainContactEmail: string;
-	mainContactFirstName?: string;
-	mainContactLastName?: string;
-	mainContactPhone?: string;
-	techContactFirstName?: string;
-	techContactLastName?: string;
-	techContactEmail?: string;
-	techContactPhone?: string;
-	companyIndustry?: string;
-	companySize?: string;
+	main_contact_email: string;
+	main_contact_first_name?: string;
+	main_contact_last_name?: string;
+	main_contact_phone?: string;
+	tech_contact_first_name?: string;
+	tech_contact_last_name?: string;
+	tech_contact_email?: string;
+	tech_contact_phone?: string;
+	company_industry?: string;
+	company_size?: string;
 	street?: string;
 	city?: string;
-	stateProvince?: string;
-	zipcodePostalCode?: string;
+	state_province?: string;
+	zipcode_postal_code?: string;
 	country?: string;
 	timezone?: string;
-	clientStatus?: string;
-	additionalNotes?: string;
-	selectedIndustries?: string[];
-	selectedTechnologies?: string[];
-	userCount?: number;
-	productCount?: number;
-	productPendingCount?: number;
-	scenarioCount?: number;
-	createdAt?: Date;
-	updatedAt?: Date;
+	client_status?: string;
+	additional_notes?: string;
+	selected_industries?: string[];
+	selected_technologies?: string[];
+	user_count?: number;
+	product_count?: number;
+	product_pending_count?: number;
+	scenario_count?: number;
+	login_email?: string;
+	created_at?: Date;
+	updated_at?: Date;
 }
 
 export async function getClients(): Promise<{
@@ -53,34 +54,35 @@ export async function getClients(): Promise<{
 			.map((client) => ({
 				id: client._id.toString(),
 				logo: client.logo || "Building2",
-				companyName: client.companyName,
+				company_name: client.company_name	,
 				website: client.website,
-				mainContactEmail: client.mainContactEmail,
-				mainContactFirstName: client.mainContactFirstName,
-				mainContactLastName: client.mainContactLastName,
-				mainContactPhone: client.mainContactPhone,
-				techContactFirstName: client.techContactFirstName,
-				techContactLastName: client.techContactLastName,
-				techContactEmail: client.techContactEmail,
-				techContactPhone: client.techContactPhone,
-				companyIndustry: client.companyIndustry,
-				companySize: client.companySize,
+				main_contact_email: client.main_contact_email,
+				main_contact_first_name: client.main_contact_first_name,
+				main_contact_last_name: client.main_contact_last_name,
+				main_contact_phone: client.main_contact_phone,
+				tech_contact_first_name: client.tech_contact_first_name,
+				tech_contact_last_name: client.tech_contact_last_name,
+				tech_contact_email: client.tech_contact_email,
+				tech_contact_phone: client.tech_contact_phone,
+				company_industry: client.company_industry,
+				company_size: client.company_size,
 				street: client.street,
 				city: client.city,
-				stateProvince: client.stateProvince,
-				zipcodePostalCode: client.zipcodePostalCode,
+				state_province: client.state_province,
+				zipcode_postal_code: client.zipcode_postal_code,	
 				country: client.country,
 				timezone: client.timezone,
-				clientStatus: client.clientStatus || "prospect",
-				additionalNotes: client.additionalNotes,
-				selectedIndustries: client.selectedIndustries || [],
-				selectedTechnologies: client.selectedTechnologies || [],
-				userCount: client.userCount || 0,
-				productCount: client.productCount || 0,
-				productPendingCount: client.productPendingCount || 0,
-				scenarioCount: client.scenarioCount || 0,
-				createdAt: client.createdAt,
-				updatedAt: client.updatedAt,
+				client_status: client.client_status || "prospect",
+				additional_notes: client.additional_notes,
+				selected_industries: client.selected_industries || [],
+				selected_technologies: client.selected_technologies || [],
+				user_count: client.user_count || 0,
+				product_count: client.product_count || 0,
+				product_pending_count: client.product_pending_count || 0,
+				scenario_count: client.scenario_count || 0,
+				login_email: client.login_email,
+				created_at: client.created_at,
+				updated_at: client.updated_at,
 			}));
 
 		return { clients: transformedClients };
@@ -91,22 +93,31 @@ export async function getClients(): Promise<{
 }
 
 export async function createClient(
-	clientData: Omit<ClientData, "id" | "createdAt" | "updatedAt">
+	clientData: Omit<ClientData, "id" | "created_at" | "updated_at">
 ): Promise<{
 	clientId?: string;
+	loginEmail?: string;
 	error?: string;
 }> {
 	try {
 		const collection = await getClientsCollection();
 
+		// Generate login email
+		const loginEmail = generateClientLoginEmail(
+			clientData.main_contact_first_name || "",
+			clientData.main_contact_last_name || "",
+			clientData.company_name
+		);
+
 		const newClient = {
 			...clientData,
-			userCount: clientData.userCount || 0,
-			productCount: clientData.productCount || 0,
-			productPendingCount: clientData.productPendingCount || 0,
-			scenarioCount: clientData.scenarioCount || 0,
-			createdAt: new Date(),
-			updatedAt: new Date(),
+			login_email: loginEmail,
+			user_count: clientData.user_count || 0,
+			product_count: clientData.product_count || 0,
+			product_pending_count: clientData.product_pending_count || 0,
+			scenario_count: clientData.scenario_count || 0,
+			created_at: new Date(),
+			updated_at: new Date(),
 		};
 
 		const result = await collection.insertOne(newClient);
@@ -123,7 +134,7 @@ export async function createClient(
 				// Don't fail the client creation, just log the warning
 			}
 
-			return { clientId: result.insertedId.toString() };
+			return { clientId: result.insertedId.toString(), loginEmail };
 		} else {
 			return { error: "Failed to create client" };
 		}
@@ -133,9 +144,83 @@ export async function createClient(
 	}
 }
 
+export async function updateClient(
+	clientId: string,
+	clientData: Partial<ClientData>
+): Promise<{
+	success?: boolean;
+	error?: string;
+}> {
+	try {
+		const collection = await getClientsCollection();
+
+		const updateData = {
+			...clientData,
+			updated_at: new Date(),
+		};
+
+		const result = await collection.updateOne(
+			{ _id: new ObjectId(clientId) },
+			{ $set: updateData }
+		);
+
+		if (result.matchedCount > 0) {
+			return { success: true };
+		} else {
+			return { error: "Client not found" };
+		}
+	} catch (error) {
+		console.error("Error updating client:", error);
+		return { error: "Failed to update client" };
+	}
+}
+
+export async function deleteClient(clientId: string): Promise<{
+	success?: boolean;
+	error?: string;
+}> {
+	try {
+		const collection = await getClientsCollection();
+
+		// First, get the client to find which industries it's associated with
+		const client = await collection.findOne({ _id: new ObjectId(clientId) });
+
+		if (!client) {
+			return { error: "Client not found" };
+		}
+
+		// Remove the company from all associated industries
+		if (client.selected_industries && client.selected_industries.length > 0) {
+			const removeResult = await removeCompanyFromIndustries(
+				client.selected_industries,
+				clientId
+			);
+			if (removeResult.error) {
+				console.error(
+					"Warning: Failed to remove company from industries:",
+					removeResult.error
+				);
+				// Continue with deletion even if industry update fails
+			}
+		}
+
+		// Delete the client
+		const result = await collection.deleteOne({ _id: new ObjectId(clientId) });
+
+		if (result.deletedCount > 0) {
+			return { success: true };
+		} else {
+			return { error: "Client not found" };
+		}
+	} catch (error) {
+		console.error("Error deleting client:", error);
+		return { error: "Failed to delete client" };
+	}
+}
+
 // Function to create a user account for a client's main contact
 async function createClientUser(
-	clientData: Omit<ClientData, "id" | "createdAt" | "updatedAt">,
+	clientData: Omit<ClientData, "id" | "created_at" | "updated_at">,
 	clientId: string
 ): Promise<{
 	success?: boolean;
@@ -146,9 +231,9 @@ async function createClientUser(
 
 		// Generate login email
 		const loginEmail = generateClientLoginEmail(
-			clientData.mainContactFirstName || "",
-			clientData.mainContactLastName || "",
-			clientData.companyName
+			clientData.main_contact_first_name || "",
+			clientData.main_contact_last_name || "",
+			clientData.company_name
 		);
 
 		if (!loginEmail) {
@@ -173,13 +258,13 @@ async function createClientUser(
 		const resetTokenExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
 		const newUser = {
-			first_name: clientData.mainContactFirstName || "",
-			last_name: clientData.mainContactLastName || "",
+			first_name: clientData.main_contact_first_name || "",
+			last_name: clientData.main_contact_last_name || "",
 			email: loginEmail.toLowerCase(),
 			passwordHash,
 			role: "admin",
 			client_id: new ObjectId(clientId),
-			mobile_number: clientData.mainContactPhone || "",
+			mobile_number: clientData.main_contact_phone || "",
 			work_number: "",
 			timezone: clientData.timezone || "UTC",
 			currency: "USD",
@@ -200,14 +285,14 @@ async function createClientUser(
 		// Send welcome email to the main contact email (not the generated login email)
 		try {
 			await sendEmail({
-				to: clientData.mainContactEmail.toLowerCase(),
-				subject: `Welcome to NovAzure - ${clientData.companyName}`,
+				to: clientData.main_contact_email.toLowerCase(),
+				subject: `Welcome to NovAzure - ${clientData.company_name}`,
 				html: generateWelcomeEmail(
-					clientData.mainContactFirstName || "",
-					clientData.mainContactLastName || "",
-					clientData.companyName,
+					clientData.main_contact_first_name || "",
+					clientData.main_contact_last_name || "",
+					clientData.company_name,
 					resetToken,
-					loginEmail // Pass the login email to include in the welcome message
+					loginEmail 
 				),
 			});
 		} catch (emailError) {
@@ -215,7 +300,7 @@ async function createClientUser(
 			// Don't fail user creation if email fails
 		}
 
-		console.log(`User account created for client ${clientData.companyName}: ${loginEmail}`);
+		console.log(`User account created for client ${clientData.company_name}: ${loginEmail}`);
 		return { success: true };
 	} catch (error) {
 		console.error("Error creating client user:", error);
@@ -250,78 +335,4 @@ function generateClientLoginEmail(
 	const email = `${firstLetter}${cleanLastName}-${cleanCompanyName}@novazure.com`;
 
 	return email;
-}
-
-export async function updateClient(
-	clientId: string,
-	clientData: Partial<ClientData>
-): Promise<{
-	success?: boolean;
-	error?: string;
-}> {
-	try {
-		const collection = await getClientsCollection();
-
-		const updateData = {
-			...clientData,
-			updatedAt: new Date(),
-		};
-
-		const result = await collection.updateOne(
-			{ _id: new ObjectId(clientId) },
-			{ $set: updateData }
-		);
-
-		if (result.matchedCount > 0) {
-			return { success: true };
-		} else {
-			return { error: "Client not found" };
-		}
-	} catch (error) {
-		console.error("Error updating client:", error);
-		return { error: "Failed to update client" };
-	}
-}
-
-export async function deleteClient(clientId: string): Promise<{
-	success?: boolean;
-	error?: string;
-}> {
-	try {
-		const collection = await getClientsCollection();
-
-		// First, get the client to find which industries it's associated with
-		const client = await collection.findOne({ _id: new ObjectId(clientId) });
-
-		if (!client) {
-			return { error: "Client not found" };
-		}
-
-		// Remove the company from all associated industries
-		if (client.selectedIndustries && client.selectedIndustries.length > 0) {
-			const removeResult = await removeCompanyFromIndustries(
-				client.selectedIndustries,
-				clientId
-			);
-			if (removeResult.error) {
-				console.error(
-					"Warning: Failed to remove company from industries:",
-					removeResult.error
-				);
-				// Continue with deletion even if industry update fails
-			}
-		}
-
-		// Delete the client
-		const result = await collection.deleteOne({ _id: new ObjectId(clientId) });
-
-		if (result.deletedCount > 0) {
-			return { success: true };
-		} else {
-			return { error: "Client not found" };
-		}
-	} catch (error) {
-		console.error("Error deleting client:", error);
-		return { error: "Failed to delete client" };
-	}
 }
