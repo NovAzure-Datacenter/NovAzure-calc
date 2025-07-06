@@ -256,8 +256,9 @@ async def calculate():
         
         # Calculate IT CAPEX if requested
         it_capex_result = {'total_it_capex': 0}
-        if (include_it_cost.get('include_it_cost') and 
-            include_it_cost['include_it_cost'].lower() in ['yes', 'true', '1']):
+        include_it_cost_value = include_it_cost.get('include_it_cost')
+        if (include_it_cost_value and 
+            str(include_it_cost_value).lower() in ['yes', 'true', '1']):
             
             it_capex_result = calculate_it_capex(
                 data_hall_design_capacity_mw['data_hall_design_capacity_mw'],
