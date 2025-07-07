@@ -67,7 +67,7 @@ def calculate_it_capex(
         or not air_rack_cooling_capacity_kw_per_rack
     ):
         return 0
-    
+
     nameplate_power_kw = data_hall_capacity_mw * 1000
 
     # Calculate maximum servers per rack based on cooling capacity
@@ -122,7 +122,7 @@ def calculate_cooling_capex(input_data):
         'planned_years_of_operation': int (optional)
     }
     """
-    
+
     capacity_mw = input_data.get("data_hall_design_capacity_mw")
     first_year_of_operation = input_data.get("first_year_of_operation")
     country = input_data.get("country")
