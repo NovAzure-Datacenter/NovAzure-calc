@@ -81,7 +81,8 @@ def build_advanced_config():
         )
     if waterloop_enabled.get('waterloop_enabled') is not None:
         advanced_config['waterloop_enabled'] = waterloop_enabled['waterloop_enabled']
-    if required_increase_electrical_kw.get('required_increase_electrical_kw') is not None:
+    if (required_increase_electrical_kw.get('required_increase_electrical_kw') 
+            is not None):
         advanced_config['required_increase_electrical_kw'] = (
             required_increase_electrical_kw['required_increase_electrical_kw']
         )
