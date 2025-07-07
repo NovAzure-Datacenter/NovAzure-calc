@@ -1,21 +1,21 @@
 import pytest
-from app.services.calculations.solutions.air_cooling.capex import (
-    calculate_cooling_equipment_capex,
+from app.services.calculations.solutions.chassis_immersion.capex import (
+    calculate_chassis_solution_capex_with_markup,
     calculate_cooling_capex,
     calculate_it_capex
 )
 
 @pytest.mark.parametrize("country,base_year,capacity_mw,expected_capex", [
-    ("United States", 2023, 1.0, 3849000.0),  # 3849 * 1000 * 1.0
-    ("Singapore", 2023, 1.0, 3527000.0),  # 3527 * 1000 * 1.0
-    ("United Kingdom", 2023, 1.0, 4952000.0),  # 4952 * 1000 * 1.0
-    ("United Arab Emirates", 2023, 1.0, 3433000.0),  # 3433 * 1000 * 1.0
-    ("United States", 2024, 1.0, 3925980.0),  # 3849 * 1000 * 1.02
-    ("United States", 2025, 1.0, 4002960.0),  # 3849 * 1000 * 1.04
-    ("United States", 2030, 1.0, 4426350.0), 
+    ("United States", 2023, 1.0, 4985865),
+    ("Singapore", 2023, 1.0, 5116064),  
+    ("United Kingdom", 2023, 1.0, 4977159), 
+    ("United Arab Emirates", 2023, 1.0, 5035388),  
+    ("United States", 2024, 1.0, 5079582),  
+    ("United States", 2025, 1.0, 5173299),  
+    ("United States", 2030, 1.0, 5688744), 
 ])
-def test_calculate_cooling_equipment_capex(country, base_year, capacity_mw, expected_capex):
-    result = calculate_cooling_equipment_capex(base_year, capacity_mw, country)
+def test_calculate_chassis_solution_capex_with_markup(country, base_year, capacity_mw, expected_capex):
+    result = calculate_chassis_solution_capex_with_markup(base_year, capacity_mw, country)
     assert result == expected_capex
 
 @pytest.mark.parametrize("input_data,expected_cooling_capex,expected_it_capex", [
@@ -23,17 +23,17 @@ def test_calculate_cooling_equipment_capex(country, base_year, capacity_mw, expe
         'data_hall_design_capacity_mw': 1.0,
         'first_year_of_operation': 2023,
         'country': 'United States'
-    }, 3849000.0, 0),  # No IT cost
+    }, 4985865, 0),  # No IT cost
     ({
         'data_hall_design_capacity_mw': 2.0,
         'first_year_of_operation': 2024,
         'country': 'Singapore'
-    }, 7195080.0, 0),  # 3527 * 2000 * 1.02, No IT cost
+    }, 10108366, 0),  # No IT cost
     ({
         'data_hall_design_capacity_mw': 0.5,
         'first_year_of_operation': 2025,
         'country': 'United Kingdom'
-    }, 2575040.0, 0),  # 4952 * 500 * 1.04, No IT cost
+    }, 2731028, 0),  # No IT cost
 ])
 def test_calculate_cooling_capex_without_it(input_data, expected_cooling_capex, expected_it_capex):
     result = calculate_cooling_capex(input_data)
@@ -135,4 +135,4 @@ def test_hpc_ai_vs_general_purpose():
     assert hpc_result['total_capex'] > gp_result['total_capex']
     
     # Cooling equipment CAPEX should be the same
-    assert hpc_result['cooling_equipment_capex'] == gp_result['cooling_equipment_capex'] 
+    assert hpc_result['cooling_equipment_capex'] == gp_result['cooling_equipment_capex']
