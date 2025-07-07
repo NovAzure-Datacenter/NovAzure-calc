@@ -4,7 +4,7 @@ import { Building2, Phone } from "lucide-react";
 import {
 	PersonalData,
 	CompanyData,
-} from "@/app/dashboard/account/components/types";
+} from "@/components/types/profile-types";
 
 interface PersonalProfileCardProps {
 	personalData: PersonalData;

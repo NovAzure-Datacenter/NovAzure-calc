@@ -107,6 +107,13 @@ export function GridView({ data, onIndustryDeleted }: {
 		}
 	};
 
+	// Transform clients data to match CompanyIcons expected format
+	const transformedClients = clients.map(client => ({
+		id: client.id,
+		companyName: client.company_name,
+		logo: client.logo
+	}));
+
 	return (
 		<>
 			<Card className="h-[calc(100vh-200px)] relative">
@@ -141,7 +148,7 @@ export function GridView({ data, onIndustryDeleted }: {
 											</div>
 											<Separator orientation="vertical" className="h-6" />
 											<div className="flex-1">
-												<CompanyIcons companies={industry.companies} clients={clients} />
+												<CompanyIcons companies={industry.companies} clients={transformedClients} />
 											</div>
 										</div>
 

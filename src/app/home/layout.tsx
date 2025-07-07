@@ -1,5 +1,5 @@
 
-import DashboardClientWrapper from "../dashboard/components/dashboard-client-wrapper";
+import DashboardClientWrapper from "@/components/dashboard-client-wrapper";
 import { getServerSession } from "next-auth/next";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
