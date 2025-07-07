@@ -61,30 +61,30 @@ export function ClientIndustryTechnologyFocus({
 	};
 
 	const toggleIndustrySelection = (industryId: string) => {
-		const currentSelected = client.selectedIndustries || [];
+		const currentSelected = client.selected_industries || [];
 		const isSelected = currentSelected.includes(industryId);
 
 		const newSelected = isSelected
 			? currentSelected.filter((id) => id !== industryId)
 			: [...currentSelected, industryId];
 
-		onFieldChange("selectedIndustries", newSelected);
+		onFieldChange("selected_industries", newSelected);
 	};
 
 	const toggleTechnologySelection = (technologyId: string) => {
-		const currentSelected = client.selectedTechnologies || [];
+		const currentSelected = client.selected_technologies || [];
 		const isSelected = currentSelected.includes(technologyId);
 
 		const newSelected = isSelected
 			? currentSelected.filter((id) => id !== technologyId)
 			: [...currentSelected, technologyId];
 
-		onFieldChange("selectedTechnologies", newSelected);
+		onFieldChange("selected_technologies", newSelected);
 	};
 
 	if (
-		!client.selectedIndustries?.length &&
-		!client.selectedTechnologies?.length &&
+		!client.selected_industries?.length &&
+		!client.selected_technologies?.length &&
 		!isEditing
 	) {
 		return null;
@@ -113,7 +113,7 @@ export function ClientIndustryTechnologyFocus({
 												{isLoadingIndustries
 													? "Loading industries..."
 													: `Select Industries (${
-															client.selectedIndustries?.length || 0
+															client.selected_industries?.length || 0
 													  } selected)`}
 											</span>
 											<ChevronDown className="h-3 w-3" />
@@ -132,7 +132,7 @@ export function ClientIndustryTechnologyFocus({
 												<div className="grid grid-cols-2 gap-1 max-h-[150px] overflow-y-auto">
 													{availableIndustries.map((industry) => {
 														const isSelected =
-															client.selectedIndustries?.includes(
+															client.selected_industries?.includes(
 																industry.id
 															) || false;
 														return (
@@ -177,7 +177,7 @@ export function ClientIndustryTechnologyFocus({
 							) : null}
 
 							{/* Selected industries display */}
-							{client.selectedIndustries?.length && (
+							{client.selected_industries?.length && (
 								<div className="space-y-1">
 									<div className="text-xs font-medium text-gray-700">
 										Selected Industries:
@@ -189,7 +189,7 @@ export function ClientIndustryTechnologyFocus({
 												Loading industries...
 											</div>
 										) : (
-											client.selectedIndustries.map((industryId, index) => (
+											client.selected_industries.map((industryId, index) => (
 												<Badge
 													key={index}
 													variant="secondary"
@@ -234,7 +234,7 @@ export function ClientIndustryTechnologyFocus({
 												{isLoadingTechnologies
 													? "Loading technologies..."
 													: `Select Technologies (${
-															client.selectedTechnologies?.length || 0
+															client.selected_technologies?.length || 0
 													  } selected)`}
 											</span>
 											<ChevronDown className="h-3 w-3" />
@@ -253,7 +253,7 @@ export function ClientIndustryTechnologyFocus({
 												<div className="grid grid-cols-2 gap-1 max-h-[150px] overflow-y-auto">
 													{availableTechnologies.map((technology) => {
 														const isSelected =
-															client.selectedTechnologies?.includes(
+															client.selected_technologies?.includes(
 																technology.id
 															) || false;
 														return (
@@ -300,7 +300,7 @@ export function ClientIndustryTechnologyFocus({
 							) : null}
 
 							{/* Selected technologies display */}
-							{client.selectedTechnologies?.length && (
+							{client.selected_technologies?.length && (
 								<div className="space-y-1">
 									<div className="text-xs font-medium text-gray-700">
 										Selected Technologies:
@@ -312,7 +312,7 @@ export function ClientIndustryTechnologyFocus({
 												Loading technologies...
 											</div>
 										) : (
-											client.selectedTechnologies.map((technologyId, index) => (
+											client.selected_technologies.map((technologyId, index) => (
 												<Badge
 													key={index}
 													variant="secondary"

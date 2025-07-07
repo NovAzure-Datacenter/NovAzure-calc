@@ -20,27 +20,27 @@ export function ClientPlatformStatistics({
 				<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 					<div className="text-center">
 						<div className="text-2xl font-bold text-blue-600">
-							{client.userCount || 0}
+							{client.user_count || 0}
 						</div>
-						<div className="text-xs text-muted-foreground">Users</div>
+						<div className="text-sm text-gray-600">Users</div>
 					</div>
 					<div className="text-center">
 						<div className="text-2xl font-bold text-green-600">
-							{client.productCount || 0}
+							{client.product_count || 0}
 						</div>
-						<div className="text-xs text-muted-foreground">Products</div>
+						<div className="text-sm text-gray-600">Products</div>
 					</div>
 					<div className="text-center">
 						<div className="text-2xl font-bold text-yellow-600">
-							{client.productPendingCount || 0}
+							{client.product_pending_count || 0}
 						</div>
-						<div className="text-xs text-muted-foreground">Pending</div>
+						<div className="text-sm text-gray-600">Pending</div>
 					</div>
 					<div className="text-center">
 						<div className="text-2xl font-bold text-purple-600">
-							{client.scenarioCount || 0}
+							{client.scenario_count || 0}
 						</div>
-						<div className="text-xs text-muted-foreground">Scenarios</div>
+						<div className="text-sm text-gray-600">Scenarios</div>
 					</div>
 				</div>
 			</CardContent>

@@ -19,19 +19,23 @@ export function ClientRecordInformation({
 				</h4>
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
 					<div>
-						<div className="font-medium text-gray-700 mb-1">Created</div>
-						<div className="text-muted-foreground">
-							{client.createdAt
-								? new Date(client.createdAt).toLocaleDateString()
-								: "Unknown"}
+						<div className="font-medium text-sm text-gray-700 mb-1">
+							Created
+						</div>
+						<div className="text-sm">
+							{client.created_at
+								? new Date(client.created_at).toLocaleDateString()
+								: "Not available"}
 						</div>
 					</div>
 					<div>
-						<div className="font-medium text-gray-700 mb-1">Last Updated</div>
-						<div className="text-muted-foreground">
-							{client.updatedAt
-								? new Date(client.updatedAt).toLocaleDateString()
-								: "Unknown"}
+						<div className="font-medium text-sm text-gray-700 mb-1">
+							Last Updated
+						</div>
+						<div className="text-sm">
+							{client.updated_at
+								? new Date(client.updated_at).toLocaleDateString()
+								: "Not available"}
 						</div>
 					</div>
 				</div>

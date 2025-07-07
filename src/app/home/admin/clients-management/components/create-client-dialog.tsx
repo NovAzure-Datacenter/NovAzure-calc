@@ -65,32 +65,32 @@ export function CreateClientDialog({ onCreate }: CreateClientDialogProps) {
 	const [formData, setFormData] = useState({
 		// Mandatory fields
 		logo: "Building2" as string,
-		companyName: "",
+		company_name: "",
 		website: "",
 
 		// Contact Information
-		mainContactFirstName: "",
-		mainContactLastName: "",
-		mainContactEmail: "",
-		mainContactPhone: "",
-		techContactFirstName: "",
-		techContactLastName: "",
-		techContactEmail: "",
-		techContactPhone: "",
+		main_contact_first_name: "",
+		main_contact_last_name: "",
+		main_contact_email: "",
+		main_contact_phone: "",
+		tech_contact_first_name: "",
+		tech_contact_last_name: "",
+		tech_contact_email: "",
+		tech_contact_phone: "",
 
 		// Optional fields
-		companyIndustry: "",
-		companySize: "",
+		company_industry: "",
+		company_size: "",
 		street: "",
 		city: "",
-		stateProvince: "",
-		zipcodePostalCode: "",
+		state_province: "",
+		zipcode_postal_code: "",
 		country: "",
 		timezone: "",
-		clientStatus: "prospect" as string,
-		additionalNotes: "",
-		selectedIndustries: [] as string[],
-		selectedTechnologies: [] as string[],
+		client_status: "prospect" as string,
+		additional_notes: "",
+		selected_industries: [] as string[],
+		selected_technologies: [] as string[],
 	});
 
 
@@ -156,55 +156,20 @@ export function CreateClientDialog({ onCreate }: CreateClientDialogProps) {
 	const toggleIndustrySelection = useCallback((industryId: string) => {
 		setFormData((prev) => ({
 			...prev,
-			selectedIndustries: prev.selectedIndustries.includes(industryId)
-				? prev.selectedIndustries.filter((id) => id !== industryId)
-				: [...prev.selectedIndustries, industryId],
+			selected_industries: prev.selected_industries.includes(industryId)
+				? prev.selected_industries.filter((id) => id !== industryId)
+				: [...prev.selected_industries, industryId],
 		}));
 	}, []);
 
 	const toggleTechnologySelection = useCallback((technologyId: string) => {
 		setFormData((prev) => ({
 			...prev,
-			selectedTechnologies: prev.selectedTechnologies.includes(technologyId)
-				? prev.selectedTechnologies.filter((id) => id !== technologyId)
-				: [...prev.selectedTechnologies, technologyId],
+			selected_technologies: prev.selected_technologies.includes(technologyId)
+				? prev.selected_technologies.filter((id) => id !== technologyId)
+				: [...prev.selected_technologies, technologyId],
 		}));
 	}, []);
-
-	// Generate login email based on contact name and company
-	const generateLoginEmail = useCallback(() => {
-		const firstName = formData.mainContactFirstName.trim();
-		const lastName = formData.mainContactLastName.trim();
-		const companyName = formData.companyName.trim();
-
-		if (!firstName || !lastName || !companyName) {
-			return "";
-		}
-
-		// Clean and normalize inputs
-		const cleanFirstName = firstName.replace(/[^a-zA-Z]/g, "").toLowerCase();
-		const cleanLastName = lastName.replace(/[^a-zA-Z]/g, "").toLowerCase();
-		const cleanCompanyName = companyName
-			.replace(/[^a-zA-Z0-9]/g, "")
-			.replace(/\s+/g, "")
-			.toLowerCase();
-
-		if (!cleanFirstName || !cleanLastName || !cleanCompanyName) {
-			return "";
-		}
-
-		// Generate email: firstLetter + lastName + "-" + companyName + "@novazure.com"
-		const firstLetter = cleanFirstName.charAt(0).toUpperCase();
-		const email = `${firstLetter}${cleanLastName}-${cleanCompanyName}@novazure.com`;
-
-		return email;
-	}, [
-		formData.mainContactFirstName,
-		formData.mainContactLastName,
-		formData.companyName,
-	]);
-
-	const loginEmail = useMemo(() => generateLoginEmail(), [generateLoginEmail]);
 
 	const handleInputChange = useCallback((field: string, value: string) => {
 		setFormData((prev) => ({ ...prev, [field]: value }));
@@ -215,11 +180,11 @@ export function CreateClientDialog({ onCreate }: CreateClientDialogProps) {
 			e.preventDefault();
 
 			if (
-				!formData.companyName.trim() ||
+				!formData.company_name.trim() ||
 				!formData.website.trim() ||
-				!formData.mainContactEmail.trim() ||
-				!formData.mainContactFirstName.trim() ||
-				!formData.mainContactLastName.trim()
+				!formData.main_contact_email.trim() ||
+				!formData.main_contact_first_name.trim() ||
+				!formData.main_contact_last_name.trim()
 			) {
 				toast.error("Please fill in all mandatory fields");
 				return;
@@ -230,32 +195,33 @@ export function CreateClientDialog({ onCreate }: CreateClientDialogProps) {
 			try {
 				const clientData = {
 					logo: formData.logo,
-					companyName: formData.companyName.trim(),
+					company_name: formData.company_name.trim(),
 					website: formData.website.trim(),
-					mainContactEmail: formData.mainContactEmail.trim(),
-					mainContactFirstName: formData.mainContactFirstName.trim(),
-					mainContactLastName: formData.mainContactLastName.trim(),
-					mainContactPhone: formData.mainContactPhone,
-					techContactFirstName: formData.techContactFirstName,
-					techContactLastName: formData.techContactLastName,
-					techContactEmail: formData.techContactEmail,
-					techContactPhone: formData.techContactPhone,
-					companyIndustry: formData.companyIndustry,
-					companySize: formData.companySize,
+					main_contact_email: formData.main_contact_email.trim(),
+					main_contact_first_name: formData.main_contact_first_name.trim(),
+					main_contact_last_name: formData.main_contact_last_name.trim(),
+					main_contact_phone: formData.main_contact_phone,
+					tech_contact_first_name: formData.tech_contact_first_name,
+					tech_contact_last_name: formData.tech_contact_last_name,
+					tech_contact_email: formData.tech_contact_email,
+					tech_contact_phone: formData.tech_contact_phone,
+					company_industry: formData.company_industry,
+					company_size: formData.company_size,
 					street: formData.street,
 					city: formData.city,
-					stateProvince: formData.stateProvince,
-					zipcodePostalCode: formData.zipcodePostalCode,
+					state_province: formData.state_province,
+					zipcode_postal_code: formData.zipcode_postal_code,
 					country: formData.country,
 					timezone: formData.timezone,
-					clientStatus: formData.clientStatus,
-					additionalNotes: formData.additionalNotes,
-					selectedIndustries: formData.selectedIndustries,
-					selectedTechnologies: formData.selectedTechnologies,
-					userCount: 0,
-					productCount: 0,
-					productPendingCount: 0,
-					scenarioCount: 0,
+					client_status: formData.client_status,
+					additional_notes: formData.additional_notes,
+					selected_industries: formData.selected_industries,
+					selected_technologies: formData.selected_technologies,
+					user_count: 0,
+					product_count: 0,
+					product_pending_count: 0,
+					scenario_count: 0,
+					login_email: "", // Backend will generate this
 				};
 
 				const result = await createClient(clientData);
@@ -269,15 +235,16 @@ export function CreateClientDialog({ onCreate }: CreateClientDialogProps) {
 				const newClient: ClientData = {
 					id: result.clientId!,
 					...clientData,
+					login_email: result.loginEmail!, // Use the login email from the backend response
 				};
 
 				// Update industries with the new company ID if any industries were selected
 				if (
-					clientData.selectedIndustries &&
-					clientData.selectedIndustries.length > 0
+					clientData.selected_industries &&
+					clientData.selected_industries.length > 0
 				) {
 					const updateResult = await updateIndustryCompanies(
-						clientData.selectedIndustries,
+						clientData.selected_industries,
 						result.clientId!
 					);
 					if (updateResult.error) {
@@ -288,12 +255,12 @@ export function CreateClientDialog({ onCreate }: CreateClientDialogProps) {
 						
 					} else {
 						toast.success(
-							`Client created successfully! A user account has been created for ${clientData.mainContactFirstName} ${clientData.mainContactLastName} with login email: ${loginEmail}`
+							`Client created successfully! A user account has been created for ${clientData.main_contact_first_name} ${clientData.main_contact_last_name} with login email: ${newClient.login_email}`
 						);
 					}
 				} else {
 					toast.success(
-						`Client created successfully! A user account has been created for ${clientData.mainContactFirstName} ${clientData.mainContactLastName} with login email: ${loginEmail}`
+						`Client created successfully! A user account has been created for ${clientData.main_contact_first_name} ${clientData.main_contact_last_name} with login email: ${newClient.login_email}`
 					);
 				}
 
@@ -307,50 +274,50 @@ export function CreateClientDialog({ onCreate }: CreateClientDialogProps) {
 				setIsSubmitting(false);
 			}
 		},
-		[formData, loginEmail, onCreate]
+		[formData, onCreate]
 	);
 
 	const resetForm = useCallback(() => {
 		setFormData({
 			logo: "Building2",
-			companyName: "",
+			company_name: "",
 			website: "",
-			mainContactFirstName: "",
-			mainContactLastName: "",
-			mainContactEmail: "",
-			mainContactPhone: "",
-			techContactFirstName: "",
-			techContactLastName: "",
-			techContactEmail: "",
-			techContactPhone: "",
-			companyIndustry: "",
-			companySize: "",
+			main_contact_first_name: "",
+			main_contact_last_name: "",
+			main_contact_email: "",
+			main_contact_phone: "",
+			tech_contact_first_name: "",
+			tech_contact_last_name: "",
+			tech_contact_email: "",
+			tech_contact_phone: "",
+			company_industry: "",
+			company_size: "",
 			street: "",
 			city: "",
-			stateProvince: "",
-			zipcodePostalCode: "",
+			state_province: "",
+			zipcode_postal_code: "",
 			country: "",
 			timezone: "",
-			clientStatus: "prospect",
-			additionalNotes: "",
-			selectedIndustries: [],
-			selectedTechnologies: [],
+			client_status: "prospect",
+			additional_notes: "",
+			selected_industries: [],
+			selected_technologies: [],
 		});
 	}, []);
 
 	const isFormValid = useMemo(
 		() =>
-			formData.companyName.trim() &&
+			formData.company_name.trim() &&
 			formData.website.trim() &&
-			formData.mainContactEmail.trim() &&
-			formData.mainContactFirstName.trim() &&
-			formData.mainContactLastName.trim(),
+			formData.main_contact_email.trim() &&
+			formData.main_contact_first_name.trim() &&
+			formData.main_contact_last_name.trim(),
 		[
-			formData.companyName,
+			formData.company_name,
 			formData.website,
-			formData.mainContactEmail,
-			formData.mainContactFirstName,
-			formData.mainContactLastName,
+			formData.main_contact_email,
+			formData.main_contact_first_name,
+			formData.main_contact_last_name,
 		]
 	);
 
@@ -358,64 +325,64 @@ export function CreateClientDialog({ onCreate }: CreateClientDialogProps) {
 	const companyLogoFormData = useMemo(
 		() => ({
 			logo: formData.logo,
-			companyName: formData.companyName,
+			company_name: formData.company_name,
 			website: formData.website,
 		}),
-		[formData.logo, formData.companyName, formData.website]
+		[formData.logo, formData.company_name, formData.website]
 	);
 
 	const contactFormData = useMemo(
 		() => ({
-			mainContactFirstName: formData.mainContactFirstName,
-			mainContactLastName: formData.mainContactLastName,
-			mainContactEmail: formData.mainContactEmail,
-			mainContactPhone: formData.mainContactPhone,
-			techContactFirstName: formData.techContactFirstName,
-			techContactLastName: formData.techContactLastName,
-			techContactEmail: formData.techContactEmail,
-			techContactPhone: formData.techContactPhone,
+			main_contact_first_name: formData.main_contact_first_name,
+			main_contact_last_name: formData.main_contact_last_name,
+			main_contact_email: formData.main_contact_email,
+			main_contact_phone: formData.main_contact_phone,
+			tech_contact_first_name: formData.tech_contact_first_name,
+			tech_contact_last_name: formData.tech_contact_last_name,
+			tech_contact_email: formData.tech_contact_email,
+			tech_contact_phone: formData.tech_contact_phone,
 		}),
 		[
-			formData.mainContactFirstName,
-			formData.mainContactLastName,
-			formData.mainContactEmail,
-			formData.mainContactPhone,
-			formData.techContactFirstName,
-			formData.techContactLastName,
-			formData.techContactEmail,
-			formData.techContactPhone,
+			formData.main_contact_first_name,
+			formData.main_contact_last_name,
+			formData.main_contact_email,
+			formData.main_contact_phone,
+			formData.tech_contact_first_name,
+			formData.tech_contact_last_name,
+			formData.tech_contact_email,
+			formData.tech_contact_phone,
 		]
 	);
 
 	const companyDetailsFormData = useMemo(
 		() => ({
-			companyIndustry: formData.companyIndustry,
-			companySize: formData.companySize,
+			company_industry: formData.company_industry,
+			company_size: formData.company_size,
 		}),
-		[formData.companyIndustry, formData.companySize]
+		[formData.company_industry, formData.company_size]
 	);
 
 	const industryTechFormData = useMemo(
 		() => ({
-			selectedIndustries: formData.selectedIndustries,
-			selectedTechnologies: formData.selectedTechnologies,
+			selected_industries: formData.selected_industries,
+			selected_technologies: formData.selected_technologies,
 		}),
-		[formData.selectedIndustries, formData.selectedTechnologies]
+		[formData.selected_industries, formData.selected_technologies]
 	);
 
 	const addressFormData = useMemo(
 		() => ({
 			street: formData.street,
 			city: formData.city,
-			stateProvince: formData.stateProvince,
-			zipcodePostalCode: formData.zipcodePostalCode,
+			state_province: formData.state_province,
+			zipcode_postal_code: formData.zipcode_postal_code,
 			country: formData.country,
 		}),
 		[
 			formData.street,
 			formData.city,
-			formData.stateProvince,
-			formData.zipcodePostalCode,
+			formData.state_province,
+			formData.zipcode_postal_code,
 			formData.country,
 		]
 	);
@@ -423,10 +390,10 @@ export function CreateClientDialog({ onCreate }: CreateClientDialogProps) {
 	const additionalSettingsFormData = useMemo(
 		() => ({
 			timezone: formData.timezone,
-			clientStatus: formData.clientStatus,
-			additionalNotes: formData.additionalNotes,
+			client_status: formData.client_status,
+			additional_notes: formData.additional_notes,
 		}),
-		[formData.timezone, formData.clientStatus, formData.additionalNotes]
+		[formData.timezone, formData.client_status, formData.additional_notes]
 	);
 
 	return (
@@ -452,7 +419,6 @@ export function CreateClientDialog({ onCreate }: CreateClientDialogProps) {
 							<MemoizedCompanyLogoSection
 								formData={companyLogoFormData}
 								onInputChange={handleInputChange}
-								loginEmail={loginEmail}
 							/>
 
 							{/* Contact Information */}

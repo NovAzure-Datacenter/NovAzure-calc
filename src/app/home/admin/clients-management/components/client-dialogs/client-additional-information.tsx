@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,12 +20,21 @@ interface ClientAdditionalInformationProps {
 	onFieldChange: (field: keyof ClientData, value: any) => void;
 }
 
-export function ClientAdditionalInformation({
+export const ClientAdditionalInformation = memo(({
 	client,
 	isEditing,
 	onFieldChange,
-}: ClientAdditionalInformationProps) {
-	if (!client.timezone && !client.additionalNotes && !isEditing) {
+}: ClientAdditionalInformationProps) => {
+	const handleFieldChange = useCallback((field: keyof ClientData, value: any) => {
+		onFieldChange(field, value);
+	}, [onFieldChange]);
+
+	const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+		onFieldChange("additional_notes", e.target.value);
+	};
+
+	// Don't render if no additional information and not editing
+	if (!client.timezone && !client.additional_notes && !isEditing) {
 		return null;
 	}
 
@@ -45,7 +54,7 @@ export function ClientAdditionalInformation({
 								</div>
 								<Select
 									value={client.timezone || ""}
-									onValueChange={(value) => onFieldChange("timezone", value)}
+									onValueChange={(value) => handleFieldChange("timezone", value)}
 								>
 									<SelectTrigger className="text-sm h-8">
 										<SelectValue placeholder="Select timezone" />
@@ -68,10 +77,8 @@ export function ClientAdditionalInformation({
 									Additional Notes
 								</div>
 								<Textarea
-									value={client.additionalNotes || ""}
-									onChange={(e) =>
-										onFieldChange("additionalNotes", e.target.value)
-									}
+									value={client.additional_notes || ""}
+									onChange={handleNotesChange}
 									placeholder="Additional notes..."
 									className="text-sm min-h-[80px]"
 								/>
@@ -87,13 +94,13 @@ export function ClientAdditionalInformation({
 									<div className="text-sm">{client.timezone}</div>
 								</div>
 							)}
-							{client.additionalNotes && (
+							{client.additional_notes && (
 								<div>
 									<div className="font-medium text-sm text-gray-700 mb-1">
 										Additional Notes
 									</div>
 									<div className="text-sm bg-gray-50 rounded-lg p-3 whitespace-pre-line">
-										{client.additionalNotes}
+										{client.additional_notes}
 									</div>
 								</div>
 							)}
@@ -103,4 +110,6 @@ export function ClientAdditionalInformation({
 			</CardContent>
 		</Card>
 	);
-}
+});
+
+ClientAdditionalInformation.displayName = "ClientAdditionalInformation";

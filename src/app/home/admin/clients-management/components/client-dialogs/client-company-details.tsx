@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -23,11 +23,19 @@ interface ClientCompanyDetailsProps {
 	onFieldChange: (field: keyof ClientData, value: any) => void;
 }
 
-export function ClientCompanyDetails({
+export const ClientCompanyDetails = memo(({
 	client,
 	isEditing,
 	onFieldChange,
-}: ClientCompanyDetailsProps) {
+}: ClientCompanyDetailsProps) => {
+	const handleFieldChange = useCallback((field: keyof ClientData, value: any) => {
+		onFieldChange(field, value);
+	}, [onFieldChange]);
+
+	const handleInputChange = useCallback((field: keyof ClientData) => (e: React.ChangeEvent<HTMLInputElement>) => {
+		onFieldChange(field, e.target.value);
+	}, [onFieldChange]);
+
 	return (
 		<Card>
 			<CardContent className="pt-4 pb-4">
@@ -42,16 +50,14 @@ export function ClientCompanyDetails({
 						</div>
 						{isEditing ? (
 							<Input
-								value={client.companyIndustry || ""}
-								onChange={(e) =>
-									onFieldChange("companyIndustry", e.target.value)
-								}
-								placeholder="Industry"
+								value={client.company_industry || ""}
+								onChange={handleInputChange("company_industry")}
+								placeholder="e.g., Technology, Healthcare"
 								className="text-sm h-8"
 							/>
 						) : (
 							<div className="text-sm">
-								{client.companyIndustry || "Not specified"}
+								{client.company_industry || "Not specified"}
 							</div>
 						)}
 					</div>
@@ -61,19 +67,15 @@ export function ClientCompanyDetails({
 						</div>
 						{isEditing ? (
 							<Select
-								value={client.companySize || ""}
-								onValueChange={(value) => onFieldChange("companySize", value)}
+								value={client.company_size || ""}
+								onValueChange={(value) => handleFieldChange("company_size", value)}
 							>
 								<SelectTrigger className="text-sm h-8">
-									<SelectValue placeholder="Select size" />
+									<SelectValue placeholder="Select company size" />
 								</SelectTrigger>
 								<SelectContent>
 									{companySizeOptions.map((option) => (
-										<SelectItem
-											key={option.value}
-											value={option.value}
-											className="text-xs"
-										>
+										<SelectItem key={option.value} value={option.value} className="text-sm">
 											{option.label}
 										</SelectItem>
 									))}
@@ -81,7 +83,7 @@ export function ClientCompanyDetails({
 							</Select>
 						) : (
 							<div className="text-sm">
-								{client.companySize || "Not specified"}
+								{client.company_size || "Not specified"}
 							</div>
 						)}
 					</div>
@@ -91,35 +93,38 @@ export function ClientCompanyDetails({
 						</div>
 						{isEditing ? (
 							<Select
-								value={client.clientStatus || ""}
-								onValueChange={(value) => onFieldChange("clientStatus", value)}
+								value={client.client_status || ""}
+								onValueChange={(value) => handleFieldChange("client_status", value)}
 							>
 								<SelectTrigger className="text-sm h-8">
 									<SelectValue />
 								</SelectTrigger>
 								<SelectContent>
 									{clientStatusOptions.map((option) => (
-										<SelectItem
-											key={option.value}
-											value={option.value}
-											className="text-xs"
-										>
+										<SelectItem key={option.value} value={option.value} className="text-sm">
 											{option.label}
 										</SelectItem>
 									))}
 								</SelectContent>
 							</Select>
 						) : (
-							<Badge
-								variant={getStatusVariant(client.clientStatus || "")}
-								className="text-xs"
-							>
-								{client.clientStatus || "Unknown"}
-							</Badge>
+							<div className="text-sm">
+								{client.client_status ? (
+									<Badge variant={getStatusVariant(client.client_status)}>
+										{clientStatusOptions.find(
+											(option) => option.value === client.client_status
+										)?.label || client.client_status}
+									</Badge>
+								) : (
+									"Not specified"
+								)}
+							</div>
 						)}
 					</div>
 				</div>
 			</CardContent>
 		</Card>
 	);
-}
+});
+
+ClientCompanyDetails.displayName = "ClientCompanyDetails";

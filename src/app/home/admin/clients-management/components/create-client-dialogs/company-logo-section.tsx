@@ -17,11 +17,11 @@ import { iconOptions } from "@/lib/icons/lucide-icons";
 interface CompanyLogoSectionProps {
 	formData: {
 		logo: string;
-		companyName: string;
+		company_name: string;
 		website: string;
 	};
 	onInputChange: (field: string, value: string) => void;
-	loginEmail: string;
+	loginEmail?: string;
 }
 
 // Optimized Input component with local state
@@ -115,8 +115,8 @@ export function CompanyLogoSection({ formData, onInputChange, loginEmail }: Comp
 						Company Name <span className="text-red-500">*</span>
 					</Label>
 					<OptimizedInput
-						id="companyName"
-						value={formData.companyName}
+						id="company_name"
+						value={formData.company_name}
 						onChange={onInputChange}
 						placeholder="Enter company name..."
 						required

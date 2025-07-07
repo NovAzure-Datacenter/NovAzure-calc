@@ -60,7 +60,7 @@ import { Separator } from "@/components/ui/separator";
 
 import { UserData, useUser } from "@/hooks/useUser";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { getCompanyDetails } from "@/lib/actions/company/company";
+import { getClientDetails } from "@/lib/actions/client/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -126,15 +126,15 @@ const validateAccountType = (accountType: string): AccountType => {
 export default function CustomSidebar({
 	...props
 }: React.ComponentProps<typeof Sidebar>) {
-	const _router = useRouter();
 	const pathname = usePathname();
 	const [accountType, setAccountType] = useState<AccountType>("company-user");
 	const { user, isLoading: isUserLoading } = useUser();
-	const [companyDetails, setCompanyDetails] = useState<{
+	const [clientDetails, setClientDetails] = useState<{
 		name: string;
 		logo: string;
+		website: string;
 	} | null>(null);
-	const [isCompanyLoading, setIsCompanyLoading] = useState(true);
+	const [isClientLoading, setIsClientLoading] = useState(true);
 	const [_isMenuItemHovered, _setIsMenuItemHovered] = useState<string | null>(
 		null
 	);
@@ -147,21 +147,23 @@ export default function CustomSidebar({
 	}, [user, isUserLoading]);
 
 	useEffect(() => {
-		async function fetchCompanyDetails() {
-			setIsCompanyLoading(true);
-			if (user?.company_id) {
-				const result = await getCompanyDetails(user.company_id);
-				if (result.success && result.company) {
-					setCompanyDetails({
-						name: result.company.name,
-						logo: result.company.logo,
+		async function fetchClientDetails() {
+			setIsClientLoading(true);
+			if (user?.client_id) {
+				const result = await getClientDetails(user.client_id);
+				console.log(user.client_id);
+				if (result.success && result.client) {
+					setClientDetails({
+						name: result.client.name,
+						logo: result.client.logo,
+						website: result.client.website,
 					});
 				}
 			}
-			setIsCompanyLoading(false);
+			setIsClientLoading(false);
 		}
-		fetchCompanyDetails();
-	}, [user?.company_id]);
+		fetchClientDetails();
+	}, [user?.client_id]);
 
 	const quickActions = getQuickActionsByAccountType(accountType);
 	const recentItems = getRecentItemsByAccountType(accountType);
@@ -184,37 +186,37 @@ export default function CustomSidebar({
 					<SidebarHeader className="px-4 py-6">
 						<div className="flex items-center gap-4">
 							<div className="relative h-12 w-12 overflow-hidden rounded-xl border border-border bg-gradient-to-br from-blue-500 to-purple-600">
-								{isCompanyLoading ? (
+								{isClientLoading ? (
 									<Skeleton className="h-12 w-12 rounded-xl" />
 								) : (
 									<Avatar className="h-12 w-12 rounded-xl">
 										<AvatarImage
 											src={
-												companyDetails?.logo ||
+												clientDetails?.logo ||
 												"/images/profile/default-profile-pic.png"
 											}
-											alt="Company Logo"
+											alt="Client Logo"
 											className="object-cover"
 										/>
 										<AvatarFallback className="rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
-											{companyDetails?.name?.charAt(0) || "N"}
+											{clientDetails?.name?.charAt(0) || "N"}
 										</AvatarFallback>
 									</Avatar>
 								)}
 							</div>
 							<div className="flex flex-col min-w-0 flex-1">
-								{isCompanyLoading ? (
+								{isClientLoading ? (
 									<Skeleton className="h-5 w-24 mb-1" />
 								) : (
 									<span className="font-semibold text-sm truncate">
-										{companyDetails?.name || "NovAzure"}
+										{clientDetails?.name}
 									</span>
 								)}
-								{isCompanyLoading ? (
+								{isClientLoading ? (
 									<Skeleton className="h-3 w-16" />
 								) : (
 									<span className="text-xs text-muted-foreground">
-										{getAccountTypeDisplayName(accountType)}
+										{clientDetails?.website}
 									</span>
 								)}
 							</div>
@@ -256,7 +258,7 @@ export default function CustomSidebar({
 					</SidebarContent>
 
 					<Separator className="mb-2" />
-					
+
 					<SidebarFooter className="px-2">
 						{isUserLoading ? (
 							<div className="p-4">

@@ -46,7 +46,7 @@ import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CompanyProfileCard } from "@/components/profile-cards";
 import { Separator } from "@/components/ui/separator";
-import { getCompanyDetails } from "@/lib/actions/company/company";
+import { getClientDetails } from "@/lib/actions/client/client";
 import { useUser } from "@/hooks/useUser";
 import { Badge } from "@/components/ui/badge";
 import { CompanyData } from "@/app/dashboard/account/components/types";
@@ -280,24 +280,24 @@ export default function CompanyUsersPage() {
 
 	useEffect(() => {
 		async function fetchCompanyData() {
-			if (user?.company_id) {
+			if (user?.client_id) {
 				try {
 					setIsLoadingCompany(true);
 					setCompanyError(null);
 				
-					const result = await getCompanyDetails(user.company_id);
-					if (result.success && result.company) {
+					const result = await getClientDetails(user.client_id);
+					if (result.success && result.client) {
 						const transformedData: CompanyData = {
-							companyId: result.company._id.toString(),
-							companyName: result.company.name || "",
-							companyAddress: result.company.address || "",
-							companyPhone: result.company.contact_number || "",
-							website: result.company.website || "",
-							currency: result.company.currency || "",
-							logo: result.company.logo || "",
-							industry: result.company.industry || "",
-							contactEmail: result.company.contact_email || "",
-							country: result.company.country || "",
+							companyId: result.client._id.toString(),
+							companyName: result.client.name || "",
+							companyAddress: result.client.address || "",
+							companyPhone: result.client.contact_number || "",
+							website: result.client.website || "",
+							currency: result.client.currency || "",
+							logo: result.client.logo || "",
+							industry: result.client.industry || "",
+							contactEmail: result.client.contact_email || "",
+							country: result.client.country || "",
 						};
 						setCompanyData(transformedData);
 					} else {
@@ -318,11 +318,11 @@ export default function CompanyUsersPage() {
 	}, [user]);
 
 	const fetchUsers = useCallback(async () => {
-		if (user?.company_id) {
+		if (user?.client_id) {
 			try {
 				setIsLoadingUsers(true);
 				setUsersError(null);
-				const result = await getUsersByCompany(user.company_id);
+				const result = await getUsersByCompany(user.client_id);
 				console.log(result)
 				if (result.success && result.users) {
 					setData(result.users);
@@ -339,7 +339,7 @@ export default function CompanyUsersPage() {
 		} else {
 			setIsLoadingUsers(false);
 		}
-	}, [user?.company_id]);
+	}, [user?.client_id]);
 
 	useEffect(() => {
 		fetchUsers();

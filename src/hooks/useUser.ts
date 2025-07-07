@@ -8,7 +8,7 @@ export interface UserData {
 	account_type: string;
 	profile_image: string;
 	company_name: string;
-	company_id: string;
+	client_id: string;
 	email: string;
 	work_number: string;
 	mobile_number: string;
@@ -57,7 +57,7 @@ export function useUser() {
 	const logout = async () => {
 		await signOut({ callbackUrl: "/" });
 	};
-
+	
 	return {
 		user: userData,
 		updateUser,

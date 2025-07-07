@@ -13,8 +13,8 @@ import {
 
 interface CompanyDetailsSectionProps {
 	formData: {
-		companyIndustry: string;
-		companySize: string;
+		company_industry: string;
+		company_size: string;
 	};
 	onInputChange: (field: string, value: string) => void;
 }
@@ -86,8 +86,8 @@ export function CompanyDetailsSection({ formData, onInputChange }: CompanyDetail
 						Company Industry
 					</Label>
 					<OptimizedInput
-						id="companyIndustry"
-						value={formData.companyIndustry}
+						id="company_industry"
+						value={formData.company_industry}
 						onChange={onInputChange}
 						placeholder="e.g., Technology, Healthcare"
 					/>
@@ -97,9 +97,9 @@ export function CompanyDetailsSection({ formData, onInputChange }: CompanyDetail
 						Company Size
 					</Label>
 					<Select
-						value={formData.companySize}
+						value={formData.company_size}
 						onValueChange={(value) =>
-							onInputChange("companySize", value)
+							onInputChange("company_size", value)
 						}
 					>
 						<SelectTrigger className="text-xs h-8">

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,11 +12,23 @@ interface ClientContactInformationProps {
 	onFieldChange: (field: keyof ClientData, value: any) => void;
 }
 
-export function ClientContactInformation({
+export const ClientContactInformation = memo(({
 	client,
 	isEditing,
 	onFieldChange,
-}: ClientContactInformationProps) {
+}: ClientContactInformationProps) => {
+	const handleFieldChange = useCallback((field: keyof ClientData, value: any) => {
+		onFieldChange(field, value);
+	}, [onFieldChange]);
+
+	const handleInputChange = useCallback((field: keyof ClientData) => (e: React.ChangeEvent<HTMLInputElement>) => {
+		onFieldChange(field, e.target.value);
+	}, [onFieldChange]);
+
+	const handlePhoneChange = useCallback((field: keyof ClientData) => (value: string) => {
+		onFieldChange(field, value || "");
+	}, [onFieldChange]);
+
 	return (
 		<Card>
 			<CardContent className="pt-4 pb-4">
@@ -35,27 +47,21 @@ export function ClientContactInformation({
 								<div className="space-y-2">
 									<div className="grid grid-cols-2 gap-2">
 										<Input
-											value={client.mainContactFirstName || ""}
-											onChange={(e) =>
-												onFieldChange("mainContactFirstName", e.target.value)
-											}
+											value={client.main_contact_first_name || ""}
+											onChange={handleInputChange("main_contact_first_name")}
 											placeholder="First Name"
 											className="text-sm h-8"
 										/>
 										<Input
-											value={client.mainContactLastName || ""}
-											onChange={(e) =>
-												onFieldChange("mainContactLastName", e.target.value)
-											}
+											value={client.main_contact_last_name || ""}
+											onChange={handleInputChange("main_contact_last_name")}
 											placeholder="Last Name"
 											className="text-sm h-8"
 										/>
 									</div>
 									<Input
-										value={client.mainContactEmail || ""}
-										onChange={(e) =>
-											onFieldChange("mainContactEmail", e.target.value)
-										}
+										value={client.main_contact_email || ""}
+										onChange={handleInputChange("main_contact_email")}
 										placeholder="Email"
 										type="email"
 										className="text-sm h-8"
@@ -63,60 +69,38 @@ export function ClientContactInformation({
 									<PhoneInputWrapper
 										international
 										defaultCountry="US"
-										value={client.mainContactPhone || ""}
-										onChange={(value: string) =>
-											onFieldChange("mainContactPhone", value || "")
-										}
+										value={client.main_contact_phone || ""}
+										onChange={handlePhoneChange("main_contact_phone")}
 										placeholder="Phone"
 									/>
 								</div>
 							) : (
-								<>
-									<div className="font-medium text-sm">
-										{client.mainContactFirstName} {client.mainContactLastName}
+								<div className="space-y-1">
+									<div className="flex items-center gap-2">
+										<span className="font-medium text-sm">
+											{client.main_contact_first_name} {client.main_contact_last_name}
+										</span>
 									</div>
-									<div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-										<Mail className="h-3 w-3" />
-										<Button
-											variant="ghost"
-											size="sm"
-											className="h-5 px-2 text-xs text-blue-600 hover:text-blue-800"
-											onClick={() =>
-												window.open(
-													`mailto:${client.mainContactEmail}`,
-													"_blank"
-												)
-											}
-										>
-											{client.mainContactEmail}
-										</Button>
-									</div>
-									{client.mainContactPhone && (
-										<div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-											<Phone className="h-3 w-3" />
-											<Button
-												variant="ghost"
-												size="sm"
-												className="h-5 px-2 text-xs text-blue-600 hover:text-blue-800"
-												onClick={() =>
-													window.open(
-														`tel:${client.mainContactPhone}`,
-														"_blank"
-													)
-												}
-											>
-												{client.mainContactPhone}
-											</Button>
+									{client.main_contact_email && (
+										<div className="flex items-center gap-2 text-sm text-gray-600">
+											<Mail className="h-3 w-3" />
+											{client.main_contact_email}
 										</div>
 									)}
-								</>
+									{client.main_contact_phone && (
+										<div className="flex items-center gap-2 text-sm text-gray-600">
+											<Phone className="h-3 w-3" />
+											{client.main_contact_phone}
+										</div>
+									)}
+								</div>
 							)}
 						</div>
 					</div>
 
 					{/* Technical Contact */}
-					{(client.techContactFirstName ||
-						client.techContactEmail ||
+					{(client.tech_contact_first_name ||
+						client.tech_contact_email ||
 						isEditing) && (
 						<div className="space-y-2">
 							<div className="font-medium text-sm text-gray-700">
@@ -127,27 +111,21 @@ export function ClientContactInformation({
 									<div className="space-y-2">
 										<div className="grid grid-cols-2 gap-2">
 											<Input
-												value={client.techContactFirstName || ""}
-												onChange={(e) =>
-													onFieldChange("techContactFirstName", e.target.value)
-												}
+												value={client.tech_contact_first_name || ""}
+												onChange={handleInputChange("tech_contact_first_name")}
 												placeholder="First Name"
 												className="text-sm h-8"
 											/>
 											<Input
-												value={client.techContactLastName || ""}
-												onChange={(e) =>
-													onFieldChange("techContactLastName", e.target.value)
-												}
+												value={client.tech_contact_last_name || ""}
+												onChange={handleInputChange("tech_contact_last_name")}
 												placeholder="Last Name"
 												className="text-sm h-8"
 											/>
 										</div>
 										<Input
-											value={client.techContactEmail || ""}
-											onChange={(e) =>
-												onFieldChange("techContactEmail", e.target.value)
-											}
+											value={client.tech_contact_email || ""}
+											onChange={handleInputChange("tech_contact_email")}
 											placeholder="Email"
 											type="email"
 											className="text-sm h-8"
@@ -155,55 +133,31 @@ export function ClientContactInformation({
 										<PhoneInputWrapper
 											international
 											defaultCountry="US"
-											value={client.techContactPhone || ""}
-											onChange={(value: string) =>
-												onFieldChange("techContactPhone", value || "")
-											}
+											value={client.tech_contact_phone || ""}
+											onChange={handlePhoneChange("tech_contact_phone")}
 											placeholder="Phone"
 										/>
 									</div>
 								) : (
-									<>
-										<div className="font-medium text-sm">
-											{client.techContactFirstName} {client.techContactLastName}
+									<div className="space-y-1">
+										<div className="flex items-center gap-2">
+											<span className="font-medium text-sm">
+												{client.tech_contact_first_name} {client.tech_contact_last_name}
+											</span>
 										</div>
-										{client.techContactEmail && (
-											<div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+										{client.tech_contact_email && (
+											<div className="flex items-center gap-2 text-sm text-gray-600">
 												<Mail className="h-3 w-3" />
-												<Button
-													variant="ghost"
-													size="sm"
-													className="h-5 px-2 text-xs text-blue-600 hover:text-blue-800"
-													onClick={() =>
-														window.open(
-															`mailto:${client.techContactEmail}`,
-															"_blank"
-														)
-													}
-												>
-													{client.techContactEmail}
-												</Button>
+												{client.tech_contact_email}
 											</div>
 										)}
-										{client.techContactPhone && (
-											<div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+										{client.tech_contact_phone && (
+											<div className="flex items-center gap-2 text-sm text-gray-600">
 												<Phone className="h-3 w-3" />
-												<Button
-													variant="ghost"
-													size="sm"
-													className="h-5 px-2 text-xs text-blue-600 hover:text-blue-800"
-													onClick={() =>
-														window.open(
-															`tel:${client.techContactPhone}`,
-															"_blank"
-														)
-													}
-												>
-													{client.techContactPhone}
-												</Button>
+												{client.tech_contact_phone}
 											</div>
 										)}
-									</>
+									</div>
 								)}
 							</div>
 						</div>
@@ -212,4 +166,6 @@ export function ClientContactInformation({
 			</CardContent>
 		</Card>
 	);
-}
+});
+
+ClientContactInformation.displayName = "ClientContactInformation";

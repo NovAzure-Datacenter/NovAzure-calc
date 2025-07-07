@@ -2,7 +2,7 @@
 
 import { useUser } from "@/hooks/useUser";
 import { useEffect, useState } from "react";
-import { getCompanyDetails } from "@/lib/actions/company/company";
+import { getClientDetails } from "@/lib/actions/client/client";
 import Loading from "@/components/loading-main";
 
 export default function DashboardClientWrapper({
@@ -11,28 +11,28 @@ export default function DashboardClientWrapper({
 	children: React.ReactNode;
 }) {
 	const { user, isLoading: isUserLoading } = useUser();
-	const [isCompanyLoading, setIsCompanyLoading] = useState(true);
+	const [isClientLoading, setIsClientLoading] = useState(true);
 	const [isLoading, setIsLoading] = useState(true);
 
 	useEffect(() => {
-		async function fetchCompanyDetails() {
-			setIsCompanyLoading(true);
-			if (user?.company_id) {
-				const result = await getCompanyDetails(user.company_id);
-				if (result.success && result.company) {
+		async function fetchClientDetails() {
+			setIsClientLoading(true);
+			if (user?.client_id) {
+				const result = await getClientDetails(user.client_id);
+				if (result.success && result.client) {
 				}
 			}
-			setIsCompanyLoading(false);
+			setIsClientLoading(false);
 		}
 
 		if (!isUserLoading && user) {
-			fetchCompanyDetails();
+			fetchClientDetails();
 		}
-	}, [user?.company_id, isUserLoading, user]);
+	}, [user?.client_id, isUserLoading, user]);
 
 	useEffect(() => {
-		setIsLoading(isUserLoading || isCompanyLoading);
-	}, [isUserLoading, isCompanyLoading]);
+		setIsLoading(isUserLoading || isClientLoading);
+	}, [isUserLoading, isClientLoading]);
 
 	if (isLoading) {
 		return <Loading />;

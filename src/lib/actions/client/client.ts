@@ -1,40 +1,44 @@
 "use server";
 
-import { getClientsCollection } from "@/lib/mongoDb/db";
+import { getClientsCollection, getUsersCollection } from "@/lib/mongoDb/db";
 import { ObjectId } from "mongodb";
 import { removeCompanyFromIndustries } from "../industry/industry";
+import { hash } from "bcryptjs";
+import crypto from "crypto";
+import { sendEmail, generateWelcomeEmail } from "../utils/SMTP-email-template";
 
 export interface ClientData {
 	id?: string;
 	logo: string;
-	companyName: string;
+	company_name: string;
 	website: string;
-	mainContactEmail: string;
-	mainContactFirstName?: string;
-	mainContactLastName?: string;
-	mainContactPhone?: string;
-	techContactFirstName?: string;
-	techContactLastName?: string;
-	techContactEmail?: string;
-	techContactPhone?: string;
-	companyIndustry?: string;
-	companySize?: string;
+	main_contact_email: string;
+	main_contact_first_name?: string;
+	main_contact_last_name?: string;
+	main_contact_phone?: string;
+	tech_contact_first_name?: string;
+	tech_contact_last_name?: string;
+	tech_contact_email?: string;
+	tech_contact_phone?: string;
+	company_industry?: string;
+	company_size?: string;
 	street?: string;
 	city?: string;
-	stateProvince?: string;
-	zipcodePostalCode?: string;
+	state_province?: string;
+	zipcode_postal_code?: string;
 	country?: string;
 	timezone?: string;
-	clientStatus?: string;
-	additionalNotes?: string;
-	selectedIndustries?: string[];
-	selectedTechnologies?: string[];
-	userCount?: number;
-	productCount?: number;
-	productPendingCount?: number;
-	scenarioCount?: number;
-	createdAt?: Date;
-	updatedAt?: Date;
+	client_status?: string;
+	additional_notes?: string;
+	selected_industries?: string[];
+	selected_technologies?: string[];
+	user_count?: number;
+	product_count?: number;
+	product_pending_count?: number;
+	scenario_count?: number;
+	login_email?: string;
+	created_at?: Date;
+	updated_at?: Date;
 }
 
 export async function getClients(): Promise<{
@@ -45,38 +49,41 @@ export async function getClients(): Promise<{
 		const collection = await getClientsCollection();
 		const clients = await collection.find({}).toArray();
 
-		const transformedClients: ClientData[] = clients.map((client) => ({
-			id: client._id.toString(),
-			logo: client.logo || "Building2",
-			companyName: client.companyName,
-			website: client.website,
-			mainContactEmail: client.mainContactEmail,
-			mainContactFirstName: client.mainContactFirstName,
-			mainContactLastName: client.mainContactLastName,
-			mainContactPhone: client.mainContactPhone,
-			techContactFirstName: client.techContactFirstName,
-			techContactLastName: client.techContactLastName,
-			techContactEmail: client.techContactEmail,
-			techContactPhone: client.techContactPhone,
-			companyIndustry: client.companyIndustry,
-			companySize: client.companySize,
-			street: client.street,
-			city: client.city,
-			stateProvince: client.stateProvince,
-			zipcodePostalCode: client.zipcodePostalCode,
-			country: client.country,
-			timezone: client.timezone,
-			clientStatus: client.clientStatus || "prospect",
-			additionalNotes: client.additionalNotes,
-			selectedIndustries: client.selectedIndustries || [],
-			selectedTechnologies: client.selectedTechnologies || [],
-			userCount: client.userCount || 0,
-			productCount: client.productCount || 0,
-			productPendingCount: client.productPendingCount || 0,
-			scenarioCount: client.scenarioCount || 0,
-			createdAt: client.createdAt,
-			updatedAt: client.updatedAt,
-		}));
+		const transformedClients: ClientData[] = clients
+			.filter((client) => client._id.toString() !== "684ad0ca270ad70b516c4bd0")
+			.map((client) => ({
+				id: client._id.toString(),
+				logo: client.logo || "Building2",
+				company_name: client.company_name	,
+				website: client.website,
+				main_contact_email: client.main_contact_email,
+				main_contact_first_name: client.main_contact_first_name,
+				main_contact_last_name: client.main_contact_last_name,
+				main_contact_phone: client.main_contact_phone,
+				tech_contact_first_name: client.tech_contact_first_name,
+				tech_contact_last_name: client.tech_contact_last_name,
+				tech_contact_email: client.tech_contact_email,
+				tech_contact_phone: client.tech_contact_phone,
+				company_industry: client.company_industry,
+				company_size: client.company_size,
+				street: client.street,
+				city: client.city,
+				state_province: client.state_province,
+				zipcode_postal_code: client.zipcode_postal_code,	
+				country: client.country,
+				timezone: client.timezone,
+				client_status: client.client_status || "prospect",
+				additional_notes: client.additional_notes,
+				selected_industries: client.selected_industries || [],
+				selected_technologies: client.selected_technologies || [],
+				user_count: client.user_count || 0,
+				product_count: client.product_count || 0,
+				product_pending_count: client.product_pending_count || 0,
+				scenario_count: client.scenario_count || 0,
+				login_email: client.login_email,
+				created_at: client.created_at,
+				updated_at: client.updated_at,
+			}));
 
 		return { clients: transformedClients };
 	} catch (error) {
@@ -86,28 +93,48 @@ export async function getClients(): Promise<{
 }
 
 export async function createClient(
-	clientData: Omit<ClientData, "id" | "createdAt" | "updatedAt">
+	clientData: Omit<ClientData, "id" | "created_at" | "updated_at">
 ): Promise<{
 	clientId?: string;
+	loginEmail?: string;
 	error?: string;
 }> {
 	try {
 		const collection = await getClientsCollection();
 
+		// Generate login email
+		const loginEmail = generateClientLoginEmail(
+			clientData.main_contact_first_name || "",
+			clientData.main_contact_last_name || "",
+			clientData.company_name
+		);
+
 		const newClient = {
 			...clientData,
-			userCount: clientData.userCount || 0,
-			productCount: clientData.productCount || 0,
-			productPendingCount: clientData.productPendingCount || 0,
-			scenarioCount: clientData.scenarioCount || 0,
-			createdAt: new Date(),
-			updatedAt: new Date(),
+			login_email: loginEmail,
+			user_count: clientData.user_count || 0,
+			product_count: clientData.product_count || 0,
+			product_pending_count: clientData.product_pending_count || 0,
+			scenario_count: clientData.scenario_count || 0,
+			created_at: new Date(),
+			updated_at: new Date(),
 		};
 
 		const result = await collection.insertOne(newClient);
 
 		if (result.insertedId) {
-			return { clientId: result.insertedId.toString() };
+			// Create a user account for the main contact
+			const userCreationResult = await createClientUser(
+				clientData,
+				result.insertedId.toString()
+			);
+
+			if (userCreationResult.error) {
+				console.error("Warning: Failed to create user account:", userCreationResult.error);
+				// Don't fail the client creation, just log the warning
+			}
+
+			return { clientId: result.insertedId.toString(), loginEmail };
 		} else {
 			return { error: "Failed to create client" };
 		}
@@ -129,7 +156,7 @@ export async function updateClient(
 
 		const updateData = {
 			...clientData,
-			updatedAt: new Date(),
+			updated_at: new Date(),
 		};
 
 		const result = await collection.updateOne(
@@ -163,9 +190,9 @@ export async function deleteClient(clientId: string): Promise<{
 		}
 
 		// Remove the company from all associated industries
-		if (client.selectedIndustries && client.selectedIndustries.length > 0) {
+		if (client.selected_industries && client.selected_industries.length > 0) {
 			const removeResult = await removeCompanyFromIndustries(
-				client.selectedIndustries,
+				client.selected_industries,
 				clientId
 			);
 			if (removeResult.error) {
@@ -189,4 +216,154 @@ export async function deleteClient(clientId: string): Promise<{
 		console.error("Error deleting client:", error);
 		return { error: "Failed to delete client" };
 	}
+}
+
+export async function getClientDetails(clientId: string) {
+	try {
+		const collection = await getClientsCollection();
+		const client = await collection.findOne({ _id: new ObjectId(clientId) });
+		if (!client) {
+			return { error: "Client not found" };
+		}
+
+		return {
+			success: true,
+			client: {
+				name: client.company_name,
+				_id: client._id.toString(),
+				industry: client.company_industry,
+				contact_email: client.main_contact_email,
+				contact_number: client.main_contact_phone,
+				website: client.website,
+				logo: client.logo,
+				country: client.country,
+				currency: "USD", // Default currency for clients
+				address: `${client.street || ""} ${client.city || ""} ${client.state_province || ""} ${client.zipcode_postal_code || ""}`.trim(),
+				plan: "standard", // Default plan for clients
+				created_at: client.created_at
+			}
+		};
+	} catch (error) {
+		console.error("Error fetching client details:", error);
+		return { error: "Failed to fetch client details" };
+	}
+}
+
+// Function to create a user account for a client's main contact
+async function createClientUser(
+	clientData: Omit<ClientData, "id" | "created_at" | "updated_at">,
+	clientId: string
+): Promise<{
+	success?: boolean;
+	error?: string;
+}> {
+	try {
+		const usersCollection = await getUsersCollection();
+
+		// Generate login email
+		const loginEmail = generateClientLoginEmail(
+			clientData.main_contact_first_name || "",
+			clientData.main_contact_last_name || "",
+			clientData.company_name
+		);
+
+		if (!loginEmail) {
+			return { error: "Unable to generate login email - missing contact information" };
+		}
+
+		// Check if user with this email already exists
+		const existingUser = await usersCollection.findOne({
+			email: loginEmail.toLowerCase(),
+		});
+
+		if (existingUser) {
+			return { error: "User with this email already exists" };
+		}
+
+		// Generate a temporary password hash (user will need to reset password)
+		const tempPassword = Math.random().toString(36).slice(-8);
+		const passwordHash = await hash(tempPassword, 10);
+
+		// Generate a reset token for initial password setup (1 week expiration)
+		const resetToken = crypto.randomBytes(32).toString("hex");
+		const resetTokenExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+
+		const newUser = {
+			first_name: clientData.main_contact_first_name || "",
+			last_name: clientData.main_contact_last_name || "",
+			email: loginEmail.toLowerCase(),
+			passwordHash,
+			role: "admin",
+			client_id: new ObjectId(clientId),
+			mobile_number: clientData.main_contact_phone || "",
+			work_number: "",
+			timezone: clientData.timezone || "UTC",
+			currency: "USD",
+			unit_system: "metric",
+			created_at: new Date(),
+			isVerified: false,
+			profile_image: "",
+			resetToken,
+			resetTokenExpiry,
+		};
+
+		const result = await usersCollection.insertOne(newUser);
+
+		if (!result.acknowledged) {
+			return { error: "Failed to create user account" };
+		}
+
+		// Send welcome email to the main contact email (not the generated login email)
+		try {
+			await sendEmail({
+				to: clientData.main_contact_email.toLowerCase(),
+				subject: `Welcome to NovAzure - ${clientData.company_name}`,
+				html: generateWelcomeEmail(
+					clientData.main_contact_first_name || "",
+					clientData.main_contact_last_name || "",
+					clientData.company_name,
+					resetToken,
+					loginEmail 
+				),
+			});
+		} catch (emailError) {
+			console.error("Error sending welcome email:", emailError);
+			// Don't fail user creation if email fails
+		}
+
+		console.log(`User account created for client ${clientData.company_name}: ${loginEmail}`);
+		return { success: true };
+	} catch (error) {
+		console.error("Error creating client user:", error);
+		return { error: "Failed to create user account" };
+	}
+}
+
+// Function to generate login email for client
+function generateClientLoginEmail(
+	firstName: string,
+	lastName: string,
+	companyName: string
+): string {
+	if (!firstName || !lastName || !companyName) {
+		return "";
+	}
+
+	// Clean and normalize inputs
+	const cleanFirstName = firstName.replace(/[^a-zA-Z]/g, "").toLowerCase();
+	const cleanLastName = lastName.replace(/[^a-zA-Z]/g, "").toLowerCase();
+	const cleanCompanyName = companyName
+		.replace(/[^a-zA-Z0-9]/g, "")
+		.replace(/\s+/g, "")
+		.toLowerCase();
+
+	if (!cleanFirstName || !cleanLastName || !cleanCompanyName) {
+		return "";
+	}
+
+	// Generate email: firstLetter + lastName + "-" + companyName + "@novazure.com"
+	const firstLetter = cleanFirstName.charAt(0).toUpperCase();
+	const email = `${firstLetter}${cleanLastName}-${cleanCompanyName}@novazure.com`;
+
+	return email;
 }

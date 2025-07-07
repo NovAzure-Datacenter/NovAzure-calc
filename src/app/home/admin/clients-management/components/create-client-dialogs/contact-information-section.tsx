@@ -8,14 +8,14 @@ import 'react-phone-number-input/style.css';
 
 interface ContactInformationSectionProps {
 	formData: {
-		mainContactFirstName: string;
-		mainContactLastName: string;
-		mainContactEmail: string;
-		mainContactPhone: string;
-		techContactFirstName: string;
-		techContactLastName: string;
-		techContactEmail: string;
-		techContactPhone: string;
+		main_contact_first_name: string;
+		main_contact_last_name: string;
+		main_contact_email: string;
+		main_contact_phone: string;
+		tech_contact_first_name: string;
+		tech_contact_last_name: string;
+		tech_contact_email: string;
+		tech_contact_phone: string;
 	};
 	onInputChange: (field: string, value: string) => void;
 }
@@ -103,14 +103,14 @@ export function ContactInformationSection({ formData, onInputChange }: ContactIn
 				<div className="grid grid-cols-2 gap-4">
 					<div>
 						<Label
-							htmlFor="mainContactFirstName"
+							htmlFor="main_contact_first_name"
 							className="text-xs font-medium"
 						>
 							First Name <span className="text-red-500">*</span>
 						</Label>
 						<OptimizedInput
-							id="mainContactFirstName"
-							value={formData.mainContactFirstName}
+							id="main_contact_first_name"
+							value={formData.main_contact_first_name}
 							onChange={onInputChange}
 							placeholder="First name"
 							required
@@ -118,14 +118,14 @@ export function ContactInformationSection({ formData, onInputChange }: ContactIn
 					</div>
 					<div>
 						<Label
-							htmlFor="mainContactLastName"
+							htmlFor="main_contact_last_name"
 							className="text-xs font-medium"
 						>
 							Last Name <span className="text-red-500">*</span>
 						</Label>
 						<OptimizedInput
-							id="mainContactLastName"
-							value={formData.mainContactLastName}
+							id="main_contact_last_name"
+							value={formData.main_contact_last_name}
 							onChange={onInputChange}
 							placeholder="Last name"
 							required
@@ -135,14 +135,14 @@ export function ContactInformationSection({ formData, onInputChange }: ContactIn
 				<div className="grid grid-cols-2 gap-4">
 					<div>
 						<Label
-							htmlFor="mainContactEmail"
+							htmlFor="main_contact_email"
 							className="text-xs font-medium"
 						>
 							Email <span className="text-red-500">*</span>
 						</Label>
 						<OptimizedInput
-							id="mainContactEmail"
-							value={formData.mainContactEmail}
+							id="main_contact_email"
+							value={formData.main_contact_email}
 							onChange={onInputChange}
 							placeholder="contact@company.com"
 							type="email"
@@ -151,7 +151,7 @@ export function ContactInformationSection({ formData, onInputChange }: ContactIn
 					</div>
 					<div>
 						<Label
-							htmlFor="mainContactPhone"
+							htmlFor="main_contact_phone"
 							className="text-xs font-medium"
 						>
 							Phone
@@ -159,9 +159,9 @@ export function ContactInformationSection({ formData, onInputChange }: ContactIn
 						<PhoneInputWrapper
 							international
 							defaultCountry="US"
-							value={formData.mainContactPhone}
+							value={formData.main_contact_phone}
 							onChange={(value: string) =>
-								onInputChange("mainContactPhone", value || "")
+								onInputChange("main_contact_phone", value || "")
 							}
 							placeholder="Enter phone number"
 						/>
@@ -177,28 +177,28 @@ export function ContactInformationSection({ formData, onInputChange }: ContactIn
 				<div className="grid grid-cols-2 gap-4">
 					<div>
 						<Label
-							htmlFor="techContactFirstName"
+							htmlFor="tech_contact_first_name"
 							className="text-xs font-medium"
 						>
 							First Name
 						</Label>
 						<OptimizedInput
-							id="techContactFirstName"
-							value={formData.techContactFirstName}
+							id="tech_contact_first_name"
+							value={formData.tech_contact_first_name}
 							onChange={onInputChange}
 							placeholder="First name"
 						/>
 					</div>
 					<div>
 						<Label
-							htmlFor="techContactLastName"
+							htmlFor="tech_contact_last_name"
 							className="text-xs font-medium"
 						>
 							Last Name
 						</Label>
 						<OptimizedInput
-							id="techContactLastName"
-							value={formData.techContactLastName}
+							id="tech_contact_last_name"
+							value={formData.tech_contact_last_name}
 							onChange={onInputChange}
 							placeholder="Last name"
 						/>
@@ -207,14 +207,14 @@ export function ContactInformationSection({ formData, onInputChange }: ContactIn
 				<div className="grid grid-cols-2 gap-4">
 					<div>
 						<Label
-							htmlFor="techContactEmail"
+							htmlFor="tech_contact_email"
 							className="text-xs font-medium"
 						>
 							Email
 						</Label>
 						<OptimizedInput
-							id="techContactEmail"
-							value={formData.techContactEmail}
+							id="tech_contact_email"
+							value={formData.tech_contact_email}
 							onChange={onInputChange}
 							placeholder="tech@company.com"
 							type="email"
@@ -222,7 +222,7 @@ export function ContactInformationSection({ formData, onInputChange }: ContactIn
 					</div>
 					<div>
 						<Label
-							htmlFor="techContactPhone"
+							htmlFor="tech_contact_phone"
 							className="text-xs font-medium"
 						>
 							Phone
@@ -230,9 +230,9 @@ export function ContactInformationSection({ formData, onInputChange }: ContactIn
 						<PhoneInputWrapper
 							international
 							defaultCountry="US"
-							value={formData.techContactPhone}
+							value={formData.tech_contact_phone}
 							onChange={(value: string) =>
-								onInputChange("techContactPhone", value || "")
+								onInputChange("tech_contact_phone", value || "")
 							}
 							placeholder="Enter phone number"
 						/>

@@ -17,8 +17,8 @@ interface AddressSectionProps {
 	formData: {
 		street: string;
 		city: string;
-		stateProvince: string;
-		zipcodePostalCode: string;
+		state_province: string;
+		zipcode_postal_code: string;
 		country: string;
 	};
 	onInputChange: (field: string, value: string) => void;
@@ -105,14 +105,14 @@ export function AddressSection({ formData, onInputChange }: AddressSectionProps)
 				</div>
 				<div>
 					<Label
-						htmlFor="stateProvince"
+						htmlFor="state_province"
 						className="text-xs font-medium"
 					>
 						State/Province
 					</Label>
 					<OptimizedInput
-						id="stateProvince"
-						value={formData.stateProvince}
+						id="state_province"
+						value={formData.state_province}
 						onChange={onInputChange}
 						placeholder="State/Province"
 					/>
@@ -121,14 +121,14 @@ export function AddressSection({ formData, onInputChange }: AddressSectionProps)
 			<div className="grid grid-cols-2 gap-4">
 				<div>
 					<Label
-						htmlFor="zipcodePostalCode"
+						htmlFor="zipcode_postal_code"
 						className="text-xs font-medium"
 					>
 						ZIP/Postal Code
 					</Label>
 					<OptimizedInput
-						id="zipcodePostalCode"
-						value={formData.zipcodePostalCode}
+						id="zipcode_postal_code"
+						value={formData.zipcode_postal_code}
 						onChange={onInputChange}
 						placeholder="12345"
 					/>

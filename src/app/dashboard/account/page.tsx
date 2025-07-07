@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUser } from "@/hooks/useUser";
 import { toast } from "sonner";
 import { updateUserProfile } from "@/lib/actions/user/user";
-import { getCompanyDetails } from "@/lib/actions/company/company";
+import { getClientDetails } from "@/lib/actions/client/client";
 import CompanySettingsTab from "./components/company-settings-tab";
 import BillingInformationTab from "./components/billing-settings-tab";
 import PersonalProfileTab from "./components/personal-settings-tab";
@@ -79,21 +79,21 @@ export default function AccountSettingsPage() {
 			});
 
 			const fetchCompanyDetails = async () => {
-				if (user.company_id) {
-					const result = await getCompanyDetails(user.company_id);
-					if (result.success && result.company) {
-						setCompanyName(result.company.name);
+				if (user.client_id) {
+					const result = await getClientDetails(user.client_id);
+					if (result.success && result.client) {
+						setCompanyName(result.client.name);
 						setCompanyData({
-							companyId: result.company._id.toString(),
-							companyName: result.company.name || "",
-							companyAddress: result.company.address || "",
-							companyPhone: result.company.contact_number || "",
-							website: result.company.website || "",
-							logo: result.company.logo || "",
-							industry: result.company.industry || "",
-							contactEmail: result.company.contact_email || "",
-							country: result.company.country || "",
-							currency: result.company.currency || "",
+							companyId: result.client._id.toString(),
+							companyName: result.client.name || "",
+							companyAddress: result.client.address || "",
+							companyPhone: result.client.contact_number || "",
+							website: result.client.website || "",
+							logo: result.client.logo || "",
+							industry: result.client.industry || "",
+							contactEmail: result.client.contact_email || "",
+							country: result.client.country || "",
+							currency: result.client.currency || "",
 						});
 					}
 				}
