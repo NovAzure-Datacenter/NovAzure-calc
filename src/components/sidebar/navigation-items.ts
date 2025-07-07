@@ -13,6 +13,7 @@ import {
 	Calculator,
 } from "lucide-react";
 import { LucideIcon } from "lucide-react";
+import { hasRoutePermission, UserRole } from "@/lib/auth/route-permissions";
 
 export type AccountType =
 	| "novazure-superuser"
@@ -33,22 +34,54 @@ export interface NavigationSection {
 	items: NavigationItem[];
 }
 
+// Helper function to map account types to UserRole
+function mapAccountTypeToUserRole(accountType: AccountType): UserRole {
+	switch (accountType) {
+		case "novazure-superuser":
+			return "super-admin";
+		case "novazure-user":
+		case "company-admin":
+			return "admin";
+		case "company-user":
+		default:
+			return "user";
+	}
+}
+
+// Helper function to filter navigation items based on route permissions
+function filterNavigationItemsByPermission(
+	items: NavigationItem[],
+	userRole: UserRole
+): NavigationItem[] {
+	return items.filter((item) => {
+		if (!item.url) return true;
+		return hasRoutePermission(item.url, userRole);
+	});
+}
+
 // Main Navigation Items (same for all users)
-export const getMainNavigationItems = (): NavigationItem[] => [
-	{
-		title: "Dashboard",
-		icon: HomeIcon,
-		url: "/home/dashboard",
-		isActive: true,
-	},
-	{
-		title: "News & Updates",
-		icon: BookOpenIcon,
-		url: "/home/news",
-		badge: "2",
-		isActive: true,
-	},
-];
+export const getMainNavigationItems = (
+	accountType: AccountType
+): NavigationItem[] => {
+	const items: NavigationItem[] = [
+		{
+			title: "Dashboard",
+			icon: HomeIcon,
+			url: "/home/dashboard",
+			isActive: true,
+		},
+		{
+			title: "News & Updates",
+			icon: BookOpenIcon,
+			url: "/home/news",
+			badge: "2",
+			isActive: true,
+		},
+	];
+
+	const userRole = mapAccountTypeToUserRole(accountType);
+	return filterNavigationItemsByPermission(items, userRole);
+};
 
 // Products & Solutions Navigation Items
 export const getProductsAndSolutionsItems = (
@@ -77,25 +110,32 @@ export const getProductsAndSolutionsItems = (
 		});
 	}
 
-	return baseItems;
+	const userRole = mapAccountTypeToUserRole(accountType);
+	return filterNavigationItemsByPermission(baseItems, userRole);
 };
 
 // Tools &Scenarios Navigation Items (same for all users)
-export const getScenariosItems = (): NavigationItem[] => [
-	
-	{
-		title: "Value Calculator",
-		icon: Calculator,
-		url: "/home/tools-and-scenarios/value-calculator",
-		isActive: true,
-	},
-	{
-		title: "View Scenarios",
-		icon: FilesIcon,
-		url: "/home/tools-and-scenarios/scenarios",
-		isActive: true,
-	},
-];
+export const getScenariosItems = (
+	accountType: AccountType
+): NavigationItem[] => {
+	const items: NavigationItem[] = [
+		{
+			title: "Value Calculator",
+			icon: Calculator,
+			url: "/home/tools-and-scenarios/value-calculator",
+			isActive: true,
+		},
+		{
+			title: "View Scenarios",
+			icon: FilesIcon,
+			url: "/home/tools-and-scenarios/scenarios",
+			isActive: true,
+		},
+	];
+
+	const userRole = mapAccountTypeToUserRole(accountType);
+	return filterNavigationItemsByPermission(items, userRole);
+};
 
 // Admin Navigation Items
 export const getAdminItems = (accountType: AccountType): NavigationItem[] => {
@@ -120,7 +160,7 @@ export const getAdminItems = (accountType: AccountType): NavigationItem[] => {
 			{
 				title: "Manage Industries & Technologies",
 				icon: Database,
-				    url: "/home/admin/industries-and-technologies",
+				url: "/home/admin/industries-and-technologies",
 				isActive: true,
 			},
 			{
@@ -140,10 +180,11 @@ export const getAdminItems = (accountType: AccountType): NavigationItem[] => {
 		isActive: false,
 	});
 
-	return adminItems;
+	const userRole = mapAccountTypeToUserRole(accountType);
+	return filterNavigationItemsByPermission(adminItems, userRole);
 };
 
-// Quick Actions 
+// Quick Actions
 export const getQuickActionsByAccountType = (accountType: AccountType) => {
 	const baseActions = [
 		{ title: "Search Solution", icon: Search, url: "/home/solutions" },
@@ -178,7 +219,7 @@ export const getQuickActionsByAccountType = (accountType: AccountType) => {
 	}
 };
 
-// Recent Items 
+// Recent Items
 export const getRecentItemsByAccountType = (accountType: AccountType) => {
 	const baseItems = [
 		{
@@ -208,7 +249,7 @@ export const getRecentItemsByAccountType = (accountType: AccountType) => {
 		case "company-admin":
 			return [
 				...baseItems,
-				        { title: "User Management", type: "admin", url: "/home/users" },
+				{ title: "User Management", type: "admin", url: "/home/users" },
 			];
 		case "company-user":
 			return baseItems;
@@ -224,7 +265,7 @@ export const getAllNavigationSections = (
 	const sections: NavigationSection[] = [
 		{
 			title: "Main Navigation",
-			items: getMainNavigationItems(),
+			items: getMainNavigationItems(accountType),
 		},
 		{
 			title: "Products & Solutions",
@@ -232,7 +273,7 @@ export const getAllNavigationSections = (
 		},
 		{
 			title: "Scenarios",
-			items: getScenariosItems(),
+			items: getScenariosItems(accountType),
 		},
 	];
 

@@ -13,31 +13,38 @@ import {
 	SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { UserData } from "@/hooks/useUser";
-import { getScenariosItems } from "../navigation-items";
+import { getScenariosItems, type AccountType } from "../navigation-items";
 
 interface NavScenariosProps {
 	pathname: string;
 	user: UserData | null;
+	accountType: AccountType;
 }
 
-export function NavScenarios({ pathname, user: _user }: NavScenariosProps) {
+export function NavScenarios({
+	pathname,
+	user: _user,
+	accountType,
+}: NavScenariosProps) {
 	const router = useRouter();
 	const [_isMenuItemHovered, _setIsMenuItemHovered] = useState<string | null>(
 		null
 	);
 	const [isExpanded, setIsExpanded] = useState(true);
 
-	const scenarioItems = getScenariosItems();
+	const scenarioItems = getScenariosItems(accountType);
 
 	return (
 		<SidebarGroup>
-			<SidebarGroupLabel 
+			<SidebarGroupLabel
 				className="text-xs font-medium text-muted-foreground px-2 flex items-center justify-between cursor-pointer hover:text-foreground transition-colors"
 				onClick={() => setIsExpanded(!isExpanded)}
 			>
 				<span>Scenarios</span>
-				<ChevronDown 
-					className={`h-3 w-3 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} 
+				<ChevronDown
+					className={`h-3 w-3 transition-transform duration-200 ${
+						isExpanded ? "rotate-180" : ""
+					}`}
 				/>
 			</SidebarGroupLabel>
 			{isExpanded && (
@@ -65,12 +72,12 @@ export function NavScenarios({ pathname, user: _user }: NavScenariosProps) {
 								onMouseEnter={() => _setIsMenuItemHovered(item.title)}
 								onMouseLeave={() => _setIsMenuItemHovered(null)}
 							>
-								<a 
-									href={item.url} 
+								<a
+									href={item.url}
 									className={`flex items-center gap-3 ${
-										item.isActive === false 
-											? 'opacity-50 cursor-not-allowed pointer-events-none' 
-											: ''
+										item.isActive === false
+											? "opacity-50 cursor-not-allowed pointer-events-none"
+											: ""
 									}`}
 								>
 									{item.icon && <item.icon className="h-4 w-4" />}
@@ -83,4 +90,4 @@ export function NavScenarios({ pathname, user: _user }: NavScenariosProps) {
 			)}
 		</SidebarGroup>
 	);
-} 
+}

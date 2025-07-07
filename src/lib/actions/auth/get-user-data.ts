@@ -27,7 +27,7 @@ export async function getUserData(userId: string): Promise<UserData | null> {
 			profile_image:
 				user.profile_image || "/images/profile/default-profile-pic.png",
 			company_name: companyName,
-			client_id: user.client_id,
+			client_id: user.client_id.toString(),
 			email: user.email,
 			work_number: user.work_number || "",
 			mobile_number: user.mobile_number || "",
