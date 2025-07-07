@@ -147,6 +147,13 @@ export function TableView({
 		}
 	};
 
+	// Transform clients data to match CompanyIcons expected format
+	const transformedClients = clients.map(client => ({
+		id: client.id,
+		companyName: client.company_name,
+		logo: client.logo
+	}));
+
 	return (
 		<div className="h-[calc(100vh-200px)] overflow-y-auto">
 			<Card className="rounded-md border p-2">
@@ -205,7 +212,7 @@ export function TableView({
 									<TableCell className="h-10 px-2 py-1">
 										<CompanyIcons
 											companies={industry.companies}
-											clients={clients}
+											clients={transformedClients}
 										/>
 									</TableCell>
 									<TableCell className="h-10 px-2 py-1">

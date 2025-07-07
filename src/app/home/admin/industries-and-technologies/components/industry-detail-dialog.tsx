@@ -276,6 +276,13 @@ export function IndustryDetailDialog({
 
 	if (!currentIndustry) return null;
 
+	// Transform clients data to match CompanyIcons expected format
+	const transformedClients = clients.map(client => ({
+		id: client.id,
+		companyName: client.company_name,
+		logo: client.logo
+	}));
+
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="min-w-[70vw] max-h-[90vh] flex flex-col">
@@ -319,114 +326,68 @@ export function IndustryDetailDialog({
 													Industry Name
 												</label>
 												<Input
-													value={currentIndustry?.name || ""}
+													value={currentIndustry.name}
 													onChange={(e) =>
 														handleFieldChange("name", e.target.value)
 													}
-													className="text-lg font-bold h-8 border-0 bg-transparent p-0 focus-visible:ring-0"
+													className="text-lg font-bold border-0 bg-transparent p-0 focus-visible:ring-0"
 												/>
 											</div>
 										) : (
-											<h2 className="text-lg font-bold text-foreground">
-												{currentIndustry?.name}
+											<h2 className="text-lg font-bold">
+												{currentIndustry.name}
 											</h2>
 										)}
-										{!isEditing && (
-											<Badge
-												variant={
-													currentIndustry?.status === "verified"
-														? "default"
-														: "secondary"
-												}
-												className="text-xs px-1.5 py-0.5"
-											>
-												{currentIndustry?.status}
-											</Badge>
-										)}
 									</div>
-
-									{/* Stats Badges */}
-									<div className="flex gap-1">
-										<Badge
-											variant="outline"
-											className="flex items-center gap-1 px-2 py-1"
-										>
-											<Zap className="h-3 w-3" />
-											<span className="text-xs">Tech</span>
-											<span className="text-xs font-bold">
-												{currentIndustry?.technologies?.length || 0}
-											</span>
+									<div className="flex items-center gap-2">
+										<Badge variant="outline" className="text-xs">
+											{currentIndustry.parameters?.length || 0} Parameters
 										</Badge>
-										<Badge
-											variant="outline"
-											className="flex items-center gap-1 px-2 py-1"
-										>
-											<Building2 className="h-3 w-3" />
-											<span className="text-xs">Companies</span>
-											<span className="text-xs font-bold">
-												{currentIndustry?.companies?.length || 0}
-											</span>
-										</Badge>
-										<Badge
-											variant="outline"
-											className="flex items-center gap-1 px-2 py-1"
-										>
-											<BarChart3 className="h-3 w-3" />
-											<span className="text-xs">Params</span>
-											<span className="text-xs font-bold">
-												{currentIndustry?.parameters?.length || 0}
-											</span>
+										<Badge variant="outline" className="text-xs">
+											{currentIndustry.companies?.length || 0} Companies
 										</Badge>
 									</div>
 								</div>
-
-								{/* Description below */}
+								{/* Description */}
 								{isEditing ? (
-									<div className="flex-1">
+									<div>
 										<label className="text-xs font-medium text-muted-foreground block mb-1">
 											Description
 										</label>
 										<Textarea
-											value={currentIndustry?.description || ""}
+											value={currentIndustry.description}
 											onChange={(e) =>
 												handleFieldChange("description", e.target.value)
 											}
-											className="text-sm resize-y border rounded-md p-2 min-h-[60px]"
+											className="text-sm border-0 bg-transparent p-0 focus-visible:ring-0 resize-none"
 											rows={2}
 										/>
 									</div>
 								) : (
-									<p className="text-muted-foreground text-sm leading-relaxed">
-										{currentIndustry?.description}
+									<p className="text-sm text-muted-foreground">
+										{currentIndustry.description}
 									</p>
 								)}
 							</div>
 						</div>
 					</Card>
 
-					<Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-						<TabsList className="grid w-full grid-cols-2 bg-background border border-border mb-6">
-							<TabsTrigger
-								value="overview"
-								className="data-[state=active]:!bg-primary data-[state=active]:!text-primary-foreground text-muted-foreground"
-							>
-								Overview
-							</TabsTrigger>
-							<TabsTrigger
-								value="parameters"
-								className="data-[state=active]:!bg-primary data-[state=active]:!text-primary-foreground text-muted-foreground"
-							>
-								Parameters ({currentIndustry?.parameters?.length || 0})
-							</TabsTrigger>
+					{/* Tabs */}
+					<Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
+						<TabsList className="grid w-full grid-cols-3">
+							<TabsTrigger value="overview">Overview</TabsTrigger>
+							<TabsTrigger value="parameters">Parameters</TabsTrigger>
+							<TabsTrigger value="companies">Companies</TabsTrigger>
 						</TabsList>
 
-						<TabsContent value="overview" className="space-y-2">
+						<TabsContent value="overview" className="space-y-4">
 							<TabContentOverview
 								currentIndustry={currentIndustry}
 								parameterSummary={parameterSummary}
-								clients={clients}
+								clients={transformedClients}
 							/>
 						</TabsContent>
+
 						<TabsContent value="parameters" className="space-y-4">
 							<TabContentParameters
 								currentIndustry={currentIndustry}
@@ -436,6 +397,43 @@ export function IndustryDetailDialog({
 								onAddParameter={handleAddParameter}
 								onRemoveParameter={handleRemoveParameter}
 							/>
+						</TabsContent>
+
+						<TabsContent value="companies" className="space-y-4">
+							<Card className="border shadow-sm">
+								<CardHeader>
+									<CardTitle className="text-lg flex items-center gap-2">
+										<Users className="h-5 w-5 text-primary" />
+										Associated Companies
+									</CardTitle>
+									<DialogDescription>
+										Companies that have selected this industry
+									</DialogDescription>
+								</CardHeader>
+								<CardContent>
+									{currentIndustry.companies &&
+									currentIndustry.companies.length > 0 ? (
+										<div className="space-y-3">
+											<div className="flex items-center gap-2">
+												<CompanyIcons
+													companies={currentIndustry.companies}
+													iconSize={6}
+													textSize="sm"
+													maxVisible={12}
+													clients={transformedClients}
+												/>
+											</div>
+										</div>
+									) : (
+										<div className="text-center py-8 text-muted-foreground">
+											<Users className="h-12 w-12 mx-auto mb-3 text-muted-foreground/30" />
+											<p className="text-sm">
+												No companies associated with this industry
+											</p>
+										</div>
+									)}
+								</CardContent>
+							</Card>
 						</TabsContent>
 					</Tabs>
 				</div>
@@ -508,7 +506,7 @@ function TabContentOverview({
 }: {
 	currentIndustry: Industry;
 	parameterSummary?: Record<string, number> | null;
-	clients: ClientData[];
+	clients: Array<{ id?: string; companyName: string; logo: string }>;
 }) {
 	return (
 		<>
