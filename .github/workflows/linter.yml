@@ -25,6 +25,7 @@ jobs:
       - name: Run linting
         run: |
           cd backend
+          source .venv/bin/activate
           ruff check .
           ruff format --check .
           ruff check --fix .
