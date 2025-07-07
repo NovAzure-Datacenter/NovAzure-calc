@@ -5,10 +5,12 @@ import os
 
 load_dotenv()
 
+
 class Settings(BaseSettings):
     """
     Application settings loaded from environment variables.
     """
+
     # MongoDB
     MONGO_DETAILS: str = os.getenv("MONGO_DETAILS", "")
     DATABASE_NAME: str = os.getenv("DATABASE_NAME", "novazure-dev")
@@ -26,10 +28,8 @@ class Settings(BaseSettings):
     ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 60))
 
-    model_config = ConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8"
-    )
+    model_config = ConfigDict(env_file=".env", env_file_encoding="utf-8")
+
 
 # Create a single, importable instance of the settings
-settings = Settings() 
+settings = Settings()
