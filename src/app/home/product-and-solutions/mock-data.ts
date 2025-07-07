@@ -16,7 +16,7 @@ export interface Product {
 		certifications: string;
 	};
 	features: string[];
-	status: "pending" | "verified" | "active";
+	status: "pending" | "verified" | "draft";
 	parameterCount: number;
 	calculationOverview: string;
 }
@@ -28,7 +28,7 @@ export interface Solution {
 	category: string;
 	logo: React.ComponentType<{ className?: string }>;
 	products: Product[];
-	status: "pending" | "verified" | "active";
+	status: "pending" | "verified" | "draft";
 	parameterCount: number;
 	calculationOverview: string;
 }
@@ -584,7 +584,7 @@ export const mockSolutions: Solution[] = [
 			"Intelligent air-based cooling solutions for traditional data center environments with advanced airflow management and energy optimization.",
 		category: "Air Cooling",
 		logo: Wind,
-		status: "active",
+		status: "verified",
 		parameterCount: 19,
 		calculationOverview:
 			"Airflow dynamics, temperature distribution, energy consumption analysis",
@@ -615,7 +615,7 @@ export const mockSolutions: Solution[] = [
 					"Humidity management",
 					"Eco-friendly refrigerants",
 				],
-				status: "active",
+				status: "verified",
 				parameterCount: 16,
 				calculationOverview:
 					"Airflow optimization, temperature gradient analysis, energy efficiency modeling",
@@ -646,7 +646,7 @@ export const mockSolutions: Solution[] = [
 					"Weather-responsive operation",
 					"Low maintenance design",
 				],
-				status: "active",
+				status: "verified",
 				parameterCount: 14,
 				calculationOverview:
 					"Ambient temperature analysis, energy savings calculation, operational efficiency metrics",
@@ -726,6 +726,127 @@ export const mockSolutions: Solution[] = [
 				parameterCount: 28,
 				calculationOverview:
 					"AI-driven optimization, cost-benefit analysis, thermal efficiency modeling",
+			},
+		],
+	},
+	{
+		id: "hybrid-cooling-prototype",
+		name: "Hybrid Cooling Prototype",
+		description:
+			"Experimental hybrid cooling solution combining liquid and air cooling with advanced AI-driven optimization for next-generation data centers.",
+		category: "Hybrid Cooling",
+		logo: Thermometer,
+		status: "draft",
+		parameterCount: 28,
+		calculationOverview:
+			"Prototype testing, performance validation, efficiency optimization",
+		products: [
+			{
+				id: "hybrid-prototype-alpha",
+				name: "Hybrid Prototype Alpha",
+				description:
+					"First-generation hybrid cooling prototype with experimental liquid-air cooling integration and AI optimization.",
+				model: "HPA-PROTO-1000",
+				category: "Hybrid Cooling",
+				efficiency: "PUE 1.05",
+				specifications: {
+					powerRating: "1kW",
+					coolingCapacity: "3kW",
+					dimensions: "800x600x1500mm",
+					weight: "200kg",
+					operatingTemperature: "15-40°C",
+					certifications: "Prototype - No certification",
+				},
+				features: [
+					"Experimental liquid-air integration",
+					"AI-driven optimization",
+					"Real-time performance monitoring",
+					"Adaptive cooling strategies",
+					"Prototype testing mode",
+					"Data collection capabilities",
+					"Flexible configuration options",
+					"Research-grade sensors",
+				],
+				status: "draft",
+				parameterCount: 20,
+				calculationOverview:
+					"Prototype performance analysis, experimental data collection, optimization testing",
+			},
+			{
+				id: "ai-cooling-controller-beta",
+				name: "AI Cooling Controller Beta",
+				description:
+					"Beta version of AI-powered cooling controller with advanced machine learning algorithms for thermal optimization.",
+				model: "AIC-BETA-2000",
+				category: "AI Control",
+				efficiency: "PUE 1.06",
+				specifications: {
+					powerRating: "2kW",
+					coolingCapacity: "6kW",
+					dimensions: "1000x700x1800mm",
+					weight: "250kg",
+					operatingTemperature: "10-45°C",
+					certifications: "Beta - Limited testing",
+				},
+				features: [
+					"Machine learning algorithms",
+					"Predictive thermal modeling",
+					"Dynamic optimization",
+					"Real-time learning",
+					"Performance analytics",
+					"Experimental features",
+					"Beta testing mode",
+					"Advanced diagnostics",
+				],
+				status: "draft",
+				parameterCount: 24,
+				calculationOverview:
+					"AI model training, performance prediction, experimental optimization",
+			},
+		],
+	},
+	{
+		id: "liquid-cooling-draft",
+		name: "Advanced Liquid Cooling Draft",
+		description:
+			"Draft version of next-generation liquid cooling system with enhanced thermal conductivity and energy efficiency features.",
+		category: "Liquid Cooling",
+		logo: Droplets,
+		status: "draft",
+		parameterCount: 22,
+		calculationOverview:
+			"Draft calculations, thermal modeling, efficiency projections",
+		products: [
+			{
+				id: "liquid-draft-system",
+				name: "Liquid Draft System",
+				description:
+					"Draft liquid cooling system with experimental thermal management and energy optimization features.",
+				model: "LDS-DRAFT-3000",
+				category: "Liquid Cooling",
+				efficiency: "PUE 1.04",
+				specifications: {
+					powerRating: "3kW",
+					coolingCapacity: "8kW",
+					dimensions: "1200x800x2000mm",
+					weight: "350kg",
+					operatingTemperature: "10-40°C",
+					certifications: "Draft - No certification",
+				},
+				features: [
+					"Experimental thermal design",
+					"Advanced fluid dynamics",
+					"Energy optimization",
+					"Real-time monitoring",
+					"Draft configuration",
+					"Testing capabilities",
+					"Flexible setup",
+					"Research features",
+				],
+				status: "draft",
+				parameterCount: 18,
+				calculationOverview:
+					"Draft thermal analysis, experimental efficiency, prototype calculations",
 			},
 		],
 	},

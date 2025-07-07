@@ -94,6 +94,12 @@ export const getProductsAndSolutionsItems = (
 			url: "/home/product-and-solutions/solutions",
 			isActive: true,
 		},
+		{
+			title: "View Products",
+			icon: Package,
+			url: "/home/product-and-solutions/products",
+			isActive: true,
+		},
 	];
 
 	// Add Create Solution for admin users
@@ -106,6 +112,12 @@ export const getProductsAndSolutionsItems = (
 			title: "Create Solution",
 			icon: Plus,
 			url: "/home/product-and-solutions/solutions/create",
+			isActive: true,
+		},
+		{
+			title: "Add Product",
+			icon: Plus,
+			url: "/home/product-and-solutions/product/create",
 			isActive: true,
 		});
 	}

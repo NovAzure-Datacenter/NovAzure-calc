@@ -1,51 +1,46 @@
 "use client";
+
+import { useState, useEffect } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CardContent } from "@/components/ui/card";
-
-import { Grid3X3, RefreshCw, Search } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { List } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
-import SolutionsList from "./solutions-list";
+import {
+	Search,
+	RefreshCw,
+	List,
+	Grid3X3,
+} from "lucide-react";
+import { ProductsList } from "./products-list";
 
-export function SolutionsMain() {
+export function ProductsMain() {
 	const [searchQuery, setSearchQuery] = useState("");
-	const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
+	const [viewMode, setViewMode] = useState<"table" | "grid">("table");
 	const [isLoading, setIsLoading] = useState(false);
 
 	const handleRefresh = () => {
-		// Trigger a refresh of the data
-		loadData();
-	};
-
-	const loadData = async () => {
 		setIsLoading(true);
-		try {
-			// TODO: Implement data loading logic
-		} catch (error) {
-			console.error("Error loading data:", error);
-		} finally {
+		// Simulate refresh
+		setTimeout(() => {
 			setIsLoading(false);
-		}
+		}, 1000);
 	};
 
 	return (
-		<div className="space-y-6">
+		<div className="space-y-4 max-w-full">
 			{/* Header */}
 			<Card className="w-full">
-				<CardContent className="w-full">
-					<div className="flex items-center gap-4">
-						<div className="relative flex-1">
+				<CardContent className="w-full p-4">
+					<div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+						<div className="relative flex-1 w-full">
 							<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
 							<Input
-								placeholder="Search solutions..."
+								placeholder="Search products..."
 								value={searchQuery}
-								onChange={(e) => setSearchQuery(e.target.value)}
-								className="pl-10"
+								onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+								className="pl-10 w-full"
 							/>
 						</div>
-						<div className="flex items-center gap-2">
+						<div className="flex items-center gap-2 w-full sm:w-auto">
 							<Button
 								variant="outline"
 								size="sm"
@@ -75,7 +70,12 @@ export function SolutionsMain() {
 					</div>
 				</CardContent>
 			</Card>
-			<SolutionsList />
+
+			{/* Products List */}
+			<ProductsList 
+				searchQuery={searchQuery}
+				viewMode={viewMode}
+			/>
 		</div>
 	);
 }

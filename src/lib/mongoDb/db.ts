@@ -13,7 +13,6 @@ export async function getUsersCollection(): Promise<Collection> {
 	return db.collection("users");
 }
 
-
 // Industries Collection
 export async function getIndustriesCollection(): Promise<Collection> {
 	const db = await getDb();
@@ -30,4 +29,10 @@ export async function getTechnologiesCollection(): Promise<Collection> {
 export async function getClientsCollection(): Promise<Collection> {
 	const db = await getDb();
 	return db.collection("clients");
+}
+
+// Solutions Collection
+export async function getSolutionsCollection(): Promise<Collection> {
+	const db = await getDb();
+	return db.collection("solutions");
 }
