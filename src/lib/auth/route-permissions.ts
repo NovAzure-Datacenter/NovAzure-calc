@@ -23,6 +23,10 @@ export const routePermissions: RoutePermission[] = [
 		path: "/home/product-and-solutions",
 		allowedRoles: ["super-admin", "admin", "user", "seller", "buyer"],
 	},
+	{
+		path: "/home/tools-and-scenarios/value-calculator",
+		allowedRoles: ["super-admin", "admin", "user", "seller", "buyer"],
+	},
 
 	// Admin-only routes
 	{ path: "/home/admin", allowedRoles: ["super-admin", "admin"] },
