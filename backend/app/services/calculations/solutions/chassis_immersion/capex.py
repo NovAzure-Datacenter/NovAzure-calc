@@ -180,16 +180,28 @@ def calculate_chassis_solution_capex_with_inflation(first_year_of_operation: int
 def calculate_chassis_solution_capex_with_markup(first_year_of_operation: int, capacity_mw: float, country: str):
     nameplate_power_kw = capacity_mw * 1000
     markup =  nameplate_power_kw * FIXED_MARKUP
-    return calculate_chassis_solution_capex_with_inflation(first_year_of_operation, nameplate_power_kw, country) + markup
+    result = calculate_chassis_solution_capex_with_inflation(first_year_of_operation, nameplate_power_kw, country) + markup
+    return round(result)
 
 
 def calculate_cooling_capex(input_data):
-    capacity_mw = input_data.get('data_hall_design_capacity_mw')
-    first_year_of_operation = input_data.get('first_year_of_operation')
-    country = input_data.get('country')
-    
-    cooling_equipment_capex = calculate_chassis_solution_capex_with_markup(first_year_of_operation, capacity_mw, country)
-    
-    return {
-        'cooling_equipment_capex': cooling_equipment_capex
+     '''
+    Calculates the cooling CAPEX for a chassis immersion solution.
+
+    It receives a dictionary with required inputs:
+    {
+        'data_hall_design_capacity_mw': float,
+        'first_year_of_operation': int,
+        'country': str
     }
+    '''
+     capacity_mw = input_data.get('data_hall_design_capacity_mw')
+     first_year_of_operation = input_data.get('first_year_of_operation')
+     country = input_data.get('country')
+    
+     cooling_equipment_capex = calculate_chassis_solution_capex_with_markup(first_year_of_operation, capacity_mw, country)
+    
+     return {
+        'cooling_equipment_capex': cooling_equipment_capex,
+        'total_capex': cooling_equipment_capex
+     }
