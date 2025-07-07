@@ -24,6 +24,7 @@ jobs:
           pip install -r requirements.txt
       - name: Run linting
         run: |
+          cd backend
           ruff check .
           ruff format --check .
           ruff check --fix .
