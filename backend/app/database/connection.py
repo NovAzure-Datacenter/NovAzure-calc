@@ -1,6 +1,7 @@
 import motor.motor_asyncio
 from ..core.config import settings
 
+
 class Database:
     def __init__(self):
         self.client = None
@@ -20,8 +21,10 @@ class Database:
     def get_database(self):
         return self.db
 
+
 # Create a single, importable instance of the database manager
 db_manager = Database()
 
+
 def get_db():
-    return db_manager.get_database() 
+    return db_manager.get_database()
