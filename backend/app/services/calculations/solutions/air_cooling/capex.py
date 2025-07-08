@@ -39,9 +39,7 @@ INFLATION_FACTORS = {
 }
 
 from ...it_config import (
-    calculate_typical_it_cost_per_server,
-    calculate_maximum_number_of_chassis_per_rack_for_air,
-    calculate_number_of_server_refreshes
+    calculate_total_it_cost
 )
 
 def calculate_cooling_equipment_capex(first_year_of_operation: int, capacity_mw: float, country: str):
@@ -52,45 +50,15 @@ def calculate_cooling_equipment_capex(first_year_of_operation: int, capacity_mw:
     return base_capex * inflation_factor
 
 def calculate_it_capex(data_hall_capacity_mw, data_center_type, air_rack_cooling_capacity_kw_per_rack, planned_years):
-
-    nameplate_power_kw = data_hall_capacity_mw * 1000
-    
-    # Calculate maximum servers per rack based on cooling capacity
-    max_servers_per_rack = calculate_maximum_number_of_chassis_per_rack_for_air(
+    """Calculate IT CAPEX using the IT cost calculation."""
+    total_it_cost = calculate_total_it_cost(
+        data_hall_capacity_mw, 
+        data_center_type, 
         air_rack_cooling_capacity_kw_per_rack, 
-        data_center_type
+        planned_years
     )
     
-    if max_servers_per_rack == 0:
-        return 0
-    
-    # Estimate total number of racks based on data hall capacity
-    # Assume 80% utilization of total capacity for IT load
-    it_capacity_kw = nameplate_power_kw * 0.8
-    
-    # Calculate server power consumption
-    if data_center_type == "General Purpose":
-        server_power_kw = 1  # 1kW per server
-    else:  # HPC/AI
-        server_power_kw = 2  # 2kW per server
-    
-    # Calculate total servers and racks needed
-    total_servers_needed = int(it_capacity_kw / server_power_kw)
-    
-    # Calculate cost per server
-    cost_per_server = calculate_typical_it_cost_per_server(data_center_type)
-    
-    # Calculate initial server CAPEX
-    initial_server_capex = total_servers_needed * cost_per_server
-    
-    # Calculate server refresh costs over planned years
-    number_of_refreshes = calculate_number_of_server_refreshes(planned_years or 0)
-    refresh_capex = initial_server_capex * number_of_refreshes
-    
-    # Total IT CAPEX
-    total_it_capex = initial_server_capex + refresh_capex
-    
-    return round(total_it_capex)
+    return round(total_it_cost)
 
 def calculate_cooling_capex(input_data):
     '''
@@ -118,6 +86,38 @@ def calculate_cooling_capex(input_data):
         input_data.get('include_it_cost').lower() in ['yes', 'true', '1']):
         
         it_equipment_capex = calculate_it_capex(
+            capacity_mw,
+            input_data.get('data_center_type'),
+            input_data.get('air_rack_cooling_capacity_kw_per_rack'),
+            input_data.get('planned_years_of_operation')
+        )
+    
+    # Total CAPEX
+    total_capex = cooling_equipment_capex + it_equipment_capex
+    
+    return {
+        'cooling_equipment_capex': cooling_equipment_capex,
+        'it_equipment_capex': it_equipment_capex,
+        'total_capex': total_capex
+    }
+
+def calculate_detailed_capex(input_data):
+    '''
+    Enhanced version that returns detailed breakdown of all costs.
+    
+    Same input format as calculate_cooling_capex, but returns detailed IT breakdown.
+    '''
+    capacity_mw = input_data.get('data_hall_design_capacity_mw')
+    first_year_of_operation = input_data.get('first_year_of_operation')
+    country = input_data.get('country')
+    
+    cooling_equipment_capex = calculate_cooling_equipment_capex(first_year_of_operation, capacity_mw, country)
+    
+    it_equipment_capex = 0
+    if (input_data.get('include_it_cost') and 
+        input_data.get('include_it_cost').lower() in ['yes', 'true', '1']):
+        
+        it_equipment_capex = calculate_total_it_cost(
             capacity_mw,
             input_data.get('data_center_type'),
             input_data.get('air_rack_cooling_capacity_kw_per_rack'),

@@ -140,6 +140,18 @@ export function ValueCalculatorMain() {
                                getFieldValue(configFields, 'Power (kW)') || 
                                getFieldValue(configFields, '68512dce0500c3991f6c4bd0') || 100; // Default fallback
 
+        // Check for chassis immersion specific fields
+        const isChassisImmersion = configFields.some(field => field.id === 'annualised_liquid_cooled_ppue');
+        const pueValue = isChassisImmersion 
+          ? getFieldValue(configFields, 'annualised_liquid_cooled_ppue') || 1.05
+          : 1.2; // Default PUE for air cooling
+
+        const advancedField = configFields.find(f => f.id === 'advanced');
+        const isAdvanced = advancedField?.value === 'Yes' || advancedField?.value === 'true';
+        
+        const advancedGridField = configFields.find(f => f.id === 'advanced_grid');
+        const advancedGrid = advancedGridField?.value === 'TRUE' || advancedGridField?.value === 'true';
+
         const electricityCost = getFieldValue(globalFields1, 'electricity_cost') || 0.12; // $/kWh
         const carbonFactor = getFieldValue(globalFields1, 'carbon_factor') || 0.4; // kg CO2/kWh
         const projectLifetime = getFieldValue(globalFields1, 'project_lifetime') || 10; // years
@@ -147,20 +159,27 @@ export function ValueCalculatorMain() {
 
         // Real calculations based on your data
         const annualEnergyConsumption = powerConsumption * 8760; // kWh/year (24/7 operation)
-        const annualEnergyCost = annualEnergyConsumption * electricityCost;
         
-        // Assume your solution provides 20-30% energy savings (you can adjust this based on product type)
-        const efficiencyImprovement = 25; // 25% improvement
+        // Apply PUE factor for total energy consumption
+        const totalEnergyConsumption = annualEnergyConsumption * pueValue;
+        const annualEnergyCost = totalEnergyConsumption * electricityCost;
+        
+        // Chassis immersion typically provides better efficiency than air cooling
+        const baseEfficiencyImprovement = isChassisImmersion ? 35 : 25; // Higher efficiency for immersion
+        const advancedBonus = isAdvanced ? 5 : 0; // Additional efficiency if advanced features enabled
+        const efficiencyImprovement = baseEfficiencyImprovement + advancedBonus;
+        
         const annualSavings = annualEnergyCost * (efficiencyImprovement / 100);
         const totalSavings = (annualSavings - maintenanceCost) * projectLifetime; // Factor in maintenance costs
         
-        // ROI calculation (assuming solution cost is 2-3x annual savings)
-        const solutionCost = annualSavings * 2.5;
+        // ROI calculation (chassis immersion typically has higher upfront cost but better long-term savings)
+        const costMultiplier = isChassisImmersion ? 3.5 : 2.5; // Higher initial cost for immersion
+        const solutionCost = annualSavings * costMultiplier;
         const roi = (totalSavings / solutionCost) * 100;
         const paybackPeriod = solutionCost / (annualSavings - maintenanceCost);
         
-        // Carbon reduction
-        const carbonReduction = (annualEnergyConsumption * carbonFactor * efficiencyImprovement / 100) * projectLifetime;
+        // Carbon reduction (better with chassis immersion due to lower PUE)
+        const carbonReduction = (totalEnergyConsumption * carbonFactor * efficiencyImprovement / 100) * projectLifetime;
 
         const realResults: CalculationResults = {
             costSavings: Math.round(totalSavings),
@@ -172,6 +191,10 @@ export function ValueCalculatorMain() {
         
         console.log('Calculation inputs:', {
             powerConsumption,
+            pueValue,
+            isChassisImmersion,
+            isAdvanced,
+            advancedGrid,
             electricityCost,
             carbonFactor,
             projectLifetime,
@@ -203,6 +226,7 @@ export function ValueCalculatorMain() {
                         All dropdown data and calculations are using real database values
                         {selectedProduct && ` • Product: ${selectedProduct}`}
                         {configFields.length > 0 && ` • Config Fields: ${configFields.length}`}
+                        {configFields.some(f => f.id === 'annualised_liquid_cooled_ppue') && ' • Chassis Immersion Config'}
                     </div>
                 </div>
 
