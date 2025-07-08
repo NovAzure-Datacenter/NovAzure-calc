@@ -1,3 +1,7 @@
+from ...it_config import (
+    calculate_total_it_cost
+)
+
 # Country-specific multipliers (USD per kW)
 COUNTRY_MULTIPLIERS = {
     "United States": 3849,
@@ -37,10 +41,6 @@ INFLATION_FACTORS = {
     2049: 1.67,
     2050: 1.71,
 }
-
-from ...it_config import (
-    calculate_total_it_cost
-)
 
 def calculate_cooling_equipment_capex(first_year_of_operation: int, capacity_mw: float, country: str):
     nameplate_power_kw = capacity_mw * 1000
