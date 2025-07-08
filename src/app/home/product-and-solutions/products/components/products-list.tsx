@@ -32,10 +32,18 @@ import {
 	CheckCircle,
 	Clock,
 	FileText,
+	Ruler,
+	Weight,
+	Shield,
+	Tag,
+	List,
+	ThermometerIcon,
 } from "lucide-react";
-import { mockSolutions } from "../../mock-data";
+import { getProducts, deleteProduct } from "@/lib/actions/products/products";
+import { getSolutions } from "@/lib/actions/solution/solution";
 import { toast } from "sonner";
 import { ProductDialog } from "./product-dialog";
+import Loading from "@/components/loading-main";
 
 interface Product {
 	id: string;
@@ -44,22 +52,20 @@ interface Product {
 	model: string;
 	category: string;
 	efficiency: string;
-	specifications: {
-		powerRating: string;
-		coolingCapacity: string;
-		dimensions: string;
-		weight: string;
-		operatingTemperature: string;
-		certifications: string;
-	};
+	specifications: Array<{
+		key: string;
+		value: string;
+	}>;
 	features: string[];
 	status: "pending" | "verified" | "draft";
-	parameterCount: number;
-	calculationOverview: string;
+	solutionId: string;
+	created_by: string;
+	client_id: string;
+	created_at: Date;
+	updated_at: Date;
 }
 
 interface ProductWithSolution extends Product {
-	solutionId: string;
 	solutionName: string;
 	solutionCategory: string;
 }
@@ -71,32 +77,46 @@ interface ProductsListProps {
 
 export function ProductsList({ searchQuery, viewMode }: ProductsListProps) {
 	const [products, setProducts] = useState<ProductWithSolution[]>([]);
+	const [solutions, setSolutions] = useState<any[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 	const [isRemoving, setIsRemoving] = useState<string | null>(null);
-	const [selectedProduct, setSelectedProduct] = useState<ProductWithSolution | null>(null);
+	const [selectedProduct, setSelectedProduct] =
+		useState<ProductWithSolution | null>(null);
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
 	const [isEditMode, setIsEditMode] = useState(false);
 
-	// Load products from mock solutions
+	// Load products and solutions from MongoDB
 	useEffect(() => {
-		const loadProducts = () => {
+		const loadData = async () => {
 			setIsLoading(true);
 			try {
-				const allProducts: ProductWithSolution[] = [];
-				
-				mockSolutions.forEach((solution) => {
-					solution.products.forEach((product) => {
-						allProducts.push({
-							...product,
-							solutionId: solution.id,
-							solutionName: solution.name,
-							solutionCategory: solution.category,
-						});
-					});
+				// Load products
+				const productsResult = await getProducts();
+				if (productsResult.error) {
+					toast.error("Failed to load products");
+					return;
+				}
+
+				// Load solutions for product enrichment
+				const solutionsResult = await getSolutions();
+				if (solutionsResult.error) {
+					toast.error("Failed to load solutions");
+				} else {
+					setSolutions(solutionsResult.solutions || []);
+				}
+
+				// Enrich products with solution information
+				const enrichedProducts: ProductWithSolution[] = (productsResult.products || []).map((product: Product) => {
+					const solution = solutionsResult.solutions?.find((s: any) => s.id === product.solutionId);
+					return {
+						...product,
+						solutionName: solution?.solution_name || "Unknown Solution",
+						solutionCategory: solution?.solution_type || "Unknown Category",
+					};
 				});
-				
-				setProducts(allProducts);
+
+				setProducts(enrichedProducts);
 			} catch (error) {
 				console.error("Error loading products:", error);
 				toast.error("Failed to load products");
@@ -105,16 +125,17 @@ export function ProductsList({ searchQuery, viewMode }: ProductsListProps) {
 			}
 		};
 
-		loadProducts();
+		loadData();
 	}, []);
 
 	// Filter products based on search query
-	const filteredProducts = products.filter((product) =>
-		product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-		product.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-		product.model.toLowerCase().includes(searchQuery.toLowerCase()) ||
-		product.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-		product.solutionName.toLowerCase().includes(searchQuery.toLowerCase())
+	const filteredProducts = products.filter(
+		(product) =>
+			product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+			product.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+			product.model.toLowerCase().includes(searchQuery.toLowerCase()) ||
+			product.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+			product.solutionName.toLowerCase().includes(searchQuery.toLowerCase())
 	);
 
 	const statusColors = {
@@ -160,10 +181,7 @@ export function ProductsList({ searchQuery, viewMode }: ProductsListProps) {
 		setOpenDropdown(openDropdown === productId ? null : productId);
 	};
 
-	const handleDropdownItemClick = async (
-		action: string,
-		productId: string
-	) => {
+	const handleDropdownItemClick = async (action: string, productId: string) => {
 		setOpenDropdown(null);
 		const product = products.find((p) => p.id === productId);
 		if (!product) return;
@@ -180,10 +198,13 @@ export function ProductsList({ searchQuery, viewMode }: ProductsListProps) {
 			// Handle remove logic
 			setIsRemoving(productId);
 			try {
-				// Simulate API call
-				await new Promise(resolve => setTimeout(resolve, 1000));
-				setProducts(products.filter(p => p.id !== productId));
-				toast.success("Product removed successfully!");
+				const result = await deleteProduct(productId);
+				if (result.error) {
+					toast.error(result.error);
+				} else {
+					setProducts(products.filter((p) => p.id !== productId));
+					toast.success("Product removed successfully!");
+				}
 			} catch (error) {
 				console.error("Error removing product:", error);
 				toast.error("Failed to remove product");
@@ -202,11 +223,14 @@ export function ProductsList({ searchQuery, viewMode }: ProductsListProps) {
 	const handleRemoveProduct = async (productId: string) => {
 		setIsRemoving(productId);
 		try {
-			// Simulate API call
-			await new Promise(resolve => setTimeout(resolve, 1000));
-			setProducts(products.filter(p => p.id !== productId));
-			toast.success("Product removed successfully!");
-			handleDialogClose();
+			const result = await deleteProduct(productId);
+			if (result.error) {
+				toast.error(result.error);
+			} else {
+				setProducts(products.filter((p) => p.id !== productId));
+				toast.success("Product removed successfully!");
+				handleDialogClose();
+			}
 		} catch (error) {
 			console.error("Error removing product:", error);
 			toast.error("Failed to remove product");
@@ -222,12 +246,7 @@ export function ProductsList({ searchQuery, viewMode }: ProductsListProps) {
 	};
 
 	if (isLoading) {
-		return (
-			<div className="flex items-center justify-center h-64">
-				<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-				<span className="ml-2">Loading products...</span>
-			</div>
-		);
+		return <Loading />;
 	}
 
 	if (viewMode === "grid") {
@@ -235,7 +254,10 @@ export function ProductsList({ searchQuery, viewMode }: ProductsListProps) {
 			<>
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-full">
 					{filteredProducts.map((product) => (
-						<Card key={product.id} className="p-4 hover:shadow-md transition-shadow">
+						<Card
+							key={product.id}
+							className="p-4 hover:shadow-md transition-shadow"
+						>
 							<div className="flex items-start justify-between mb-3">
 								<div className="flex items-center gap-2">
 									<div className="p-2 rounded-lg bg-gray-100">
@@ -243,27 +265,29 @@ export function ProductsList({ searchQuery, viewMode }: ProductsListProps) {
 									</div>
 									<div>
 										<h3 className="font-medium text-sm">{product.name}</h3>
-										<p className="text-xs text-muted-foreground">{product.model}</p>
+										<p className="text-xs text-muted-foreground">
+											{product.model}
+										</p>
 									</div>
 								</div>
 								<Badge
 									variant="outline"
-									className={`text-xs ${
-										statusColors[product.status]
-									}`}
+									className={`text-xs ${statusColors[product.status]}`}
 								>
 									{getStatusIcon(product.status)}
 									<span className="ml-1">{product.status}</span>
 								</Badge>
 							</div>
-							
+
 							<div className="space-y-2 mb-3">
 								<p className="text-xs text-gray-600 line-clamp-2">
 									{product.description}
 								</p>
 								<div className="flex items-center gap-2">
-									<Zap className="h-3 w-3 text-green-600" />
-									<span className="text-xs font-medium">{product.efficiency}</span>
+									<Tag className="h-3 w-3 text-blue-600" />
+									<span className="text-xs font-medium">
+										{product.category}
+									</span>
 								</div>
 								<div className="text-xs text-muted-foreground">
 									Solution: {product.solutionName}
@@ -273,7 +297,9 @@ export function ProductsList({ searchQuery, viewMode }: ProductsListProps) {
 							<div className="flex justify-between items-center">
 								<div className="flex items-center gap-2">
 									<Settings className="h-3 w-3 text-gray-600" />
-									<span className="text-xs">{product.parameterCount} params</span>
+									<span className="text-xs">
+										{product.features.length} features
+									</span>
 								</div>
 								<Button
 									variant="ghost"
@@ -328,20 +354,14 @@ export function ProductsList({ searchQuery, viewMode }: ProductsListProps) {
 										<TableHead className="h-8 px-1 py-1 text-xs font-medium w-20">
 											Category
 										</TableHead>
-										<TableHead className="h-8 px-1 py-1 text-xs font-medium w-16">
-											Efficiency
+										<TableHead className="h-8 px-1 py-1 text-xs font-medium w-20">
+											Features
 										</TableHead>
 										<TableHead className="h-8 px-1 py-1 text-xs font-medium w-20">
-											Power Rating
-										</TableHead>
-										<TableHead className="h-8 px-1 py-1 text-xs font-medium w-20">
-											Cooling Capacity
+											Specifications
 										</TableHead>
 										<TableHead className="h-8 px-1 py-1 text-xs font-medium w-16">
 											Status
-										</TableHead>
-										<TableHead className="h-8 px-1 py-1 text-xs font-medium w-16">
-											Params
 										</TableHead>
 										<TableHead className="h-8 px-1 py-1 text-xs font-medium w-10">
 											Actions
@@ -384,97 +404,86 @@ export function ProductsList({ searchQuery, viewMode }: ProductsListProps) {
 											<TableCell className="h-10 px-1 py-1">
 												<div className="flex items-center gap-1">
 													{getCategoryIcon(product.category)}
-													<Badge variant="outline" className="text-xs px-1 py-0">
+													<Badge
+														variant="outline"
+														className="text-xs px-1 py-0"
+													>
 														{product.category}
 													</Badge>
 												</div>
 											</TableCell>
 											<TableCell className="h-10 px-1 py-1">
-												<div className="flex items-center gap-1">
-													<Zap className="h-3 w-3 text-green-600 flex-shrink-0" />
-													<span className="text-xs font-medium">
-														{product.efficiency}
-													</span>
+												<div className="text-xs text-muted-foreground">
+													{product.features.length} items
 												</div>
 											</TableCell>
 											<TableCell className="h-10 px-1 py-1">
 												<div className="text-xs text-muted-foreground">
-													{product.specifications.powerRating}
-												</div>
-											</TableCell>
-											<TableCell className="h-10 px-1 py-1">
-												<div className="text-xs text-muted-foreground">
-													{product.specifications.coolingCapacity}
+													{product.specifications.length} specs
 												</div>
 											</TableCell>
 											<TableCell className="h-10 px-1 py-1">
 												<Badge
 													variant="outline"
-													className={`text-xs px-1 py-0 ${
-														statusColors[product.status]
-													}`}
+													className={`text-xs px-1 py-0 ${statusColors[product.status]}`}
 												>
 													{getStatusIcon(product.status)}
-													<span className="ml-0.5 text-xs">
-														{product.status}
-													</span>
+													<span className="ml-1">{product.status}</span>
 												</Badge>
 											</TableCell>
 											<TableCell className="h-10 px-1 py-1">
-												<div className="flex items-center gap-1">
-													<Settings className="h-3 w-3 text-gray-600 flex-shrink-0" />
-													<span className="text-xs">
-														{product.parameterCount}
-													</span>
-												</div>
-											</TableCell>
-											<TableCell className="h-10 px-1 py-1">
-												<div className="relative dropdown-container">
-													<Button
-														variant="ghost"
-														className="h-4 w-4 p-0"
-														onClick={(e) =>
-															handleDropdownButtonClick(e, product.id)
-														}
-													>
-														<MoreHorizontal className="h-2.5 w-2.5" />
-													</Button>
-
-													{openDropdown === product.id && (
-														<div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-[9999] min-w-[120px]">
-															<button
-																className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
+												<Tooltip>
+													<TooltipTrigger asChild>
+														<Button
+															variant="ghost"
+															size="sm"
+															onClick={(e) =>
+																handleDropdownButtonClick(e, product.id)
+															}
+															className="h-6 w-6 p-0"
+														>
+															<MoreHorizontal className="h-3 w-3" />
+														</Button>
+													</TooltipTrigger>
+													<TooltipContent>
+														<div className="flex flex-col gap-1">
+															<Button
+																variant="ghost"
+																size="sm"
 																onClick={() =>
 																	handleDropdownItemClick("View", product.id)
 																}
+																className="h-6 px-2 text-xs justify-start"
 															>
-																<Eye className="h-3 w-3" />
+																<Eye className="h-3 w-3 mr-1" />
 																View
-															</button>
-															<button
-																className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
+															</Button>
+															<Button
+																variant="ghost"
+																size="sm"
 																onClick={() =>
 																	handleDropdownItemClick("Edit", product.id)
 																}
+																className="h-6 px-2 text-xs justify-start"
 															>
-																<Edit className="h-3 w-3" />
+																<Edit className="h-3 w-3 mr-1" />
 																Edit
-															</button>
-															<button
-																className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+															</Button>
+															<Button
+																variant="ghost"
+																size="sm"
 																onClick={() =>
 																	handleDropdownItemClick("Remove", product.id)
 																}
+																className="h-6 px-2 text-xs justify-start text-red-600 hover:text-red-700"
 																disabled={isRemoving === product.id}
 															>
-																<Trash2 className="h-3 w-3" />
-																{isRemoving === product.id
-																	? "Removing..."
-																	: "Remove"}
-															</button>
+																<Trash2 className="h-3 w-3 mr-1" />
+																{isRemoving === product.id ? "Removing..." : "Remove"}
+															</Button>
 														</div>
-													)}
-												</div>
+													</TooltipContent>
+												</Tooltip>
 											</TableCell>
 										</TableRow>
 									))}

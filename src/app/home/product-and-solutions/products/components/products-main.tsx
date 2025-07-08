@@ -4,15 +4,12 @@ import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-	Search,
-	RefreshCw,
-	List,
-	Grid3X3,
-} from "lucide-react";
+import { Search, RefreshCw, List, Grid3X3, Plus } from "lucide-react";
 import { ProductsList } from "./products-list";
+import { useRouter } from "next/navigation";
 
 export function ProductsMain() {
+	const router = useRouter();
 	const [searchQuery, setSearchQuery] = useState("");
 	const [viewMode, setViewMode] = useState<"table" | "grid">("table");
 	const [isLoading, setIsLoading] = useState(false);
@@ -23,6 +20,10 @@ export function ProductsMain() {
 		setTimeout(() => {
 			setIsLoading(false);
 		}, 1000);
+	};
+
+	const handleCreateProduct = () => {
+		router.push("/home/product-and-solutions/products/create");
 	};
 
 	return (
@@ -36,11 +37,23 @@ export function ProductsMain() {
 							<Input
 								placeholder="Search products..."
 								value={searchQuery}
-								onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+								onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+									setSearchQuery(e.target.value)
+								}
 								className="pl-10 w-full"
 							/>
 						</div>
 						<div className="flex items-center gap-2 w-full sm:w-auto">
+							<Button
+								variant="default"
+								size="sm"
+								onClick={handleCreateProduct}
+								className="text-xs flex items-center gap-2"
+							>
+								<Plus className="h-4 w-4" />
+								Create Product
+							</Button>
+
 							<Button
 								variant="outline"
 								size="sm"
@@ -72,10 +85,7 @@ export function ProductsMain() {
 			</Card>
 
 			{/* Products List */}
-			<ProductsList 
-				searchQuery={searchQuery}
-				viewMode={viewMode}
-			/>
+			<ProductsList searchQuery={searchQuery} viewMode={viewMode} />
 		</div>
 	);
 }

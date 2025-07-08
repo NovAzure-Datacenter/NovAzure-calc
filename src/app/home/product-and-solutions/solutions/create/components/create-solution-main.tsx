@@ -35,6 +35,7 @@ import { CreateSolutionStep3 } from "./create-solution-step-3";
 import { CreateSolutionStep6 } from "./create-solution-step-6";
 import { SubmissionDialog } from "../../components/submission-dialog";
 import { DraftDialog } from "../../components/draft-dialog";
+import Loading from "@/components/loading-main";
 
 interface CreateSolutionData {
 	selectedIndustry: string;
@@ -63,11 +64,15 @@ export function CreateSolutionMain() {
 		useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [showSubmissionDialog, setShowSubmissionDialog] = useState(false);
-	const [submissionStatus, setSubmissionStatus] = useState<"success" | "error">("success");
+	const [submissionStatus, setSubmissionStatus] = useState<"success" | "error">(
+		"success"
+	);
 	const [submissionMessage, setSubmissionMessage] = useState("");
 	const [submittedSolutionName, setSubmittedSolutionName] = useState("");
 	const [showDraftDialog, setShowDraftDialog] = useState(false);
-	const [draftStatus, setDraftStatus] = useState<"success" | "error">("success");
+	const [draftStatus, setDraftStatus] = useState<"success" | "error">(
+		"success"
+	);
 	const [draftMessage, setDraftMessage] = useState("");
 	const [draftSolutionName, setDraftSolutionName] = useState("");
 
@@ -196,7 +201,7 @@ export function CreateSolutionMain() {
 
 			// Save to MongoDB
 			const result = await createSolution(solutionData);
-			
+
 			if (result.error) {
 				setDraftStatus("error");
 				setDraftMessage(result.error);
@@ -269,7 +274,7 @@ export function CreateSolutionMain() {
 
 			// Save to MongoDB
 			const result = await createSolution(solutionData);
-			
+
 			if (result.error) {
 				setSubmissionStatus("error");
 				setSubmissionMessage(result.error);
@@ -333,12 +338,7 @@ export function CreateSolutionMain() {
 	};
 
 	if (isLoading) {
-		return (
-			<div className="flex items-center justify-center h-64">
-				<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-				<span className="ml-2">Loading...</span>
-			</div>
-		);
+		return <Loading />;
 	}
 
 	const getStepTitle = () => {

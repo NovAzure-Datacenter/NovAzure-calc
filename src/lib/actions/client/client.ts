@@ -1,11 +1,13 @@
 "use server";
 
 import { getClientsCollection, getUsersCollection } from "@/lib/mongoDb/db";
+import { getConnectedClient } from "@/lib/mongoDb/dbConnect";
 import { ObjectId } from "mongodb";
 import { removeCompanyFromIndustries } from "../industry/industry";
 import { hash } from "bcryptjs";
 import crypto from "crypto";
 import { sendEmail, generateWelcomeEmail } from "../utils/SMTP-email-template";
+import { monitorDatabaseOperation } from "../utils/connection-monitor";
 
 export interface ClientData {
 	id?: string;
@@ -431,4 +433,85 @@ function generateClientLoginEmail(
 	const email = `${firstLetter}${cleanLastName}-${cleanCompanyName}@novazure.com`;
 
 	return email;
+}
+
+// Optimized function to load clients with related data in a single operation
+export async function getClientsWithRelatedData(): Promise<{
+	clients?: ClientData[];
+	industries?: Array<{ id: string; name: string; icon: string }>;
+	technologies?: Array<{ id: string; name: string; icon: string }>;
+	error?: string;
+}> {
+	return monitorDatabaseOperation(async () => {
+		try {
+			const { db } = await getConnectedClient();
+			
+			// Execute all queries in parallel using a single connection
+			const [clients, industries, technologies] = await Promise.all([
+				db.collection('clients').find({}).toArray(),
+				db.collection('industry').find({}).toArray(),
+				db.collection('technologies').find({}).toArray()
+			]);
+
+			// Transform clients
+			const transformedClients: ClientData[] = clients
+				.filter((client: any) => client._id.toString() !== "684ad0ca270ad70b516c4bd0")
+				.map((client: any) => ({
+					id: client._id.toString(),
+					logo: client.logo || "Building2",
+					company_name: client.company_name,
+					website: client.website,
+					main_contact_email: client.main_contact_email,
+					main_contact_first_name: client.main_contact_first_name,
+					main_contact_last_name: client.main_contact_last_name,
+					main_contact_phone: client.main_contact_phone,
+					tech_contact_first_name: client.tech_contact_first_name,
+					tech_contact_last_name: client.tech_contact_last_name,
+					tech_contact_email: client.tech_contact_email,
+					tech_contact_phone: client.tech_contact_phone,
+					company_industry: client.company_industry,
+					company_size: client.company_size,
+					street: client.street,
+					city: client.city,
+					state_province: client.state_province,
+					zipcode_postal_code: client.zipcode_postal_code,	
+					country: client.country,
+					timezone: client.timezone,
+					client_status: client.client_status || "prospect",
+					additional_notes: client.additional_notes,
+					selected_industries: client.selected_industries || [],
+					selected_technologies: client.selected_technologies || [],
+					user_count: client.user_count || 0,
+					product_count: client.product_count || 0,
+					product_pending_count: client.product_pending_count || 0,
+					scenario_count: client.scenario_count || 0,
+					login_email: client.login_email,
+					created_at: client.created_at,
+					updated_at: client.updated_at,
+				}));
+
+			// Transform industries
+			const transformedIndustries = industries.map((industry: any) => ({
+				id: industry._id.toString(),
+				name: industry.name,
+				icon: industry.icon || "Building2",
+			}));
+
+			// Transform technologies
+			const transformedTechnologies = technologies.map((technology: any) => ({
+				id: technology._id.toString(),
+				name: technology.name,
+				icon: technology.icon || "Cpu",
+			}));
+
+			return {
+				clients: transformedClients,
+				industries: transformedIndustries,
+				technologies: transformedTechnologies,
+			};
+		} catch (error) {
+			console.error("Error fetching clients with related data:", error);
+			return { error: "Failed to fetch data" };
+		}
+	});
 }

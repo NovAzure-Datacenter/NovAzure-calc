@@ -24,6 +24,8 @@ import {
 	Settings,
 	Calculator,
 	Building2,
+	Edit,
+	Trash2,
 } from "lucide-react";
 
 interface Product {
@@ -33,22 +35,20 @@ interface Product {
 	model: string;
 	category: string;
 	efficiency: string;
-	specifications: {
-		powerRating: string;
-		coolingCapacity: string;
-		dimensions: string;
-		weight: string;
-		operatingTemperature: string;
-		certifications: string;
-	};
+	specifications: Array<{
+		key: string;
+		value: string;
+	}>;
 	features: string[];
 	status: "pending" | "verified" | "draft";
-	parameterCount: number;
-	calculationOverview: string;
+	solutionId: string;
+	created_by: string;
+	client_id: string;
+	created_at: Date;
+	updated_at: Date;
 }
 
 interface ProductWithSolution extends Product {
-	solutionId: string;
 	solutionName: string;
 	solutionCategory: string;
 }
@@ -185,15 +185,15 @@ export function ProductDialog({
 									<div className="flex items-center gap-2">
 										<Settings className="h-4 w-4 text-gray-600" />
 										<span className="text-sm">
-											<span className="font-medium">Parameters:</span>{" "}
-											{product.parameterCount}
+											<span className="font-medium">Features:</span>{" "}
+											{product.features.length} items
 										</span>
 									</div>
 									<div className="flex items-center gap-2">
 										<Calculator className="h-4 w-4 text-purple-600" />
 										<span className="text-sm">
-											<span className="font-medium">Calculations:</span>{" "}
-											{product.calculationOverview}
+											<span className="font-medium">Specifications:</span>{" "}
+											{product.specifications.length} specs
 										</span>
 									</div>
 								</div>
@@ -222,91 +222,72 @@ export function ProductDialog({
 							</div>
 						</div>
 
-						<div>
-							<h3 className="text-sm font-medium text-gray-900 mb-2">
-								Specifications
-							</h3>
-							<div className="space-y-2">
-								<div className="flex items-center gap-2">
-									<Zap className="h-4 w-4 text-yellow-600" />
-									<span className="text-sm">
-										<span className="font-medium">Power Rating:</span>{" "}
-										{product.specifications.powerRating}
-									</span>
+						<div className="space-y-4">
+							{/* Features */}
+							<div>
+								<h3 className="text-sm font-medium text-gray-900 mb-2">
+									Features
+								</h3>
+								<div className="space-y-1">
+									{product.features.length > 0 ? (
+										product.features.map((feature, index) => (
+											<div key={index} className="flex items-center gap-2">
+												<CheckCircle className="h-3 w-3 text-green-600" />
+												<span className="text-sm">{feature}</span>
+											</div>
+										))
+									) : (
+										<p className="text-sm text-muted-foreground">No features listed</p>
+									)}
 								</div>
-								<div className="flex items-center gap-2">
-									<Thermometer className="h-4 w-4 text-red-600" />
-									<span className="text-sm">
-										<span className="font-medium">Cooling Capacity:</span>{" "}
-										{product.specifications.coolingCapacity}
-									</span>
-								</div>
-								<div className="flex items-center gap-2">
-									<Ruler className="h-4 w-4 text-blue-600" />
-									<span className="text-sm">
-										<span className="font-medium">Dimensions:</span>{" "}
-										{product.specifications.dimensions}
-									</span>
-								</div>
-								<div className="flex items-center gap-2">
-									<Weight className="h-4 w-4 text-gray-600" />
-									<span className="text-sm">
-										<span className="font-medium">Weight:</span>{" "}
-										{product.specifications.weight}
-									</span>
-								</div>
-								<div className="flex items-center gap-2">
-									<Thermometer className="h-4 w-4 text-orange-600" />
-									<span className="text-sm">
-										<span className="font-medium">Operating Temperature:</span>{" "}
-										{product.specifications.operatingTemperature}
-									</span>
-								</div>
-								<div className="flex items-center gap-2">
-									<Shield className="h-4 w-4 text-green-600" />
-									<span className="text-sm">
-										<span className="font-medium">Certifications:</span>{" "}
-										{product.specifications.certifications}
-									</span>
+							</div>
+
+							{/* Specifications */}
+							<div>
+								<h3 className="text-sm font-medium text-gray-900 mb-2">
+									Specifications
+								</h3>
+								<div className="space-y-1">
+									{product.specifications.length > 0 ? (
+										product.specifications.map((spec, index) => (
+											<div key={index} className="flex items-center gap-2">
+												<Ruler className="h-3 w-3 text-blue-600" />
+												<span className="text-sm">
+													<span className="font-medium">{spec.key}:</span>{" "}
+													{spec.value}
+												</span>
+											</div>
+										))
+									) : (
+										<p className="text-sm text-muted-foreground">No specifications listed</p>
+									)}
 								</div>
 							</div>
 						</div>
 					</div>
 
-					{/* Features */}
-					<div>
-						<h3 className="text-sm font-medium text-gray-900 mb-2">Features</h3>
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-							{product.features.map((feature, index) => (
-								<div key={index} className="flex items-center gap-2">
-									<div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
-									<span className="text-sm text-gray-600">{feature}</span>
-								</div>
-							))}
-						</div>
+					{/* Actions */}
+					<div className="flex justify-end gap-2 pt-4 border-t">
+						{isEditMode && onEdit && (
+							<Button onClick={handleEdit} variant="outline">
+								<Edit className="h-4 w-4 mr-2" />
+								Edit Product
+							</Button>
+						)}
+						{onRemove && (
+							<Button
+								onClick={handleRemove}
+								variant="destructive"
+								disabled={isRemoving}
+							>
+								<Trash2 className="h-4 w-4 mr-2" />
+								{isRemoving ? "Removing..." : "Remove Product"}
+							</Button>
+						)}
+						<Button onClick={onClose} variant="outline">
+							Close
+						</Button>
 					</div>
-				</div>
-
-				{/* Footer Actions */}
-				<div className="flex justify-end gap-2 pt-4 border-t">
-					<Button variant="outline" onClick={onClose}>
-						Close
-					</Button>
-					{onEdit && (
-						<Button onClick={handleEdit} variant="outline">
-							<Package className="h-4 w-4 mr-2" />
-							Edit Product
-						</Button>
-					)}
-					{onRemove && (
-						<Button
-							onClick={handleRemove}
-							variant="destructive"
-							disabled={isRemoving}
-						>
-							{isRemoving ? "Removing..." : "Remove Product"}
-						</Button>
-					)}
 				</div>
 			</DialogContent>
 		</Dialog>

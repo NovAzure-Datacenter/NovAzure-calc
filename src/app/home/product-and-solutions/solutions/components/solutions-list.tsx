@@ -40,6 +40,7 @@ import { getTechnologies } from "@/lib/actions/technology/technology";
 import { SolutionDialog } from "./solution-dialog";
 import { SubmissionDialog } from "./submission-dialog";
 import { toast } from "sonner";
+import Loading from "@/components/loading-main";
 
 interface Solution {
 	id: string;
@@ -324,12 +325,7 @@ export default function SolutionsList() {
 	}));
 
 	if (isLoading) {
-		return (
-			<div className="flex items-center justify-center h-64">
-				<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-				<span className="ml-2">Loading solutions...</span>
-			</div>
-		);
+		return <Loading />;
 	}
 
 	return (

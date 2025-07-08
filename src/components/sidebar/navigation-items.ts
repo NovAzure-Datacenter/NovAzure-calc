@@ -117,7 +117,7 @@ export const getProductsAndSolutionsItems = (
 		{
 			title: "Add Product",
 			icon: Plus,
-			url: "/home/product-and-solutions/product/create",
+			url: "/home/product-and-solutions/products/create",
 			isActive: true,
 		});
 	}
