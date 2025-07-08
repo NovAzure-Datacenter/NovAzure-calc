@@ -13,7 +13,6 @@ export async function getUsersCollection(): Promise<Collection> {
 	return db.collection("users");
 }
 
-
 // Industries Collection
 export async function getIndustriesCollection(): Promise<Collection> {
 	const db = await getDb();
@@ -30,4 +29,28 @@ export async function getTechnologiesCollection(): Promise<Collection> {
 export async function getClientsCollection(): Promise<Collection> {
 	const db = await getDb();
 	return db.collection("clients");
+}
+
+//Solution Variants Collection
+export async function getSolutionVariantsCollection(): Promise<Collection> {
+	const db = await getDb();
+	return db.collection("solution_variants");
+}
+
+// Solutions Collection
+export async function getSolutionsCollection(): Promise<Collection> {
+	const db = await getDb();
+	return db.collection("solutions");
+}
+
+// Products Collection
+export async function getProductsCollection(): Promise<Collection> {
+	const db = await getDb();
+	return db.collection("products");
+}
+
+// Product Configuration Collection
+export async function getProductConfigCollection(): Promise<Collection> {
+	const db = await getDb();
+	return db.collection("product_configurations");
 }
