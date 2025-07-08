@@ -18,7 +18,7 @@ origins = [
     "http://localhost:3000",
     "http://localhost:3001",
     "http://127.0.0.1:3000",
-    "http://127.0.0.1:3001"
+    "http://127.0.0.1:3001",
 ]
 # You can add more origins from a comma-separated string in your .env if needed
 # origins.extend(settings.ADDITIONAL_ORIGINS.split(','))
@@ -34,13 +34,16 @@ app.add_middleware(
 # Include routers
 app.include_router(calculations_router)
 
+
 @app.on_event("startup")
 async def startup_event():
     db_manager.connect()
 
+
 @app.on_event("shutdown")
 async def shutdown_event():
     db_manager.disconnect()
+
 
 @app.get("/collections", tags=["Database Test"])
 async def list_collections(db: AsyncIOMotorDatabase = Depends(get_db)):
@@ -56,6 +59,7 @@ async def list_collections(db: AsyncIOMotorDatabase = Depends(get_db)):
     except Exception as e:
         # This will catch authentication errors etc.
         return {"error": f"An error occurred: {e}"}
+
 
 @app.get("/", tags=["Root"])
 async def read_root():
