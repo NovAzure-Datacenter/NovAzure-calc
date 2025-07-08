@@ -26,7 +26,6 @@ async function fetchTechnologies(industryId: string): Promise<Technology[]> {
   try {
     const response = await fetch(`/api/value-calculator/technologies?industryId=${encodeURIComponent(industryId)}`);
     const result = await response.json();
-    console.log('fetchTechnologies response:', result);
     
     if (!result.success) {
       throw new Error(result.error || 'Failed to fetch technologies');
@@ -43,7 +42,6 @@ async function fetchSolutions(industryId: string, technologyId: string): Promise
   try {
     const response = await fetch(`/api/value-calculator/solutions?technologyId=${encodeURIComponent(technologyId)}`);
     const result = await response.json();
-    console.log('fetchSolutions response:', result);
     
     if (!result.success) {
       throw new Error(result.error || 'Failed to fetch solutions');
@@ -81,6 +79,7 @@ interface HeaderSelectorsProps {
     setSelectedSolution: (value: string) => void;
     selectedProduct: string;
     setSelectedProduct: (value: string) => void;
+    onSolutionInfoChange?: (solutionInfo: {name: string, description?: string} | null) => void;
 }
 
 export function HeaderSelectors({
@@ -92,6 +91,7 @@ export function HeaderSelectors({
     setSelectedSolution,
     selectedProduct,
     setSelectedProduct,
+    onSolutionInfoChange,
 }: HeaderSelectorsProps) {
     
     const [industries, setIndustries] = useState<Industry[]>([]);
@@ -113,22 +113,31 @@ export function HeaderSelectors({
             const idToCheck = i.id || (i as { _id?: string })._id;
             return idToCheck === value;
         });
-        console.log('Selected industry object:', selectedIndustryObj);
         setSelectedIndustry(value);
     };
 
     const handleTechnologyChange = (value: string) => {
-        console.log('Technology selected:', value);
         setSelectedTechnology(value);
     };
 
     const handleSolutionChange = (value: string) => {
-        console.log('Solution selected:', value);
         setSelectedSolution(value);
+        
+        // Find the selected solution info and pass it back
+        if (onSolutionInfoChange) {
+            const selectedSolutionObj = solutions.find(sol => sol.id === value);
+            if (selectedSolutionObj) {
+                onSolutionInfoChange({
+                    name: selectedSolutionObj.name,
+                    description: selectedSolutionObj.description
+                });
+            } else {
+                onSolutionInfoChange(null);
+            }
+        }
     };
 
     const handleProductChange = (value: string) => {
-        console.log('Product selected:', value);
         setSelectedProduct(value);
     };
 
@@ -153,7 +162,6 @@ export function HeaderSelectors({
     // Fetch technologies when industry changes
     useEffect(() => {
         const loadTechnologies = async () => {
-            console.log('loadTechnologies: selectedIndustry =', selectedIndustry);
             if (!selectedIndustry) {
                 console.log('No industry selected, clearing technologies');
                 setTechnologies([]);
@@ -162,7 +170,6 @@ export function HeaderSelectors({
 
             setLoading(prev => ({ ...prev, technologies: true }));
             try {
-                console.log('Fetching technologies for industry:', selectedIndustry);
                 const data = await fetchTechnologies(selectedIndustry);
                 setTechnologies(data);
             } catch (error) {

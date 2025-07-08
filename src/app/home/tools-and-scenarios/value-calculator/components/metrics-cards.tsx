@@ -1,14 +1,7 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-
-export interface CalculationResults {
-    costSavings: number;
-    energyEfficiency: number;
-    roi: number;
-    paybackPeriod: number;
-    carbonReduction: number;
-}
+import { CalculationResults } from "../types/types";
 
 interface MetricsCardsProps {
     results: CalculationResults;

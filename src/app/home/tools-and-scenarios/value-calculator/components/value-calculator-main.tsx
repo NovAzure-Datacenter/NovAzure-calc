@@ -4,28 +4,7 @@ import { useState, useEffect } from "react";
 import { HeaderSelectors } from "./header-selectors";
 import { ConfigurationCard } from "./configuration-card";
 import { ResultsSection } from "./results-section";
-import type { ConfigField } from "./configuration-section";
-import type { CalculationResults } from "./metrics-cards";
-
-// Type definitions
-interface ConfigFieldAPI {
-  id: string;
-  label: string;
-  type: string;
-  value?: string;
-  unit?: string;
-  options?: string[];
-  required?: boolean;
-  min_value?: number;
-  max_value?: number;
-}
-
-interface ProductConfigResponse {
-  product_id: string;
-  config_fields: ConfigFieldAPI[];
-  global_fields_1: ConfigFieldAPI[];
-  global_fields_2: ConfigFieldAPI[];
-}
+import type { ConfigField, ConfigFieldAPI, ProductConfigResponse, CalculationResults, AdvancedConfig } from "../types/types";
 
 // API Function
 async function fetchProductConfig(productId: string): Promise<ProductConfigResponse> {
@@ -48,6 +27,7 @@ export function ValueCalculatorMain() {
     const [selectedIndustry, setSelectedIndustry] = useState("");
     const [selectedTechnology, setSelectedTechnology] = useState("");
     const [selectedSolution, setSelectedSolution] = useState("");
+    const [selectedSolutionInfo, setSelectedSolutionInfo] = useState<{name: string, description?: string} | null>(null);
     const [selectedProduct, setSelectedProduct] = useState("");
     const [showResults, setShowResults] = useState(false);
     const [isLoadingConfig, setIsLoadingConfig] = useState(false);
@@ -58,6 +38,47 @@ export function ValueCalculatorMain() {
     const [globalFields1, setGlobalFields1] = useState<ConfigField[]>([]);
 
     const [globalFields2, setGlobalFields2] = useState<ConfigField[]>([]);
+
+    // Advanced configuration state
+    const [advancedConfig, setAdvancedConfig] = useState<AdvancedConfig>({
+        // Data Centre Configuration - Advanced
+        inletTemperature: 0,
+        electricityPrice: 0,
+        waterPrice: 0,
+        waterloop: '',
+        requiredElectricalPowerIncrease: 0,
+        
+        // Air Cooling Configuration - Advanced
+        coolingAlternative: '',
+        defaultAirCoolingTechnology: '',
+        airChassisPerRack: 0,
+        airCoolingCapexCost: 0,
+        annualAirCoolingMaintenance: 0,
+        airWUE: 0,
+        
+        // PLC Configuration - Advanced
+        chassisTechnology: '',
+        plcRackCoolingCapacity: 0,
+        annualPLCMaintenance: 0,
+        includePoCCost: '',
+        totalPoCCost: 0,
+        plcChassisPerRack: 0,
+        
+        // IT Configuration - Advanced
+        serverRatedMaxPower: 0,
+        maxChassisPerRackAir: 0,
+        totalAirPowerPerRack: 0,
+        includeITCost: '',
+        typicalITCostPerServer: 0,
+        typicalITCostPerServerAlt: 0,
+        annualITMaintenanceCost: 0,
+        serverRefreshYears: 0,
+        
+        // Space Configuration
+        floorSpacePerAirRack: 0,
+        floorSpacePerPLCRack: 0,
+        spaceUnit: '',
+    });
 
     // Fetch product configuration when product is selected
     useEffect(() => {
@@ -75,7 +96,8 @@ export function ValueCalculatorMain() {
                                 : "text", // Default to text for unsupported types
                             value: field.value || "",
                             unit: field.unit,
-                            options: field.options
+                            options: field.options,
+                            required: field.required || false
                         }));
                     };
 
@@ -209,26 +231,26 @@ export function ValueCalculatorMain() {
         setShowResults(true);
     };
 
-    const isCalculateDisabled = !selectedIndustry || !selectedTechnology || !selectedProduct || isLoadingConfig;
+    // Helper function to check if all required fields are filled
+    const areRequiredFieldsValid = () => {
+        const allFields = [...configFields, ...globalFields1, ...globalFields2];
+        return allFields.every(field => {
+            if (!field.required) return true; // Skip validation for optional fields
+            
+            // Check if field has a value
+            if (field.type === 'select') {
+                return field.value && field.value !== '' && field.value !== 'Select an Option';
+            } else {
+                return field.value !== '' && field.value !== null && field.value !== undefined;
+            }
+        });
+    };
+
+    const isCalculateDisabled = !selectedIndustry || !selectedTechnology || !selectedProduct || isLoadingConfig || !areRequiredFieldsValid();
 
     return (
         <div className="w-full">
             <div className="space-y-6 max-w-7xl mx-auto">
-                {/* Data Source Indicator */}
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-                    <div className="flex items-center space-x-2">
-                        <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                        <span className="text-sm text-green-700 font-medium">
-                            ✅ Connected to Database
-                        </span>
-                    </div>
-                    <div className="text-xs text-green-600 mt-1">
-                        All dropdown data and calculations are using real database values
-                        {selectedProduct && ` • Product: ${selectedProduct}`}
-                        {configFields.length > 0 && ` • Config Fields: ${configFields.length}`}
-                        {configFields.some(f => f.id === 'annualised_liquid_cooled_ppue') && ' • Chassis Immersion Config'}
-                    </div>
-                </div>
 
                 {/* Header Selectors */}
                 <HeaderSelectors
@@ -240,6 +262,7 @@ export function ValueCalculatorMain() {
                     setSelectedSolution={setSelectedSolution}
                     selectedProduct={selectedProduct}
                     setSelectedProduct={setSelectedProduct}
+                    onSolutionInfoChange={setSelectedSolutionInfo}
                 />
 
                 {/* Configuration Section */}
@@ -253,6 +276,10 @@ export function ValueCalculatorMain() {
                     onCalculate={calculateResults}
                     isCalculateDisabled={isCalculateDisabled}
                     isLoading={isLoadingConfig}
+                    advancedConfig={advancedConfig}
+                    onAdvancedConfigChange={setAdvancedConfig}
+                    selectedSolutionInfo={selectedSolutionInfo}
+                    selectedProduct={selectedProduct}
                 />
 
                 {/* Results Section */}

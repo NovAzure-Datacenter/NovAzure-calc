@@ -2,9 +2,10 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MetricsCards, type CalculationResults } from "./metrics-cards";
+import { MetricsCards } from "./metrics-cards";
 import { ChartsSection } from "./charts-section";
 import { AdditionalMetrics } from "./additional-metrics";
+import { CalculationResults } from "../types/types";
 
 interface ResultsSectionProps {
     results: CalculationResults;
