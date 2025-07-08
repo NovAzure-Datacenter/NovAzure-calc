@@ -1,6 +1,4 @@
-from ...it_config import (
-    calculate_total_it_cost
-)
+from ...it_config import calculate_total_it_cost
 
 # Country-specific multipliers (USD per kW)
 COUNTRY_MULTIPLIERS = {
@@ -42,6 +40,7 @@ INFLATION_FACTORS = {
     2050: 1.71,
 }
 
+
 def calculate_cooling_equipment_capex(
     first_year_of_operation: int, capacity_mw: float, country: str
 ):
@@ -52,15 +51,20 @@ def calculate_cooling_equipment_capex(
     return base_capex * inflation_factor
 
 
-def calculate_it_capex(data_hall_capacity_mw, data_center_type, air_rack_cooling_capacity_kw_per_rack, planned_years):
+def calculate_it_capex(
+    data_hall_capacity_mw,
+    data_center_type,
+    air_rack_cooling_capacity_kw_per_rack,
+    planned_years,
+):
     """Calculate IT CAPEX using the IT cost calculation."""
     total_it_cost = calculate_total_it_cost(
-        data_hall_capacity_mw, 
-        data_center_type, 
-        air_rack_cooling_capacity_kw_per_rack, 
-        planned_years
+        data_hall_capacity_mw,
+        data_center_type,
+        air_rack_cooling_capacity_kw_per_rack,
+        planned_years,
     )
-    
+
     return round(total_it_cost)
 
 

@@ -208,67 +208,77 @@ def calculate_typical_it_cost_per_server(data_center_type: str):
 
 # Rack Capacity Functions
 
+
 def calculate_maximum_number_of_chassis_per_rack_for_air(
     air_rack_cooling_capacity_kw_per_rack, data_center_type
 ):
     """Calculate max servers per rack based on cooling capacity."""
     # If no cooling capacity provided, use default servers per rack
-    if air_rack_cooling_capacity_kw_per_rack is None or air_rack_cooling_capacity_kw_per_rack <= 0:
+    if (
+        air_rack_cooling_capacity_kw_per_rack is None
+        or air_rack_cooling_capacity_kw_per_rack <= 0
+    ):
         return DEFAULT_SERVERS_PER_RACK
-    
+
     server_power_multiplier = calculate_server_rated_max_power(data_center_type)
     # If invalid data center type, use default servers per rack
     if server_power_multiplier is None or server_power_multiplier == "":
-
         return DEFAULT_SERVERS_PER_RACK
-    
-    # Calculate based on cooling capacity, but ensure minimum of 1 server per rack
-    calculated_servers = math.floor(air_rack_cooling_capacity_kw_per_rack / server_power_multiplier)
-    return max(1, calculated_servers)
 
+    # Calculate based on cooling capacity, but ensure minimum of 1 server per rack
+    calculated_servers = math.floor(
+        air_rack_cooling_capacity_kw_per_rack / server_power_multiplier
+    )
+    return max(1, calculated_servers)
 
 
 def calculate_total_air_power_kw_per_rack(
     number_of_air_chassis_per_rack, data_center_type
 ):
     """Calculate total power consumption per rack."""
-    return number_of_air_chassis_per_rack * calculate_server_rated_max_power(data_center_type)
+    return number_of_air_chassis_per_rack * calculate_server_rated_max_power(
+        data_center_type
+    )
 
 
-def calculate_total_it_cost(data_hall_capacity_mw, data_center_type, air_rack_cooling_capacity_kw_per_rack=None, planned_years=None):
+def calculate_total_it_cost(
+    data_hall_capacity_mw,
+    data_center_type,
+    air_rack_cooling_capacity_kw_per_rack=None,
+    planned_years=None,
+):
     """Calculate total IT cost for the entire data center including server refreshes."""
     nameplate_power_kw = data_hall_capacity_mw * 1000
-    
+
     # Calculate server power consumption
     server_power_kw = calculate_server_rated_max_power(data_center_type)
     if server_power_kw is None or server_power_kw == "":
         server_power_kw = 1  # Default to 1kW if invalid data center type
-    
+
     # Calculate maximum servers per rack (with fallback to default)
     max_servers_per_rack = calculate_maximum_number_of_chassis_per_rack_for_air(
-        air_rack_cooling_capacity_kw_per_rack, 
-        data_center_type
+        air_rack_cooling_capacity_kw_per_rack, data_center_type
     )
     if max_servers_per_rack == 0:
         max_servers_per_rack = DEFAULT_SERVERS_PER_RACK
-    
+
     # Estimate total number of servers based on data hall capacity
     # Assume 80% utilization of total capacity for IT load
     it_capacity_kw = nameplate_power_kw * 0.8
     total_servers_needed = int(it_capacity_kw / server_power_kw)
-    
+
     # Calculate cost per server
     cost_per_server = calculate_typical_it_cost_per_server(data_center_type)
-    
+
     # Calculate initial server cost
     initial_server_cost = total_servers_needed * cost_per_server
-    
+
     # Calculate server refresh costs over planned years
     if planned_years:
         number_of_refreshes = calculate_number_of_server_refreshes(planned_years)
         refresh_cost = initial_server_cost * number_of_refreshes
     else:
         refresh_cost = 0
-    
+
     # Return just the total IT cost as a number
     return int(initial_server_cost + refresh_cost)
