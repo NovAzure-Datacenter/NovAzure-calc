@@ -152,7 +152,6 @@ async def calculate():
         "country": project_location["project_location"],
     }
 
-    # Calculate air cooling OPEX (chassis immersion OPEX not available yet)
     air_cooling_opex = await calculate_air_cooling_opex(
         opex_input_data, air_cooling_capex["cooling_equipment_capex"]
     )
@@ -160,7 +159,6 @@ async def calculate():
         lifetime_opex_input_data, air_cooling_capex["cooling_equipment_capex"]
     )
 
-    # Calculate total cost of ownership
     air_total_cost_of_ownership = (
         total_opex_lifetime["total_opex_over_lifetime"]
         + air_cooling_capex["total_capex"]
