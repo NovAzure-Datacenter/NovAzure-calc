@@ -182,5 +182,5 @@ def calculate_total_it_cost(data_hall_capacity_mw, data_center_type, air_rack_co
         refresh_cost = 0
     
     # Return just the total IT cost as a number
-    return initial_server_cost + refresh_cost
+    return int(initial_server_cost + refresh_cost)
 
