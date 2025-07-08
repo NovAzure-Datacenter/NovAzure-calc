@@ -13,7 +13,7 @@ class CoolingSolutionResult(BaseModel):
     annual_cooling_opex: int = Field(
         ..., description="annual cooling OPEX"
     )
-    annual_it_maintenance_cost: int = Field(
+    annual_it_maintenance: int = Field(
         ..., description="annual IT maintenance cost"
     )
     total_opex_over_lifetime: int = Field(
