@@ -9,6 +9,7 @@ import { ConfigField , AdvancedConfig} from "../types/types";
 import { ConfigurationSection } from "./configuration-section";
 
 
+
 interface ConfigurationCardProps {
     configFields: ConfigField[];
     globalFields1: ConfigField[];
@@ -22,7 +23,7 @@ interface ConfigurationCardProps {
     advancedConfig?: AdvancedConfig;
     onAdvancedConfigChange?: (config: AdvancedConfig) => void;
     selectedSolutionInfo?: {name: string, description?: string} | null;
-    selectedProduct?: string;
+    selectedSolutionVariant?: string;
 }
 
 export function ConfigurationCard({
@@ -38,30 +39,20 @@ export function ConfigurationCard({
     advancedConfig,
     onAdvancedConfigChange,
     selectedSolutionInfo,
-    selectedProduct,
 }: ConfigurationCardProps) {
     const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
+    const [includeITCost, setIncludeITCost] = useState(false);
 
-    // Function to determine if the solution is air cooling related
-    const isAirCoolingSolution = (solutionInfo: {name: string, description?: string} | null): boolean => {
+    // Function to determine if the solution is air cooling
+    const isAirCoolingSolution = (solutionInfo: {name: string} | null): boolean => {
         if (!solutionInfo) return false;
-        
-        const searchText = `${solutionInfo.name} ${solutionInfo.description || ''}`.toLowerCase();
-        
-        // First check if it's explicitly NOT air cooling (immersion, liquid, etc.)
-        if (searchText.includes('immersion') || 
-            searchText.includes('liquid') || 
-            searchText.includes('water') || 
-            searchText.includes('plc') ||
-            searchText.includes('chassis immersion')) {
-            return false;
-        }
-        
-        // Then check if it's air cooling related
-        return searchText.includes('air') || 
-               searchText.includes('ventilation') || 
-               searchText.includes('hvac') ||
-               searchText.includes('fan');
+        return solutionInfo.name === "Air Cooling";
+    };
+
+    // Function to determine if the solution is liquid cooling 
+    const isLiquidCoolingSolution = (solutionInfo: {name: string} | null): boolean => {
+        if (!solutionInfo) return false;
+        return solutionInfo.name === "Liquid Cooling";
     };
 
     const handleAdvancedChange = (field: keyof AdvancedConfig, value: string | number) => {
@@ -194,8 +185,8 @@ export function ConfigurationCard({
                             </>
                         )}
                         
-                        {/* Advanced Section - Only show if product is selected */}
-                        {selectedProduct && (
+                        {/* Advanced Section - Only show if solution is selected */}
+                        {selectedSolutionInfo && (
                             <div className="space-y-4">
                                 <Button
                                     variant="ghost"
@@ -354,81 +345,139 @@ export function ConfigurationCard({
                                             </div>
                                         )}
 
-                                        {/* PLC Configuration - Advanced */}
+                                        {/* PLC Configuration - Advanced - Only show if liquid cooling solution is selected */}
+                                        {isLiquidCoolingSolution(selectedSolutionInfo || null) && (
+                                            <div className="bg-white rounded-lg p-5 border border-gray-200 shadow-sm">
+                                                <div className="flex items-center mb-4">
+                                                    <div className="w-1 h-6 bg-green-500 rounded-full mr-3"></div>
+                                                    <h4 className="font-semibold text-base text-gray-800">PLC Configuration - Advanced</h4>
+                                                </div>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                                    <div className="space-y-1">
+                                                        <label className="block text-sm font-medium text-gray-700 mb-2">Chassis Immersion Technology</label>
+                                                        <input 
+                                                            type="text" 
+                                                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                                                            placeholder="Enter technology"
+                                                            value={advancedConfig?.chassisTechnology || ''}
+                                                            onChange={(e) => handleAdvancedChange('chassisTechnology', e.target.value)}
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className="block text-sm font-medium text-gray-700 mb-2">PLC Rack Cooling Capacity (kW/rack)</label>
+                                                        <input 
+                                                            type="number" 
+                                                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                                                            placeholder="Enter capacity"
+                                                            value={advancedConfig?.plcRackCoolingCapacity || ''}
+                                                            onChange={(e) => handleAdvancedChange('plcRackCoolingCapacity', Number(e.target.value))}
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className="block text-sm font-medium text-gray-700 mb-2">Annual PLC Maintenance (excl. IT Maintenance, assumed as % of Capex)</label>
+                                                        <input 
+                                                            type="number" 
+                                                            step="0.01"
+                                                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                                                            placeholder="Enter percentage"
+                                                            value={advancedConfig?.annualPLCMaintenance || ''}
+                                                            onChange={(e) => handleAdvancedChange('annualPLCMaintenance', Number(e.target.value))}
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className="block text-sm font-medium text-gray-700 mb-2">Include PoC Cost</label>
+                                                        <select 
+                                                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                                                            value={advancedConfig?.includePoCCost || ''}
+                                                            onChange={(e) => handleAdvancedChange('includePoCCost', e.target.value)}
+                                                        >
+                                                            <option value="">Select option</option>
+                                                            <option value="yes">Yes</option>
+                                                            <option value="no">No</option>
+                                                        </select>
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className="block text-sm font-medium text-gray-700 mb-2">Total PoC Cost in USD</label>
+                                                        <input 
+                                                            type="number" 
+                                                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                                                            placeholder="Enter cost"
+                                                            value={advancedConfig?.totalPoCCost || ''}
+                                                            onChange={(e) => handleAdvancedChange('totalPoCCost', Number(e.target.value))}
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className="block text-sm font-medium text-gray-700 mb-2">Number of PLC chassis per rack</label>
+                                                        <input 
+                                                            type="number" 
+                                                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                                                            placeholder="Enter number"
+                                                            value={advancedConfig?.plcChassisPerRack || ''}
+                                                            onChange={(e) => handleAdvancedChange('plcChassisPerRack', Number(e.target.value))}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Space Configuration */}
                                         <div className="bg-white rounded-lg p-5 border border-gray-200 shadow-sm">
                                             <div className="flex items-center mb-4">
-                                                <div className="w-1 h-6 bg-green-500 rounded-full mr-3"></div>
-                                                <h4 className="font-semibold text-base text-gray-800">PLC Configuration - Advanced</h4>
+                                                <div className="w-1 h-6 bg-teal-500 rounded-full mr-3"></div>
+                                                <h4 className="font-semibold text-base text-gray-800">Space Configuration</h4>
                                             </div>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                                 <div className="space-y-1">
-                                                    <label className="block text-sm font-medium text-gray-700 mb-2">Chassis Immersion Technology</label>
-                                                    <input 
-                                                        type="text" 
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
-                                                        placeholder="Enter technology"
-                                                        value={advancedConfig?.chassisTechnology || ''}
-                                                        onChange={(e) => handleAdvancedChange('chassisTechnology', e.target.value)}
-                                                    />
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <label className="block text-sm font-medium text-gray-700 mb-2">PLC Rack Cooling Capacity (kW/rack)</label>
-                                                    <input 
-                                                        type="number" 
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
-                                                        placeholder="Enter capacity"
-                                                        value={advancedConfig?.plcRackCoolingCapacity || ''}
-                                                        onChange={(e) => handleAdvancedChange('plcRackCoolingCapacity', Number(e.target.value))}
-                                                    />
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <label className="block text-sm font-medium text-gray-700 mb-2">Annual PLC Maintenance (excl. IT Maintenance, assumed as % of Capex)</label>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-2">Floor Space Required Per Air Cooled Rack (sq m)</label>
                                                     <input 
                                                         type="number" 
                                                         step="0.01"
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
-                                                        placeholder="Enter percentage"
-                                                        value={advancedConfig?.annualPLCMaintenance || ''}
-                                                        onChange={(e) => handleAdvancedChange('annualPLCMaintenance', Number(e.target.value))}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                                                        placeholder="Enter space"
+                                                        value={advancedConfig?.floorSpacePerAirRack || ''}
+                                                        onChange={(e) => handleAdvancedChange('floorSpacePerAirRack', Number(e.target.value))}
                                                     />
                                                 </div>
                                                 <div className="space-y-1">
-                                                    <label className="block text-sm font-medium text-gray-700 mb-2">Include PoC Cost</label>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-2">Floor Space Per PLC Rack (sq m)</label>
+                                                    <input 
+                                                        type="number" 
+                                                        step="0.01"
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                                                        placeholder="Enter space"
+                                                        value={advancedConfig?.floorSpacePerPLCRack || ''}
+                                                        onChange={(e) => handleAdvancedChange('floorSpacePerPLCRack', Number(e.target.value))}
+                                                    />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="block text-sm font-medium text-gray-700 mb-2">Unit</label>
                                                     <select 
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
-                                                        value={advancedConfig?.includePoCCost || ''}
-                                                        onChange={(e) => handleAdvancedChange('includePoCCost', e.target.value)}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                                                        value={advancedConfig?.spaceUnit || ''}
+                                                        onChange={(e) => handleAdvancedChange('spaceUnit', e.target.value)}
                                                     >
-                                                        <option value="">Select option</option>
-                                                        <option value="yes">Yes</option>
-                                                        <option value="no">No</option>
+                                                        <option value="">Select unit</option>
+                                                        <option value="sq_m">Square meters</option>
+                                                        <option value="sq_ft">Square feet</option>
                                                     </select>
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <label className="block text-sm font-medium text-gray-700 mb-2">Total PoC Cost in USD</label>
-                                                    <input 
-                                                        type="number" 
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
-                                                        placeholder="Enter cost"
-                                                        value={advancedConfig?.totalPoCCost || ''}
-                                                        onChange={(e) => handleAdvancedChange('totalPoCCost', Number(e.target.value))}
-                                                    />
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <label className="block text-sm font-medium text-gray-700 mb-2">Number of PLC chassis per rack</label>
-                                                    <input 
-                                                        type="number" 
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
-                                                        placeholder="Enter number"
-                                                        value={advancedConfig?.plcChassisPerRack || ''}
-                                                        onChange={(e) => handleAdvancedChange('plcChassisPerRack', Number(e.target.value))}
-                                                    />
                                                 </div>
                                             </div>
                                         </div>
+<div className="flex items-center space-x-2 mt-2">
+  <input
+    type="checkbox"
+    id="include-it-cost"
+    checked={includeITCost}
+    onChange={e => setIncludeITCost(e.target.checked)}
+    className="accent-blue-600 w-4 h-4 rounded border-gray-300 focus:ring-2 focus:ring-blue-500"
+  />
+  <label htmlFor="include-it-cost" className="text-sm text-gray-700 select-none">
+    Include IT Cost in calculations
+  </label>
+</div>
 
                                         {/* IT Configuration - Advanced */}
-                                        <div className="bg-white rounded-lg p-5 border border-gray-200 shadow-sm">
+                                        {includeITCost && <div className="bg-white rounded-lg p-5 border border-gray-200 shadow-sm">
                                             <div className="flex items-center mb-4">
                                                 <div className="w-1 h-6 bg-purple-500 rounded-full mr-3"></div>
                                                 <h4 className="font-semibold text-base text-gray-800">IT Configuration - Advanced</h4>
@@ -517,51 +566,7 @@ export function ConfigurationCard({
                                                     />
                                                 </div>
                                             </div>
-                                        </div>
-
-                                        {/* Space Configuration */}
-                                        <div className="bg-white rounded-lg p-5 border border-gray-200 shadow-sm">
-                                            <div className="flex items-center mb-4">
-                                                <div className="w-1 h-6 bg-teal-500 rounded-full mr-3"></div>
-                                                <h4 className="font-semibold text-base text-gray-800">Space Configuration</h4>
-                                            </div>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                                <div className="space-y-1">
-                                                    <label className="block text-sm font-medium text-gray-700 mb-2">Floor Space Required Per Air Cooled Rack (sq m)</label>
-                                                    <input 
-                                                        type="number" 
-                                                        step="0.01"
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
-                                                        placeholder="Enter space"
-                                                        value={advancedConfig?.floorSpacePerAirRack || ''}
-                                                        onChange={(e) => handleAdvancedChange('floorSpacePerAirRack', Number(e.target.value))}
-                                                    />
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <label className="block text-sm font-medium text-gray-700 mb-2">Floor Space Per PLC Rack (sq m)</label>
-                                                    <input 
-                                                        type="number" 
-                                                        step="0.01"
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
-                                                        placeholder="Enter space"
-                                                        value={advancedConfig?.floorSpacePerPLCRack || ''}
-                                                        onChange={(e) => handleAdvancedChange('floorSpacePerPLCRack', Number(e.target.value))}
-                                                    />
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <label className="block text-sm font-medium text-gray-700 mb-2">Unit</label>
-                                                    <select 
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
-                                                        value={advancedConfig?.spaceUnit || ''}
-                                                        onChange={(e) => handleAdvancedChange('spaceUnit', e.target.value)}
-                                                    >
-                                                        <option value="">Select unit</option>
-                                                        <option value="sq_m">Square meters</option>
-                                                        <option value="sq_ft">Square feet</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                        </div>
+                                        </div>}
                                     </div>
                                 </div>
                             )}

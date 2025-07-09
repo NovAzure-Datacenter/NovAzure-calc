@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { getSolutionsCollection } from '../../../../lib/mongoDb/db';
-import { ObjectId } from 'mongodb';
 
 export async function GET(request: Request) {
   try {
@@ -16,10 +15,10 @@ export async function GET(request: Request) {
 
     console.log('Looking for solutions for technologyId:', technologyId);
 
-    // Find solutions directly by technology_id field
+    // Find solutions directly by applicable_technologies field
     const solutionsCollection = await getSolutionsCollection();
     const solutionDocs = await solutionsCollection.find({
-      technology_id: new ObjectId(technologyId)
+      applicable_technologies: technologyId
     }).toArray();
 
     console.log('Found solution documents:', solutionDocs.length);
@@ -27,8 +26,8 @@ export async function GET(request: Request) {
     // Transform to consistent format
     const solutions = solutionDocs.map((sol) => ({
       id: sol._id?.toString(),
-      name: sol.name || 'Unknown Solution',
-      description: sol.description || ''
+      name: sol.solution_name || 'Unknown Solution',
+      description: sol.solution_description || ''
     }));
 
     return NextResponse.json({ 

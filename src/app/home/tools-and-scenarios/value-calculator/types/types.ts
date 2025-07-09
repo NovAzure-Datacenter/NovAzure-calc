@@ -1,4 +1,4 @@
-export interface Product {
+export interface SolutionVariant {
   id: string;
   name: string;
   description?: string;
@@ -8,7 +8,7 @@ export interface Solution {
   id: string;
   name: string;
   description?: string;
-  products: Product[];
+  solutionVariants?: SolutionVariant[];
 }
 
 export interface Technology {
@@ -25,6 +25,11 @@ export interface Industry {
   technologies: Technology[];
 }
 
+export interface Product {
+  id: string;
+  name: string;
+  description?: string;
+}
 
 export type IndustryData = Record<string, Industry>;
 

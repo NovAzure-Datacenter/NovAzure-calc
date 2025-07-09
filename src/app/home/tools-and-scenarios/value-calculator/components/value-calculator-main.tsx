@@ -7,18 +7,21 @@ import { ResultsSection } from "./results-section";
 import type { ConfigField, ConfigFieldAPI, ProductConfigResponse, CalculationResults, AdvancedConfig } from "../types/types";
 
 // API Function
-async function fetchProductConfig(productId: string): Promise<ProductConfigResponse> {
+async function fetchSolutionVariantConfig(solutionVariantId?: string, solutionName?: string): Promise<ProductConfigResponse> {
   try {
-    const response = await fetch(`/api/value-calculator/product-config?productId=${encodeURIComponent(productId)}`);
+    let url = `/api/value-calculator/solution-variant-config?`;
+    if (solutionVariantId) url += `solutionVariantId=${encodeURIComponent(solutionVariantId)}&`;
+    if (solutionName) url += `solutionName=${encodeURIComponent(solutionName)}`;
+    const response = await fetch(url);
     const result = await response.json();
-    
+
     if (!result.success) {
-      throw new Error(result.error || 'Failed to fetch product configuration');
+      throw new Error(result.error || 'Failed to fetch solution variant configuration');
     }
-    
+
     return result.data as ProductConfigResponse;
   } catch (error) {
-    console.error('Error fetching product config:', error);
+    console.error('Error fetching solution variant config:', error);
     throw error;
   }
 }
@@ -28,11 +31,11 @@ export function ValueCalculatorMain() {
     const [selectedTechnology, setSelectedTechnology] = useState("");
     const [selectedSolution, setSelectedSolution] = useState("");
     const [selectedSolutionInfo, setSelectedSolutionInfo] = useState<{name: string, description?: string} | null>(null);
-    const [selectedProduct, setSelectedProduct] = useState("");
+    const [selectedSolutionVariant, setSelectedSolutionVariant] = useState("");
     const [showResults, setShowResults] = useState(false);
     const [isLoadingConfig, setIsLoadingConfig] = useState(false);
     
-    // Dynamic configuration fields based on selected product
+    // Dynamic configuration fields based on selected solution variant
     const [configFields, setConfigFields] = useState<ConfigField[]>([]);
 
     const [globalFields1, setGlobalFields1] = useState<ConfigField[]>([]);
@@ -80,11 +83,11 @@ export function ValueCalculatorMain() {
         spaceUnit: '',
     });
 
-    // Fetch product configuration when product is selected
+    // Fetch solution variant configuration when solution is selected
     useEffect(() => {
-        if (selectedProduct) {
+        if (selectedSolutionInfo?.name) {
             setIsLoadingConfig(true);
-            fetchProductConfig(selectedProduct)
+            fetchSolutionVariantConfig(selectedSolutionVariant, selectedSolutionInfo.name)
                 .then((config: ProductConfigResponse) => {
                     // Convert API ConfigField types to local ConfigField types
                     const convertConfigFields = (apiFields: ConfigFieldAPI[]): ConfigField[] => {
@@ -102,11 +105,11 @@ export function ValueCalculatorMain() {
                     };
 
                     setConfigFields(convertConfigFields(config.config_fields || []));
-                    setGlobalFields1(convertConfigFields(config.global_fields_1 || []));
-                    setGlobalFields2(convertConfigFields(config.global_fields_2 || []));
+                    setGlobalFields1([]);
+                    setGlobalFields2([]);
                 })
                 .catch((error) => {
-                    console.error('Error fetching product configuration:', error);
+                    console.error('Error fetching solution variant configuration:', error);
                     // Reset to default/empty fields on error
                     setConfigFields([]);
                     setGlobalFields1([]);
@@ -116,12 +119,12 @@ export function ValueCalculatorMain() {
                     setIsLoadingConfig(false);
                 });
         } else {
-            // Clear configuration fields when no product is selected
+            // Clear configuration fields when no solution or variant is selected
             setConfigFields([]);
             setGlobalFields1([]);
             setGlobalFields2([]);
         }
-    }, [selectedProduct]);
+    }, [selectedSolutionInfo, selectedSolutionVariant]);
 
     // Sample calculation results
     const [results, setResults] = useState<CalculationResults>({
@@ -220,7 +223,7 @@ export function ValueCalculatorMain() {
             electricityCost,
             carbonFactor,
             projectLifetime,
-            selectedProduct,
+            selectedSolutionVariant,
             configFields,
             globalFields1,
             globalFields2
@@ -246,7 +249,7 @@ export function ValueCalculatorMain() {
         });
     };
 
-    const isCalculateDisabled = !selectedIndustry || !selectedTechnology || !selectedProduct || isLoadingConfig || !areRequiredFieldsValid();
+    const isCalculateDisabled = !selectedIndustry || !selectedTechnology || !selectedSolution || isLoadingConfig || !areRequiredFieldsValid();
 
     return (
         <div className="w-full">
@@ -260,8 +263,8 @@ export function ValueCalculatorMain() {
                     setSelectedTechnology={setSelectedTechnology}
                     selectedSolution={selectedSolution}
                     setSelectedSolution={setSelectedSolution}
-                    selectedProduct={selectedProduct}
-                    setSelectedProduct={setSelectedProduct}
+                    selectedSolutionVariant={selectedSolutionVariant}
+                    setSelectedSolutionVariant={setSelectedSolutionVariant}
                     onSolutionInfoChange={setSelectedSolutionInfo}
                 />
 
@@ -279,7 +282,7 @@ export function ValueCalculatorMain() {
                     advancedConfig={advancedConfig}
                     onAdvancedConfigChange={setAdvancedConfig}
                     selectedSolutionInfo={selectedSolutionInfo}
-                    selectedProduct={selectedProduct}
+                    selectedSolutionVariant={selectedSolutionVariant}
                 />
 
                 {/* Results Section */}

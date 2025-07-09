@@ -3,7 +3,7 @@
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useEffect, useState } from "react";
-import { Industry, Technology, Solution, Product } from "../types/types";
+import { Industry, Technology, Solution, SolutionVariant } from "../types/types";
 
 // API Functions
 async function fetchIndustries(): Promise<Industry[]> {
@@ -54,18 +54,18 @@ async function fetchSolutions(industryId: string, technologyId: string): Promise
   }
 }
 
-async function fetchProducts(industryId: string, technologyId: string, solutionId: string): Promise<Product[]> {
+async function fetchSolutionVariants(solutionId: string): Promise<SolutionVariant[]> {
   try {
-    const response = await fetch(`/api/value-calculator/products?solutionId=${encodeURIComponent(solutionId)}`);
+    const response = await fetch(`/api/value-calculator/solution-variants?solutionId=${encodeURIComponent(solutionId)}`);
     const result = await response.json();
     
     if (!result.success) {
-      throw new Error(result.error || 'Failed to fetch products');
+      throw new Error(result.error || 'Failed to fetch solution variants');
     }
     
-    return result.data as Product[];
+    return result.data as SolutionVariant[];
   } catch (error) {
-    console.error('Error fetching products:', error);
+    console.error('Error fetching solution variants:', error);
     throw error;
   }
 }
@@ -77,8 +77,8 @@ interface HeaderSelectorsProps {
     setSelectedTechnology: (value: string) => void;
     selectedSolution: string;
     setSelectedSolution: (value: string) => void;
-    selectedProduct: string;
-    setSelectedProduct: (value: string) => void;
+    selectedSolutionVariant: string;
+    setSelectedSolutionVariant: (value: string) => void;
     onSolutionInfoChange?: (solutionInfo: {name: string, description?: string} | null) => void;
 }
 
@@ -89,30 +89,25 @@ export function HeaderSelectors({
     setSelectedTechnology,
     selectedSolution,
     setSelectedSolution,
-    selectedProduct,
-    setSelectedProduct,
+    selectedSolutionVariant,
+    setSelectedSolutionVariant,
     onSolutionInfoChange,
 }: HeaderSelectorsProps) {
     
     const [industries, setIndustries] = useState<Industry[]>([]);
     const [technologies, setTechnologies] = useState<Technology[]>([]);
     const [solutions, setSolutions] = useState<Solution[]>([]);
-    const [products, setProducts] = useState<Product[]>([]);
+    const [solutionVariants, setSolutionVariants] = useState<SolutionVariant[]>([]);
     
     const [loading, setLoading] = useState({
         industries: false,
         technologies: false,
         solutions: false,
-        products: false,
+        solutionVariants: false,
     });
 
     // Simple handlers that just pass the ID directly
     const handleIndustryChange = (value: string) => {
-        // Find the selected industry to log its details
-        const selectedIndustryObj = industries.find(i => {
-            const idToCheck = i.id || (i as { _id?: string })._id;
-            return idToCheck === value;
-        });
         setSelectedIndustry(value);
     };
 
@@ -137,8 +132,8 @@ export function HeaderSelectors({
         }
     };
 
-    const handleProductChange = (value: string) => {
-        setSelectedProduct(value);
+    const handleSolutionVariantChange = (value: string) => {
+        setSelectedSolutionVariant(value);
     };
 
     // Fetch industries on component mount
@@ -184,8 +179,8 @@ export function HeaderSelectors({
         // Reset downstream selections
         setSelectedTechnology("");
         setSelectedSolution("");
-        setSelectedProduct("");
-    }, [selectedIndustry, setSelectedTechnology, setSelectedSolution, setSelectedProduct]);
+        setSelectedSolutionVariant("");
+    }, [selectedIndustry]);
 
     // Fetch solutions when technology changes
     useEffect(() => {
@@ -210,33 +205,33 @@ export function HeaderSelectors({
         loadSolutions();
         // Reset downstream selections
         setSelectedSolution("");
-        setSelectedProduct("");
-    }, [selectedIndustry, selectedTechnology, setSelectedSolution, setSelectedProduct]);
+        setSelectedSolutionVariant("");
+    }, [selectedIndustry, selectedTechnology]);
 
-    // Fetch products when solution changes
+    // Fetch solution variants when solution changes
     useEffect(() => {
-        const loadProducts = async () => {
-            if (!selectedIndustry || !selectedTechnology || !selectedSolution) {
-                setProducts([]);
+        const loadSolutionVariants = async () => {
+            if (!selectedSolution) {
+                setSolutionVariants([]);
                 return;
             }
 
-            setLoading(prev => ({ ...prev, products: true }));
+            setLoading(prev => ({ ...prev, solutionVariants: true }));
             try {
-                const data = await fetchProducts(selectedIndustry, selectedTechnology, selectedSolution);
-                setProducts(data);
+                const data = await fetchSolutionVariants(selectedSolution);
+                setSolutionVariants(data);
             } catch (error) {
-                console.error('Failed to load products:', error);
-                setProducts([]);
+                console.error('Failed to load solution variants:', error);
+                setSolutionVariants([]);
             } finally {
-                setLoading(prev => ({ ...prev, products: false }));
+                setLoading(prev => ({ ...prev, solutionVariants: false }));
             }
         };
 
-        loadProducts();
+        loadSolutionVariants();
         // Reset downstream selection
-        setSelectedProduct("");
-    }, [selectedIndustry, selectedTechnology, selectedSolution, setSelectedProduct]);
+        setSelectedSolutionVariant("");
+    }, [selectedSolution]);
 
     return (
         <div className="bg-white rounded-lg border border-gray-200 p-6">
@@ -328,28 +323,28 @@ export function HeaderSelectors({
                     </Select>
                 </div>
 
-                {/* Product Selector */}
+                {/* Solution Variant Selector */}
                 <div className="space-y-2 min-w-0">
-                    <Label htmlFor="product">Product</Label>
+                    <Label htmlFor="solutionVariant">Solution Variant</Label>
                     <Select 
-                        value={selectedProduct} 
-                        onValueChange={handleProductChange}
-                        disabled={!selectedSolution || loading.products}
+                        value={selectedSolutionVariant} 
+                        onValueChange={handleSolutionVariantChange}
+                        disabled={!selectedSolution || loading.solutionVariants}
                     >
-                        <SelectTrigger id="product" className="w-full">
+                        <SelectTrigger id="solutionVariant" className="w-full">
                             <SelectValue placeholder={
                                 !selectedSolution 
                                     ? "Select Solution First" 
-                                    : loading.products 
+                                    : loading.solutionVariants 
                                         ? "Loading..." 
-                                        : "Select Product"
+                                        : "Select Solution Variant"
                             } />
                         </SelectTrigger>
                         <SelectContent className="max-w-[300px]">
-                            {products.map((product) => (
-                                <SelectItem key={product.id} value={product.id} className="max-w-[280px]">
-                                    <span className="truncate" title={product.name}>
-                                        {product.name}
+                            {solutionVariants.map((variant) => (
+                                <SelectItem key={variant.id} value={variant.id} className="max-w-[280px]">
+                                    <span className="truncate" title={variant.name}>
+                                        {variant.name}
                                     </span>
                                 </SelectItem>
                             ))}
