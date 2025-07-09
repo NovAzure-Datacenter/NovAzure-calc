@@ -12,15 +12,15 @@ line-length = 88
 indent-width = 4
 
 [lint]
-
 select = ["E", "F"]
-ignore = []
+ignore = [
+    "E501",
+]
 
 fixable = ["ALL"]
 unfixable = []
 
 [format]
-
 quote-style = "double"
 indent-style = "space"
 skip-magic-trailing-comma = false

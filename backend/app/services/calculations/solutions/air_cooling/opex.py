@@ -255,10 +255,13 @@ async def calculate_total_opex_over_lifetime(input_data, total_capex: float):
 
     return int(total_opex_lifetime)
 
+
 async def calculate_cooling_opex(input_data, total_capex: float):
     annual_opex = await calculate_annual_opex(input_data, total_capex)
     annual_it_cost = calculate_annual_it_cost(input_data, total_capex)
-    total_opex_lifetime =  await calculate_total_opex_over_lifetime(input_data, total_capex)
+    total_opex_lifetime = await calculate_total_opex_over_lifetime(
+        input_data, total_capex
+    )
 
     return {
         "annual_cooling_opex": int(annual_opex),
