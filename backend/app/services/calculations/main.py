@@ -1,194 +1,163 @@
+from typing import Dict, Any, Optional
+from pydantic import BaseModel
+
 from .solutions.air_cooling.capex import (
     calculate_cooling_capex as calculate_air_cooling_capex,
 )
 from .solutions.air_cooling.opex import (
-    calculate_annual_opex as calculate_air_cooling_opex,
-    calculate_total_opex_over_lifetime as calculate_total_opex_lifetime,
+    calculate_cooling_opex as calculate_air_cooling_opex,
 )
 from .solutions.chassis_immersion.capex import (
     calculate_cooling_capex as calculate_chassis_immersion_capex,
 )
 
-# Initialising User inputs that will be used in the calculations
-advanced = False  # Controls whether to include IT configuration
-percentage_of_utilisation = {"%_of_utilisation": None}
-planned_years_of_operation = {"planned_years_of_operation": None}
-project_location = {"project_location": None}
-data_hall_design_capacity_mw = {"data_hall_design_capacity_mw": None}
-first_year_of_operation = {"first_year_of_operation": None}
-annualised_air_ppue = {"annualised_air_ppue": None}
 
-# IT Configuration inputs (used when advanced = True)
-include_it_cost = {"include_it_cost": None}
-data_center_type = {"data_center_type": None}
-air_rack_cooling_capacity_kw_per_rack = {"air_rack_cooling_capacity_kw_per_rack": None}
-
-# Advanced Data Centre Configuration inputs (used when advanced = True)
-inlet_temperature = {"inlet_temperature": 27}
-electricity_price_per_kwh = {"electricity_price_per_kwh": 0.1}
-water_price_per_litre = {"water_price_per_litre": 0.0001}
-waterloop_enabled = {"waterloop_enabled": True}
-required_increase_electrical_kw = {"required_increase_electrical_kw": 1000}
-
-
-def update_inputs(inputs):
-    global advanced
-
-    for key, value in inputs.items():
-        # Handle advanced mode toggle
-        if key == "advanced":
-            advanced = value
-        elif key in percentage_of_utilisation:
-            percentage_of_utilisation[key] = value
-        elif key in planned_years_of_operation:
-            planned_years_of_operation[key] = value
-        elif key in project_location:
-            project_location[key] = value
-        elif key in data_hall_design_capacity_mw:
-            data_hall_design_capacity_mw[key] = value
-        elif key in first_year_of_operation:
-            first_year_of_operation[key] = value
-        elif key in annualised_air_ppue:
-            annualised_air_ppue[key] = value
-        elif key in include_it_cost:
-            include_it_cost[key] = value
-        elif key in data_center_type:
-            data_center_type[key] = value
-        elif key in air_rack_cooling_capacity_kw_per_rack:
-            air_rack_cooling_capacity_kw_per_rack[key] = value
-        # Advanced Data Centre Configuration inputs
-        elif key in inlet_temperature:
-            inlet_temperature[key] = value
-        elif key in electricity_price_per_kwh:
-            electricity_price_per_kwh[key] = value
-        elif key in water_price_per_litre:
-            water_price_per_litre[key] = value
-        elif key in waterloop_enabled:
-            waterloop_enabled[key] = value
-        elif key in required_increase_electrical_kw:
-            required_increase_electrical_kw[key] = value
+class CalculationInputs(BaseModel):
+    # Basic inputs
+    data_hall_design_capacity_mw: float = None
+    first_year_of_operation: int = None
+    project_location: str = None
+    percentage_of_utilisation: float = None
+    planned_years_of_operation: int = None
+    annualised_air_ppue: float = None
+    
+    advanced: bool = False
+    
+    include_it_cost: Optional[str] = None
+    air_rack_cooling_capacity_kw_per_rack: Optional[float] = None
+    data_center_type: Optional[str] = None
+    
+    # Advanced Data Centre Configuration inputs
+    inlet_temperature: float = 27
+    electricity_price_per_kwh: float = 0.1
+    water_price_per_litre: float = 0.0001
 
 
-def build_advanced_config():
-    advanced_config = {}
-    if inlet_temperature.get("inlet_temperature") is not None:
-        advanced_config["inlet_temperature"] = inlet_temperature["inlet_temperature"]
-    if electricity_price_per_kwh.get("electricity_price_per_kwh") is not None:
-        advanced_config["electricity_price_per_kwh"] = electricity_price_per_kwh[
-            "electricity_price_per_kwh"
-        ]
-    if water_price_per_litre.get("water_price_per_litre") is not None:
-        advanced_config["water_price_per_litre"] = water_price_per_litre[
-            "water_price_per_litre"
-        ]
-    if waterloop_enabled.get("waterloop_enabled") is not None:
-        advanced_config["waterloop_enabled"] = waterloop_enabled["waterloop_enabled"]
-    if (
-        required_increase_electrical_kw.get("required_increase_electrical_kw")
-        is not None
-    ):
-        advanced_config["required_increase_electrical_kw"] = (
-            required_increase_electrical_kw["required_increase_electrical_kw"]
+class CoolingSolutionsCalculator:
+    def __init__(self):
+        self.inputs = CalculationInputs()
+    
+    def update_inputs(self, input_data: Dict[str, Any]) -> None:
+        for key, value in input_data.items():
+            if hasattr(self.inputs, key):
+                setattr(self.inputs, key, value)
+    
+    def _build_base_input_data(self) -> Dict[str, Any]:
+        return {
+            "data_hall_design_capacity_mw": self.inputs.data_hall_design_capacity_mw,
+            "first_year_of_operation": self.inputs.first_year_of_operation,
+            "country": self.inputs.project_location,
+            "advanced_config": self._build_advanced_config(),
+        }
+    
+    def _build_advanced_config(self) -> Optional[Dict[str, Any]]:
+        if not self.inputs.advanced:
+            return None
+            
+        return {
+            "inlet_temperature": self.inputs.inlet_temperature,
+            "electricity_price_per_kwh": self.inputs.electricity_price_per_kwh,
+            "water_price_per_litre": self.inputs.water_price_per_litre,
+        }
+    
+    def _build_capex_input_data(self) -> Dict[str, Any]:
+        input_data = self._build_base_input_data()
+        
+        if self.inputs.advanced:
+            input_data.update({
+                "include_it_cost": self.inputs.include_it_cost,
+                "data_center_type": self.inputs.data_center_type,
+                "air_rack_cooling_capacity_kw_per_rack": self.inputs.air_rack_cooling_capacity_kw_per_rack,
+                "planned_years_of_operation": self.inputs.planned_years_of_operation,
+            })
+        
+        return input_data
+    
+    def _build_opex_input_data(self) -> Dict[str, Any]:
+        return {
+            "data_hall_design_capacity_mw": self.inputs.data_hall_design_capacity_mw,
+            "annualised_air_ppue": self.inputs.annualised_air_ppue,
+            "percentage_of_utilisation": self.inputs.percentage_of_utilisation,
+            "first_year_of_operation": self.inputs.first_year_of_operation,
+            "planned_years_of_operation": self.inputs.planned_years_of_operation,
+            "country": self.inputs.project_location,
+        }
+    
+    async def _calculate_air_cooling_solution(self) -> Dict[str, Any]:
+        capex_input = self._build_capex_input_data()
+        air_cooling_capex = calculate_air_cooling_capex(capex_input)
+        
+        opex_input = self._build_opex_input_data()
+        air_cooling_opex = await calculate_air_cooling_opex(
+            opex_input, air_cooling_capex["cooling_equipment_capex"]
         )
-    return advanced_config if advanced_config else None
-
-
-async def calculate():
-    # Prepare input data for both cooling solutions
-    input_data = {
-        "data_hall_design_capacity_mw": data_hall_design_capacity_mw[
-            "data_hall_design_capacity_mw"
-        ],
-        "first_year_of_operation": first_year_of_operation["first_year_of_operation"],
-        "country": project_location["project_location"],
-        "advanced_config": build_advanced_config(),
-    }
-
-    # Add IT configuration if in advanced mode
-    if advanced:
-        input_data.update(
-            {
-                "include_it_cost": include_it_cost.get("include_it_cost"),
-                "data_center_type": data_center_type.get("data_center_type"),
-                "air_rack_cooling_capacity_kw_per_rack": (
-                    air_rack_cooling_capacity_kw_per_rack.get(
-                        "air_rack_cooling_capacity_kw_per_rack"
-                    )
-                ),
-                "planned_years_of_operation": planned_years_of_operation.get(
-                    "planned_years_of_operation"
-                ),
-                "advanced_config": (
-                    build_advanced_config() if build_advanced_config() else None
-                ),
-            }
+        
+        # Come back to TCO in the future
+        tco_excluding_it = (
+            air_cooling_capex["cooling_equipment_capex"] + 
+            air_cooling_opex["total_opex_over_lifetime"]
         )
-
-    # Calculate both cooling solutions CAPEX
-    air_cooling_capex = calculate_air_cooling_capex(input_data)
-    chassis_immersion_capex = calculate_chassis_immersion_capex(input_data)
-
-    # Prepare OPEX input data
-    opex_input_data = {
-        "data_hall_design_capacity_mw": data_hall_design_capacity_mw[
-            "data_hall_design_capacity_mw"
-        ],
-        "annualised_air_ppue": annualised_air_ppue["annualised_air_ppue"],
-        "percentage_of_utilisation": percentage_of_utilisation["%_of_utilisation"],
-        "first_year_of_operation": first_year_of_operation["first_year_of_operation"],
-        "country": project_location["project_location"],
-    }
-
-    lifetime_opex_input_data = {
-        "data_hall_design_capacity_mw": data_hall_design_capacity_mw[
-            "data_hall_design_capacity_mw"
-        ],
-        "annualised_air_ppue": annualised_air_ppue["annualised_air_ppue"],
-        "percentage_of_utilisation": percentage_of_utilisation["%_of_utilisation"],
-        "first_year_of_operation": first_year_of_operation["first_year_of_operation"],
-        "planned_years_of_operation": planned_years_of_operation[
-            "planned_years_of_operation"
-        ],
-        "country": project_location["project_location"],
-    }
-
-    air_cooling_opex = await calculate_air_cooling_opex(
-        opex_input_data, air_cooling_capex["cooling_equipment_capex"]
-    )
-    total_opex_lifetime = await calculate_total_opex_lifetime(
-        lifetime_opex_input_data, air_cooling_capex["cooling_equipment_capex"]
-    )
-
-    air_total_cost_of_ownership = (
-        total_opex_lifetime["total_opex_over_lifetime"]
-        + air_cooling_capex["total_capex"]
-    )
-    chassis_total_cost_of_ownership = chassis_immersion_capex[
-        "total_capex"
-    ]  # No OPEX yet for chassis
-
-    return {
-        "air_cooling": {
+        tco_including_it = (
+            air_cooling_capex["total_capex"] + 
+            air_cooling_opex["total_opex_over_lifetime"]
+        )
+        
+        return {
             "cooling_equipment_capex": air_cooling_capex["cooling_equipment_capex"],
             "it_equipment_capex": air_cooling_capex["it_equipment_capex"],
             "total_capex": air_cooling_capex["total_capex"],
-            "opex": air_cooling_opex,
-            "total_opex_over_lifetime": total_opex_lifetime,
-            "total_cost_of_ownership": air_total_cost_of_ownership,
-        },
-        "chassis_immersion": {
-            "cooling_equipment_capex": chassis_immersion_capex[
-                "cooling_equipment_capex"
-            ],
+            "annual_cooling_opex": air_cooling_opex["annual_cooling_opex"],
+            "annual_it_maintenance": air_cooling_opex["annual_it_maintenance"],
+            "total_opex_over_lifetime": air_cooling_opex["total_opex_over_lifetime"],
+            "tco_excluding_it": tco_excluding_it,
+            "tco_including_it": tco_including_it,
+        }
+    
+    async def _calculate_chassis_immersion_solution(self) -> Dict[str, Any]:
+        capex_input = self._build_capex_input_data()
+        chassis_immersion_capex = calculate_chassis_immersion_capex(capex_input)
+        
+        # TODO: Implement chassis immersion OPEX calculations
+        annual_cooling_opex = 0
+        annual_it_maintenance = 0
+        total_opex_over_lifetime = 0
+        
+        tco_excluding_it = (
+            chassis_immersion_capex["cooling_equipment_capex"] + 
+            total_opex_over_lifetime
+        )
+        tco_including_it = (
+            chassis_immersion_capex["total_capex"] + 
+            total_opex_over_lifetime
+        )
+        
+        return {
+            "cooling_equipment_capex": chassis_immersion_capex["cooling_equipment_capex"],
             "it_equipment_capex": chassis_immersion_capex["it_equipment_capex"],
             "total_capex": chassis_immersion_capex["total_capex"],
-            "opex": {"annual_opex": 0},  # Placeholder
-            "total_opex_over_lifetime": {"total_opex_over_lifetime": 0},  # Placeholder
-            "total_cost_of_ownership": chassis_total_cost_of_ownership,
-        },
-        "include_it_cost": include_it_cost.get("include_it_cost") or "No",
-        "advanced_config": (
-            build_advanced_config() if build_advanced_config() else None
-        ),
-        "advanced_mode": advanced,
-    }
+            "annual_cooling_opex": annual_cooling_opex,
+            "annual_it_maintenance": annual_it_maintenance,
+            "total_opex_over_lifetime": total_opex_over_lifetime,
+            "tco_excluding_it": tco_excluding_it,
+            "tco_including_it": tco_including_it,
+        }
+    
+    async def calculate(self) -> Dict[str, Any]:
+        air_cooling_solution = await self._calculate_air_cooling_solution()
+        chassis_immersion_solution = await self._calculate_chassis_immersion_solution()
+        
+        return {
+            "air_cooling_solution": air_cooling_solution,
+            "chassis_immersion_solution": chassis_immersion_solution,
+        }
+
+
+calculations = CoolingSolutionsCalculator()
+
+
+def update_inputs(inputs: Dict[str, Any]) -> None:
+    calculations.update_inputs(inputs)
+
+
+async def calculate() -> Dict[str, Any]:
+    return await calculations.calculate()
