@@ -31,7 +31,6 @@ async def test_cooling_solutions_comparison():
     air_cooling = result["air_cooling_solution"]
     chassis_immersion = result["chassis_immersion_solution"]
 
-
     assert air_cooling["cooling_equipment_capex"] > 0
     assert air_cooling["total_capex"] > 0
     assert chassis_immersion["cooling_equipment_capex"] > 0
