@@ -84,9 +84,29 @@ export function ConfigurationCard({
         'annualised_liquid_cooled_ppue'
     ];
     
-    const dataCenterFields = configFields.filter(field => 
-        dataCenterFieldIds.includes(field.id)
-    );
+    // Map project_location to a dropdown field with options
+    const PROJECT_LOCATION_OPTIONS = [
+        { value: "UK", label: "United Kingdom" },
+        { value: "EU", label: "Europe" },
+        { value: "US", label: "United States" },
+        { value: "APAC", label: "Asia Pacific" },
+        { value: "Other", label: "Other" },
+    ];
+
+    const dataCenterFields = configFields.map(field => {
+        if (field.id === "project_location") {
+            return {
+                ...field,
+                type: "select" as const,
+                options: PROJECT_LOCATION_OPTIONS.map(opt => opt.value),
+                optionLabels: PROJECT_LOCATION_OPTIONS.reduce((acc, opt) => {
+                  acc[opt.value] = opt.label;
+                  return acc;
+                }, {} as Record<string, string>),
+            };
+        }
+        return field;
+    }).filter(field => dataCenterFieldIds.includes(field.id));
     
     const airCoolingFields = configFields.filter(field => 
         airCoolingFieldIds.includes(field.id)
