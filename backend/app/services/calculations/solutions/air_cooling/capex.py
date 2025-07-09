@@ -57,7 +57,6 @@ def calculate_it_capex(
     air_rack_cooling_capacity_kw_per_rack,
     planned_years,
 ):
-    """Calculate IT CAPEX using the IT cost calculation."""
     total_it_cost = calculate_total_it_cost(
         data_hall_capacity_mw,
         data_center_type,
@@ -69,21 +68,6 @@ def calculate_it_capex(
 
 
 def calculate_cooling_capex(input_data):
-    """
-    Calculates the cooling CAPEX for an air cooling solution.
-
-    It receives a dictionary with required inputs:
-    {
-        'data_hall_design_capacity_mw': float,
-        'first_year_of_operation': int,
-        'country': str,
-        'include_it_cost': str (optional),
-        'data_center_type': str (optional),
-        'air_rack_cooling_capacity_kw_per_rack': float (optional),
-        'planned_years_of_operation': int (optional)
-    }
-    """
-
     capacity_mw = input_data.get("data_hall_design_capacity_mw")
     first_year_of_operation = input_data.get("first_year_of_operation")
     country = input_data.get("country")
@@ -92,22 +76,17 @@ def calculate_cooling_capex(input_data):
         first_year_of_operation, capacity_mw, country
     )
 
-    it_equipment_capex = 0
-    if input_data.get("include_it_cost") and input_data.get(
-        "include_it_cost"
-    ).lower() in ["yes", "true", "1"]:
-        it_equipment_capex = calculate_it_capex(
-            capacity_mw,
-            input_data.get("data_center_type"),
-            input_data.get("air_rack_cooling_capacity_kw_per_rack"),
-            input_data.get("planned_years_of_operation"),
-        )
+    it_equipment_capex = calculate_it_capex(
+        capacity_mw,
+        input_data.get("data_center_type"),
+        input_data.get("air_rack_cooling_capacity_kw_per_rack"),
+        input_data.get("planned_years_of_operation"),
+    )
 
-    # Total CAPEX
     total_capex = cooling_equipment_capex + it_equipment_capex
 
     return {
-        "cooling_equipment_capex": cooling_equipment_capex,
-        "it_equipment_capex": it_equipment_capex,
-        "total_capex": total_capex,
+        "cooling_equipment_capex": int(cooling_equipment_capex),
+        "it_equipment_capex": int(it_equipment_capex),
+        "total_capex": int(total_capex),
     }
