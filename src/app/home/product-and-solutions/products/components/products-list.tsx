@@ -240,7 +240,6 @@ export function ProductsList({ searchQuery, viewMode }: ProductsListProps) {
 	};
 
 	const handleEditProduct = (product: ProductWithSolution) => {
-		console.log("Editing product:", product.name);
 		// In a real app, you would navigate to edit page or open edit form
 		// For now, we'll just log the action
 	};

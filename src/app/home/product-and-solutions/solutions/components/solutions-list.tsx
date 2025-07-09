@@ -33,25 +33,25 @@ import {
 	FileText,
 	Calculator,
 	Settings,
+	Layers,
 } from "lucide-react";
 import { getSolutions, deleteSolution, submitSolutionForReview } from "@/lib/actions/solution/solution";
 import { getIndustries } from "@/lib/actions/industry/industry";
 import { getTechnologies } from "@/lib/actions/technology/technology";
+import { getSolutionVariantsBySolutionId } from "@/lib/actions/solution-variant/solution-variant";
 import { SolutionDialog } from "./solution-dialog";
-import { SubmissionDialog } from "./submission-dialog";
+import { SubmissionDialog } from "../create/components/submission-dialog";
 import { toast } from "sonner";
 import Loading from "@/components/loading-main";
 
 interface Solution {
 	id: string;
-	selected_industry: string;
-	selected_technology: string;
-	solution_type: string;
-	solution_variant: string;
+	applicable_industries: string;
+	applicable_technologies: string;
 	solution_name: string;
 	solution_description: string;
-	custom_solution_type: string;
-	custom_solution_variant: string;
+	solution_variants: string[];
+	solution_icon?: string;
 	parameters: any[];
 	calculations: any[];
 	status: "draft" | "pending" | "verified";
@@ -62,7 +62,21 @@ interface Solution {
 }
 
 // Extended solution interface for the dialog
-interface ExtendedSolution extends Solution {
+interface ExtendedSolution {
+	id: string;
+	applicable_industries: string;
+	applicable_technologies: string;
+	solution_name: string;
+	solution_description: string;
+	solution_variants: string[];
+	solution_icon?: string;
+	parameters: any[];
+	calculations: any[];
+	status: "draft" | "pending" | "verified";
+	created_by: string;
+	client_id: string;
+	created_at: Date;
+	updated_at: Date;
 	name: string;
 	description: string;
 	category: string;
@@ -76,6 +90,7 @@ export default function SolutionsList() {
 	const [solutions, setSolutions] = useState<Solution[]>([]);
 	const [industries, setIndustries] = useState<any[]>([]);
 	const [technologies, setTechnologies] = useState<any[]>([]);
+	const [solutionVariants, setSolutionVariants] = useState<any[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 	const [isRemoving, setIsRemoving] = useState<string | null>(null);
@@ -118,6 +133,20 @@ export default function SolutionsList() {
 				} else {
 					setTechnologies(technologiesResult.technologies || []);
 				}
+
+				// Load all solution variants for accurate counting
+				const allVariants: any[] = [];
+				for (const solution of solutionsResult.solutions || []) {
+					try {
+						const variantsResult = await getSolutionVariantsBySolutionId(solution.id);
+						if (variantsResult.success && variantsResult.solutionVariants) {
+							allVariants.push(...variantsResult.solutionVariants);
+						}
+					} catch (error) {
+						console.error(`Error fetching variants for solution ${solution.id}:`, error);
+					}
+				}
+				setSolutionVariants(allVariants);
 			} catch (error) {
 				console.error("Error loading data:", error);
 				toast.error("Failed to load required data");
@@ -148,23 +177,6 @@ export default function SolutionsList() {
 		}
 	};
 
-	const getStepIcon = (step: number) => {
-		switch (step) {
-			case 1:
-				return <Building2 className="h-3 w-3" />;
-			case 2:
-				return <Cpu className="h-3 w-3" />;
-			case 3:
-				return <FileText className="h-3 w-3" />;
-			case 4:
-				return <Calculator className="h-3 w-3" />;
-			case 5:
-				return <Settings className="h-3 w-3" />;
-			default:
-				return null;
-		}
-	};
-
 	const getIndustryName = (industryId: string) => {
 		const industry = industries.find((i) => i.id === industryId);
 		return industry?.name || "Unknown Industry";
@@ -178,10 +190,23 @@ export default function SolutionsList() {
 	// Convert database solution to dialog-compatible format
 	const convertToExtendedSolution = (solution: Solution): ExtendedSolution => {
 		return {
-			...solution,
+			id: solution.id,
+			applicable_industries: solution.applicable_industries,
+			applicable_technologies: solution.applicable_technologies,
+			solution_name: solution.solution_name,
+			solution_description: solution.solution_description,
+			solution_variants: solution.solution_variants,
+			solution_icon: solution.solution_icon,
+			parameters: solution.parameters,
+			calculations: solution.calculations,
+			status: solution.status,
+			created_by: solution.created_by,
+			client_id: solution.client_id,
+			created_at: solution.created_at,
+			updated_at: solution.updated_at,
 			name: solution.solution_name,
 			description: solution.solution_description,
-			category: solution.solution_type,
+			category: "Custom Solution",
 			logo: FileText,
 			products: [], // Empty for now, could be populated from related data
 			parameterCount: solution.parameters.length,
@@ -212,10 +237,16 @@ export default function SolutionsList() {
 		if (!solution) return;
 
 		if (action === "View") {
+			// Use variants for this solution from the already loaded variants
+			const solutionVariantsForThisSolution = solutionVariants.filter(v => v.solution_id === solutionId);
+
 			setSelectedSolution(convertToExtendedSolution(solution));
 			setIsEditMode(false);
 			setIsDialogOpen(true);
 		} else if (action === "Edit") {
+			// Use variants for this solution from the already loaded variants
+			const solutionVariantsForThisSolution = solutionVariants.filter(v => v.solution_id === solutionId);
+
 			setSelectedSolution(convertToExtendedSolution(solution));
 			setIsEditMode(true);
 			setIsDialogOpen(true);
@@ -273,7 +304,6 @@ export default function SolutionsList() {
 	};
 
 	const handleEditSolution = (solution: ExtendedSolution) => {
-		console.log("Editing solution:", solution.solution_name);
 		// In a real app, you would navigate to edit page or open edit form
 		// For now, we'll just log the action
 	};
@@ -307,23 +337,6 @@ export default function SolutionsList() {
 		}
 	};
 
-	// Enhanced solutions with additional data for display
-	const enhancedSolutions = solutions.map((solution) => ({
-		...solution,
-		industry: getIndustryName(solution.selected_industry),
-		technology: getTechnologyName(solution.selected_technology),
-		solutionType: solution.solution_type,
-		solutionVariant: solution.solution_variant || "Standard",
-		createdAt: new Date(solution.created_at),
-		lastModified: new Date(solution.updated_at),
-		createdBy: "John Doe", // This would come from user data
-		completionStep:
-			solution.status === "draft" ? 3 : solution.status === "pending" ? 4 : 6,
-		// Mock parameters and calculations for display purposes
-		parameters: solution.parameters || [],
-		calculations: solution.calculations || [],
-	}));
-
 	if (isLoading) {
 		return <Loading />;
 	}
@@ -332,28 +345,31 @@ export default function SolutionsList() {
 		<>
 			<div className="h-[calc(100vh-200px)] overflow-y-auto">
 				<div className="overflow-x-auto">
-					<Card className="rounded-md border p-2 min-w-[900px]">
+					<Card className="rounded-md border p-2 min-w-[1000px]">
 						<TooltipProvider>
 							<Table>
 								<TableHeader>
 									<TableRow className="border-b">
-										<TableHead className="h-8 px-1 py-1 text-xs font-medium w-40">
+										<TableHead className="h-8 px-1 py-1 text-xs font-medium w-48">
 											Solution
 										</TableHead>
 										<TableHead className="h-8 px-1 py-1 text-xs font-medium w-24">
 											Industry
 										</TableHead>
-										<TableHead className="h-8 px-1 py-1 text-xs font-medium w-20">
-											Type
+										<TableHead className="h-8 px-1 py-1 text-xs font-medium w-24">
+											Technology
 										</TableHead>
 										<TableHead className="h-8 px-1 py-1 text-xs font-medium w-16">
-											Step
+											Icon
 										</TableHead>
 										<TableHead className="h-8 px-1 py-1 text-xs font-medium w-16">
 											Params
 										</TableHead>
 										<TableHead className="h-8 px-1 py-1 text-xs font-medium w-16">
 											Calcs
+										</TableHead>
+										<TableHead className="h-8 px-1 py-1 text-xs font-medium w-20">
+											Variants
 										</TableHead>
 										<TableHead className="h-8 px-1 py-1 text-xs font-medium w-16">
 											Status
@@ -367,7 +383,7 @@ export default function SolutionsList() {
 									</TableRow>
 								</TableHeader>
 								<TableBody>
-									{enhancedSolutions.map((solution) => (
+									{solutions.map((solution) => (
 										<TableRow key={solution.id} className="hover:bg-muted/50">
 											<TableCell className="h-10 px-1 py-1">
 												<div className="flex items-center gap-2">
@@ -386,20 +402,25 @@ export default function SolutionsList() {
 											</TableCell>
 											<TableCell className="h-10 px-1 py-1">
 												<div className="text-xs text-muted-foreground truncate">
-													{solution.industry}
+													{getIndustryName(solution.applicable_industries)}
 												</div>
 											</TableCell>
 											<TableCell className="h-10 px-1 py-1">
-												<Badge variant="outline" className="text-xs px-1 py-0">
-													{solution.solutionType}
-												</Badge>
+												<div className="text-xs text-muted-foreground truncate">
+													{getTechnologyName(solution.applicable_technologies)}
+												</div>
 											</TableCell>
 											<TableCell className="h-10 px-1 py-1">
-												<div className="flex items-center gap-1">
-													{getStepIcon(solution.completionStep)}
-													<span className="text-xs font-medium">
-														{solution.completionStep}/6
-													</span>
+												<div className="flex items-center justify-center">
+													{solution.solution_icon ? (
+														<div className="w-4 h-4 bg-gray-100 rounded flex items-center justify-center">
+															<FileText className="h-2.5 w-2.5 text-gray-600" />
+														</div>
+													) : (
+														<div className="w-4 h-4 bg-gray-100 rounded flex items-center justify-center">
+															<FileText className="h-2.5 w-2.5 text-gray-600" />
+														</div>
+													)}
 												</div>
 											</TableCell>
 											<TableCell className="h-10 px-1 py-1">
@@ -419,6 +440,14 @@ export default function SolutionsList() {
 												</div>
 											</TableCell>
 											<TableCell className="h-10 px-1 py-1">
+												<div className="flex items-center gap-1">
+													<Layers className="h-3 w-3 text-gray-600 flex-shrink-0" />
+													<span className="text-xs">
+														{solutionVariants.filter(v => v.solution_id === solution.id).length}
+													</span>
+												</div>
+											</TableCell>
+											<TableCell className="h-10 px-1 py-1">
 												<Badge
 													variant="outline"
 													className={`text-xs px-1 py-0 ${
@@ -434,7 +463,7 @@ export default function SolutionsList() {
 											<TableCell className="h-10 px-1 py-1">
 												<div className="text-xs text-muted-foreground">
 													<div>
-														{solution.lastModified.toLocaleDateString()}
+														{new Date(solution.updated_at).toLocaleDateString()}
 													</div>
 												</div>
 											</TableCell>
@@ -524,6 +553,9 @@ export default function SolutionsList() {
 				onSubmitForReview={handleSubmitForReview}
 				isRemoving={isRemoving}
 				isSubmitting={isSubmitting}
+				industries={industries}
+				technologies={technologies}
+				solutionVariants={solutionVariants.filter(v => v.solution_id === selectedSolution?.id)}
 			/>
 
 			{/* Submission Dialog */}

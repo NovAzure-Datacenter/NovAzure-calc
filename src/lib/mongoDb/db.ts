@@ -44,8 +44,14 @@ export async function getSolutionsCollection(): Promise<Collection> {
 	return db.collection("solutions");
 }
 
+export async function getSolutionVariantsCollection(): Promise<Collection> {
+	const db = await getDb();
+	return db.collection("solution_variants");
+}
+
 // Products Collection
 export async function getProductsCollection(): Promise<Collection> {
 	const db = await getDb();
 	return db.collection("products");
 }
+

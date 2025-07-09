@@ -14,6 +14,9 @@ import { ArrowRight, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { getSolutions } from "@/lib/actions/solution/solution";
+import { getIndustries } from "@/lib/actions/industry/industry";
+import { getTechnologies } from "@/lib/actions/technology/technology";
+import { getSolutionVariantsBySolutionId } from "@/lib/actions/solution-variant/solution-variant";
 import { createProduct } from "@/lib/actions/products/products";
 import { CreateProductProgress } from "./create-product-progress";
 import { CreateProductStep1 } from "./create-product-step-1";
@@ -26,10 +29,21 @@ interface CreateProductData {
 	description: string;
 	model: string;
 	specifications: Array<{
+		id: string;
 		key: string;
 		value: string;
 	}>;
+	specificationCategories: Array<{
+		id: string;
+		name: string;
+		specifications: Array<{
+			id: string;
+			key: string;
+			value: string;
+		}>;
+	}>;
 	features: string[];
+	selectedSolutionVariant?: string;
 }
 
 const initialFormData: CreateProductData = {
@@ -38,9 +52,11 @@ const initialFormData: CreateProductData = {
 	description: "",
 	model: "",
 	specifications: [
-		{ key: "", value: "" }
+		{ id: "1", key: "", value: "" }
 	],
+	specificationCategories: [],
 	features: [""],
+	selectedSolutionVariant: undefined,
 };
 
 export function CreateProductMain() {
@@ -49,24 +65,44 @@ export function CreateProductMain() {
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [formData, setFormData] = useState<CreateProductData>(initialFormData);
 	const [solutions, setSolutions] = useState<any[]>([]);
+	const [industries, setIndustries] = useState<any[]>([]);
+	const [technologies, setTechnologies] = useState<any[]>([]);
+	const [solutionVariants, setSolutionVariants] = useState<any[]>([]);
+	const [isLoadingVariants, setIsLoadingVariants] = useState(false);
 
-	// Load solutions on component mount
+	// Load solutions, industries, and technologies on component mount
 	React.useEffect(() => {
-		const loadSolutions = async () => {
+		const loadData = async () => {
 			try {
-				const result = await getSolutions();
-				if (result.error) {
+				// Load solutions
+				const solutionsResult = await getSolutions();
+				if (solutionsResult.error) {
 					toast.error("Failed to load solutions");
 				} else {
-					setSolutions(result.solutions || []);
+					setSolutions(solutionsResult.solutions || []);
+				}
+
+				// Load industries
+				const industriesResult = await getIndustries();
+				if (industriesResult.error) {
+					toast.error("Failed to load industries");
+				} else {
+					setIndustries(industriesResult.industries || []);
+				}
+
+				// Load technologies
+				const technologiesResult = await getTechnologies();
+				if (technologiesResult.error) {
+					toast.error("Failed to load technologies");
+				} else {
+					setTechnologies(technologiesResult.technologies || []);
 				}
 			} catch (error) {
-				console.error("Error loading solutions:", error);
-				toast.error("Failed to load solutions");
+				toast.error("Failed to load required data");
 			}
 		};
 
-		loadSolutions();
+		loadData();
 	}, []);
 
 	const selectedSolution = solutions.find((s: any) => s.id === formData.solutionId);
@@ -87,8 +123,29 @@ export function CreateProductMain() {
 		setFormData((prev) => ({ ...prev, ...updates }));
 	};
 
-	const handleSolutionSelect = (solutionId: string) => {
+	const handleSolutionSelect = async (solutionId: string) => {
 		setFormData((prev) => ({ ...prev, solutionId }));
+		
+		// Fetch solution variants for the selected solution
+		if (solutionId) {
+			setIsLoadingVariants(true);
+			try {
+				const result = await getSolutionVariantsBySolutionId(solutionId);
+				if (result.error) {
+					toast.error("Failed to load solution variants");
+					setSolutionVariants([]);
+				} else {
+					setSolutionVariants(result.solutionVariants || []);
+				}
+			} catch (error) {
+				toast.error("Failed to load solution variants");
+				setSolutionVariants([]);
+			} finally {
+				setIsLoadingVariants(false);
+			}
+		} else {
+			setSolutionVariants([]);
+		}
 	};
 
 	const handleFeatureChange = (index: number, value: string) => {
@@ -126,7 +183,7 @@ export function CreateProductMain() {
 	const addSpecification = () => {
 		setFormData((prev) => ({
 			...prev,
-			specifications: [...prev.specifications, { key: "", value: "" }]
+			specifications: [...prev.specifications, { id: Date.now().toString(), key: "", value: "" }]
 		}));
 	};
 
@@ -134,6 +191,77 @@ export function CreateProductMain() {
 		setFormData((prev) => ({
 			...prev,
 			specifications: prev.specifications.filter((_, i) => i !== index)
+		}));
+	};
+
+	// Category-related functions
+	const addSpecificationCategory = () => {
+		setFormData((prev) => ({
+			...prev,
+			specificationCategories: [...(prev.specificationCategories || []), {
+				id: Date.now().toString(),
+				name: "",
+				specifications: [{ id: Date.now().toString(), key: "", value: "" }]
+			}]
+		}));
+	};
+
+	const removeSpecificationCategory = (categoryIndex: number) => {
+		setFormData((prev) => ({
+			...prev,
+			specificationCategories: (prev.specificationCategories || []).filter((_, i) => i !== categoryIndex)
+		}));
+	};
+
+	const handleSpecificationCategoryChange = (categoryIndex: number, name: string) => {
+		setFormData((prev) => ({
+			...prev,
+			specificationCategories: (prev.specificationCategories || []).map((category, i) => 
+				i === categoryIndex ? { ...category, name } : category
+			)
+		}));
+	};
+
+	const handleCategorySpecificationChange = (
+		categoryIndex: number,
+		specIndex: number,
+		field: "key" | "value",
+		value: string
+	) => {
+		setFormData((prev) => ({
+			...prev,
+			specificationCategories: (prev.specificationCategories || []).map((category, i) => 
+				i === categoryIndex ? {
+					...category,
+					specifications: category.specifications.map((spec, j) => 
+						j === specIndex ? { ...spec, [field]: value } : spec
+					)
+				} : category
+			)
+		}));
+	};
+
+	const addCategorySpecification = (categoryIndex: number) => {
+		setFormData((prev) => ({
+			...prev,
+			specificationCategories: (prev.specificationCategories || []).map((category, i) => 
+				i === categoryIndex ? {
+					...category,
+					specifications: [...category.specifications, { id: Date.now().toString(), key: "", value: "" }]
+				} : category
+			)
+		}));
+	};
+
+	const removeCategorySpecification = (categoryIndex: number, specIndex: number) => {
+		setFormData((prev) => ({
+			...prev,
+			specificationCategories: (prev.specificationCategories || []).map((category, i) => 
+				i === categoryIndex ? {
+					...category,
+					specifications: category.specifications.filter((_, j) => j !== specIndex)
+				} : category
+			)
 		}));
 	};
 
@@ -161,6 +289,7 @@ export function CreateProductMain() {
 
 			const newProduct = {
 				solutionId: formData.solutionId,
+				solutionVariantId: formData.selectedSolutionVariant === "no-variant" ? null : formData.selectedSolutionVariant,
 				name: formData.name,
 				description: formData.description,
 				model: formData.model,
@@ -247,6 +376,8 @@ export function CreateProductMain() {
 					{currentStep === 1 && (
 						<CreateProductStep1
 							solutions={solutions}
+							industries={industries}
+							technologies={technologies}
 							selectedSolutionId={formData.solutionId}
 							onSolutionSelect={handleSolutionSelect}
 						/>
@@ -254,6 +385,8 @@ export function CreateProductMain() {
 					{currentStep === 2 && (
 						<CreateProductStep2
 							formData={formData}
+							selectedSolution={selectedSolution}
+							solutionVariants={solutionVariants}
 							onFormDataChange={handleFormDataChange}
 							onFeatureChange={handleFeatureChange}
 							onAddFeature={addFeature}
@@ -261,12 +394,19 @@ export function CreateProductMain() {
 							onSpecificationChange={handleSpecificationChange}
 							onAddSpecification={addSpecification}
 							onRemoveSpecification={removeSpecification}
+							onAddSpecificationCategory={addSpecificationCategory}
+							onRemoveSpecificationCategory={removeSpecificationCategory}
+							onSpecificationCategoryChange={handleSpecificationCategoryChange}
+							onCategorySpecificationChange={handleCategorySpecificationChange}
+							onAddCategorySpecification={addCategorySpecification}
+							onRemoveCategorySpecification={removeCategorySpecification}
 						/>
 					)}
 					{currentStep === 3 && (
 						<CreateProductStep3
 							formData={formData}
 							selectedSolution={selectedSolution}
+							onFormDataChange={handleFormDataChange}
 						/>
 					)}
 				</CardContent>

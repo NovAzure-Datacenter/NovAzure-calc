@@ -498,6 +498,204 @@ export const solutionTypes: SolutionType[] = [
 			},
 		],
 	},
+	{
+		id: "renewable-energy-systems",
+		name: "Renewable Energy Systems",
+		description:
+			"Solar, wind, and hybrid renewable energy solutions for sustainable power generation",
+		icon: Wind,
+		variants: [
+			{
+				id: "solar-panel-systems",
+				name: "Solar Panel Systems",
+				description: "Photovoltaic systems for solar energy generation",
+				icon: Wind,
+			},
+			{
+				id: "wind-turbine-systems",
+				name: "Wind Turbine Systems",
+				description: "Wind energy generation systems for various scales",
+				icon: Wind,
+			},
+			{
+				id: "hybrid-renewable",
+				name: "Hybrid Renewable",
+				description: "Combined solar and wind energy systems",
+				icon: Wind,
+			},
+			{
+				id: "energy-storage-systems",
+				name: "Energy Storage Systems",
+				description: "Battery storage solutions for renewable energy",
+				icon: Wind,
+			},
+		],
+	},
+	{
+		id: "smart-grid-solutions",
+		name: "Smart Grid Solutions",
+		description:
+			"Intelligent grid management and energy distribution systems",
+		icon: Wind,
+		variants: [
+			{
+				id: "grid-monitoring",
+				name: "Grid Monitoring",
+				description: "Real-time grid performance monitoring systems",
+				icon: Wind,
+			},
+			{
+				id: "demand-response",
+				name: "Demand Response",
+				description: "Intelligent demand-side energy management",
+				icon: Wind,
+			},
+			{
+				id: "microgrid-systems",
+				name: "Microgrid Systems",
+				description: "Localized energy generation and distribution",
+				icon: Wind,
+			},
+			{
+				id: "grid-optimization",
+				name: "Grid Optimization",
+				description: "AI-powered grid efficiency optimization",
+				icon: Wind,
+			},
+		],
+	},
+	{
+		id: "electric-vehicle-infrastructure",
+		name: "Electric Vehicle Infrastructure",
+		description:
+			"Charging stations and infrastructure for electric vehicles",
+		icon: Wind,
+		variants: [
+			{
+				id: "fast-charging-stations",
+				name: "Fast Charging Stations",
+				description: "High-speed EV charging infrastructure",
+				icon: Wind,
+			},
+			{
+				id: "smart-charging-networks",
+				name: "Smart Charging Networks",
+				description: "Intelligent EV charging network management",
+				icon: Wind,
+			},
+			{
+				id: "battery-swapping-stations",
+				name: "Battery Swapping Stations",
+				description: "Quick battery replacement systems for EVs",
+				icon: Wind,
+			},
+			{
+				id: "wireless-charging",
+				name: "Wireless Charging",
+				description: "Inductive charging systems for electric vehicles",
+				icon: Wind,
+			},
+		],
+	},
+	{
+		id: "transportation-optimization",
+		name: "Transportation Optimization",
+		description:
+			"Intelligent transportation systems and fleet management solutions",
+		icon: Wind,
+		variants: [
+			{
+				id: "fleet-management",
+				name: "Fleet Management",
+				description: "Comprehensive fleet tracking and optimization",
+				icon: Wind,
+			},
+			{
+				id: "route-optimization",
+				name: "Route Optimization",
+				description: "AI-powered route planning and optimization",
+				icon: Wind,
+			},
+			{
+				id: "fuel-efficiency-systems",
+				name: "Fuel Efficiency Systems",
+				description: "Systems to optimize fuel consumption and emissions",
+				icon: Wind,
+			},
+			{
+				id: "autonomous-vehicle-systems",
+				name: "Autonomous Vehicle Systems",
+				description: "Self-driving technology and infrastructure",
+				icon: Wind,
+			},
+		],
+	},
+	{
+		id: "waste-heat-recovery",
+		name: "Waste Heat Recovery",
+		description:
+			"Systems that capture and reuse waste heat from industrial processes",
+		icon: Thermometer,
+		variants: [
+			{
+				id: "heat-exchanger-systems",
+				name: "Heat Exchanger Systems",
+				description: "Efficient heat transfer and recovery systems",
+				icon: Thermometer,
+			},
+			{
+				id: "thermal-energy-storage",
+				name: "Thermal Energy Storage",
+				description: "Systems to store and reuse thermal energy",
+				icon: Thermometer,
+			},
+			{
+				id: "cogeneration-systems",
+				name: "Cogeneration Systems",
+				description: "Combined heat and power generation systems",
+				icon: Thermometer,
+			},
+			{
+				id: "industrial-heat-pumps",
+				name: "Industrial Heat Pumps",
+				description: "Heat pump systems for industrial applications",
+				icon: Thermometer,
+			},
+		],
+	},
+	{
+		id: "water-management-systems",
+		name: "Water Management Systems",
+		description:
+			"Smart water treatment and recycling systems for industrial processes",
+		icon: Droplets,
+		variants: [
+			{
+				id: "water-treatment-systems",
+				name: "Water Treatment Systems",
+				description: "Advanced water purification and treatment",
+				icon: Droplets,
+			},
+			{
+				id: "water-recycling-systems",
+				name: "Water Recycling Systems",
+				description: "Closed-loop water reuse and recycling",
+				icon: Droplets,
+			},
+			{
+				id: "smart-irrigation",
+				name: "Smart Irrigation",
+				description: "Intelligent agricultural irrigation systems",
+				icon: Droplets,
+			},
+			{
+				id: "leak-detection-systems",
+				name: "Leak Detection Systems",
+				description: "Advanced water leak detection and prevention",
+				icon: Droplets,
+			},
+		],
+	},
 ];
 
 export const mockSolutions: Solution[] = [
@@ -847,6 +1045,279 @@ export const mockSolutions: Solution[] = [
 				parameterCount: 18,
 				calculationOverview:
 					"Draft thermal analysis, experimental efficiency, prototype calculations",
+			},
+		],
+	},
+	{
+		id: "solar-energy-suite",
+		name: "Solar Energy Suite",
+		description:
+			"Comprehensive solar energy solution with advanced photovoltaic systems, energy storage, and smart grid integration for renewable energy applications.",
+		category: "Renewable Energy Systems",
+		logo: Wind,
+		status: "verified",
+		parameterCount: 26,
+		calculationOverview:
+			"Solar efficiency optimization, energy yield calculation, ROI analysis",
+		products: [
+			{
+				id: "solar-panel-array-pro",
+				name: "Solar Panel Array Pro",
+				description:
+					"High-efficiency photovoltaic system with smart tracking and energy optimization for commercial and industrial applications.",
+				model: "SPA-PRO-5000",
+				category: "Solar Energy",
+				efficiency: "22.5% conversion",
+				specifications: {
+					powerRating: "5kW per array",
+					coolingCapacity: "N/A",
+					dimensions: "2000x1000x50mm",
+					weight: "25kg",
+					operatingTemperature: "-40-85°C",
+					certifications: "IEC 61215, IEC 61730, UL 1703",
+				},
+				features: [
+					"High-efficiency monocrystalline cells",
+					"Smart solar tracking system",
+					"Real-time performance monitoring",
+					"Weather-resistant design",
+					"Easy installation and maintenance",
+					"Grid integration capability",
+					"Remote monitoring interface",
+					"25-year performance warranty",
+				],
+				status: "verified",
+				parameterCount: 20,
+				calculationOverview:
+					"Solar irradiance analysis, energy yield prediction, efficiency optimization",
+			},
+			{
+				id: "energy-storage-battery-system",
+				name: "Energy Storage Battery System",
+				description:
+					"Advanced lithium-ion battery storage system for solar energy with intelligent energy management and grid balancing capabilities.",
+				model: "EBS-LITHIUM-10000",
+				category: "Energy Storage",
+				efficiency: "95% round-trip efficiency",
+				specifications: {
+					powerRating: "10kWh capacity",
+					coolingCapacity: "N/A",
+					dimensions: "1200x600x800mm",
+					weight: "150kg",
+					operatingTemperature: "0-45°C",
+					certifications: "UL 1973, IEC 62619, UN 38.3",
+				},
+				features: [
+					"High-capacity lithium-ion technology",
+					"Intelligent energy management",
+					"Grid balancing capabilities",
+					"Real-time monitoring",
+					"Safety protection systems",
+					"Modular design for scalability",
+					"10-year warranty",
+					"Remote diagnostics",
+				],
+				status: "verified",
+				parameterCount: 18,
+				calculationOverview:
+					"Battery life cycle analysis, energy storage optimization, cost-benefit modeling",
+			},
+		],
+	},
+	{
+		id: "wind-energy-solutions",
+		name: "Wind Energy Solutions",
+		description:
+			"Advanced wind turbine systems with smart monitoring and energy optimization for sustainable wind power generation.",
+		category: "Renewable Energy Systems",
+		logo: Wind,
+		status: "verified",
+		parameterCount: 24,
+		calculationOverview:
+			"Wind speed analysis, power curve optimization, capacity factor calculation",
+		products: [
+			{
+				id: "smart-wind-turbine",
+				name: "Smart Wind Turbine",
+				description:
+					"Intelligent wind turbine system with adaptive blade control and real-time performance optimization for maximum energy capture.",
+				model: "SWT-ADAPTIVE-2000",
+				category: "Wind Energy",
+				efficiency: "45% capacity factor",
+				specifications: {
+					powerRating: "2MW rated power",
+					coolingCapacity: "N/A",
+					dimensions: "80m hub height, 90m rotor diameter",
+					weight: "85 tons",
+					operatingTemperature: "-20-50°C",
+					certifications: "IEC 61400, GL Wind, DNV",
+				},
+				features: [
+					"Adaptive blade pitch control",
+					"Real-time wind speed monitoring",
+					"Intelligent power optimization",
+					"Predictive maintenance system",
+					"Grid synchronization",
+					"Remote monitoring capabilities",
+					"Low noise operation",
+					"Bird-friendly design",
+				],
+				status: "verified",
+				parameterCount: 22,
+				calculationOverview:
+					"Wind resource assessment, power curve analysis, energy yield prediction",
+			},
+		],
+	},
+	{
+		id: "ev-charging-network",
+		name: "EV Charging Network",
+		description:
+			"Comprehensive electric vehicle charging infrastructure with smart grid integration and renewable energy sources for sustainable transportation.",
+		category: "Electric Vehicle Infrastructure",
+		logo: Wind,
+		status: "verified",
+		parameterCount: 28,
+		calculationOverview:
+			"Charging demand analysis, grid load balancing, energy cost optimization",
+		products: [
+			{
+				id: "fast-charger-pro",
+				name: "Fast Charger Pro",
+				description:
+					"High-speed DC fast charging station with smart grid integration and renewable energy optimization for electric vehicles.",
+				model: "FCP-DC-150",
+				category: "EV Charging",
+				efficiency: "95% charging efficiency",
+				specifications: {
+					powerRating: "150kW max output",
+					coolingCapacity: "N/A",
+					dimensions: "800x600x2000mm",
+					weight: "450kg",
+					operatingTemperature: "-30-50°C",
+					certifications: "UL 2202, IEC 61851, SAE J1772",
+				},
+				features: [
+					"150kW DC fast charging",
+					"Smart grid integration",
+					"Renewable energy optimization",
+					"Real-time monitoring",
+					"Payment processing",
+					"User authentication",
+					"Thermal management",
+					"Emergency stop system",
+				],
+				status: "verified",
+				parameterCount: 24,
+				calculationOverview:
+					"Charging demand modeling, grid impact analysis, revenue optimization",
+			},
+			{
+				id: "smart-charging-controller",
+				name: "Smart Charging Controller",
+				description:
+					"Intelligent charging management system that optimizes EV charging based on grid demand, renewable energy availability, and user preferences.",
+				model: "SCC-INTELLIGENT-100",
+				category: "EV Management",
+				efficiency: "98% system efficiency",
+				specifications: {
+					powerRating: "100kW management",
+					coolingCapacity: "N/A",
+					dimensions: "600x400x300mm",
+					weight: "25kg",
+					operatingTemperature: "0-40°C",
+					certifications: "UL 1741, IEEE 1547",
+				},
+				features: [
+					"AI-powered load balancing",
+					"Renewable energy integration",
+					"Dynamic pricing support",
+					"User preference learning",
+					"Grid stability monitoring",
+					"Predictive analytics",
+					"Mobile app integration",
+					"Comprehensive reporting",
+				],
+				status: "verified",
+				parameterCount: 26,
+				calculationOverview:
+					"Load balancing algorithms, energy cost optimization, grid stability analysis",
+			},
+		],
+	},
+	{
+		id: "fleet-optimization-suite",
+		name: "Fleet Optimization Suite",
+		description:
+			"Comprehensive fleet management and optimization system with AI-powered route planning, fuel efficiency monitoring, and emissions tracking.",
+		category: "Transportation Optimization",
+		logo: Wind,
+		status: "verified",
+		parameterCount: 32,
+		calculationOverview:
+			"Route optimization algorithms, fuel consumption analysis, emissions tracking",
+		products: [
+			{
+				id: "fleet-tracker-pro",
+				name: "Fleet Tracker Pro",
+				description:
+					"Advanced fleet tracking and management system with real-time monitoring, route optimization, and predictive maintenance capabilities.",
+				model: "FTP-ADVANCED-500",
+				category: "Fleet Management",
+				efficiency: "15% fuel savings",
+				specifications: {
+					powerRating: "12V DC operation",
+					coolingCapacity: "N/A",
+					dimensions: "120x80x30mm",
+					weight: "200g",
+					operatingTemperature: "-40-85°C",
+					certifications: "FCC, CE, IC, ATEX",
+				},
+				features: [
+					"Real-time GPS tracking",
+					"Fuel consumption monitoring",
+					"Driver behavior analysis",
+					"Route optimization",
+					"Predictive maintenance",
+					"Geofencing capabilities",
+					"Mobile app integration",
+					"Comprehensive reporting",
+				],
+				status: "verified",
+				parameterCount: 28,
+				calculationOverview:
+					"Route optimization algorithms, fuel efficiency analysis, maintenance prediction",
+			},
+			{
+				id: "ai-route-optimizer",
+				name: "AI Route Optimizer",
+				description:
+					"Artificial intelligence-powered route optimization system that reduces fuel consumption, delivery times, and operational costs.",
+				model: "ARO-INTELLIGENT-1000",
+				category: "Route Optimization",
+				efficiency: "20% route efficiency improvement",
+				specifications: {
+					powerRating: "Cloud-based processing",
+					coolingCapacity: "N/A",
+					dimensions: "Virtual deployment",
+					weight: "N/A",
+					operatingTemperature: "Data center environment",
+					certifications: "ISO 27001, SOC 2",
+				},
+				features: [
+					"AI-powered route planning",
+					"Real-time traffic integration",
+					"Weather impact analysis",
+					"Fuel cost optimization",
+					"Delivery time prediction",
+					"Dynamic route adjustment",
+					"Multi-vehicle coordination",
+					"Performance analytics",
+				],
+				status: "verified",
+				parameterCount: 30,
+				calculationOverview:
+					"AI route optimization, traffic pattern analysis, cost-benefit modeling",
 			},
 		],
 	},

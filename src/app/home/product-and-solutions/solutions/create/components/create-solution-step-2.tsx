@@ -10,6 +10,7 @@ interface CreateSolutionStep2Props {
 	availableTechnologies: any[];
 	isLoadingTechnologies: boolean;
 	selectedTechnology: string;
+	selectedIndustryId: string; // Add this prop
 	onTechnologySelect: (technologyId: string) => void;
 }
 
@@ -18,13 +19,26 @@ export function CreateSolutionStep2({
 	availableTechnologies,
 	isLoadingTechnologies,
 	selectedTechnology,
+	selectedIndustryId, // Add this prop
 	onTechnologySelect,
 }: CreateSolutionStep2Props) {
 	// Get client's selected technologies
 	const clientSelectedTechnologies = clientData?.selected_technologies || [];
-	
-	// Get all other technologies (excluding client's selected ones)
-	const otherTechnologies = availableTechnologies.filter(
+
+	// Filter technologies based on selected industry
+	const technologiesForSelectedIndustry = availableTechnologies.filter(
+		(technology) => {
+			// If no industry is selected, show all technologies
+			if (!selectedIndustryId) return true;
+
+			// Check if the selected industry is in the technology's applicable industries
+			const applicableIndustries = technology.applicableIndustries || [];
+			return applicableIndustries.includes(selectedIndustryId);
+		}
+	);
+
+	// Get all other technologies (excluding client's selected ones and filtered by industry)
+	const otherTechnologies = technologiesForSelectedIndustry.filter(
 		(technology) => !clientSelectedTechnologies.includes(technology.id)
 	);
 
@@ -45,18 +59,14 @@ export function CreateSolutionStep2({
 					onCheckedChange={() => onTechnologySelect(technologyId)}
 				/>
 				<div className="flex items-center gap-2">
-					{technology.icon &&
-						stringToIconComponent(technology.icon) && (
-							<div className="h-4 w-4">
-								{React.createElement(
-									stringToIconComponent(technology.icon),
-									{ className: "h-4 w-4" }
-								)}
-							</div>
-						)}
-					<span className="font-medium text-sm">
-						{technology.name}
-					</span>
+					{technology.icon && stringToIconComponent(technology.icon) && (
+						<div className="h-4 w-4">
+							{React.createElement(stringToIconComponent(technology.icon), {
+								className: "h-4 w-4",
+							})}
+						</div>
+					)}
+					<span className="font-medium text-sm">{technology.name}</span>
 				</div>
 			</div>
 			<p className="text-xs text-muted-foreground mt-1 ml-6">
@@ -76,14 +86,16 @@ export function CreateSolutionStep2({
 				<>
 					{/* Client's Selected Technologies Section */}
 					<div className="flex-shrink-0 mb-6">
-						<Label className="text-sm font-medium">Your Organization's Technologies</Label>
+						<Label className="text-sm font-medium">
+							Your Organization's Technologies
+						</Label>
 						<p className="text-xs text-muted-foreground mb-2">
 							Select from your organization's available technologies
 						</p>
 						{clientSelectedTechnologies.length > 0 ? (
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-2">
 								{clientSelectedTechnologies.map((technologyId: string) => {
-									const technology = availableTechnologies.find(
+									const technology = technologiesForSelectedIndustry.find(
 										(t) => t.id === technologyId
 									);
 									if (!technology) return null;
@@ -100,21 +112,23 @@ export function CreateSolutionStep2({
 
 					{/* All Available Technologies Section */}
 					<div className="flex-1 min-h-0">
-						<Label className="text-sm font-medium">All Available Technologies</Label>
+						<Label className="text-sm font-medium">
+							Available Technologies for Selected Industry
+						</Label>
 						<p className="text-xs text-muted-foreground mb-2">
-							Select from all available technologies if needed
+							Select from technologies applicable to your chosen industry
 						</p>
 						{otherTechnologies.length > 0 ? (
 							<div className="h-full max-h-[600px] overflow-y-auto pr-2">
 								<div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-									{otherTechnologies.map((technology) => 
+									{otherTechnologies.map((technology) =>
 										renderTechnologyCard(technology, technology.id)
 									)}
 								</div>
 							</div>
 						) : (
 							<div className="text-sm text-muted-foreground py-4 text-center">
-								No additional technologies available
+								No additional technologies available for the selected industry
 							</div>
 						)}
 					</div>
@@ -122,4 +136,4 @@ export function CreateSolutionStep2({
 			)}
 		</div>
 	);
-} 
+}

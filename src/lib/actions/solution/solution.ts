@@ -5,14 +5,12 @@ import { ObjectId } from "mongodb";
 import { type Parameter, type Calculation } from "../../../app/home/product-and-solutions/mock-data";
 
 export interface CreateSolutionData {
-	selected_industry: string;
-	selected_technology: string;
-	solution_type: string;
-	solution_variant: string;
+	applicable_industries: string;
+	applicable_technologies: string;
 	solution_name: string;
 	solution_description: string;
-	custom_solution_type: string;
-	custom_solution_variant: string;
+	solution_variants: string[];
+	solution_icon?: string;
 	parameters: Parameter[];
 	calculations: Calculation[];
 	status: "draft" | "pending" | "verified";
@@ -30,11 +28,14 @@ export interface SolutionData {
 	solution_description: string;
 	custom_solution_type: string;
 	custom_solution_variant: string;
+	solution_variants: string[];
 	parameters: Parameter[];
 	calculations: Calculation[];
 	status: "draft" | "pending" | "verified";
 	created_by: string;
 	client_id: string;
+	applicable_industries: string[];
+	applicable_technologies: string[];
 	created_at: Date;
 	updated_at: Date;
 }
@@ -48,9 +49,12 @@ export interface UpdateSolutionData {
 	solution_description?: string;
 	custom_solution_type?: string;
 	custom_solution_variant?: string;
+	solution_variants?: string[];
 	parameters?: Parameter[];
 	calculations?: Calculation[];
 	status?: "draft" | "pending" | "verified";
+	applicable_industries?: string[];
+	applicable_technologies?: string[];
 }
 
 export async function createSolution(data: CreateSolutionData) {
@@ -58,14 +62,12 @@ export async function createSolution(data: CreateSolutionData) {
 		const solutionsCollection = await getSolutionsCollection();
 
 		const newSolution = {
-			selected_industry: data.selected_industry,
-			selected_technology: data.selected_technology,
-			solution_type: data.solution_type,
-			solution_variant: data.solution_variant,
+			applicable_industries: data.applicable_industries,
+			applicable_technologies: data.applicable_technologies,
 			solution_name: data.solution_name,
 			solution_description: data.solution_description,
-			custom_solution_type: data.custom_solution_type,
-			custom_solution_variant: data.custom_solution_variant,
+			solution_variants: data.solution_variants,
+			solution_icon: data.solution_icon,
 			parameters: data.parameters,
 			calculations: data.calculations,
 			status: data.status,
@@ -109,11 +111,14 @@ export async function getSolutions() {
 				solution_description: solution.solution_description,
 				custom_solution_type: solution.custom_solution_type,
 				custom_solution_variant: solution.custom_solution_variant,
+				solution_variants: solution.solution_variants || [],
 				parameters: solution.parameters,
 				calculations: solution.calculations,
 				status: solution.status,
 				created_by: solution.created_by,
 				client_id: solution.client_id,
+				applicable_industries: solution.applicable_industries || [],
+				applicable_technologies: solution.applicable_technologies || [],
 				created_at: solution.created_at,
 				updated_at: solution.updated_at,
 			})),
@@ -148,11 +153,14 @@ export async function getSolutionById(solutionId: string) {
 				solution_description: solution.solution_description,
 				custom_solution_type: solution.custom_solution_type,
 				custom_solution_variant: solution.custom_solution_variant,
+				solution_variants: solution.solution_variants || [],
 				parameters: solution.parameters,
 				calculations: solution.calculations,
 				status: solution.status,
 				created_by: solution.created_by,
 				client_id: solution.client_id,
+				applicable_industries: solution.applicable_industries || [],
+				applicable_technologies: solution.applicable_technologies || [],
 				created_at: solution.created_at,
 				updated_at: solution.updated_at,
 			},
@@ -182,11 +190,14 @@ export async function getSolutionsByClientId(clientId: string) {
 				solution_description: solution.solution_description,
 				custom_solution_type: solution.custom_solution_type,
 				custom_solution_variant: solution.custom_solution_variant,
+				solution_variants: solution.solution_variants || [],
 				parameters: solution.parameters,
 				calculations: solution.calculations,
 				status: solution.status,
 				created_by: solution.created_by,
 				client_id: solution.client_id,
+				applicable_industries: solution.applicable_industries || [],
+				applicable_technologies: solution.applicable_technologies || [],
 				created_at: solution.created_at,
 				updated_at: solution.updated_at,
 			})),
@@ -216,9 +227,12 @@ export async function updateSolution(
 		if (data.solution_description !== undefined) updateData.solution_description = data.solution_description;
 		if (data.custom_solution_type !== undefined) updateData.custom_solution_type = data.custom_solution_type;
 		if (data.custom_solution_variant !== undefined) updateData.custom_solution_variant = data.custom_solution_variant;
+		if (data.solution_variants !== undefined) updateData.solution_variants = data.solution_variants;
 		if (data.parameters !== undefined) updateData.parameters = data.parameters;
 		if (data.calculations !== undefined) updateData.calculations = data.calculations;
 		if (data.status !== undefined) updateData.status = data.status;
+		if (data.applicable_industries !== undefined) updateData.applicable_industries = data.applicable_industries;
+		if (data.applicable_technologies !== undefined) updateData.applicable_technologies = data.applicable_technologies;
 
 		const result = await solutionsCollection.updateOne(
 			{ _id: new ObjectId(solutionId) },
@@ -298,5 +312,44 @@ export async function submitSolutionForReview(solutionId: string) {
 	} catch (error) {
 		console.error("Error submitting solution for review:", error);
 		return { error: "Failed to submit solution for review" };
+	}
+} 
+
+export async function getSolutionTypesByIndustryAndTechnology(industryId: string, technologyId: string) {
+	try {
+		const solutionsCollection = await getSolutionsCollection();
+		
+		// Find solutions that match the industry and technology
+		const solutions = await solutionsCollection.find({
+			applicable_industries: industryId,
+			applicable_technologies: technologyId,
+		}).toArray();
+
+		// Extract unique solution types from the found solutions
+		const solutionTypes = solutions.reduce((types: any[], solution) => {
+			// If solution has a solution_name, it's a custom solution type
+			if (solution.solution_name) {
+				const existingType = types.find(t => t.id === `custom_${solution._id}`);
+				if (!existingType) {
+					types.push({
+						id: `custom_${solution._id}`,
+						name: solution.solution_name,
+						description: solution.solution_description || "Custom solution type",
+						icon: solution.solution_icon || "CustomIcon", // Use the solution's icon
+						isCustom: true,
+						solutionId: solution._id.toString(),
+					});
+				}
+			}
+			return types;
+		}, []);
+
+		return {
+			success: true,
+			solutionTypes,
+		};
+	} catch (error) {
+		console.error("Error fetching solution types:", error);
+		return { error: "Failed to fetch solution types" };
 	}
 } 

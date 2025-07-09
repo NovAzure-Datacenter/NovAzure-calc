@@ -7,6 +7,9 @@ import { getClientByUserId } from "@/lib/actions/client/client";
 import { getIndustries } from "@/lib/actions/industry/industry";
 import { getTechnologies } from "@/lib/actions/technology/technology";
 import { createSolution } from "@/lib/actions/solution/solution";
+import { getSolutions, getSolutionTypesByIndustryAndTechnology } from "@/lib/actions/solution/solution";
+import { createSolutionVariant, getSolutionVariantsBySolutionId, updateSolutionVariant, updateSolutionVariantSolutionId } from "@/lib/actions/solution-variant/solution-variant";
+import { updateSolution } from "@/lib/actions/solution/solution";
 import {
 	Card,
 	CardContent,
@@ -33,19 +36,23 @@ import { CreateSolutionStep1 } from "./create-solution-step-1";
 import { CreateSolutionStep2 } from "./create-solution-step-2";
 import { CreateSolutionStep3 } from "./create-solution-step-3";
 import { CreateSolutionStep6 } from "./create-solution-step-6";
-import { SubmissionDialog } from "../../components/submission-dialog";
-import { DraftDialog } from "../../components/draft-dialog";
+import { SubmissionDialog } from "./submission-dialog";
+import { DraftDialog } from "./draft-dialog";
 import Loading from "@/components/loading-main";
 
 interface CreateSolutionData {
 	selectedIndustry: string;
 	selectedTechnology: string;
-	solutionType: string;
-	solutionVariant: string;
+	selectedSolutionId: string;
+	selectedSolutionVariantId: string;
+	// For creating new solution
 	solutionName: string;
 	solutionDescription: string;
-	customSolutionType: string;
-	customSolutionVariant: string;
+	solutionIcon: string;
+	// For creating new solution variant
+	newVariantName: string;
+	newVariantDescription: string;
+	newVariantIcon: string;
 	parameters: Parameter[];
 	calculations: Calculation[];
 }
@@ -59,9 +66,12 @@ export function CreateSolutionMain() {
 	const [availableTechnologies, setAvailableTechnologies] = useState<any[]>([]);
 	const [isLoadingIndustries, setIsLoadingIndustries] = useState(false);
 	const [isLoadingTechnologies, setIsLoadingTechnologies] = useState(false);
-	const [showCustomSolutionType, setShowCustomSolutionType] = useState(false);
-	const [showCustomSolutionVariant, setShowCustomSolutionVariant] =
-		useState(false);
+	const [availableSolutionTypes, setAvailableSolutionTypes] = useState<any[]>([]);
+	const [isLoadingSolutionTypes, setIsLoadingSolutionTypes] = useState(false);
+	const [availableSolutionVariants, setAvailableSolutionVariants] = useState<any[]>([]);
+	const [isLoadingSolutionVariants, setIsLoadingSolutionVariants] = useState(false);
+	const [isCreatingNewSolution, setIsCreatingNewSolution] = useState(false);
+	const [isCreatingNewVariant, setIsCreatingNewVariant] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [showSubmissionDialog, setShowSubmissionDialog] = useState(false);
 	const [submissionStatus, setSubmissionStatus] = useState<"success" | "error">(
@@ -79,12 +89,14 @@ export function CreateSolutionMain() {
 	const [formData, setFormData] = useState<CreateSolutionData>({
 		selectedIndustry: "",
 		selectedTechnology: "",
-		solutionType: "",
-		solutionVariant: "",
+		selectedSolutionId: "",
+		selectedSolutionVariantId: "",
 		solutionName: "",
 		solutionDescription: "",
-		customSolutionType: "",
-		customSolutionVariant: "",
+		solutionIcon: "",
+		newVariantName: "",
+		newVariantDescription: "",
+		newVariantIcon: "",
 		parameters: [...defaultParameters],
 		calculations: [...defaultCalculations],
 	});
@@ -124,7 +136,6 @@ export function CreateSolutionMain() {
 				}
 				setIsLoadingTechnologies(false);
 			} catch (error) {
-				console.error("Error loading data:", error);
 				toast.error("Failed to load required data");
 			} finally {
 				setIsLoading(false);
@@ -148,10 +159,102 @@ export function CreateSolutionMain() {
 
 	const handleIndustrySelect = (industryId: string) => {
 		setFormData((prev) => ({ ...prev, selectedIndustry: industryId }));
+		// Fetch solution types when both industry and technology are selected
+		if (industryId && formData.selectedTechnology) {
+			fetchSolutionTypes(industryId, formData.selectedTechnology);
+		}
 	};
 
 	const handleTechnologySelect = (technologyId: string) => {
 		setFormData((prev) => ({ ...prev, selectedTechnology: technologyId }));
+		// Fetch solution types when both industry and technology are selected
+		if (formData.selectedIndustry && technologyId) {
+			fetchSolutionTypes(formData.selectedIndustry, technologyId);
+		}
+	};
+
+	const handleSolutionTypeSelect = (solutionTypeId: string) => {
+		setFormData((prev) => ({ 
+			...prev, 
+			selectedSolutionId: solutionTypeId,
+			selectedSolutionVariantId: "", // Reset variant when type changes
+		}));
+		setIsCreatingNewSolution(false);
+		setIsCreatingNewVariant(false);
+		
+		// Fetch solution variants for the selected solution type
+		if (solutionTypeId) {
+			fetchSolutionVariants(solutionTypeId);
+		}
+	};
+
+	const handleSolutionVariantSelect = (variantId: string) => {
+		setFormData((prev) => ({ ...prev, selectedSolutionVariantId: variantId }));
+		setIsCreatingNewVariant(false);
+	};
+
+	const handleCreateNewSolution = () => {
+		setFormData((prev) => ({ 
+			...prev, 
+			selectedSolutionId: "",
+			selectedSolutionVariantId: "",
+		}));
+		setIsCreatingNewSolution(true);
+		setIsCreatingNewVariant(false);
+		setAvailableSolutionVariants([]);
+	};
+
+	const handleCreateNewVariant = () => {
+		setFormData((prev) => ({ ...prev, selectedSolutionVariantId: "" }));
+		setIsCreatingNewVariant(true);
+	};
+
+	const handleNoVariantSelect = () => {
+		setFormData((prev) => ({ ...prev, selectedSolutionVariantId: "" }));
+		setIsCreatingNewVariant(false);
+	};
+
+	const fetchSolutionTypes = async (industryId: string, technologyId: string) => {
+		setIsLoadingSolutionTypes(true);
+		try {
+			const result = await getSolutionTypesByIndustryAndTechnology(industryId, technologyId);
+			if (result.error) {
+				toast.error("Failed to load solution types");
+				setAvailableSolutionTypes([]);
+			} else {
+				setAvailableSolutionTypes(result.solutionTypes || []);
+			}
+		} catch (error) {
+			toast.error("Failed to load solution types");
+			setAvailableSolutionTypes([]);
+		} finally {
+			setIsLoadingSolutionTypes(false);
+		}
+	};
+
+	const fetchSolutionVariants = async (solutionId: string) => {
+		setIsLoadingSolutionVariants(true);
+		try {
+			// Extract the actual MongoDB ObjectId from the solution type ID
+			// If it starts with "custom_", remove that prefix
+			const actualSolutionId = solutionId.startsWith('custom_') 
+				? solutionId.replace('custom_', '') 
+				: solutionId;
+			
+			
+			const result = await getSolutionVariantsBySolutionId(actualSolutionId);
+			if (result.error) {
+				toast.error("Failed to load solution variants");
+				setAvailableSolutionVariants([]);
+			} else {
+				setAvailableSolutionVariants(result.solutionVariants || []);
+			}
+		} catch (error) {
+			toast.error("Failed to load solution variants");
+			setAvailableSolutionVariants([]);
+		} finally {
+			setIsLoadingSolutionVariants(false);
+		}
 	};
 
 	const handleFormDataChange = (updates: Partial<CreateSolutionData>) => {
@@ -171,27 +274,73 @@ export function CreateSolutionMain() {
 			setIsSubmitting(true);
 
 			// Validate form data
-			if (
-				!formData.selectedIndustry ||
-				!formData.selectedTechnology ||
-				!formData.solutionType ||
-				!formData.solutionName ||
-				!formData.solutionDescription
-			) {
+			if (!formData.selectedIndustry || !formData.selectedTechnology) {
 				toast.error("Please fill in all required fields");
 				return;
 			}
 
-			// Prepare data for MongoDB (convert to snake_case)
+			// Check if user has selected a solution type (either default or custom)
+			const hasSelectedSolutionType = formData.selectedSolutionId || isCreatingNewSolution;
+			
+			if (!hasSelectedSolutionType) {
+				toast.error("Please select a solution type");
+				return;
+			}
+
+			// If creating custom solution type, require name and description
+			if (isCreatingNewSolution && (!formData.solutionName || !formData.solutionDescription)) {
+				toast.error("Please fill in solution name and description for custom solution type");
+				return;
+			}
+
+			// Handle solution variant creation if creating a new variant
+			let solutionVariantIds: string[] = [];
+			let existingSolutionId: string | null = null;
+
+			// If using an existing solution type, we need to update that solution
+			if (!isCreatingNewSolution && formData.selectedSolutionId) {
+				// Get the existing solution to update it
+				existingSolutionId = getActualSolutionId();
+			}
+
+			// If creating a new variant, we need to handle it differently based on whether we're creating a new solution or using an existing one
+			if (isCreatingNewVariant) {
+				if (!formData.newVariantName || !formData.newVariantDescription) {
+					toast.error("Please fill in solution variant name and description");
+					return;
+				}
+
+				// If using an existing solution, create the variant now
+				if (existingSolutionId) {
+					const variantData = {
+						name: formData.newVariantName,
+						description: formData.newVariantDescription,
+						icon: formData.newVariantIcon || "Package",
+						solution_id: existingSolutionId,
+						created_by: user?._id || "",
+					};
+
+					const variantResult = await createSolutionVariant(variantData);
+					if (variantResult.error) {
+						setDraftStatus("error");
+						setDraftMessage(variantResult.error);
+						setShowDraftDialog(true);
+						return;
+					}
+
+					solutionVariantIds = [variantResult.solution_variant_id!];
+				}
+				// If creating a new solution, we'll create the variant after the solution is created
+			}
+
+			// Prepare data for MongoDB
 			const solutionData = {
-				selected_industry: formData.selectedIndustry,
-				selected_technology: formData.selectedTechnology,
-				solution_type: formData.solutionType,
-				solution_variant: formData.solutionVariant,
+				applicable_industries: formData.selectedIndustry,
+				applicable_technologies: formData.selectedTechnology,
 				solution_name: formData.solutionName,
 				solution_description: formData.solutionDescription,
-				custom_solution_type: formData.customSolutionType,
-				custom_solution_variant: formData.customSolutionVariant,
+				solution_variants: solutionVariantIds,
+				solution_icon: isCreatingNewSolution ? formData.solutionIcon : undefined,
 				parameters: formData.parameters,
 				calculations: formData.calculations,
 				status: "draft" as const,
@@ -199,14 +348,48 @@ export function CreateSolutionMain() {
 				client_id: clientData?.id || "",
 			};
 
-			// Save to MongoDB
-			const result = await createSolution(solutionData);
+			let result;
+			if (existingSolutionId) {
+				// Update existing solution with new variant
+				result = await updateSolution(existingSolutionId, {
+					solution_variants: solutionVariantIds,
+					parameters: formData.parameters,
+					calculations: formData.calculations,
+					status: "draft",
+				});
+			} else {
+				// Create new solution
+				result = await createSolution(solutionData);
+			}
 
 			if (result.error) {
 				setDraftStatus("error");
 				setDraftMessage(result.error);
 				setShowDraftDialog(true);
 				return;
+			}
+
+			// If we created a new solution and a new variant, create the variant now with the actual solution ID
+			if (isCreatingNewSolution && isCreatingNewVariant && result.success && 'solution_id' in result) {
+				const solutionId = (result as { solution_id: string }).solution_id;
+				
+				const variantData = {
+					name: formData.newVariantName,
+					description: formData.newVariantDescription,
+					icon: formData.newVariantIcon || "Package",
+					solution_id: solutionId,
+					created_by: user?._id || "",
+				};
+
+				const variantResult = await createSolutionVariant(variantData);
+				if (variantResult.error) {
+					// Don't fail the entire submission, just log the error
+				} else {
+					// Update the solution with the new variant ID
+					await updateSolution(solutionId, {
+						solution_variants: [variantResult.solution_variant_id!],
+					});
+				}
 			}
 
 			// Show success dialog
@@ -219,18 +402,19 @@ export function CreateSolutionMain() {
 			setFormData({
 				selectedIndustry: "",
 				selectedTechnology: "",
-				solutionType: "",
-				solutionVariant: "",
+				selectedSolutionId: "",
+				selectedSolutionVariantId: "",
 				solutionName: "",
 				solutionDescription: "",
-				customSolutionType: "",
-				customSolutionVariant: "",
+				solutionIcon: "",
+				newVariantName: "",
+				newVariantDescription: "",
+				newVariantIcon: "",
 				parameters: [...defaultParameters],
 				calculations: [...defaultCalculations],
 			});
 			setCurrentStep(1);
 		} catch (error) {
-			console.error("Error saving draft:", error);
 			setDraftStatus("error");
 			setDraftMessage("Failed to save draft. Please try again.");
 			setShowDraftDialog(true);
@@ -244,27 +428,73 @@ export function CreateSolutionMain() {
 			setIsSubmitting(true);
 
 			// Validate form data
-			if (
-				!formData.selectedIndustry ||
-				!formData.selectedTechnology ||
-				!formData.solutionType ||
-				!formData.solutionName ||
-				!formData.solutionDescription
-			) {
+			if (!formData.selectedIndustry || !formData.selectedTechnology) {
 				toast.error("Please fill in all required fields");
 				return;
 			}
 
-			// Prepare data for MongoDB (convert to snake_case)
+			// Check if user has selected a solution type (either default or custom)
+			const hasSelectedSolutionType = formData.selectedSolutionId || isCreatingNewSolution;
+			
+			if (!hasSelectedSolutionType) {
+				toast.error("Please select a solution type");
+				return;
+			}
+
+			// If creating custom solution type, require name and description
+			if (isCreatingNewSolution && (!formData.solutionName || !formData.solutionDescription)) {
+				toast.error("Please fill in solution name and description for custom solution type");
+				return;
+			}
+
+			// Handle solution variant creation if creating a new variant
+			let solutionVariantIds: string[] = [];
+			let existingSolutionId: string | null = null;
+
+			// If using an existing solution type, we need to update that solution
+			if (!isCreatingNewSolution && formData.selectedSolutionId) {
+				// Get the existing solution to update it
+				existingSolutionId = getActualSolutionId();
+			}
+
+			// If creating a new variant, we need to handle it differently based on whether we're creating a new solution or using an existing one
+			if (isCreatingNewVariant) {
+				if (!formData.newVariantName || !formData.newVariantDescription) {
+					toast.error("Please fill in solution variant name and description");
+					return;
+				}
+
+				// If using an existing solution, create the variant now
+				if (existingSolutionId) {
+					const variantData = {
+						name: formData.newVariantName,
+						description: formData.newVariantDescription,
+						icon: formData.newVariantIcon || "Package",
+						solution_id: existingSolutionId,
+						created_by: user?._id || "",
+					};
+
+					const variantResult = await createSolutionVariant(variantData);
+					if (variantResult.error) {
+						setSubmissionStatus("error");
+						setSubmissionMessage(variantResult.error);
+						setShowSubmissionDialog(true);
+						return;
+					}
+
+					solutionVariantIds = [variantResult.solution_variant_id!];
+				}
+				// If creating a new solution, we'll create the variant after the solution is created
+			}
+
+			// Prepare data for MongoDB
 			const solutionData = {
-				selected_industry: formData.selectedIndustry,
-				selected_technology: formData.selectedTechnology,
-				solution_type: formData.solutionType,
-				solution_variant: formData.solutionVariant,
+				applicable_industries: formData.selectedIndustry,
+				applicable_technologies: formData.selectedTechnology,
 				solution_name: formData.solutionName,
 				solution_description: formData.solutionDescription,
-				custom_solution_type: formData.customSolutionType,
-				custom_solution_variant: formData.customSolutionVariant,
+				solution_variants: solutionVariantIds,
+				solution_icon: isCreatingNewSolution ? formData.solutionIcon : undefined,
 				parameters: formData.parameters,
 				calculations: formData.calculations,
 				status: "pending" as const,
@@ -272,14 +502,48 @@ export function CreateSolutionMain() {
 				client_id: clientData?.id || "",
 			};
 
-			// Save to MongoDB
-			const result = await createSolution(solutionData);
+			let result;
+			if (existingSolutionId) {
+				// Update existing solution with new variant
+				result = await updateSolution(existingSolutionId, {
+					solution_variants: solutionVariantIds,
+					parameters: formData.parameters,
+					calculations: formData.calculations,
+					status: "pending",
+				});
+			} else {
+				// Create new solution
+				result = await createSolution(solutionData);
+			}
 
 			if (result.error) {
 				setSubmissionStatus("error");
 				setSubmissionMessage(result.error);
 				setShowSubmissionDialog(true);
 				return;
+			}
+
+			// If we created a new solution and a new variant, create the variant now with the actual solution ID
+			if (isCreatingNewSolution && isCreatingNewVariant && result.success && 'solution_id' in result) {
+				const solutionId = (result as { solution_id: string }).solution_id;
+				
+				const variantData = {
+					name: formData.newVariantName,
+					description: formData.newVariantDescription,
+					icon: formData.newVariantIcon || "Package",
+					solution_id: solutionId,
+					created_by: user?._id || "",
+				};
+
+				const variantResult = await createSolutionVariant(variantData);
+				if (variantResult.error) {
+					// Don't fail the entire submission, just log the error
+				} else {
+					// Update the solution with the new variant ID
+					await updateSolution(solutionId, {
+						solution_variants: [variantResult.solution_variant_id!],
+					});
+				}
 			}
 
 			// Show success dialog
@@ -292,18 +556,19 @@ export function CreateSolutionMain() {
 			setFormData({
 				selectedIndustry: "",
 				selectedTechnology: "",
-				solutionType: "",
-				solutionVariant: "",
+				selectedSolutionId: "",
+				selectedSolutionVariantId: "",
 				solutionName: "",
 				solutionDescription: "",
-				customSolutionType: "",
-				customSolutionVariant: "",
+				solutionIcon: "",
+				newVariantName: "",
+				newVariantDescription: "",
+				newVariantIcon: "",
 				parameters: [...defaultParameters],
 				calculations: [...defaultCalculations],
 			});
 			setCurrentStep(1);
 		} catch (error) {
-			console.error("Error submitting for review:", error);
 			setSubmissionStatus("error");
 			setSubmissionMessage("Failed to submit for review. Please try again.");
 			setShowSubmissionDialog(true);
@@ -327,19 +592,24 @@ export function CreateSolutionMain() {
 	};
 
 	const getSelectedSolutionType = () => {
-		return solutionTypes.find((st) => st.id === formData.solutionType);
+		return availableSolutionTypes.find((st) => st.id === formData.selectedSolutionId);
 	};
 
 	const getSelectedSolutionVariant = () => {
-		const solutionType = getSelectedSolutionType();
-		return solutionType?.variants.find(
-			(v) => v.id === formData.solutionVariant
-		);
+		return availableSolutionVariants.find((sv) => sv.id === formData.selectedSolutionVariantId);
+	};
+
+	const getActualSolutionId = () => {
+		const selectedSolutionType = getSelectedSolutionType();
+		if (selectedSolutionType?.solutionId) {
+			return selectedSolutionType.solutionId;
+		}
+		return null;
 	};
 
 	if (isLoading) {
 		return <Loading />;
-	}
+	} 
 
 	const getStepTitle = () => {
 		switch (currentStep) {
@@ -386,11 +656,16 @@ export function CreateSolutionMain() {
 			case 2:
 				return !formData.selectedTechnology;
 			case 3:
-				return (
-					!formData.solutionType ||
-					!formData.solutionName ||
-					!formData.solutionDescription
-				);
+				// Check if user has selected a solution type (either existing or creating new)
+				const hasSelectedSolutionType = formData.selectedSolutionId || isCreatingNewSolution;
+				
+				// If creating new solution, require name and description
+				if (isCreatingNewSolution) {
+					return !formData.solutionName || !formData.solutionDescription;
+				}
+				
+				// If using existing solution type, just require the type to be selected
+				return !hasSelectedSolutionType;
 			default:
 				return false;
 		}
@@ -413,7 +688,7 @@ export function CreateSolutionMain() {
 			<Card>
 				<CardHeader className="pb-4">
 					<CardTitle className="text-lg">{getStepTitle()}</CardTitle>
-					<CardDescription className="text-sm">
+					<CardDescription className="text-sm ">
 						{getStepDescription()}
 					</CardDescription>
 				</CardHeader>
@@ -436,6 +711,7 @@ export function CreateSolutionMain() {
 							availableTechnologies={availableTechnologies}
 							isLoadingTechnologies={isLoadingTechnologies}
 							selectedTechnology={formData.selectedTechnology}
+							selectedIndustryId={formData.selectedIndustry}
 							onTechnologySelect={handleTechnologySelect}
 						/>
 					)}
@@ -446,16 +722,25 @@ export function CreateSolutionMain() {
 							formData={{
 								solutionName: formData.solutionName,
 								solutionDescription: formData.solutionDescription,
-								solutionType: formData.solutionType,
-								solutionVariant: formData.solutionVariant,
-								customSolutionType: formData.customSolutionType,
-								customSolutionVariant: formData.customSolutionVariant,
+								solutionIcon: formData.solutionIcon,
+								selectedSolutionId: formData.selectedSolutionId,
+								selectedSolutionVariantId: formData.selectedSolutionVariantId,
+								newVariantName: formData.newVariantName,
+								newVariantDescription: formData.newVariantDescription,
+								newVariantIcon: formData.newVariantIcon,
 							}}
-							showCustomSolutionType={showCustomSolutionType}
-							showCustomSolutionVariant={showCustomSolutionVariant}
+							availableSolutionTypes={availableSolutionTypes}
+							isLoadingSolutionTypes={isLoadingSolutionTypes}
+							availableSolutionVariants={availableSolutionVariants}
+							isLoadingSolutionVariants={isLoadingSolutionVariants}
+							isCreatingNewSolution={isCreatingNewSolution}
+							isCreatingNewVariant={isCreatingNewVariant}
 							onFormDataChange={handleFormDataChange}
-							onShowCustomSolutionTypeChange={setShowCustomSolutionType}
-							onShowCustomSolutionVariantChange={setShowCustomSolutionVariant}
+							onSolutionTypeSelect={handleSolutionTypeSelect}
+							onSolutionVariantSelect={handleSolutionVariantSelect}
+							onCreateNewSolution={handleCreateNewSolution}
+							onCreateNewVariant={handleCreateNewVariant}
+							onNoVariantSelect={handleNoVariantSelect}
 							getSelectedIndustryName={getSelectedIndustryName}
 							getSelectedTechnologyName={getSelectedTechnologyName}
 							getSelectedSolutionType={getSelectedSolutionType}
@@ -486,11 +771,14 @@ export function CreateSolutionMain() {
 							formData={{
 								solutionName: formData.solutionName,
 								solutionDescription: formData.solutionDescription,
+								solutionVariant: formData.selectedSolutionVariantId,
+								customSolutionVariant: formData.newVariantName,
+								customSolutionVariantDescription: formData.newVariantDescription,
 								parameters: formData.parameters,
 								calculations: formData.calculations,
 							}}
-							showCustomSolutionType={showCustomSolutionType}
-							showCustomSolutionVariant={showCustomSolutionVariant}
+							showCustomSolutionType={isCreatingNewSolution}
+							showCustomSolutionVariant={isCreatingNewVariant}
 							isSubmitting={isSubmitting}
 							onSaveAsDraft={handleSaveAsDraft}
 							onSubmitForReview={handleSubmitForReview}

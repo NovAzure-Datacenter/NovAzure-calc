@@ -10,6 +10,9 @@ interface CreateSolutionStep6Props {
 	formData: {
 		solutionName: string;
 		solutionDescription: string;
+		solutionVariant: string;
+		customSolutionVariant: string;
+		customSolutionVariantDescription: string;
 		parameters: Parameter[];
 		calculations: Calculation[];
 	};
@@ -37,12 +40,12 @@ export function CreateSolutionStep6({
 	getSelectedSolutionVariant,
 }: CreateSolutionStep6Props) {
 	return (
-		<div className="space-y-6">
+		<div className="space-y-4">
 			{/* Solution Summary */}
-			<div className="p-4 border rounded-lg bg-muted/30">
-				<h3 className="font-semibold mb-3">Solution Summary</h3>
-				<div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-					<div className="space-y-2">
+			<div className="p-3 border rounded-md bg-muted/30">
+				<h3 className="font-semibold mb-2 text-sm">Solution Summary</h3>
+				<div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+					<div className="space-y-1">
 						<div>
 							<span className="text-muted-foreground">Industry:</span>
 							<p className="font-medium">{getSelectedIndustryName()}</p>
@@ -55,55 +58,49 @@ export function CreateSolutionStep6({
 							<span className="text-muted-foreground">Solution Type:</span>
 							<p className="font-medium">
 								{showCustomSolutionType
-									? formData.solutionName
-									: getSelectedSolutionType()?.name}
+									? formData.solutionName || "New Solution"
+									: getSelectedSolutionType()?.name || "Not selected"}
 							</p>
 						</div>
 						<div>
 							<span className="text-muted-foreground">Solution Variant:</span>
 							<p className="font-medium">
 								{showCustomSolutionVariant
-									? formData.solutionDescription
-									: formData.solutionName === ""
+									? formData.customSolutionVariant || "New Variant"
+									: formData.solutionVariant === ""
 									? "None selected"
 									: getSelectedSolutionVariant()?.name || "None selected"}
 							</p>
 						</div>
+						{showCustomSolutionVariant && formData.customSolutionVariantDescription && (
+							<div>
+								<span className="text-muted-foreground">Variant Description:</span>
+								<p className="font-medium line-clamp-2">
+									{formData.customSolutionVariantDescription}
+								</p>
+							</div>
+						)}
 					</div>
-					<div className="space-y-2">
+					<div className="space-y-1">
+						{showCustomSolutionType && (
+							<>
+								<div>
+									<span className="text-muted-foreground">New Solution Name:</span>
+									<p className="font-medium">{formData.solutionName}</p>
+								</div>
+								<div>
+									<span className="text-muted-foreground">New Solution Description:</span>
+									<p className="font-medium line-clamp-2">{formData.solutionDescription}</p>
+								</div>
+							</>
+						)}
 						<div>
-							<span className="text-muted-foreground">Solution Name:</span>
-							<p className="font-medium">{formData.solutionName}</p>
-						</div>
-						<div>
-							<span className="text-muted-foreground">Description:</span>
-							<p className="font-medium line-clamp-2">
-								{formData.solutionDescription}
-							</p>
-						</div>
-						<div>
-							<span className="text-muted-foreground">
-								Parameters Overridden:
-							</span>
-							<p className="font-medium">
-								{
-									formData.parameters.filter(
-										(p) => p.overrideValue !== null
-									).length
-								}{" "}
-								/ {formData.parameters.length}
-							</p>
+							<span className="text-muted-foreground">Parameters:</span>
+							<p className="font-medium">{formData.parameters.length} configured</p>
 						</div>
 						<div>
 							<span className="text-muted-foreground">Calculations:</span>
-							<p className="font-medium">
-								{
-									formData.calculations.filter(
-										(c) => c.status === "valid"
-									).length
-								}{" "}
-								valid / {formData.calculations.length} total
-							</p>
+							<p className="font-medium">{formData.calculations.length} configured</p>
 						</div>
 					</div>
 				</div>
@@ -111,21 +108,21 @@ export function CreateSolutionStep6({
 
 			{/* Action Cards */}
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-				{/* Save as Draft */}
-				<Card className="border-dashed border-2 hover:border-primary/50 transition-colors cursor-pointer">
-					<CardContent className="p-6">
-						<div className="flex items-center gap-3 mb-3">
-							<div className="p-2 bg-blue-100 rounded-full">
-								<Save className="h-5 w-5 text-blue-600" />
+				{/* Save as Draft Card */}
+				<Card className="border-dashed border-2 hover:border-primary/50 transition-colors">
+					<CardContent className="p-4">
+						<div className="flex items-center gap-2 mb-2">
+							<div className="p-1.5 bg-blue-100 rounded-full">
+								<Save className="h-4 w-4 text-blue-600" />
 							</div>
 							<div>
-								<h3 className="font-semibold">Save as Draft</h3>
-								<p className="text-sm text-muted-foreground">
+								<h3 className="font-semibold text-sm">Save as Draft</h3>
+								<p className="text-xs text-muted-foreground">
 									Save your progress and continue later
 								</p>
 							</div>
 						</div>
-						<ul className="text-xs text-muted-foreground space-y-1 mb-4">
+						<ul className="text-xs text-muted-foreground space-y-0.5 mb-3">
 							<li>• Solution will be saved as incomplete</li>
 							<li>• You can edit and continue later</li>
 							<li>• No review process required</li>
@@ -139,12 +136,12 @@ export function CreateSolutionStep6({
 						>
 							{isSubmitting ? (
 								<>
-									<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+									<div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current mr-2"></div>
 									Saving...
 								</>
 							) : (
 								<>
-									<Save className="h-4 w-4 mr-2" />
+									<Save className="h-3 w-3 mr-2" />
 									Save as Draft
 								</>
 							)}
@@ -152,21 +149,21 @@ export function CreateSolutionStep6({
 					</CardContent>
 				</Card>
 
-				{/* Submit for Review */}
-				<Card className="border-dashed border-2 hover:border-primary/50 transition-colors cursor-pointer">
-					<CardContent className="p-6">
-						<div className="flex items-center gap-3 mb-3">
-							<div className="p-2 bg-green-100 rounded-full">
-								<Send className="h-5 w-5 text-green-600" />
+				{/* Submit for Review Card */}
+				<Card className="border-dashed border-2 hover:border-primary/50 transition-colors">
+					<CardContent className="p-4">
+						<div className="flex items-center gap-2 mb-2">
+							<div className="p-1.5 bg-green-100 rounded-full">
+								<Send className="h-4 w-4 text-green-600" />
 							</div>
 							<div>
-								<h3 className="font-semibold">Submit for Review</h3>
-								<p className="text-sm text-muted-foreground">
+								<h3 className="font-semibold text-sm">Submit for Review</h3>
+								<p className="text-xs text-muted-foreground">
 									Submit your solution for approval
 								</p>
 							</div>
 						</div>
-						<ul className="text-xs text-muted-foreground space-y-1 mb-4">
+						<ul className="text-xs text-muted-foreground space-y-0.5 mb-3">
 							<li>• Solution will be reviewed by administrators</li>
 							<li>• You'll be notified of approval status</li>
 							<li>• Changes may be required before approval</li>
@@ -179,12 +176,12 @@ export function CreateSolutionStep6({
 						>
 							{isSubmitting ? (
 								<>
-									<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+									<div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current mr-2"></div>
 									Submitting...
 								</>
 							) : (
 								<>
-									<Send className="h-4 w-4 mr-2" />
+									<Send className="h-3 w-3 mr-2" />
 									Submit for Review
 								</>
 							)}
@@ -193,31 +190,17 @@ export function CreateSolutionStep6({
 				</Card>
 			</div>
 
-			{/* Validation Warnings */}
-			{formData.parameters.filter((p) => p.overrideValue !== null).length === 0 && (
-				<div className="p-3 border border-yellow-200 rounded-md bg-yellow-50">
-					<div className="flex items-center gap-2 text-yellow-800">
-						<AlertTriangle className="h-4 w-4" />
-						<span className="text-sm font-medium">No parameters overridden</span>
-					</div>
-					<p className="text-xs text-yellow-700 mt-1">
-						Consider reviewing and adjusting parameters for better solution
-						optimization.
+			{/* Warning */}
+			<div className="flex items-start gap-2 p-3 border rounded-md bg-yellow-50 border-yellow-200">
+				<AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+				<div className="text-xs text-yellow-800">
+					<p className="font-medium">Review your solution before submitting</p>
+					<p className="mt-1">
+						Once submitted for review, your solution will be evaluated by our team. 
+						You can save as draft to continue editing later.
 					</p>
 				</div>
-			)}
-
-			{formData.calculations.filter((c) => c.status === "error").length > 0 && (
-				<div className="p-3 border border-red-200 rounded-md bg-red-50">
-					<div className="flex items-center gap-2 text-red-800">
-						<AlertTriangle className="h-4 w-4" />
-						<span className="text-sm font-medium">Calculation errors detected</span>
-					</div>
-					<p className="text-xs text-red-700 mt-1">
-						Some calculations have errors. Review and fix them before submitting.
-					</p>
-				</div>
-			)}
+			</div>
 		</div>
 	);
 } 
