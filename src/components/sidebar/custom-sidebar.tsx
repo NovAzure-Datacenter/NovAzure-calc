@@ -227,7 +227,7 @@ export default function CustomSidebar({
 
 					<SidebarContent className="space-y-3 px-2">
 						{/* Main Navigation */}
-						<NavMain pathname={pathname} user={user} />
+						<NavMain pathname={pathname} user={user} accountType={accountType} />
 
 						{/* Products & Solutions Section */}
 						<NavProductsAndSolutions
@@ -237,7 +237,7 @@ export default function CustomSidebar({
 						/>
 
 						{/* Scenarios Section */}
-						<NavScenarios pathname={pathname} user={user} />
+						<NavScenarios pathname={pathname} user={user} accountType={accountType} />
 
 						{/* Admin Tools - Only show for admin users */}
 						{(accountType === "novazure-superuser" ||

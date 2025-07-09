@@ -44,11 +44,10 @@ import {
 	getClients,
 	deleteClient,
 	updateClient,
+	getClientsWithRelatedData,
 } from "@/lib/actions/client/client";
 import { stringToIconComponent } from "@/lib/icons/lucide-icons";
 import { ClientsDetailDialog } from "./client-detail-dialog";
-import { getIndustries } from "@/lib/actions/industry/industry";
-import { getTechnologies } from "@/lib/actions/technology/technology";
 
 interface ClientsTableViewProps {
 	onClientDeleted?: () => Promise<void>;
@@ -207,48 +206,33 @@ export function ClientsTableView({
 		{ value: "inactive", label: "Inactive", variant: "destructive" },
 	];
 
-	// Load clients from MongoDB
-	const loadClients = async () => {
+	// Load all data in a single optimized function
+	const loadAllData = async () => {
 		try {
 			setIsLoading(true);
-			const result = await getClients();
+			
+			// Use the optimized function that loads all data in a single operation
+			const result = await getClientsWithRelatedData();
 
 			if (result.error) {
 				toast.error(result.error);
 				return;
 			}
 
+			// Set all data from the single optimized call
 			setClients(result.clients || []);
+			setIndustries(result.industries || []);
+			setTechnologies(result.technologies || []);
 		} catch (error) {
-			console.error("Error loading clients:", error);
-			toast.error("Failed to load clients");
+			console.error("Error loading data:", error);
+			toast.error("Failed to load data");
 		} finally {
 			setIsLoading(false);
 		}
 	};
 
-	// Load industries and technologies data
-	const loadIndustriesAndTechnologies = async () => {
-		try {
-			// Load industries
-			const industriesResult = await getIndustries();
-			if (industriesResult.industries) {
-				setIndustries(industriesResult.industries);
-			}
-
-			// Load technologies
-			const technologiesResult = await getTechnologies();
-			if (technologiesResult.technologies) {
-				setTechnologies(technologiesResult.technologies);
-			}
-		} catch (error) {
-			console.error("Error loading industries and technologies:", error);
-		}
-	};
-
 	useEffect(() => {
-		loadClients();
-		loadIndustriesAndTechnologies();
+		loadAllData();
 	}, [refreshTrigger]);
 
 	useEffect(() => {
@@ -692,8 +676,8 @@ export function ClientsTableView({
 					client={selectedClient}
 					open={isDialogOpen}
 					onOpenChange={handleDialogClose}
-					onClientDeleted={loadClients}
-					onClientUpdated={loadClients}
+					onClientDeleted={loadAllData}
+					onClientUpdated={loadAllData}
 					initialEditMode={isEditMode}
 				/>
 			)}
@@ -748,7 +732,7 @@ export function ClientsTableView({
 										handleDialogClose();
 
 										// Reload clients list
-										await loadClients();
+										await loadAllData();
 
 										if (onClientDeleted) {
 											await onClientDeleted();

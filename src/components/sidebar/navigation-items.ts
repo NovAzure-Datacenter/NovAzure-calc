@@ -91,7 +91,13 @@ export const getProductsAndSolutionsItems = (
 		{
 			title: "View Solutions",
 			icon: Package,
-			url: "/home/solutions",
+			url: "/home/product-and-solutions/solutions",
+			isActive: true,
+		},
+		{
+			title: "View Products",
+			icon: Package,
+			url: "/home/product-and-solutions/products",
 			isActive: true,
 		},
 	];
@@ -105,8 +111,14 @@ export const getProductsAndSolutionsItems = (
 		baseItems.push({
 			title: "Create Solution",
 			icon: Plus,
-			url: "/home/solutions/create",
-			isActive: false,
+			url: "/home/product-and-solutions/solutions/create",
+			isActive: true,
+		},
+		{
+			title: "Add Product",
+			icon: Plus,
+			url: "/home/product-and-solutions/products/create",
+			isActive: true,
 		});
 	}
 

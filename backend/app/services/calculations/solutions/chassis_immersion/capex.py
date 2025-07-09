@@ -1,3 +1,9 @@
+from ...it_config import (
+    calculate_typical_it_cost_per_server,
+    calculate_maximum_number_of_chassis_per_rack_for_air,
+    calculate_number_of_server_refreshes,
+)
+
 # Company inputs - hard coded for now
 COOLANT_PRICE_PER_KW = 40
 MANIFOLD_CAPEX_PER_RACK = 1200
@@ -17,22 +23,22 @@ PACKAGED_PROCESS_WATER_PUMP_ROOM_CAPEX = 117300
 KERBSIDE_DELIVERY_COST_PER_RACK = 131
 RACK_MOUNTED_PDU_CAPEX = 138
 RACK_MOUNTED_PDU_PER_RACK = 2
-FIXED_MARKUP = 300.00 # $/KW
+FIXED_MARKUP = 300.00  # $/KW
 
 # CW pumps, pipework and valves capex per kW by country
 CW_PUMPS_PIPEWORK_VALVES_CAPEX = {
     "United Kingdom": 171.1243,
     "United States": 191.5800,
     "Singapore": 255.3510,
-    "United Arab Emirates": 187.9314
+    "United Arab Emirates": 187.9314,
 }
 
 # Default air cooling technology by country
 DEFAULT_AIR_COOLING_TECHNOLOGY = {
     "United Kingdom": "CRAH with Packaged chiller and economiser",
-    "United States": "CRAH with Packaged chiller and economiser", 
+    "United States": "CRAH with Packaged chiller and economiser",
     "Singapore": "CRAH with chiller/tower",
-    "United Arab Emirates": "CRAC DX glycol-cooled system with dry cooler"
+    "United Arab Emirates": "CRAC DX glycol-cooled system with dry cooler",
 }
 
 INFLATION_FACTORS = {
@@ -66,11 +72,6 @@ INFLATION_FACTORS = {
     2050: 1.71,
 }
 
-from ...it_config import (
-    calculate_typical_it_cost_per_server,
-    calculate_maximum_number_of_chassis_per_rack_for_air,
-    calculate_number_of_server_refreshes
-)
 
 # Helper functions
 def calculate_number_of_racks(nameplate_power_kw: float):
@@ -90,19 +91,25 @@ def calculate_chassis_equipment_price_per_kw(nameplate_power_kw: float):
     return (manifold_cost + chassis_cost) / nameplate_power_kw
 
 
-def calculate_air_cooled_equipment_base_capex_per_kw(nameplate_power_kw: float, country: str):
+def calculate_air_cooled_equipment_base_capex_per_kw(
+    nameplate_power_kw: float, country: str
+):
     if country == "United Kingdom":
         return ((nameplate_power_kw - 3000) * (1078 - 1130) / (7500 - 3000)) + 1130
     elif country == "United States":
         return ((nameplate_power_kw - 3000) * (804 - 883) / (7500 - 3000)) + 883
-    elif country == "Singapore":    
+    elif country == "Singapore":
         return ((nameplate_power_kw - 3000) * (1198 - 1324) / (7500 - 3000)) + 1324
     elif country == "United Arab Emirates":
         return ((nameplate_power_kw - 3000) * (1060 - 1098) / (7500 - 3000)) + 1098
 
+
 # Component calculations (1-14)
 def calculate_chassis_equipment_and_coolant_price_per_kw(nameplate_power_kw: float):
-    return calculate_chassis_equipment_price_per_kw(nameplate_power_kw) + COOLANT_PRICE_PER_KW
+    return (
+        calculate_chassis_equipment_price_per_kw(nameplate_power_kw)
+        + COOLANT_PRICE_PER_KW
+    )
 
 
 def calculate_cw_pumps_pipework_valves_capex_per_kw(country: str):
@@ -110,40 +117,72 @@ def calculate_cw_pumps_pipework_valves_capex_per_kw(country: str):
 
 
 def calculate_hybrid_cooler_capex_per_kw(nameplate_power_kw: float):
-    return ((nameplate_power_kw / HYBRID_COOLER_CAPACITY) + 1) * HYBRID_COOLER_CAPEX_800KW_UNIT / nameplate_power_kw
+    return (
+        ((nameplate_power_kw / HYBRID_COOLER_CAPACITY) + 1)
+        * HYBRID_COOLER_CAPEX_800KW_UNIT
+        / nameplate_power_kw
+    )
 
 
 def calculate_cdu_capex_per_kw(nameplate_power_kw: float):
-    return ((nameplate_power_kw / CDU_POWER_RATING) + 1) * PUMPS_CDU_CAPEX / nameplate_power_kw
+    return (
+        ((nameplate_power_kw / CDU_POWER_RATING) + 1)
+        * PUMPS_CDU_CAPEX
+        / nameplate_power_kw
+    )
 
 
 def calculate_rack_and_rack_extension_capex_per_kw(nameplate_power_kw: float):
-    return (RACK_EXTENSION_CAPEX + RACK_CAPEX) * calculate_number_of_racks(nameplate_power_kw) / nameplate_power_kw
+    return (
+        (RACK_EXTENSION_CAPEX + RACK_CAPEX)
+        * calculate_number_of_racks(nameplate_power_kw)
+        / nameplate_power_kw
+    )
 
 
-def calculate_air_cooled_equipment_capex_per_kw(nameplate_power_kw: float, country: str):
-    return HEAT_RECOVERY_TO_AIR_PERCENT * calculate_air_cooled_equipment_base_capex_per_kw(nameplate_power_kw, country)
+def calculate_air_cooled_equipment_capex_per_kw(
+    nameplate_power_kw: float, country: str
+):
+    return (
+        HEAT_RECOVERY_TO_AIR_PERCENT
+        * calculate_air_cooled_equipment_base_capex_per_kw(nameplate_power_kw, country)
+    )
 
 
 def calculate_pressurisation_ahu_capex_per_kw(nameplate_power_kw: float, country: str):
     if country == "United Kingdom" or country == "United States":
-        return 60 + ((36-60)/(7500-3000)) * (nameplate_power_kw - 3000)
+        return 60 + ((36 - 60) / (7500 - 3000)) * (nameplate_power_kw - 3000)
     elif country == "Singapore" or "United Arab Emirates":
-        return 90 + ((36-90)/(7500-3000)) * (nameplate_power_kw - 3000)
+        return 90 + ((36 - 90) / (7500 - 3000)) * (nameplate_power_kw - 3000)
+
 
 def calculate_dx_system_capex_per_kw(nameplate_power_kw: float):
-    return ((nameplate_power_kw / DX_SYSTEM_CAPACITY)) * DX_SYSTEM_CAPEX_COST / nameplate_power_kw
+    return (
+        (nameplate_power_kw / DX_SYSTEM_CAPACITY)
+        * DX_SYSTEM_CAPEX_COST
+        / nameplate_power_kw
+    )
 
 
 def calculate_packaged_process_water_plant_capex_per_kw(nameplate_power_kw: float):
     return PACKAGED_PROCESS_WATER_PUMP_ROOM_CAPEX / nameplate_power_kw
 
+
 def calculate_kerbside_delivery_capex_per_kw(nameplate_power_kw: float):
-    return calculate_number_of_racks(nameplate_power_kw) * KERBSIDE_DELIVERY_COST_PER_RACK / nameplate_power_kw
+    return (
+        calculate_number_of_racks(nameplate_power_kw)
+        * KERBSIDE_DELIVERY_COST_PER_RACK
+        / nameplate_power_kw
+    )
 
 
 def calculate_rack_mounted_pdu_capex_per_kw(nameplate_power_kw: float):
-    return calculate_number_of_racks(nameplate_power_kw) * RACK_MOUNTED_PDU_CAPEX * RACK_MOUNTED_PDU_PER_RACK / nameplate_power_kw
+    return (
+        calculate_number_of_racks(nameplate_power_kw)
+        * RACK_MOUNTED_PDU_CAPEX
+        * RACK_MOUNTED_PDU_PER_RACK
+        / nameplate_power_kw
+    )
 
 
 def calculate_primary_electrical_plant_cost_per_kw():
@@ -151,125 +190,127 @@ def calculate_primary_electrical_plant_cost_per_kw():
 
 
 def calculate_chassis_gc_works_cost_per_kw():
-    return 3310 # Company Input
+    return 3310  # Company Input
 
 
 def calculate_total_it_cost_per_kw():
     return 0
 
+
 # Main calculation pipeline
 def calculate_total_price_per_kw_nameplate(nameplate_power_kw: float, country: str):
-    return (calculate_chassis_equipment_and_coolant_price_per_kw(nameplate_power_kw)
-    + calculate_cw_pumps_pipework_valves_capex_per_kw(country)
-    + calculate_hybrid_cooler_capex_per_kw(nameplate_power_kw) 
-    + calculate_cdu_capex_per_kw(nameplate_power_kw) 
-    + calculate_rack_and_rack_extension_capex_per_kw(nameplate_power_kw) 
-    + calculate_air_cooled_equipment_capex_per_kw(nameplate_power_kw, country) 
-    + calculate_pressurisation_ahu_capex_per_kw(nameplate_power_kw, country) 
-    + calculate_dx_system_capex_per_kw(nameplate_power_kw) 
-    + calculate_packaged_process_water_plant_capex_per_kw(nameplate_power_kw) 
-    + calculate_kerbside_delivery_capex_per_kw(nameplate_power_kw) 
-    + calculate_rack_mounted_pdu_capex_per_kw(nameplate_power_kw) 
-    + calculate_primary_electrical_plant_cost_per_kw() 
-    + calculate_chassis_gc_works_cost_per_kw() 
-    + calculate_total_it_cost_per_kw())
+    return (
+        calculate_chassis_equipment_and_coolant_price_per_kw(nameplate_power_kw)
+        + calculate_cw_pumps_pipework_valves_capex_per_kw(country)
+        + calculate_hybrid_cooler_capex_per_kw(nameplate_power_kw)
+        + calculate_cdu_capex_per_kw(nameplate_power_kw)
+        + calculate_rack_and_rack_extension_capex_per_kw(nameplate_power_kw)
+        + calculate_air_cooled_equipment_capex_per_kw(nameplate_power_kw, country)
+        + calculate_pressurisation_ahu_capex_per_kw(nameplate_power_kw, country)
+        + calculate_dx_system_capex_per_kw(nameplate_power_kw)
+        + calculate_packaged_process_water_plant_capex_per_kw(nameplate_power_kw)
+        + calculate_kerbside_delivery_capex_per_kw(nameplate_power_kw)
+        + calculate_rack_mounted_pdu_capex_per_kw(nameplate_power_kw)
+        + calculate_primary_electrical_plant_cost_per_kw()
+        + calculate_chassis_gc_works_cost_per_kw()
+        + calculate_total_it_cost_per_kw()
+    )
 
 
 def calculate_chassis_solution_total_capex(nameplate_power_kw: float, country: str):
-    return calculate_total_price_per_kw_nameplate(nameplate_power_kw, country) * nameplate_power_kw
+    return (
+        calculate_total_price_per_kw_nameplate(nameplate_power_kw, country)
+        * nameplate_power_kw
+    )
 
 
-def calculate_chassis_solution_capex_with_inflation(first_year_of_operation: int, nameplate_power_kw: float, country: str):
-    return calculate_chassis_solution_total_capex(nameplate_power_kw, country) * INFLATION_FACTORS[first_year_of_operation]
+def calculate_chassis_solution_capex_with_inflation(
+    first_year_of_operation: int, nameplate_power_kw: float, country: str
+):
+    return (
+        calculate_chassis_solution_total_capex(nameplate_power_kw, country)
+        * INFLATION_FACTORS[first_year_of_operation]
+    )
 
 
-def calculate_chassis_solution_capex_with_markup(first_year_of_operation: int, capacity_mw: float, country: str):
+def calculate_chassis_solution_capex_with_markup(
+    first_year_of_operation: int, capacity_mw: float, country: str
+):
     nameplate_power_kw = capacity_mw * 1000
-    markup =  nameplate_power_kw * FIXED_MARKUP
-    result = calculate_chassis_solution_capex_with_inflation(first_year_of_operation, nameplate_power_kw, country) + markup
+    markup = nameplate_power_kw * FIXED_MARKUP
+    result = (
+        calculate_chassis_solution_capex_with_inflation(
+            first_year_of_operation, nameplate_power_kw, country
+        )
+        + markup
+    )
     return round(result)
 
-def calculate_it_capex(data_hall_capacity_mw, data_center_type, air_rack_cooling_capacity_kw_per_rack, planned_years):
+
+def calculate_it_capex(
+    data_hall_capacity_mw,
+    data_center_type,
+    air_rack_cooling_capacity_kw_per_rack,
+    planned_years,
+):
+    if (
+        not data_hall_capacity_mw
+        or not data_center_type
+        or not air_rack_cooling_capacity_kw_per_rack
+    ):
+        return 0
 
     nameplate_power_kw = data_hall_capacity_mw * 1000
-    
-    # Calculate maximum servers per rack based on cooling capacity
+
     max_servers_per_rack = calculate_maximum_number_of_chassis_per_rack_for_air(
-        air_rack_cooling_capacity_kw_per_rack, 
-        data_center_type
+        air_rack_cooling_capacity_kw_per_rack, data_center_type
     )
-    
+
     if max_servers_per_rack == 0:
         return 0
-    
-    # Estimate total number of racks based on data hall capacity
+
     # Assume 80% utilization of total capacity for IT load
     it_capacity_kw = nameplate_power_kw * 0.8
-    
-    # Calculate server power consumption
+
     if data_center_type == "General Purpose":
         server_power_kw = 1  # 1kW per server
     else:  # HPC/AI
         server_power_kw = 2  # 2kW per server
-    
-    # Calculate total servers and racks needed
+
     total_servers_needed = int(it_capacity_kw / server_power_kw)
-    
-    # Calculate cost per server
+
     cost_per_server = calculate_typical_it_cost_per_server(data_center_type)
-    
-    # Calculate initial server CAPEX
+
     initial_server_capex = total_servers_needed * cost_per_server
-    
-    # Calculate server refresh costs over planned years
+
     number_of_refreshes = calculate_number_of_server_refreshes(planned_years or 0)
     refresh_capex = initial_server_capex * number_of_refreshes
-    
-    # Total IT CAPEX
+
     total_it_capex = initial_server_capex + refresh_capex
-    
+
     return round(total_it_capex)
 
 
 def calculate_cooling_capex(input_data):
-     '''
-    Calculates the cooling CAPEX for a chassis immersion solution.
+    capacity_mw = input_data.get("data_hall_design_capacity_mw")
+    first_year_of_operation = input_data.get("first_year_of_operation")
+    country = input_data.get("country")
 
-    It receives a dictionary with required inputs:
-    {
-        'data_hall_design_capacity_mw': float,
-        'first_year_of_operation': int,
-        'country': str,
-        'include_it_cost': str (optional),
-        'data_center_type': str (optional),
-        'air_rack_cooling_capacity_kw_per_rack': float (optional),
-        'planned_years_of_operation': int (optional)
+    cooling_equipment_capex = calculate_chassis_solution_capex_with_markup(
+        first_year_of_operation, capacity_mw, country
+    )
+
+    it_equipment_capex = calculate_it_capex(
+        capacity_mw,
+        input_data.get("data_center_type"),
+        input_data.get("air_rack_cooling_capacity_kw_per_rack"),
+        input_data.get("planned_years_of_operation"),
+    )
+
+    total_capex = cooling_equipment_capex + it_equipment_capex
+
+    return {
+        "cooling_equipment_capex": int(cooling_equipment_capex),
+        "it_equipment_capex": int(it_equipment_capex),
+        "total_capex": int(total_capex),
     }
-    '''
-     capacity_mw = input_data.get('data_hall_design_capacity_mw')
-     first_year_of_operation = input_data.get('first_year_of_operation')
-     country = input_data.get('country')
-    
-     # Calculate cooling equipment CAPEX
-     cooling_equipment_capex = calculate_chassis_solution_capex_with_markup(first_year_of_operation, capacity_mw, country)
-    
-     # Calculate IT equipment CAPEX if requested
-     it_equipment_capex = 0
-     if (input_data.get('include_it_cost') and 
-         input_data.get('include_it_cost').lower() in ['yes', 'true', '1']):
-         
-         it_equipment_capex = calculate_it_capex(
-             capacity_mw,
-             input_data.get('data_center_type'),
-             input_data.get('air_rack_cooling_capacity_kw_per_rack'),
-             input_data.get('planned_years_of_operation')
-         )
-    
-     # Total CAPEX
-     total_capex = cooling_equipment_capex + it_equipment_capex
-    
-     return {
-        'cooling_equipment_capex': cooling_equipment_capex,
-        'it_equipment_capex': it_equipment_capex,
-        'total_capex': total_capex
-     }

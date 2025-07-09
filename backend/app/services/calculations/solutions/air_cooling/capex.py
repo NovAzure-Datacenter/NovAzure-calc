@@ -1,9 +1,11 @@
+from ...it_config import calculate_total_it_cost
+
 # Country-specific multipliers (USD per kW)
 COUNTRY_MULTIPLIERS = {
     "United States": 3849,
-    "Singapore": 3527, 
+    "Singapore": 3527,
     "United Kingdom": 4952,
-    "United Arab Emirates": 3433
+    "United Arab Emirates": 3433,
 }
 
 # UK Capex Inflation factors applied universally to all countries
@@ -38,97 +40,53 @@ INFLATION_FACTORS = {
     2050: 1.71,
 }
 
-from ...it_config import (
-    calculate_total_it_cost
-)
 
-def calculate_cooling_equipment_capex(first_year_of_operation: int, capacity_mw: float, country: str):
+def calculate_cooling_equipment_capex(
+    first_year_of_operation: int, capacity_mw: float, country: str
+):
     nameplate_power_kw = capacity_mw * 1000
     country_multiplier = COUNTRY_MULTIPLIERS[country]
     base_capex = country_multiplier * nameplate_power_kw
     inflation_factor = INFLATION_FACTORS[first_year_of_operation]
     return base_capex * inflation_factor
 
-def calculate_it_capex(data_hall_capacity_mw, data_center_type, air_rack_cooling_capacity_kw_per_rack, planned_years):
-    """Calculate IT CAPEX using the IT cost calculation."""
+
+def calculate_it_capex(
+    data_hall_capacity_mw,
+    data_center_type,
+    air_rack_cooling_capacity_kw_per_rack,
+    planned_years,
+):
     total_it_cost = calculate_total_it_cost(
-        data_hall_capacity_mw, 
-        data_center_type, 
-        air_rack_cooling_capacity_kw_per_rack, 
-        planned_years
+        data_hall_capacity_mw,
+        data_center_type,
+        air_rack_cooling_capacity_kw_per_rack,
+        planned_years,
     )
-    
+
     return round(total_it_cost)
 
+
 def calculate_cooling_capex(input_data):
-    '''
-    Calculates the cooling CAPEX for an air cooling solution.
+    capacity_mw = input_data.get("data_hall_design_capacity_mw")
+    first_year_of_operation = input_data.get("first_year_of_operation")
+    country = input_data.get("country")
 
-    It receives a dictionary with required inputs:
-    {
-        'data_hall_design_capacity_mw': float,
-        'first_year_of_operation': int,
-        'country': str,
-        'include_it_cost': str (optional),
-        'data_center_type': str (optional),
-        'air_rack_cooling_capacity_kw_per_rack': float (optional),
-        'planned_years_of_operation': int (optional)
-    }
-    '''
-    capacity_mw = input_data.get('data_hall_design_capacity_mw')
-    first_year_of_operation = input_data.get('first_year_of_operation')
-    country = input_data.get('country')
-    
-    cooling_equipment_capex = calculate_cooling_equipment_capex(first_year_of_operation, capacity_mw, country)
-    
-    it_equipment_capex = 0
-    if (input_data.get('include_it_cost') and 
-        input_data.get('include_it_cost').lower() in ['yes', 'true', '1']):
-        
-        it_equipment_capex = calculate_it_capex(
-            capacity_mw,
-            input_data.get('data_center_type'),
-            input_data.get('air_rack_cooling_capacity_kw_per_rack'),
-            input_data.get('planned_years_of_operation')
-        )
-    
-    # Total CAPEX
-    total_capex = cooling_equipment_capex + it_equipment_capex
-    
-    return {
-        'cooling_equipment_capex': cooling_equipment_capex,
-        'it_equipment_capex': it_equipment_capex,
-        'total_capex': total_capex
-    }
+    cooling_equipment_capex = calculate_cooling_equipment_capex(
+        first_year_of_operation, capacity_mw, country
+    )
 
-def calculate_detailed_capex(input_data):
-    '''
-    Enhanced version that returns detailed breakdown of all costs.
-    
-    Same input format as calculate_cooling_capex, but returns detailed IT breakdown.
-    '''
-    capacity_mw = input_data.get('data_hall_design_capacity_mw')
-    first_year_of_operation = input_data.get('first_year_of_operation')
-    country = input_data.get('country')
-    
-    cooling_equipment_capex = calculate_cooling_equipment_capex(first_year_of_operation, capacity_mw, country)
-    
-    it_equipment_capex = 0
-    if (input_data.get('include_it_cost') and 
-        input_data.get('include_it_cost').lower() in ['yes', 'true', '1']):
-        
-        it_equipment_capex = calculate_total_it_cost(
-            capacity_mw,
-            input_data.get('data_center_type'),
-            input_data.get('air_rack_cooling_capacity_kw_per_rack'),
-            input_data.get('planned_years_of_operation')
-        )
-    
-    # Total CAPEX
+    it_equipment_capex = calculate_it_capex(
+        capacity_mw,
+        input_data.get("data_center_type"),
+        input_data.get("air_rack_cooling_capacity_kw_per_rack"),
+        input_data.get("planned_years_of_operation"),
+    )
+
     total_capex = cooling_equipment_capex + it_equipment_capex
-    
+
     return {
-        'cooling_equipment_capex': cooling_equipment_capex,
-        'it_equipment_capex': it_equipment_capex,
-        'total_capex': total_capex
+        "cooling_equipment_capex": int(cooling_equipment_capex),
+        "it_equipment_capex": int(it_equipment_capex),
+        "total_capex": int(total_capex),
     }
