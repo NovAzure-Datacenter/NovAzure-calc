@@ -221,7 +221,7 @@ export function CreateClientDialog({ onCreate }: CreateClientDialogProps) {
 					product_count: 0,
 					product_pending_count: 0,
 					scenario_count: 0,
-					login_email: "", // Backend will generate this
+					login_email: "", 
 				};
 
 				const result = await createClient(clientData);
@@ -327,8 +327,10 @@ export function CreateClientDialog({ onCreate }: CreateClientDialogProps) {
 			logo: formData.logo,
 			company_name: formData.company_name,
 			website: formData.website,
+			main_contact_first_name: formData.main_contact_first_name,
+			main_contact_last_name: formData.main_contact_last_name,
 		}),
-		[formData.logo, formData.company_name, formData.website]
+		[formData.logo, formData.company_name, formData.website, formData.main_contact_first_name, formData.main_contact_last_name]
 	);
 
 	const contactFormData = useMemo(
