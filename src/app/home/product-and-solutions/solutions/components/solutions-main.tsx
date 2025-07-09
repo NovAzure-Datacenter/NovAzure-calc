@@ -30,8 +30,8 @@ export function SolutionsMain() {
 		}
 	};
 
-	
-	return <div className="space-y-6">
+	return (
+		<div className="space-y-6">
 			{/* Header */}
 			<Card className="w-full">
 				<CardContent className="w-full">
@@ -74,8 +74,8 @@ export function SolutionsMain() {
 						</div>
 					</div>
 				</CardContent>
-
-				<SolutionsList />
 			</Card>
-	</div>;
+			<SolutionsList />
+		</div>
+	);
 }

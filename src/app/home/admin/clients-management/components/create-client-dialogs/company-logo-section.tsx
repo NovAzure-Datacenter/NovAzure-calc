@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Building2 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -13,15 +13,47 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { iconOptions } from "@/lib/icons/lucide-icons";
+import { toast } from "sonner";
 
 interface CompanyLogoSectionProps {
 	formData: {
 		logo: string;
 		company_name: string;
 		website: string;
+		main_contact_first_name: string;
+		main_contact_last_name: string;
 	};
 	onInputChange: (field: string, value: string) => void;
 	loginEmail?: string;
+}
+
+// Function to generate login email for client
+function generateClientLoginEmail(
+	firstName: string,
+	lastName: string,
+	companyName: string
+): string {
+	if (!firstName || !lastName || !companyName) {
+		return "";
+	}
+
+	// Clean and normalize inputs
+	const cleanFirstName = firstName.replace(/[^a-zA-Z]/g, "").toLowerCase();
+	const cleanLastName = lastName.replace(/[^a-zA-Z]/g, "").toLowerCase();
+	const cleanCompanyName = companyName
+		.replace(/[^a-zA-Z0-9]/g, "")
+		.replace(/\s+/g, "")
+		.toLowerCase();
+
+	if (!cleanFirstName || !cleanLastName || !cleanCompanyName) {
+		return "";
+	}
+
+	// Generate email: firstLetter + lastName + "-" + companyName + "@novazure.com"
+	const firstLetter = cleanFirstName.charAt(0).toUpperCase();
+	const email = `${firstLetter}${cleanLastName}-${cleanCompanyName}@novazure.com`;
+
+	return email;
 }
 
 // Optimized Input component with local state
@@ -74,6 +106,14 @@ export function CompanyLogoSection({ formData, onInputChange, loginEmail }: Comp
 	const handleIconChange = (iconName: string) => {
 		onInputChange("logo", iconName);
 	};
+
+	const generatedLoginEmail = useMemo(() => {
+		return generateClientLoginEmail(
+			formData.main_contact_first_name,
+			formData.main_contact_last_name,
+			formData.company_name
+		);
+	}, [formData.main_contact_first_name, formData.main_contact_last_name, formData.company_name]);
 
 	return (
 		<div className="space-y-4">
@@ -137,14 +177,14 @@ export function CompanyLogoSection({ formData, onInputChange, loginEmail }: Comp
 			</div>
 
 			{/* Login Email Display */}
-			{loginEmail && (
+			{generatedLoginEmail && (
 				<div>
 					<Label className="text-xs font-medium text-gray-600">
 						Client Login Email
 					</Label>
 					<div className="flex items-center gap-2 mt-1">
 						<Input
-							value={loginEmail}
+							value={generatedLoginEmail}
 							readOnly
 							className="text-xs h-8 bg-gray-50 text-gray-700 cursor-not-allowed"
 						/>
@@ -154,8 +194,8 @@ export function CompanyLogoSection({ formData, onInputChange, loginEmail }: Comp
 							size="sm"
 							className="text-xs h-8 px-2"
 							onClick={() => {
-								navigator.clipboard.writeText(loginEmail);
-								// Note: toast will be handled by parent component
+								navigator.clipboard.writeText(generatedLoginEmail);
+								toast.success("Login email copied to clipboard!");
 							}}
 						>
 							Copy
@@ -163,6 +203,25 @@ export function CompanyLogoSection({ formData, onInputChange, loginEmail }: Comp
 					</div>
 					<p className="text-xs text-gray-500 mt-1">
 						This email will be used for client login access
+					</p>
+				</div>
+			)}
+
+			{!generatedLoginEmail && (
+				<div>
+					<Label className="text-xs font-medium text-gray-600">
+						Client Login Email
+					</Label>
+					<div className="flex items-center gap-2 mt-1">
+						<Input
+							value=""
+							readOnly
+							placeholder="Enter company name, first name, and last name to generate login email"
+							className="text-xs h-8 bg-gray-50 text-gray-500 cursor-not-allowed"
+						/>
+					</div>
+					<p className="text-xs text-gray-500 mt-1">
+						Login email will be generated automatically once all required fields are filled
 					</p>
 				</div>
 			)}
