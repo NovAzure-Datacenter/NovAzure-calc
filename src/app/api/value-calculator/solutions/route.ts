@@ -13,15 +13,12 @@ export async function GET(request: Request) {
       );
     }
 
-    console.log('Looking for solutions for technologyId:', technologyId);
-
     // Find solutions directly by applicable_technologies field
     const solutionsCollection = await getSolutionsCollection();
     const solutionDocs = await solutionsCollection.find({
       applicable_technologies: technologyId
     }).toArray();
 
-    console.log('Found solution documents:', solutionDocs.length);
 
     // Transform to consistent format
     const solutions = solutionDocs.map((sol) => ({

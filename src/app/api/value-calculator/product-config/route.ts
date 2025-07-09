@@ -27,7 +27,6 @@ function checkIfChassisImmersionProduct(product: any, solution: any): boolean {
                      searchText.includes('plc') ||
                      searchText.includes('iceotope');
   
-  console.log('Found immersion keywords:', isImmersion);
   return isImmersion;
 }
 
@@ -43,7 +42,6 @@ export async function GET(request: Request) {
       );
     }
 
-    console.log('Fetching product config for productId:', productId);
 
     // Get the product
     const productsCollection = await getProductsCollection();
@@ -64,7 +62,6 @@ export async function GET(request: Request) {
       });
     }
 
-    console.log('Found product:', product.name);
 
     // Get the solution to help determine product type
     let solution = null;
@@ -83,14 +80,9 @@ export async function GET(request: Request) {
 
     // Check if this is a chassis immersion product
     const isChassisImmersion = checkIfChassisImmersionProduct(product, solution);
-    console.log('Is chassis immersion product:', isChassisImmersion);
-    console.log('Product name:', product.name);
-    console.log('Solution name:', solution?.name || 'No solution found');
-    console.log('Product solution_variant_id:', product.solution_variant_id);
 
     // Always return chassis immersion config if detected
     if (isChassisImmersion) {
-      console.log('Returning chassis immersion configuration');
       
       const chassisImmersionConfig = {
         product_id: productId,
@@ -170,7 +162,6 @@ export async function GET(request: Request) {
     }
 
     // Default configuration for other products
-    console.log('Returning default configuration');
     const defaultConfig = {
       product_id: productId,
       config_fields: [

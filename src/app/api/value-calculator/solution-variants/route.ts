@@ -14,7 +14,6 @@ export async function GET(request: Request) {
       );
     }
 
-    console.log('Looking for solution variants for solutionId:', solutionId);
 
     // First, get the solution details to check its name
     const solutionsCollection = await getSolutionsCollection();
@@ -49,8 +48,6 @@ export async function GET(request: Request) {
         solution_id: new ObjectId(solutionId)
       }).toArray();
     }
-
-    console.log('Found solution variant documents:', solutionVariantDocs.length);
 
     // Transform to consistent format
     const solutionVariants = solutionVariantDocs.map((sv) => ({

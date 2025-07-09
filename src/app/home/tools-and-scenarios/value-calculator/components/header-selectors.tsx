@@ -273,14 +273,17 @@ export function HeaderSelectors({
                         onValueChange={handleTechnologyChange}
                         disabled={!selectedIndustry || loading.technologies}
                     >
-                        <SelectTrigger id="technology" className="w-full">
-                            <SelectValue placeholder={
-                                !selectedIndustry 
-                                    ? "Select Industry First" 
-                                    : loading.technologies 
-                                        ? "Loading..." 
-                                        : "Select Technology"
-                            } />
+                        <SelectTrigger id="technology" className="w-full min-h-[40px]">
+                            <span className="block w-full truncate text-base text-left">
+                                {!selectedIndustry
+                                    ? "Select Industry First"
+                                    : loading.technologies
+                                        ? "Loading..."
+                                        : selectedTechnology && technologies.find(t => t.id === selectedTechnology)?.name
+                                            ? technologies.find(t => t.id === selectedTechnology)?.name
+                                            : "Select Technology"
+                                }
+                            </span>
                         </SelectTrigger>
                         <SelectContent className="max-w-[300px]">
                             {technologies.map((tech) => (
@@ -302,14 +305,17 @@ export function HeaderSelectors({
                         onValueChange={handleSolutionChange}
                         disabled={!selectedTechnology || loading.solutions}
                     >
-                        <SelectTrigger id="solution" className="w-full">
-                            <SelectValue placeholder={
-                                !selectedTechnology 
-                                    ? "Select Technology First" 
-                                    : loading.solutions 
-                                        ? "Loading..." 
-                                        : "Select Solution"
-                            } />
+                        <SelectTrigger id="solution" className="w-full min-h-[40px]">
+                            <span className="block w-full truncate text-base text-left">
+                                {!selectedTechnology
+                                    ? "Select Technology First"
+                                    : loading.solutions
+                                        ? "Loading..."
+                                        : selectedSolution && solutions.find(s => s.id === selectedSolution)?.name
+                                            ? solutions.find(s => s.id === selectedSolution)?.name
+                                            : "Select Solution"
+                                }
+                            </span>
                         </SelectTrigger>
                         <SelectContent className="max-w-[300px]">
                             {solutions.map((solution) => (
@@ -331,14 +337,17 @@ export function HeaderSelectors({
                         onValueChange={handleSolutionVariantChange}
                         disabled={!selectedSolution || loading.solutionVariants}
                     >
-                        <SelectTrigger id="solutionVariant" className="w-full">
-                            <SelectValue placeholder={
-                                !selectedSolution 
-                                    ? "Select Solution First" 
-                                    : loading.solutionVariants 
-                                        ? "Loading..." 
-                                        : "Select Solution Variant"
-                            } />
+                        <SelectTrigger id="solutionVariant" className="w-full min-h-[40px]">
+                            <span className="block w-full truncate text-base text-left">
+                                {!selectedSolution
+                                    ? "Select Solution First"
+                                    : loading.solutionVariants
+                                        ? "Loading..."
+                                        : selectedSolutionVariant && solutionVariants.find(v => v.id === selectedSolutionVariant)?.name
+                                            ? solutionVariants.find(v => v.id === selectedSolutionVariant)?.name
+                                            : "Select Solution Variant"
+                                }
+                            </span>
                         </SelectTrigger>
                         <SelectContent className="max-w-[300px]">
                             {solutionVariants.map((variant) => (
