@@ -39,8 +39,6 @@ export function ValueCalculatorMain({ hideCompareButton = false }: { hideCompare
     const [isLoadingConfig, setIsLoadingConfig] = useState(false);
     const [isComparing, setIsComparing] = useState(false);
     const [configFields, setConfigFields] = useState<ConfigField[]>([]);
-    const [globalFields1, setGlobalFields1] = useState<ConfigField[]>([]);
-    const [globalFields2, setGlobalFields2] = useState<ConfigField[]>([]);
     const [advancedConfig, setAdvancedConfig] = useState<AdvancedConfig>({
         inletTemperature: 0,
         electricityPrice: 0,
@@ -77,35 +75,41 @@ export function ValueCalculatorMain({ hideCompareButton = false }: { hideCompare
             fetchSolutionVariantConfig(selectedSolutionVariant, selectedSolutionInfo.name)
                 .then((config: ProductConfigResponse) => {
                     const convertConfigFields = (apiFields: ConfigFieldAPI[]): ConfigField[] => {
-                        return apiFields.map(field => ({
-                            id: field.id,
-                            label: field.label,
-                            type: (field.type === "number" || field.type === "text" || field.type === "select") 
-                                ? field.type 
-                                : "text",
-                            value: field.value || "",
-                            unit: field.unit,
-                            options: field.options,
-                            required: field.required || false
-                        }));
+                        return apiFields.map(field => {
+                            // Override options for data_centre_type
+                            if (field.id === "data_centre_type") {
+                                return {
+                                    ...field,
+                                    type: (field.type === "number" || field.type === "text" || field.type === "select") ? field.type : "select",
+                                    options: ["Greenfield", "HPC/AI"],
+                                    value: field.value || "",
+                                    required: field.required || false
+                                };
+                            }
+                            return {
+                                id: field.id,
+                                label: field.label,
+                                type: (field.type === "number" || field.type === "text" || field.type === "select") 
+                                    ? field.type 
+                                    : "text",
+                                value: field.value || "",
+                                unit: field.unit,
+                                options: field.options,
+                                required: field.required || false
+                            };
+                        });
                     };
                     setConfigFields(convertConfigFields(config.config_fields || []));
-                    setGlobalFields1([]);
-                    setGlobalFields2([]);
                 })
                 .catch((error) => {
                     console.error('Error fetching solution variant configuration:', error);
                     setConfigFields([]);
-                    setGlobalFields1([]);
-                    setGlobalFields2([]);
                 })
                 .finally(() => {
                     setIsLoadingConfig(false);
                 });
         } else {
             setConfigFields([]);
-            setGlobalFields1([]);
-            setGlobalFields2([]);
         }
     }, [selectedSolutionInfo, selectedSolutionVariant]);
     const [results, setResults] = useState<CalculationResults>({
@@ -123,13 +127,8 @@ export function ValueCalculatorMain({ hideCompareButton = false }: { hideCompare
     const handleConfigFieldChange = (id: string, value: string | number) => {
         updateFieldValue(configFields, setConfigFields, id, value);
     };
-    const handleGlobalField1Change = (id: string, value: string | number) => {
-        updateFieldValue(globalFields1, setGlobalFields1, id, value);
-    };
-    const handleGlobalField2Change = (id: string, value: string | number) => {
-        updateFieldValue(globalFields2, setGlobalFields2, id, value);
-    };
     const calculateResults = () => {
+        // Only use configFields for calculations now
         const getFieldValue = (fields: ConfigField[], fieldId: string): number => {
             const field = fields.find(f => f.id === fieldId);
             return field ? parseFloat(field.value?.toString() || '0') : 0;
@@ -145,10 +144,11 @@ export function ValueCalculatorMain({ hideCompareButton = false }: { hideCompare
         const isAdvanced = advancedField?.value === 'Yes' || advancedField?.value === 'true';
         const advancedGridField = configFields.find(f => f.id === 'advanced_grid');
         const advancedGrid = advancedGridField?.value === 'TRUE' || advancedGridField?.value === 'true';
-        const electricityCost = getFieldValue(globalFields1, 'electricity_cost') || 0.12;
-        const carbonFactor = getFieldValue(globalFields1, 'carbon_factor') || 0.4;
-        const projectLifetime = getFieldValue(globalFields1, 'project_lifetime') || 10;
-        const maintenanceCost = getFieldValue(globalFields2, 'maintenance_cost') || 5000;
+        // Set default values
+        const electricityCost = 0.12;
+        const carbonFactor = 0.4;
+        const projectLifetime = 10;
+        const maintenanceCost = 5000;
         const annualEnergyConsumption = powerConsumption * 8760;
         const totalEnergyConsumption = annualEnergyConsumption * pueValue;
         const annualEnergyCost = totalEnergyConsumption * electricityCost;
@@ -173,8 +173,7 @@ export function ValueCalculatorMain({ hideCompareButton = false }: { hideCompare
         setShowResults(true);
     };
     const areRequiredFieldsValid = () => {
-        const allFields = [...configFields, ...globalFields1, ...globalFields2];
-        return allFields.every(field => {
+        return configFields.every(field => {
             if (!field.required) return true;
             if (field.type === 'select') {
                 return field.value && field.value !== '' && field.value !== 'Select an Option';
@@ -204,11 +203,7 @@ export function ValueCalculatorMain({ hideCompareButton = false }: { hideCompare
                         {/* Configuration Section */}
                         <ConfigurationCard
                             configFields={configFields}
-                            globalFields1={globalFields1}
-                            globalFields2={globalFields2}
                             onConfigFieldChange={handleConfigFieldChange}
-                            onGlobalField1Change={handleGlobalField1Change}
-                            onGlobalField2Change={handleGlobalField2Change}
                             onCalculate={calculateResults}
                             isCalculateDisabled={isCalculateDisabled}
                             isLoading={isLoadingConfig}

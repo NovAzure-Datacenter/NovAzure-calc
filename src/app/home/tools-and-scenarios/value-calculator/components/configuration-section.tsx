@@ -21,53 +21,77 @@ interface ConfigurationSectionProps {
 }
 
 export function ConfigurationSection({ title, fields, onFieldChange }: ConfigurationSectionProps) {
+    // Provide default options for dropdowns if not present
+    const getOptions = (field: ConfigField) => {
+        if (field.options && field.options.length > 0) return field.options;
+        // Example defaults, adjust as needed for your app
+        switch (field.id) {
+            case "data_centre_type":
+                return ["Greenfield", "HPC/AI"];
+            case "project_location":
+                return ["United Kingdom", "United States", "Singapore", "United Arab Emirates"];
+            case "utilisation_percentage":
+                return ["20","30","40","50", "60", "70", "80", "90", "100"];
+            case "planned_years_operation":
+                return ["5", "10", "15", "20", "25"];
+            case "first_year_operation":
+                return ["2025", "2026", "2027", "2028", "2029", "2030"];
+            default:
+                return ["Option 1", "Option 2", "Option 3"];
+        }
+    };
     return (
         <div className="space-y-4">
             <h3 className="text-sm font-medium text-gray-700">{title}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {fields.map((field) => (
                     <div key={field.id} className="space-y-2">
-                                        <Label htmlFor={field.id} className="text-sm font-medium">
-                                            {field.label}
-                                            {field.required && <span className="text-red-500 ml-1">*</span>}
-                                        </Label>
-                                        <div className="relative">
-                                            {field.type === "select" ? (
-                                                <Select 
-                                                    value={field.value as string} 
-                                                    onValueChange={(value) => onFieldChange(field.id, value)}
-                                                    required={field.required}
-                                                >
-                                                    <SelectTrigger className={field.required && !field.value ? "border-red-200" : ""}>
-                                                        <SelectValue placeholder={`Select ${field.label.toLowerCase()}`} />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {field.options?.map((option) => (
-                                                            <SelectItem key={option} value={option}>
-                                                                {option}
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                            ) : (
-                                                <>
-                                                    <Input
-                                                        id={field.id}
-                                                        type={field.type}
-                                                        value={field.value}
-                                                        onChange={(e) => onFieldChange(field.id, e.target.value)}
-                                                        placeholder={`Enter ${field.label.toLowerCase()}`}
-                                                        className={`pr-12 ${field.required && !field.value ? "border-red-200" : ""}`}
-                                                        required={field.required}
-                                                    />
-                                                    {field.unit && (
-                                                        <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm text-gray-500">
-                                                            {field.unit}
-                                                        </span>
-                                                    )}
-                                                </>
-                                            )}
-                                        </div>
+                        <Label htmlFor={field.id} className="text-sm font-medium">
+                            {field.label}
+                            {field.required && <span className="text-red-500 ml-1">*</span>}
+                        </Label>
+                        <div className="relative">
+                            {field.id === "air_annualized_ppue" ? (
+                                <Input
+                                    id={field.id}
+                                    type="number"
+                                    value={field.value}
+                                    onChange={(e) => onFieldChange(field.id, e.target.value)}
+                                    placeholder={`Enter ${field.label.toLowerCase()}`}
+                                    className={`pr-12 ${field.required && !field.value ? "border-red-200" : ""}`}
+                                    required={field.required}
+                                />
+                            ) : field.id === "data_hall_capacity" ? (
+                                <Input
+                                    id={field.id}
+                                    type="number"
+                                    min={1}
+                                    step={0.1}
+                                    value={field.value}
+                                    onChange={(e) => onFieldChange(field.id, e.target.value)}
+                                    placeholder="Enter data hall capacity (MW)"
+                                    className={`pr-12 ${field.required && !field.value ? "border-red-200" : ""}`}
+                                    required={field.required}
+                                />
+                            ) : (
+                                <Select
+                                    value={field.value as string}
+                                    onValueChange={(value) => onFieldChange(field.id, value)}
+                                    required={field.required}
+                                >
+                                    <SelectTrigger className={field.required && !field.value ? "border-red-200" : ""}>
+                                        <SelectValue placeholder={`Select ${field.label.toLowerCase()}`} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {getOptions(field).map((option) => (
+                                            <SelectItem key={option} value={option}>
+                                                {option}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        </div>
                     </div>
                 ))}
             </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -12,11 +12,7 @@ import { ConfigurationSection } from "./configuration-section";
 
 interface ConfigurationCardProps {
     configFields: ConfigField[];
-    globalFields1: ConfigField[];
-    globalFields2: ConfigField[];
     onConfigFieldChange: (id: string, value: string | number) => void;
-    onGlobalField1Change: (id: string, value: string | number) => void;
-    onGlobalField2Change: (id: string, value: string | number) => void;
     onCalculate: () => void;
     isCalculateDisabled: boolean;
     isLoading?: boolean;
@@ -26,13 +22,18 @@ interface ConfigurationCardProps {
     selectedSolutionVariant?: string;
 }
 
+interface calcInputs{
+    data_hall_design_capacity_mw: number;
+    first_year_of_operation: number;
+    project_location: string;
+    percentage_of_utilisation: number;
+    planned_years_of_operation: number;
+    annualised_air_ppue: number;
+}
+
 export function ConfigurationCard({
     configFields,
-    globalFields1,
-    globalFields2,
     onConfigFieldChange,
-    onGlobalField1Change,
-    onGlobalField2Change,
     onCalculate,
     isCalculateDisabled,
     isLoading = false,
@@ -40,6 +41,67 @@ export function ConfigurationCard({
     onAdvancedConfigChange,
     selectedSolutionInfo,
 }: ConfigurationCardProps) {
+
+    // Move runCalculation out of useEffect so it can be called on button press only
+    const runCalculation = async () => {
+        if (!selectedSolutionInfo) return;
+
+        // Prepare the inputs for the calculation
+        const inputs: calcInputs = {
+            data_hall_design_capacity_mw: 0,
+            first_year_of_operation: 0,
+            project_location: "",
+            percentage_of_utilisation: 0,
+            planned_years_of_operation: 0,
+            annualised_air_ppue: 0,
+        };
+
+        // Populate inputs based on configFields
+        configFields.forEach(field => {
+            switch (field.id) {
+                case 'data_hall_capacity':
+                    inputs.data_hall_design_capacity_mw = Number(field.value);
+                    break;
+                case 'first_year_operation':
+                    inputs.first_year_of_operation = Number(field.value);
+                    break;
+                case 'project_location':
+                    inputs.project_location = field.value as string;
+                    break;
+                case 'utilisation_percentage':
+                    inputs.percentage_of_utilisation = Number(field.value);
+                    break;
+                case 'planned_years_operation':
+                    inputs.planned_years_of_operation = Number(field.value);
+                    break;
+                case 'air_annualized_ppue':
+                    inputs.annualised_air_ppue = Number(field.value);
+                    break;
+                default:
+                    break;
+            }
+        });
+
+        // Call the API with the prepared inputs
+        try {
+            const response = await fetch('http://localhost:8000/calculations/calculate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(inputs),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to calculate');
+            }
+
+            const result = await response.json();
+            console.log('Calculation result:', result);
+        } catch (error) {
+            console.error('Error during calculation:', error);
+        }
+    }
     const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
     // Remove local includeITCost state; make it controlled via advancedConfig prop
 
@@ -86,11 +148,10 @@ export function ConfigurationCard({
     
     // Map project_location to a dropdown field with options
     const PROJECT_LOCATION_OPTIONS = [
-        { value: "UK", label: "United Kingdom" },
-        { value: "EU", label: "Europe" },
-        { value: "US", label: "United States" },
-        { value: "APAC", label: "Asia Pacific" },
-        { value: "Other", label: "Other" },
+        { value: "United Kingdom", label: "United Kingdom" },
+        { value: "United States", label: "United States" },
+        { value: "Singapore", label: "Singapore" },
+        { value: "United Arab Emirated", label: "United Arab Emirated" }
     ];
 
     const dataCenterFields = configFields.map(field => {
@@ -179,29 +240,6 @@ export function ConfigurationCard({
                                     onFieldChange={onConfigFieldChange}
                                 />
                                 <Separator />
-                            </>
-                        )}
-
-                        {/* Global fields in two columns - Only show if there are fields */}
-                        {(globalFields1.length > 0 || globalFields2.length > 0) && (
-                            <>
-                                <Separator />
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                                    {globalFields1.length > 0 && (
-                                        <ConfigurationSection 
-                                            title="Global Fields #1" 
-                                            fields={globalFields1} 
-                                            onFieldChange={onGlobalField1Change}
-                                        />
-                                    )}
-                                    {globalFields2.length > 0 && (
-                                        <ConfigurationSection 
-                                            title="Global Fields #2" 
-                                            fields={globalFields2} 
-                                            onFieldChange={onGlobalField2Change}
-                                        />
-                                    )}
-                                </div>
                             </>
                         )}
 
@@ -591,7 +629,7 @@ export function ConfigurationCard({
 
                         <div className="flex justify-center pt-4">
                             <Button 
-                                onClick={onCalculate}
+                                onClick={runCalculation}
                                 className="px-8 py-2 bg-blue-600 hover:bg-blue-700"
                                 disabled={isCalculateDisabled}
                             >
