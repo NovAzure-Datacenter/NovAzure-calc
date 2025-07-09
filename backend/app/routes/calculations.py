@@ -4,6 +4,7 @@ from ..services.calculations.main import calculate, update_inputs
 
 router = APIRouter(prefix="/calculations", tags=["calculations"])
 
+
 @router.post("/calculate", response_model=CoolingSolutionResult)
 async def main_calculate(request: CoolingSolutionRequest):
     try:
