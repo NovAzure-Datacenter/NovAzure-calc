@@ -23,6 +23,13 @@ include_it_cost = {"include_it_cost": None}
 data_center_type = {"data_center_type": None}
 air_rack_cooling_capacity_kw_per_rack = {"air_rack_cooling_capacity_kw_per_rack": None}
 
+# Advanced Data Centre Configuration inputs (used when advanced = True)
+inlet_temperature = {"inlet_temperature": 27}
+electricity_price_per_kwh = {"electricity_price_per_kwh": 0.1}
+water_price_per_litre = {"water_price_per_litre": 0.0001}
+waterloop_enabled = {"waterloop_enabled": True}
+required_increase_electrical_kw = {"required_increase_electrical_kw": 1000}
+
 
 def update_inputs(inputs):
     global advanced
@@ -49,6 +56,41 @@ def update_inputs(inputs):
             data_center_type[key] = value
         elif key in air_rack_cooling_capacity_kw_per_rack:
             air_rack_cooling_capacity_kw_per_rack[key] = value
+        # Advanced Data Centre Configuration inputs
+        elif key in inlet_temperature:
+            inlet_temperature[key] = value
+        elif key in electricity_price_per_kwh:
+            electricity_price_per_kwh[key] = value
+        elif key in water_price_per_litre:
+            water_price_per_litre[key] = value
+        elif key in waterloop_enabled:
+            waterloop_enabled[key] = value
+        elif key in required_increase_electrical_kw:
+            required_increase_electrical_kw[key] = value
+
+
+def build_advanced_config():
+    advanced_config = {}
+    if inlet_temperature.get("inlet_temperature") is not None:
+        advanced_config["inlet_temperature"] = inlet_temperature["inlet_temperature"]
+    if electricity_price_per_kwh.get("electricity_price_per_kwh") is not None:
+        advanced_config["electricity_price_per_kwh"] = electricity_price_per_kwh[
+            "electricity_price_per_kwh"
+        ]
+    if water_price_per_litre.get("water_price_per_litre") is not None:
+        advanced_config["water_price_per_litre"] = water_price_per_litre[
+            "water_price_per_litre"
+        ]
+    if waterloop_enabled.get("waterloop_enabled") is not None:
+        advanced_config["waterloop_enabled"] = waterloop_enabled["waterloop_enabled"]
+    if (
+        required_increase_electrical_kw.get("required_increase_electrical_kw")
+        is not None
+    ):
+        advanced_config["required_increase_electrical_kw"] = (
+            required_increase_electrical_kw["required_increase_electrical_kw"]
+        )
+    return advanced_config if advanced_config else None
 
 
 async def calculate():
@@ -59,6 +101,7 @@ async def calculate():
         ],
         "first_year_of_operation": first_year_of_operation["first_year_of_operation"],
         "country": project_location["project_location"],
+        "advanced_config": build_advanced_config(),
     }
 
     # Add IT configuration if in advanced mode
@@ -74,6 +117,9 @@ async def calculate():
                 ),
                 "planned_years_of_operation": planned_years_of_operation.get(
                     "planned_years_of_operation"
+                ),
+                "advanced_config": (
+                    build_advanced_config() if build_advanced_config() else None
                 ),
             }
         )
@@ -143,5 +189,8 @@ async def calculate():
             "total_cost_of_ownership": chassis_total_cost_of_ownership,
         },
         "include_it_cost": include_it_cost.get("include_it_cost") or "No",
+        "advanced_config": (
+            build_advanced_config() if build_advanced_config() else None
+        ),
         "advanced_mode": advanced,
     }

@@ -1,8 +1,4 @@
-from ...it_config import (
-    calculate_typical_it_cost_per_server,
-    calculate_maximum_number_of_chassis_per_rack_for_air,
-    calculate_number_of_server_refreshes,
-)
+from ...it_config import calculate_total_it_cost
 
 # Country-specific multipliers (USD per kW)
 COUNTRY_MULTIPLIERS = {
@@ -61,50 +57,15 @@ def calculate_it_capex(
     air_rack_cooling_capacity_kw_per_rack,
     planned_years,
 ):
-    if (
-        not data_hall_capacity_mw
-        or not data_center_type
-        or not air_rack_cooling_capacity_kw_per_rack
-    ):
-        return 0
-
-    nameplate_power_kw = data_hall_capacity_mw * 1000
-
-    # Calculate maximum servers per rack based on cooling capacity
-    max_servers_per_rack = calculate_maximum_number_of_chassis_per_rack_for_air(
-        air_rack_cooling_capacity_kw_per_rack, data_center_type
+    """Calculate IT CAPEX using the IT cost calculation."""
+    total_it_cost = calculate_total_it_cost(
+        data_hall_capacity_mw,
+        data_center_type,
+        air_rack_cooling_capacity_kw_per_rack,
+        planned_years,
     )
 
-    if max_servers_per_rack == 0:
-        return 0
-
-    # Estimate total number of racks based on data hall capacity
-    # Assume 80% utilization of total capacity for IT load
-    it_capacity_kw = nameplate_power_kw * 0.8
-
-    # Calculate server power consumption
-    if data_center_type == "General Purpose":
-        server_power_kw = 1  # 1kW per server
-    else:  # HPC/AI
-        server_power_kw = 2  # 2kW per server
-
-    # Calculate total servers and racks needed
-    total_servers_needed = int(it_capacity_kw / server_power_kw)
-
-    # Calculate cost per server
-    cost_per_server = calculate_typical_it_cost_per_server(data_center_type)
-
-    # Calculate initial server CAPEX
-    initial_server_capex = total_servers_needed * cost_per_server
-
-    # Calculate server refresh costs over planned years
-    number_of_refreshes = calculate_number_of_server_refreshes(planned_years or 0)
-    refresh_capex = initial_server_capex * number_of_refreshes
-
-    # Total IT CAPEX
-    total_it_capex = initial_server_capex + refresh_capex
-
-    return round(total_it_capex)
+    return round(total_it_cost)
 
 
 def calculate_cooling_capex(input_data):
