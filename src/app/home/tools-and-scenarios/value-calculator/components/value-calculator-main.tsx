@@ -71,7 +71,7 @@ export function ValueCalculatorMain({ hideCompareButton = false }: { hideCompare
         floorSpacePerPLCRack: 0,
         spaceUnit: '',
     });
-    useEffect(() => {
+    useEffect(() => { 
         if (selectedSolutionInfo?.name) {
             setIsLoadingConfig(true);
             fetchSolutionVariantConfig(selectedSolutionVariant, selectedSolutionInfo.name)
