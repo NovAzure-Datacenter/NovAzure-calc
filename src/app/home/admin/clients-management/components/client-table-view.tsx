@@ -48,6 +48,7 @@ import {
 } from "@/lib/actions/client/client";
 import { stringToIconComponent } from "@/lib/icons/lucide-icons";
 import { ClientsDetailDialog } from "./client-detail-dialog";
+import Loading from "@/components/loading-main";
 
 interface ClientsTableViewProps {
 	onClientDeleted?: () => Promise<void>;
@@ -334,12 +335,7 @@ export function ClientsTableView({
 	if (isLoading) {
 		return (
 			<div className="h-[calc(100vh-200px)] flex items-center justify-center">
-				<div className="flex items-center gap-2">
-					<div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-					<span className="text-sm text-muted-foreground">
-						Loading clients...
-					</span>
-				</div>
+				<Loading />
 			</div>
 		);
 	}
