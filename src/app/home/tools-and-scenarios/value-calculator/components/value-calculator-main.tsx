@@ -69,6 +69,7 @@ export function ValueCalculatorMain({ hideCompareButton = false }: { hideCompare
         floorSpacePerPLCRack: 0,
         spaceUnit: '',
     });
+    const [calculationRawResult, setCalculationRawResult] = useState<any>(null);
     useEffect(() => { 
         if (selectedSolutionInfo?.name) {
             setIsLoadingConfig(true);
@@ -172,6 +173,15 @@ export function ValueCalculatorMain({ hideCompareButton = false }: { hideCompare
         setResults(realResults);
         setShowResults(true);
     };
+    const handleCalculationResult = (result: any) => {
+        // Map backend keys to frontend expected keys for charts/results
+        const mappedResult = {
+            airCooling: result.air_cooling_solution,
+            chassisImmersion: result.chassis_immersion_solution,
+        };
+        setCalculationRawResult(mappedResult);
+        setShowResults(true);
+    };
     const areRequiredFieldsValid = () => {
         return configFields.every(field => {
             if (!field.required) return true;
@@ -210,7 +220,7 @@ export function ValueCalculatorMain({ hideCompareButton = false }: { hideCompare
                         <ConfigurationCard
                             configFields={configFields}
                             onConfigFieldChange={handleConfigFieldChange}
-                            onCalculate={calculateResults}
+                            onCalculationResult={handleCalculationResult}
                             isCalculateDisabled={isCalculateDisabled}
                             isLoading={isLoadingConfig}
                             advancedConfig={advancedConfig}
@@ -220,7 +230,7 @@ export function ValueCalculatorMain({ hideCompareButton = false }: { hideCompare
                             hideCompareButton={hideCompareButton}
                         />
                         {/* Results Section */}
-                        <ResultsSection results={results} showResults={showResults} />
+                        <ResultsSection results={results} showResults={showResults} calculationResult={calculationRawResult} />
                         {/* Compare Button */}
                         {!hideCompareButton && (
                         <div className="flex justify-center pt-4">

@@ -13,7 +13,7 @@ import { ConfigurationSection } from "./configuration-section";
 interface ConfigurationCardProps {
     configFields: ConfigField[];
     onConfigFieldChange: (id: string, value: string | number) => void;
-    onCalculate: () => void;
+    onCalculationResult: (result: any) => void;
     isCalculateDisabled: boolean;
     isLoading?: boolean;
     advancedConfig?: AdvancedConfig;
@@ -35,7 +35,7 @@ interface calcInputs{
 export function ConfigurationCard({
     configFields,
     onConfigFieldChange,
-    onCalculate,
+    onCalculationResult,
     isCalculateDisabled,
     isLoading = false,
     advancedConfig,
@@ -57,7 +57,6 @@ export function ConfigurationCard({
             planned_years_of_operation: 0,
             annualised_air_ppue: 0,
         };
-
         // Populate inputs based on configFields
         configFields.forEach(field => {
             switch (field.id) {
@@ -100,10 +99,12 @@ export function ConfigurationCard({
 
             const result = await response.json();
             console.log('Calculation result:', result);
+            onCalculationResult(result);
         } catch (error) {
             console.error('Error during calculation:', error);
         }
-    }
+    };
+
     const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
     // Remove local includeITCost state; make it controlled via advancedConfig prop
 
@@ -631,18 +632,19 @@ export function ConfigurationCard({
 
                         {!hideCompareButton && (
                         <div className="flex justify-center pt-4">
-                            <Button 
-                                onClick={runCalculation}
-                                className="px-8 py-2 bg-blue-600 hover:bg-blue-700"
-                                disabled={isCalculateDisabled}
-                            >
-                                Compare
-                            </Button>
+                        <Button 
+                            onClick={runCalculation}
+                            className="px-8 py-2 bg-blue-600 hover:bg-blue-700"
+                            disabled={isCalculateDisabled}
+                        >
+                            Compare
+                        </Button>
                         </div>
                         )}
                     </>
                 )}
             </CardContent>
         </Card>
-    );
+            )
 }
+

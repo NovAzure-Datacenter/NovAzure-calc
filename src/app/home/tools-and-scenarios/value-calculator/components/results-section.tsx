@@ -10,9 +10,10 @@ import { CalculationResults } from "../types/types";
 interface ResultsSectionProps {
     results: CalculationResults;
     showResults: boolean;
+    calculationResult?: any;
 }
 
-export function ResultsSection({ results, showResults }: ResultsSectionProps) {
+export function ResultsSection({ results, showResults, calculationResult }: ResultsSectionProps) {
     if (!showResults) return null;
 
     return (
@@ -27,7 +28,8 @@ export function ResultsSection({ results, showResults }: ResultsSectionProps) {
                         <MetricsCards results={results} />
 
                         {/* Charts */}
-                        <ChartsSection />
+                        {/* Pass calculationResult to ChartsSection if needed */}
+                        <ChartsSection {...(calculationResult ? { ...calculationResult } : {})} />
 
                         {/* Additional Metrics Grid */}
                         <AdditionalMetrics />
