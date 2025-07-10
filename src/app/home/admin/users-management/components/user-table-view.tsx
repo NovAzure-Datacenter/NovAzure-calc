@@ -238,8 +238,9 @@ export function UsersTableView({
 						<TableHeader>
 							<TableRow>
 								<TableHead className="w-[200px]">Name</TableHead>
-								<TableHead>Contact</TableHead>
-								<TableHead>Role & Company</TableHead>
+								<TableHead>Email</TableHead>
+								<TableHead>Phone</TableHead>
+								<TableHead>Role</TableHead>
 								<TableHead>Status</TableHead>
 								<TableHead>Created</TableHead>
 								<TableHead>Timezone</TableHead>
@@ -249,7 +250,7 @@ export function UsersTableView({
 						<TableBody>
 							{filteredUsers.length === 0 ? (
 								<TableRow>
-									<TableCell colSpan={7} className="text-center py-8">
+									<TableCell colSpan={8} className="text-center py-8">
 										<div className="text-muted-foreground">
 											{searchQuery
 												? "No users found matching your search."
@@ -276,40 +277,40 @@ export function UsersTableView({
 											</div>
 										</TableCell>
 										<TableCell>
-											<div className="space-y-1">
-												<Tooltip>
-													<TooltipTrigger asChild>
-														<Button
-															variant="ghost"
-															size="sm"
-															className="h-auto p-0 text-left justify-start"
-															onClick={() => handleEmailClick(user.email)}
-														>
-															<Mail className="h-3 w-3 mr-1" />
-															<span className="text-xs">{user.email}</span>
-														</Button>
-													</TooltipTrigger>
-													<TooltipContent>
-														<p>Click to send email</p>
-													</TooltipContent>
-												</Tooltip>
-												<Tooltip>
-													<TooltipTrigger asChild>
-														<Button
-															variant="ghost"
-															size="sm"
-															className="h-auto p-0 text-left justify-start"
-															onClick={() => handlePhoneClick(user.mobile_number)}
-														>
-															<Phone className="h-3 w-3 mr-1" />
-															<span className="text-xs">{user.mobile_number || "No phone"}</span>
-														</Button>
-													</TooltipTrigger>
-													<TooltipContent>
-														<p>Click to call</p>
-													</TooltipContent>
-												</Tooltip>
-											</div>
+											<Tooltip>
+												<TooltipTrigger asChild>
+													<Button
+														variant="ghost"
+														size="sm"
+														className="h-auto p-0 text-left justify-start"
+														onClick={() => handleEmailClick(user.email)}
+													>
+														<Mail className="h-3 w-3 mr-1" />
+														<span className="text-xs">{user.email}</span>
+													</Button>
+												</TooltipTrigger>
+												<TooltipContent>
+													<p>Click to send email</p>
+												</TooltipContent>
+											</Tooltip>
+										</TableCell>
+										<TableCell>
+											<Tooltip>
+												<TooltipTrigger asChild>
+													<Button
+														variant="ghost"
+														size="sm"
+														className="h-auto p-0 text-left justify-start"
+														onClick={() => handlePhoneClick(user.mobile_number)}
+													>
+														<Phone className="h-3 w-3 mr-1" />
+														<span className="text-xs">{user.mobile_number || "No phone"}</span>
+													</Button>
+												</TooltipTrigger>
+												<TooltipContent>
+													<p>Click to call</p>
+												</TooltipContent>
+											</Tooltip>
 										</TableCell>
 										<TableCell>
 											<div className="space-y-1">
@@ -319,12 +320,7 @@ export function UsersTableView({
 														{user.role}
 													</span>
 												</div>
-												<div className="flex items-center gap-1">
-													<Building className="h-3 w-3 text-muted-foreground" />
-													<span className="text-xs text-muted-foreground">
-														{user.company_name}
-													</span>
-												</div>
+											
 											</div>
 										</TableCell>
 										<TableCell>

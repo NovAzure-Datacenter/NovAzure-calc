@@ -303,6 +303,43 @@ export async function createUser(data: CreateUserData) {
 	}
 }
 
+export async function getUserById(userId: string) {
+	try {
+		const usersCollection = await getUsersCollection();
+
+		const user = await usersCollection.findOne({
+			_id: new ObjectId(userId),
+		});
+
+		if (!user) {
+			return { error: "User not found" };
+		}
+
+		return {
+			success: true,
+			user: {
+				id: user._id.toString(),
+				first_name: user.first_name || "",
+				last_name: user.last_name || "",
+				email: user.email,
+				original_email: user.original_email || user.email,
+				role: user.role || "user",
+				mobile_number: user.mobile_number || "",
+				work_number: user.work_number || "",
+				timezone: user.timezone || "",
+				currency: user.currency || "",
+				unit_system: user.unit_system || "",
+				profile_image: user.profile_image || "/images/profile/default-profile-pic.png",
+				isVerified: user.isVerified || false,
+				created_at: user.created_at,
+			},
+		};
+	} catch (error) {
+		console.error("Error fetching user by ID:", error);
+		return { error: "Failed to fetch user" };
+	}
+}
+
 export async function deleteUser(userId: string) {
 	try {
 		const usersCollection = await getUsersCollection();
