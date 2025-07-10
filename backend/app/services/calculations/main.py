@@ -149,7 +149,7 @@ class CoolingSolutionsCalculator:
             "tco_including_it": tco_including_it,
         }
 
-    async def calculate(self) -> Dict[str, Any]:
+    async def compare(self) -> Dict[str, Any]:
         air_cooling_solution = await self._calculate_air_cooling_solution()
         chassis_immersion_solution = await self._calculate_chassis_immersion_solution()
 
@@ -157,6 +157,14 @@ class CoolingSolutionsCalculator:
             "air_cooling_solution": air_cooling_solution,
             "chassis_immersion_solution": chassis_immersion_solution,
         }
+
+    async def calculate(self, solution_type: str) -> Dict[str, Any]:
+        if solution_type == "air_cooling":
+            return await self._calculate_air_cooling_solution()
+        elif solution_type == "chassis_immersion":
+            return await self._calculate_chassis_immersion_solution()
+        else:
+            raise ValueError(f"Invalid solution type: {solution_type}")
 
 
 calculations = CoolingSolutionsCalculator()
@@ -168,3 +176,7 @@ def update_inputs(inputs: Dict[str, Any]) -> None:
 
 async def calculate() -> Dict[str, Any]:
     return await calculations.calculate()
+
+
+async def compare() -> Dict[str, Any]:
+    return await calculations.compare()
