@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -34,7 +34,7 @@ interface calcInputs{
     advanced: boolean;
 }
 
-export function ConfigurationCard({
+const ConfigurationCard = forwardRef(function ConfigurationCard({
     configFields,
     onConfigFieldChange,
     onCalculationResult,
@@ -44,7 +44,7 @@ export function ConfigurationCard({
     onAdvancedConfigChange,
     selectedSolutionInfo,
     hideCompareButton = false,
-}: ConfigurationCardProps) {
+}: ConfigurationCardProps, ref) {
 
     // Move runCalculation out of useEffect so it can be called on button press only
     const runCalculation = async () => {
@@ -143,6 +143,13 @@ export function ConfigurationCard({
             });
         }
     };
+
+    // Expose runCalculation to parent via ref
+    useImperativeHandle(ref, () => ({
+        runCalculation: () => {
+            return runCalculation();
+        },
+    }));
     // Separate data center fields from cooling configuration fields
     const dataCenterFieldIds = [
         'data_centre_type',
@@ -661,5 +668,9 @@ export function ConfigurationCard({
             </CardContent>
         </Card>
             )
-}
+});
+
+// Fix: forwardRef returns a component, so export default the result of forwardRef, not the function itself
+// This ensures the default export is the ref-enabled component
+export default ConfigurationCard;
 

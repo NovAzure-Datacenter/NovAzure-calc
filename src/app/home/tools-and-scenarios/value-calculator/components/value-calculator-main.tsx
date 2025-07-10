@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, forwardRef, useRef, useImperativeHandle } from "react";
 import { HeaderSelectors } from "./header-selectors";
-import { ConfigurationCard } from "./configuration-card";
+import ConfigurationCard from "./configuration-card";
 import { ResultsSection } from "./results-section";
 import ValueCalculatorCompareWrapper from "./value-calculator-compare-wrapper";
 import type { ConfigField, ConfigFieldAPI, ProductConfigResponse, CalculationResults, AdvancedConfig } from "../types/types";
@@ -28,7 +28,16 @@ async function fetchSolutionVariantConfig(solutionVariantId?: string, solutionNa
 }
 
 
-export function ValueCalculatorMain({ hideCompareButton = false }: { hideCompareButton?: boolean } = {}) {
+interface ValueCalculatorMainProps {
+  hideCompareButton?: boolean;
+  onCalculationResult?: (result: any, valid: boolean) => void;
+  isCompareMode?: boolean;
+  onCompareValidityChange?: (valid: boolean) => void;
+  hideResultsSection?: boolean;
+  onCompareClick?: () => void;
+}
+
+const ValueCalculatorMain = forwardRef(function ValueCalculatorMain({ hideCompareButton = false, onCalculationResult, isCompareMode = false, onCompareValidityChange, hideResultsSection = false, onCompareClick }: ValueCalculatorMainProps, ref) {
     // Single calculator state and logic must be inside the component
     const [selectedIndustry, setSelectedIndustry] = useState("");
     const [selectedTechnology, setSelectedTechnology] = useState("");
@@ -37,7 +46,6 @@ export function ValueCalculatorMain({ hideCompareButton = false }: { hideCompare
     const [selectedSolutionVariant, setSelectedSolutionVariant] = useState("");
     const [showResults, setShowResults] = useState(false);
     const [isLoadingConfig, setIsLoadingConfig] = useState(false);
-    const [isComparing, setIsComparing] = useState(false);
     const [configFields, setConfigFields] = useState<ConfigField[]>([]);
     const [advancedConfig, setAdvancedConfig] = useState<AdvancedConfig>({
         inletTemperature: 0,
@@ -77,16 +85,6 @@ export function ValueCalculatorMain({ hideCompareButton = false }: { hideCompare
                 .then((config: ProductConfigResponse) => {
                     const convertConfigFields = (apiFields: ConfigFieldAPI[]): ConfigField[] => {
                         return apiFields.map(field => {
-                            // Override options for data_centre_type
-                            if (field.id === "data_centre_type") {
-                                return {
-                                    ...field,
-                                    type: (field.type === "number" || field.type === "text" || field.type === "select") ? field.type : "select",
-                                    options: ["Greenfield", "HPC/AI"],
-                                    value: field.value || "",
-                                    required: field.required || false
-                                };
-                            }
                             return {
                                 id: field.id,
                                 label: field.label,
@@ -177,27 +175,24 @@ export function ValueCalculatorMain({ hideCompareButton = false }: { hideCompare
         setShowResults(true);
     };
     const handleCalculationResult = (result: any) => {
-        // If result is a compare (has both solutions), map as usual
-        if (result && result.air_cooling_solution && result.chassis_immersion_solution) {
-            setCalculationRawResult({
-                airCooling: result.air_cooling_solution,
-                chassisImmersion: result.chassis_immersion_solution,
-            });
-        } else if (result && (result.cooling_equipment_capex !== undefined)) {
-            // Single solution: decide which one based on config
-            // Heuristic: if configFields has 'annualised_liquid_cooled_ppue', it's chassis immersion, else air cooling
-            const isChassis = configFields.some(f => f.id === 'annualised_liquid_cooled_ppue');
-            setCalculationRawResult({
-                airCooling: isChassis ? undefined : result,
-                chassisImmersion: isChassis ? result : undefined,
-            });
-        } else {
-            setCalculationRawResult(undefined);
-        }
+        // Store the raw result directly
+        setCalculationRawResult(result);
         setShowResults(true);
+        
+        // If in compare mode, propagate result and validity
+        if (isCompareMode && onCalculationResult) {
+            // Defer state update to after render to avoid React warning
+            setTimeout(() => {
+                onCalculationResult(result, areRequiredFieldsValid());
+            }, 0);
+        } else if (onCalculationResult) {
+            setTimeout(() => {
+                onCalculationResult(result, areRequiredFieldsValid());
+            }, 0);
+        }
     };
     const areRequiredFieldsValid = () => {
-        return configFields.every(field => {
+        const valid = configFields.every(field => {
             if (!field.required) return true;
             if (field.type === 'select') {
                 return field.value && field.value !== '' && field.value !== 'Select an Option';
@@ -205,62 +200,91 @@ export function ValueCalculatorMain({ hideCompareButton = false }: { hideCompare
                 return field.value !== '' && field.value !== null && field.value !== undefined;
             }
         });
+        return valid;
     };
+
+    // Use useEffect to handle validity change callback to avoid setState during render
+    useEffect(() => {
+        if (isCompareMode && onCompareValidityChange) {
+            const valid = areRequiredFieldsValid();
+            onCompareValidityChange(valid);
+        }
+    }, [configFields, isCompareMode, onCompareValidityChange]);
+
+    // Auto-trigger calculation when fields change in compare mode
+    useEffect(() => {
+        if (isCompareMode && areRequiredFieldsValid() && configCardRef.current) {
+            // Small delay to ensure the field change is processed
+            const timeoutId = setTimeout(() => {
+                if (configCardRef.current && configCardRef.current.runCalculation) {
+                    configCardRef.current.runCalculation();
+                }
+            }, 300);
+            
+            return () => clearTimeout(timeoutId);
+        }
+    }, [configFields, isCompareMode]);
     const isCalculateDisabled = !selectedIndustry || !selectedTechnology || !selectedSolution || isLoadingConfig || !areRequiredFieldsValid();
-    // Reset calculator state when exiting compare mode
-    const handleExitCompare = () => {
-        setIsComparing(false);
-        setShowResults(false);
-        // Optionally reset other state here if needed
-    };
+    // Ref to call runCalculation on ConfigurationCard
+    const configCardRef = useRef<any>(null);
+
+    // Expose runCalculation to parent via ref
+    useImperativeHandle(ref, () => ({
+        runCalculation: () => {
+            if (configCardRef.current && configCardRef.current.runCalculation) {
+                configCardRef.current.runCalculation();
+            }
+        },
+    }));
+
     return (
         <div className="w-full">
             <div className="space-y-6 max-w-7xl mx-auto">
-                {!isComparing ? (
-                    <>
-                        {/* Header Selectors */}
-                        <HeaderSelectors
-                            selectedIndustry={selectedIndustry}
-                            setSelectedIndustry={setSelectedIndustry}
-                            selectedTechnology={selectedTechnology}
-                            setSelectedTechnology={setSelectedTechnology}
-                            selectedSolution={selectedSolution}
-                            setSelectedSolution={setSelectedSolution}
-                            selectedSolutionVariant={selectedSolutionVariant}
-                            setSelectedSolutionVariant={setSelectedSolutionVariant}
-                            onSolutionInfoChange={setSelectedSolutionInfo}
-                        />
-                        {/* Configuration Section */}
-                        <ConfigurationCard
-                            configFields={configFields}
-                            onConfigFieldChange={handleConfigFieldChange}
-                            onCalculationResult={handleCalculationResult}
-                            isCalculateDisabled={isCalculateDisabled}
-                            isLoading={isLoadingConfig}
-                            advancedConfig={advancedConfig}
-                            onAdvancedConfigChange={setAdvancedConfig}
-                            selectedSolutionInfo={selectedSolutionInfo}
-                            selectedSolutionVariant={selectedSolutionVariant}
-                            hideCompareButton={hideCompareButton}
-                        />
-                        {/* Results Section */}
-                        <ResultsSection results={results} showResults={showResults} calculationResult={calculationRawResult} />
-                        {/* Compare Button */}
-                        {!hideCompareButton && (
-                        <div className="flex justify-center pt-4">
-                            <button
-                                className="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                                onClick={() => setIsComparing(true)}
-                            >
-                                Compare Another Solution
-                            </button>
-                        </div>
-                        )}
-                    </>
-                ) : (
-                    <ValueCalculatorCompareWrapper onBack={handleExitCompare} />
+                {/* Header Selectors */}
+                <HeaderSelectors
+                    selectedIndustry={selectedIndustry}
+                    setSelectedIndustry={setSelectedIndustry}
+                    selectedTechnology={selectedTechnology}
+                    setSelectedTechnology={setSelectedTechnology}
+                    selectedSolution={selectedSolution}
+                    setSelectedSolution={setSelectedSolution}
+                    selectedSolutionVariant={selectedSolutionVariant}
+                    setSelectedSolutionVariant={setSelectedSolutionVariant}
+                    onSolutionInfoChange={setSelectedSolutionInfo}
+                />
+                {/* Configuration Section */}
+                <ConfigurationCard
+                    ref={configCardRef}
+                    configFields={configFields}
+                    onConfigFieldChange={handleConfigFieldChange}
+                    onCalculationResult={handleCalculationResult}
+                    isCalculateDisabled={isCalculateDisabled}
+                    isLoading={isLoadingConfig}
+                    advancedConfig={advancedConfig}
+                    onAdvancedConfigChange={setAdvancedConfig}
+                    selectedSolutionInfo={selectedSolutionInfo}
+                    selectedSolutionVariant={selectedSolutionVariant}
+                    hideCompareButton={hideCompareButton}
+                />
+                {/* Results Section */}
+                {!hideResultsSection && (
+                    <ResultsSection results={results} showResults={showResults} calculationResult={calculationRawResult} />
+                )}
+                {/* Compare Button */}
+                {!hideCompareButton && (
+                <div className="flex justify-center pt-4">
+                    <button
+                        className="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                        onClick={onCompareClick}
+                    >
+                        Compare Another Solution
+                    </button>
+                </div>
                 )}
             </div>
         </div>
     );
-}
+});
+
+
+export default ValueCalculatorMain;
