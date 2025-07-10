@@ -18,6 +18,12 @@ async def main_calculate(request: CoolingSolutionRequest):
 
     except HTTPException:
         raise
+        update_inputs(request.model_dump())
+        results = await calculate()
+        return results
+
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Main calculation error: {str(e)}")
 
