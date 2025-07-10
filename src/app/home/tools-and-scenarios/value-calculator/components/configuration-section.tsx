@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -40,6 +41,23 @@ export function ConfigurationSection({ title, fields, onFieldChange }: Configura
                 return ["Option 1", "Option 2", "Option 3"];
         }
     };
+
+    // Track local error state for data_hall_capacity
+    const [capacityError, setCapacityError] = useState<string>("");
+
+    // Custom handler for data_hall_capacity validation
+    const handleCapacityChange = (id: string, value: string | number) => {
+        const num = Number(value);
+        if (num < 1) {
+            setCapacityError("Minimum capacity is 1 MW.");
+        } else if (num > 10) {
+            setCapacityError("Maximum capacity is 10 MW.");
+        } else {
+            setCapacityError("");
+        }
+        onFieldChange(id, value);
+    };
+
     return (
         <div className="space-y-4">
             <h3 className="text-sm font-medium text-gray-700">{title}</h3>
@@ -51,28 +69,36 @@ export function ConfigurationSection({ title, fields, onFieldChange }: Configura
                             {field.required && <span className="text-red-500 ml-1">*</span>}
                         </Label>
                         <div className="relative">
-                            {field.id === "air_annualized_ppue" ? (
+                            {field.id === "air_annualized_ppue" || field.id === "annualised_liquid_cooled_ppue" ? (
                                 <Input
                                     id={field.id}
                                     type="number"
                                     value={field.value}
+                                    min={0}
+                                    step={0.01}
                                     onChange={(e) => onFieldChange(field.id, e.target.value)}
                                     placeholder={`Enter ${field.label.toLowerCase()}`}
                                     className={`pr-12 ${field.required && !field.value ? "border-red-200" : ""}`}
                                     required={field.required}
                                 />
                             ) : field.id === "data_hall_capacity" ? (
+                                <>
                                 <Input
                                     id={field.id}
                                     type="number"
                                     min={1}
                                     step={0.1}
                                     value={field.value}
-                                    onChange={(e) => onFieldChange(field.id, e.target.value)}
+                                    max={10}
+                                    onChange={(e) => handleCapacityChange(field.id, e.target.value)}
                                     placeholder="Enter data hall capacity (MW)"
                                     className={`pr-12 ${field.required && !field.value ? "border-red-200" : ""}`}
                                     required={field.required}
                                 />
+                                {capacityError && (
+                                    <div className="text-xs text-red-500 mt-1">{capacityError}</div>
+                                )}
+                                </>
                             ) : (
                                 <Select
                                     value={field.value as string}

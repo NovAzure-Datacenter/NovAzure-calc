@@ -12,10 +12,10 @@ export default function ValueCalculatorCompareWrapper({ onBack }: { onBack?: () 
   const [showCompare, setShowCompare] = useState(true);
 
   if (!showCompare) {
-    // If local back, render single calculator
+    // If local back, render single calculator (hide compare button everywhere)
     return (
       <div className="flex flex-col gap-8">
-        <ValueCalculatorMain />
+        <ValueCalculatorMain hideCompareButton={true} />
         <div className="flex justify-center">
           <Button
             variant="outline"
@@ -39,7 +39,18 @@ export default function ValueCalculatorCompareWrapper({ onBack }: { onBack?: () 
           <ValueCalculatorMain hideCompareButton />
         </div>
       </div>
-      <div className="flex justify-center">
+      <div className="flex flex-col items-center gap-4">
+        {/* Single Compare Button for both calculators */}
+        <Button
+          variant="default"
+          className="px-8 py-2 text-lg"
+          onClick={() => {
+            // TODO: Implement comparison logic here
+            alert('Compare both calculations!');
+          }}
+        >
+          Compare Both Calculations
+        </Button>
         <Button
           variant="outline"
           onClick={() => {

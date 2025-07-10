@@ -183,6 +183,12 @@ export function ValueCalculatorMain({ hideCompareButton = false }: { hideCompare
         });
     };
     const isCalculateDisabled = !selectedIndustry || !selectedTechnology || !selectedSolution || isLoadingConfig || !areRequiredFieldsValid();
+    // Reset calculator state when exiting compare mode
+    const handleExitCompare = () => {
+        setIsComparing(false);
+        setShowResults(false);
+        // Optionally reset other state here if needed
+    };
     return (
         <div className="w-full">
             <div className="space-y-6 max-w-7xl mx-auto">
@@ -211,6 +217,7 @@ export function ValueCalculatorMain({ hideCompareButton = false }: { hideCompare
                             onAdvancedConfigChange={setAdvancedConfig}
                             selectedSolutionInfo={selectedSolutionInfo}
                             selectedSolutionVariant={selectedSolutionVariant}
+                            hideCompareButton={hideCompareButton}
                         />
                         {/* Results Section */}
                         <ResultsSection results={results} showResults={showResults} />
@@ -227,7 +234,7 @@ export function ValueCalculatorMain({ hideCompareButton = false }: { hideCompare
                         )}
                     </>
                 ) : (
-                    <ValueCalculatorCompareWrapper />
+                    <ValueCalculatorCompareWrapper onBack={handleExitCompare} />
                 )}
             </div>
         </div>

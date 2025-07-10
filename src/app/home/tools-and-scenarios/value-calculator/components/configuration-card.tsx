@@ -20,6 +20,7 @@ interface ConfigurationCardProps {
     onAdvancedConfigChange?: (config: AdvancedConfig) => void;
     selectedSolutionInfo?: {name: string, description?: string} | null;
     selectedSolutionVariant?: string;
+    hideCompareButton?: boolean;
 }
 
 interface calcInputs{
@@ -40,6 +41,7 @@ export function ConfigurationCard({
     advancedConfig,
     onAdvancedConfigChange,
     selectedSolutionInfo,
+    hideCompareButton = false,
 }: ConfigurationCardProps) {
 
     // Move runCalculation out of useEffect so it can be called on button press only
@@ -627,6 +629,7 @@ export function ConfigurationCard({
                             Advanced fields are optional.
                         </div>
 
+                        {!hideCompareButton && (
                         <div className="flex justify-center pt-4">
                             <Button 
                                 onClick={runCalculation}
@@ -636,6 +639,7 @@ export function ConfigurationCard({
                                 Compare
                             </Button>
                         </div>
+                        )}
                     </>
                 )}
             </CardContent>
