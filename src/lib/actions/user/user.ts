@@ -324,6 +324,7 @@ export async function getUserById(userId: string) {
 				email: user.email,
 				original_email: user.original_email || user.email,
 				role: user.role || "user",
+				client_id: user.client_id.toString(),
 				mobile_number: user.mobile_number || "",
 				work_number: user.work_number || "",
 				timezone: user.timezone || "",
