@@ -4,6 +4,9 @@ from typing import Optional
 
 class CoolingSolutionRequest(BaseModel):
     # Basic inputs
+    solution_type: str = Field(
+        ..., description="Data Center Solution Type"
+    )
     data_hall_design_capacity_mw: float = Field(
         ..., description="Data hall design capacity in MW"
     )

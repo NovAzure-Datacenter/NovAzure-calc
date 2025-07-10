@@ -100,7 +100,10 @@ export function ValueCalculatorMain({ hideCompareButton = false }: { hideCompare
                             };
                         });
                     };
-                    setConfigFields(convertConfigFields(config.config_fields || []));
+                    // Add solution_type as a config field
+                    const baseFields = convertConfigFields(config.config_fields || []);
+                    // Only add if not already present
+                    setConfigFields(baseFields);
                 })
                 .catch((error) => {
                     console.error('Error fetching solution variant configuration:', error);
@@ -174,12 +177,23 @@ export function ValueCalculatorMain({ hideCompareButton = false }: { hideCompare
         setShowResults(true);
     };
     const handleCalculationResult = (result: any) => {
-        // Map backend keys to frontend expected keys for charts/results
-        const mappedResult = {
-            airCooling: result.air_cooling_solution,
-            chassisImmersion: result.chassis_immersion_solution,
-        };
-        setCalculationRawResult(mappedResult);
+        // If result is a compare (has both solutions), map as usual
+        if (result && result.air_cooling_solution && result.chassis_immersion_solution) {
+            setCalculationRawResult({
+                airCooling: result.air_cooling_solution,
+                chassisImmersion: result.chassis_immersion_solution,
+            });
+        } else if (result && (result.cooling_equipment_capex !== undefined)) {
+            // Single solution: decide which one based on config
+            // Heuristic: if configFields has 'annualised_liquid_cooled_ppue', it's chassis immersion, else air cooling
+            const isChassis = configFields.some(f => f.id === 'annualised_liquid_cooled_ppue');
+            setCalculationRawResult({
+                airCooling: isChassis ? undefined : result,
+                chassisImmersion: isChassis ? result : undefined,
+            });
+        } else {
+            setCalculationRawResult(undefined);
+        }
         setShowResults(true);
     };
     const areRequiredFieldsValid = () => {

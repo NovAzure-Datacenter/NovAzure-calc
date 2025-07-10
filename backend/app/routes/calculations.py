@@ -13,13 +13,7 @@ router = APIRouter(prefix="/calculations", tags=["calculations"])
 async def main_calculate(request: CoolingSolutionRequest):
     try:
         update_inputs(request.model_dump())
-        results = await calculate()
-        return results
-
-    except HTTPException:
-        raise
-        update_inputs(request.model_dump())
-        results = await calculate()
+        results = await calculate(request.solution_type)
         return results
 
     except HTTPException:

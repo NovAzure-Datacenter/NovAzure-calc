@@ -13,20 +13,30 @@ interface ChartsSectionProps {
 }
 
 export function ChartsSection({ airCooling, chassisImmersion }: ChartsSectionProps) {
-    // Bar chart: TCO, CAPEX, OPEX comparison
+    // Bar chart: TCO, CAPEX, OPEX comparison (safe access)
     const barData = [
-        { solution: "Air Cooling", tco: airCooling.tco_including_it ?? 0, capex: airCooling.total_capex ?? 0, opex: airCooling.total_opex_over_lifetime ?? 0 },
-        { solution: "Chassis Immersion", tco: chassisImmersion.tco_including_it ?? 0, capex: chassisImmersion.total_capex ?? 0, opex: chassisImmersion.total_opex_over_lifetime ?? 0 },
+        { 
+            solution: "Air Cooling", 
+            tco: airCooling?.tco_including_it ?? 0, 
+            capex: airCooling?.total_capex ?? 0, 
+            opex: airCooling?.total_opex_over_lifetime ?? 0 
+        },
+        { 
+            solution: "Chassis Immersion", 
+            tco: chassisImmersion?.tco_including_it ?? 0, 
+            capex: chassisImmersion?.total_capex ?? 0, 
+            opex: chassisImmersion?.total_opex_over_lifetime ?? 0 
+        },
     ];
 
-    // Pie chart: CAPEX vs OPEX for each solution
+    // Pie chart: CAPEX vs OPEX for each solution (safe access)
     const airPie = [
-        { name: "CAPEX", value: airCooling.total_capex ?? 0, color: "#3b82f6" },
-        { name: "OPEX", value: airCooling.total_opex_over_lifetime ?? 0, color: "#fbbf24" },
+        { name: "CAPEX", value: airCooling?.total_capex ?? 0, color: "#3b82f6" },
+        { name: "OPEX", value: airCooling?.total_opex_over_lifetime ?? 0, color: "#fbbf24" },
     ];
     const chassisPie = [
-        { name: "CAPEX", value: chassisImmersion.total_capex ?? 0, color: "#3b82f6" },
-        { name: "OPEX", value: chassisImmersion.total_opex_over_lifetime ?? 0, color: "#fbbf24" },
+        { name: "CAPEX", value: chassisImmersion?.total_capex ?? 0, color: "#3b82f6" },
+        { name: "OPEX", value: chassisImmersion?.total_opex_over_lifetime ?? 0, color: "#fbbf24" },
     ];
 
     return (

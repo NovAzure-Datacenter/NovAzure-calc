@@ -174,8 +174,8 @@ def update_inputs(inputs: Dict[str, Any]) -> None:
     calculations.update_inputs(inputs)
 
 
-async def calculate() -> Dict[str, Any]:
-    return await calculations.calculate()
+async def calculate(solution_type: str) -> Dict[str, Any]:
+    return await calculations.calculate(solution_type)
 
 
 async def compare() -> Dict[str, Any]:

@@ -1,23 +1,23 @@
 import { NextResponse } from 'next/server';
 
+// Define the type for config fields
+type ConfigField = {
+  id: string;
+  label: string;
+  type: string;
+  value: string;
+  unit?: string;
+  required: boolean;
+  options?: string[];
+  min_value?: number;
+  max_value?: number;
+};
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const solutionName = searchParams.get('solutionName'); // Use solution name, not variant
     //const solutionVariantId = searchParams.get('solutionVariantId');
-
-    // Define the type for config fields
-    type ConfigField = {
-      id: string;
-      label: string;
-      type: string;
-      value: string;
-      unit?: string;
-      required: boolean;
-      options?: string[];
-      min_value?: number;
-      max_value?: number;
-    };
 
     // Default config fields
     const config_fields: ConfigField[] = [
@@ -26,7 +26,7 @@ export async function GET(request: Request) {
         label: 'Data Centre Type',
         type: 'select',
         value: '',
-        options: ['Colocation', 'Enterprise', 'Hyperscale'],
+        options: ['Greenfield', 'HPC/AI'],
         required: true
       },
       {

@@ -24,12 +24,14 @@ interface ConfigurationCardProps {
 }
 
 interface calcInputs{
+    solution_type: string;
     data_hall_design_capacity_mw: number;
     first_year_of_operation: number;
     project_location: string;
     percentage_of_utilisation: number;
     planned_years_of_operation: number;
     annualised_air_ppue: number;
+    advanced: boolean;
 }
 
 export function ConfigurationCard({
@@ -48,14 +50,26 @@ export function ConfigurationCard({
     const runCalculation = async () => {
         if (!selectedSolutionInfo) return;
 
+        // Map frontend solution name to backend solution_type
+        let backendSolutionType = "";
+        if (selectedSolutionInfo.name === "Air Cooling") {
+            backendSolutionType = "air_cooling";
+        } else if (selectedSolutionInfo.name === "Liquid Cooling") {
+            backendSolutionType = "chassis_immersion";
+        } else {
+            backendSolutionType = selectedSolutionInfo.name?.toLowerCase().replace(/\s+/g, '_') || "";
+        }
+
         // Prepare the inputs for the calculation
         const inputs: calcInputs = {
+            solution_type: backendSolutionType,
             data_hall_design_capacity_mw: 0,
             first_year_of_operation: 0,
             project_location: "",
             percentage_of_utilisation: 0,
             planned_years_of_operation: 0,
             annualised_air_ppue: 0,
+            advanced: false
         };
         // Populate inputs based on configFields
         configFields.forEach(field => {
@@ -75,7 +89,7 @@ export function ConfigurationCard({
                 case 'planned_years_operation':
                     inputs.planned_years_of_operation = Number(field.value);
                     break;
-                case 'air_annualized_ppue':
+                case 'air_annualised_ppue':
                     inputs.annualised_air_ppue = Number(field.value);
                     break;
                 default:
@@ -102,6 +116,7 @@ export function ConfigurationCard({
             onCalculationResult(result);
         } catch (error) {
             console.error('Error during calculation:', error);
+            console.log("SOlution name: "+ selectedSolutionInfo.name);
         }
     };
 
