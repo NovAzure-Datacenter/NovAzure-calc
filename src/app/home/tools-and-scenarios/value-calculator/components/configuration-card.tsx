@@ -7,7 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { ConfigField , AdvancedConfig} from "../types/types";
 import { ConfigurationSection } from "./configuration-section";
-
+import { FIELD_CATEGORIES } from "@/lib/constants/calculator-config";
 
 
 interface ConfigurationCardProps {
@@ -84,7 +84,9 @@ const ConfigurationCard = forwardRef(function ConfigurationCard({
                     inputs.project_location = field.value as string;
                     break;
                 case 'utilisation_percentage':
-                    inputs.percentage_of_utilisation = Number(field.value);
+                    // Remove % symbol and convert to number
+                    const percentageValue = (field.value as string).replace('%', '');
+                    inputs.percentage_of_utilisation = Number(percentageValue);
                     break;
                 case 'planned_years_operation':
                     inputs.planned_years_of_operation = Number(field.value);
@@ -96,6 +98,8 @@ const ConfigurationCard = forwardRef(function ConfigurationCard({
                     break;
             }
         });
+
+        console.log('Prepared inputs for calculation:', inputs);
 
         // Call the API with the prepared inputs
         try {
@@ -150,62 +154,21 @@ const ConfigurationCard = forwardRef(function ConfigurationCard({
             return runCalculation();
         },
     }));
-    // Separate data center fields from cooling configuration fields
-    const dataCenterFieldIds = [
-        'data_centre_type',
-        'project_location',
-        'utilisation_percentage',
-        'data_hall_capacity',
-        'planned_years_operation',
-        'first_year_operation'
-    ];
-    
-    // Air Cooling Configuration fields
-    const airCoolingFieldIds = [
-        'air_annualized_ppue',
-        'default_air_ppue'
-    ];
-    
-    // chassis Configuration fields (for immersion cooling)
-    const chassisConfigFieldIds = [
-        'annualised_liquid_cooled_ppue'
-    ];
-    
-    // Map project_location to a dropdown field with options
-    const PROJECT_LOCATION_OPTIONS = [
-        { value: "United Kingdom", label: "United Kingdom" },
-        { value: "United States", label: "United States" },
-        { value: "Singapore", label: "Singapore" },
-        { value: "United Arab Emirated", label: "United Arab Emirated" }
-    ];
-
-    const dataCenterFields = configFields.map(field => {
-        if (field.id === "project_location") {
-            return {
-                ...field,
-                type: "select" as const,
-                options: PROJECT_LOCATION_OPTIONS.map(opt => opt.value),
-                optionLabels: PROJECT_LOCATION_OPTIONS.reduce((acc, opt) => {
-                  acc[opt.value] = opt.label;
-                  return acc;
-                }, {} as Record<string, string>),
-            };
-        }
-        return field;
-    }).filter(field => dataCenterFieldIds.includes(field.id));
+    // Separate data center fields from cooling configuration fields using centralized categorization
+    const dataCenterFields = configFields.filter(field => 
+        FIELD_CATEGORIES.dataCenter.includes(field.id)
+    );
     
     const airCoolingFields = configFields.filter(field => 
-        airCoolingFieldIds.includes(field.id)
+        FIELD_CATEGORIES.airCooling.includes(field.id)
     );
     
     const chassisConfigFields = configFields.filter(field => 
-        chassisConfigFieldIds.includes(field.id)
+        FIELD_CATEGORIES.liquidCooling.includes(field.id)
     );
     
     const otherConfigFields = configFields.filter(field => 
-        !dataCenterFieldIds.includes(field.id) && 
-        !airCoolingFieldIds.includes(field.id) &&
-        !chassisConfigFieldIds.includes(field.id)
+        !Object.values(FIELD_CATEGORIES).flat().includes(field.id)
     );
 
     return (
