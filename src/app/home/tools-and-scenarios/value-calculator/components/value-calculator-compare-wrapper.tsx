@@ -84,6 +84,55 @@ function ChartsSection({ calc1Result, calc2Result }: { calc1Result: any, calc2Re
         </Card>
       </div>
 
+      {/* Detailed Comparison Table */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Detailed Comparison</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left py-2">Metric</th>
+                  <th className="text-right py-2">Solution 1</th>
+                  <th className="text-right py-2">Solution 2</th>
+                  <th className="text-right py-2">Difference</th>
+                  <th className="text-right py-2">% Change</th>
+                </tr>
+              </thead>
+              <tbody>
+                {comparisonData.tableData.map((item, index) => (
+                  <tr key={index} className="border-b hover:bg-gray-50">
+                    <td className="py-2 font-medium">{item.key}</td>
+                    <td className="text-right py-2">
+                      {typeof item.solution1 === 'number' 
+                        ? item.solution1.toLocaleString() 
+                        : item.solution1}
+                    </td>
+                    <td className="text-right py-2">
+                      {typeof item.solution2 === 'number' 
+                        ? item.solution2.toLocaleString() 
+                        : item.solution2}
+                    </td>
+                    <td className="text-right py-2">
+                      {item.difference !== null 
+                        ? item.difference.toLocaleString() 
+                        : '-'}
+                    </td>
+                    <td className="text-right py-2">
+                      {item.percentageDiff !== null 
+                        ? `${item.percentageDiff.toFixed(1)}%` 
+                        : '-'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Single Chart */}
       {comparisonData.chartData.length > 0 && (
         <Card>
@@ -137,55 +186,6 @@ function ChartsSection({ calc1Result, calc2Result }: { calc1Result: any, calc2Re
           </CardContent>
         </Card>
       )}
-
-      {/* Detailed Comparison Table */}
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle>Detailed Comparison</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-2">Metric</th>
-                  <th className="text-right py-2">Solution 1</th>
-                  <th className="text-right py-2">Solution 2</th>
-                  <th className="text-right py-2">Difference</th>
-                  <th className="text-right py-2">% Change</th>
-                </tr>
-              </thead>
-              <tbody>
-                {comparisonData.tableData.map((item, index) => (
-                  <tr key={index} className="border-b hover:bg-gray-50">
-                    <td className="py-2 font-medium">{item.key}</td>
-                    <td className="text-right py-2">
-                      {typeof item.solution1 === 'number' 
-                        ? item.solution1.toLocaleString() 
-                        : item.solution1}
-                    </td>
-                    <td className="text-right py-2">
-                      {typeof item.solution2 === 'number' 
-                        ? item.solution2.toLocaleString() 
-                        : item.solution2}
-                    </td>
-                    <td className="text-right py-2">
-                      {item.difference !== null 
-                        ? item.difference.toLocaleString() 
-                        : '-'}
-                    </td>
-                    <td className="text-right py-2">
-                      {item.percentageDiff !== null 
-                        ? `${item.percentageDiff.toFixed(1)}%` 
-                        : '-'}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
