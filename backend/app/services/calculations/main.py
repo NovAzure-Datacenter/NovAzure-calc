@@ -47,6 +47,7 @@ class CoolingSolutionsCalculator:
             "data_hall_design_capacity_mw": self.inputs.data_hall_design_capacity_mw,
             "first_year_of_operation": self.inputs.first_year_of_operation,
             "country": self.inputs.project_location,
+            "advanced": self.inputs.advanced,
             "advanced_config": self._build_advanced_config(),
         }
 
@@ -174,8 +175,8 @@ def update_inputs(inputs: Dict[str, Any]) -> None:
     calculations.update_inputs(inputs)
 
 
-async def calculate() -> Dict[str, Any]:
-    return await calculations.calculate()
+async def calculate(solution_type: str) -> Dict[str, Any]:
+    return await calculations.calculate(solution_type)
 
 
 async def compare() -> Dict[str, Any]:
