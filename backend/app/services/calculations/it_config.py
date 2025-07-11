@@ -4,19 +4,30 @@ IT Configuration Module for Data Center Cost Modeling
 
 import math
 
-# Default IT Configuration Values
+#Default IT Configuration Values
+DEFAULT_25_SERVER_L2_BOM = 1200
+DEFAULT_DIMM_COST_PER_GB = 4
+DEFAULT_DIMM_CAPACITY_IN_GB = 96
+DEFAULT_DDRS_6400_CHANNELS = 12
 DEFAULT_NUMBER_OF_SOCKETS_PER_SERVER = 2
+DEFAILT_32_400_SWITCH_COST = 8000
 DEFAULT_CPU_PRICE_PER_UNIT = 2400
+
+# Default IT Configuration Values AIR COOLING
 DEFAULT_SERVERS_PER_RACK = 14
 DEFAULT_TOTAL_CHANNELS = 16
-DEFAULT_DIMM_CAPACITY_IN_GB = 96
-DEFAULT_DIMM_COST_PER_GB = 4
-DEFAULT_DDRS_6400_CHANNELS = 12
 DEFAULT_NETWORK_CABLE_COST_PER_SERVER = 100.0
 DEFAULT_SWITCH_COST_PER_UNIT = 8000
-DEFAULT_25_SERVER_L2_BOM = 1200
 DEFAULT_HPC_AI_COST_PER_SERVER = 50000
 DEFAULT_ANNUAL_IT_MAINTENANCE_COST_PERCENTAGE = 0.08
+
+# Default IT Configuration Values CHASSIS COOLING
+DEFAULT_NETWORK_CABLE_COST_PER_SERVER_CHASSIS = 200.0
+DEFAULT_SERVERS_PER_RACK_CHASSIS = 38
+DEFAULT_TOTAL_CHANNELS_CHASSIS = 16
+DEFAULT_DIMM_CAPACITY_IN_GB_CHASSIS = 96
+DEFAULT_DIMM_COST_PER_GB_CHASSIS = 4
+
 
 # Power and Hardware Functions
 
@@ -142,7 +153,7 @@ def calculate_total_network_cost_per_rack(
 
 
 def calculate_total_network_cost_per_server(
-    total_network_cost_per_rack=None, servers_per_rack=None
+    total_network_cost_per_rack:int, servers_per_rack:int
 ):
     """Calculate network cost allocated per server."""
     rack_cost = (
@@ -207,7 +218,6 @@ def calculate_typical_it_cost_per_server(data_center_type: str):
 
 
 # Rack Capacity Functions
-
 
 def calculate_maximum_number_of_chassis_per_rack_for_air(
     air_rack_cooling_capacity_kw_per_rack, data_center_type
@@ -282,3 +292,106 @@ def calculate_total_it_cost(
 
     # Return just the total IT cost as a number
     return int(initial_server_cost + refresh_cost)
+
+#Chassis Cooling Functions
+
+def calculate_it_equipment_capex_chassis(advanced: bool):
+    if(advanced == True):
+        return calculate_input_type_filter_chassis()/1000
+    else:
+        return calcualte_total_it_cost_with_geographical_adjustments_chassis()/1000
+
+
+def calculate_input_type_filter_chassis(advanced:bool):
+    if(advanced == False):
+        return calculate_project_type_filter_chassis() / calculate_greenfield_basic_chassis()
+    else:
+        return calculate_project_type_filter_chassis() / calculate_greenfield_advanced_chassis()
+
+def calculate_project_type_filter_chassis(project_type:str):
+    #if(project_type == "Greenfield"):
+    return calculate_greenfield_basic_chassis()
+
+#greenfield basic
+
+def calculate_greenfield_basic_chassis(country_filter:int):
+    if(country_filter == "United States"):
+        return calcualte_air_cooled_it_capex_greenfield_basic
+    elif(country_filter == "United Kingdom"):
+        return calcualte_air_cooled_it_capex_greenfield_basic
+    elif(country_filter == "Singapore"):
+        return calcualte_air_cooled_it_capex_greenfield_basic
+    elif(country_filter == "United Arab Emirates"):
+        return calcualte_air_cooled_it_capex_greenfield_basic
+
+def calcualte_air_cooled_it_capex_greenfield_basic(total_it_cost_per_kw:int, nameplate_power_kw: int):
+    return calculate_total_it_cost_per_kw_basic() * calculate_nameplate_power_kw()
+
+def calculate_total_it_cost_per_kw_basic(total_it_cost:int, nameplate_power_kw:int):
+    return calculate_total_it_cost_greenfield_basic() / math.ceil(calculate_nameplate_power_kw())
+
+def calculate_total_it_cost_greenfield_basic(typical_it_cost_per_server:int, total_n_of_servers:int):
+    return typical_it_cost_per_server = 0 * calcualte_total_n_of_servers_chassis()
+
+#greenfield advanced
+
+def calculate_greenfield_advanced_chassis(country_filter:int):
+    if(country_filter == "United States"):
+        return calculate_air_cooled_it_capex_greenfield_advanced
+    elif(country_filter == "United Kingdom"):
+        return calculate_air_cooled_it_capex_greenfield_advanced
+    elif(country_filter == "Singapore"):
+        return calculate_air_cooled_it_capex_greenfield_advanced
+    elif(country_filter == "United Arab Emirates"):
+        return calculate_air_cooled_it_capex_greenfield_advanced
+
+
+def calculate_air_cooled_it_capex_greenfield_advanced(total_it_cost_per_kw:int, nameplate_power_kw: int):
+    return calculate_total_it_cost_per_kw_advanced() * calculate_nameplate_power_kw()
+
+def calculate_total_it_cost_per_kw_advanced(total_it_cost:int, nameplate_power_kw:int):
+    return calculate_total_it_cost_greenfield_advanced() / calculate_nameplate_power_kw()
+
+def calculate_total_it_cost_greenfield_advanced(typical_it_cost_per_server_incl_server_memory_and_network_cost:int, total_n_of_servers:int, include_it_cost_per_server:bool):
+    if(include_it_cost_per_server == True):
+        #this is an empty location at f60 cdata center customer inputs
+        return typical_it_cost_per_server_incl_server_memory_and_network_cost * math.floor(calcualte_total_n_of_servers_chassis())
+    else:
+        return 0
+
+
+def calcualte_total_it_cost_with_geographical_adjustments_chassis(total_it_cost_per_kw:int, nameplate_power_kw:int):
+    return calculate_total_it_cost_per_kw_basic() * calculate_nameplate_power_kw()
+
+def calculate_it_cost_reduction_due_to_low_network_cost_chassis(total_server_cost:int, total_it_cost_per_chassis:int):
+    return total_server_cost / calculate_total_it_cost_per_chassis()
+
+def calculate_total_server_cost_chassis(total_network_cost_per_server:int, total_memory_cost_per_server:int, twentyfive_server_l2_bom:int, total_cpu_price_per_server:int):
+    return calculate_total_network_cost_per_server_chassis() + calculate_total_memory_cost_per_server_chassis() + DEFAULT_25_SERVER_L2_BOM + total_cpu_price_per_server
+
+def calculate_total_network_cost_per_server_chassis(total_network_cost_per_rack:int, servers_per_rack_chassis:int):
+    return calculate_total_network_cost_per_rack_chassis() * DEFAULT_SERVERS_PER_RACK_CHASSIS
+
+def calculate_total_network_cost_per_rack_chassis(tnetwork_cable_cost_per_server:int, servers_per_rack_chassis:int, switch_cost_per_unit:int):
+    return (total_network_cable_cost_per_server_chassis * DEFAULT_SERVERS_PER_RACK_CHASSIS) * DEFAULT_32_400_SWITCH_COST
+
+def calculate_total_memory_cost_per_server_chassis(total_channels:int, dimm_capacity:int, dimm_cost:int):
+    return calculate_total_channels_chassis() * DEFAULT_DIMM_CAPACITY_IN_GB_CHASSIS * DEFAULT_DIMM_COST_PER_GB_CHASSIS
+
+def calculate_total_channels_chassis(ddrs_6400_channels:int, number_of_sockets_per_server:int):
+    return DEFAULT_DDRS_6400_CHANNELS * DEFAULT_NUMBER_OF_SOCKETS_PER_SERVER_CHASSIS
+
+def calculate_total_cpu_price_per_server_chassis(number_of_sockets_per_server:int, cpu_price_per_unit:int):
+    return DEFAULT_NUMBER_OF_SOCKETS_PER_SERVER_CHASSIS * DEFAULT_CPU_PRICE_PER_UNIT
+
+def calcualte_total_n_of_servers_chassis(server_rated_max_power:int, nameplate_power_kw:int):
+    return calcualte_nameplate_power_kw() / calcualte_server_rated_max_power_chassis()
+
+def calculate_server_rated_max_power_chassis(data_center_type:str):
+    if(data_center_type == "General Purpose"):
+        return 1
+    elif(data_center_type == "HPC/AI"):
+        return 2
+
+def calculate_nameplate_power_kw(data_hall_design_capacity_mw:int):
+    return data_hall_design_capacity_mw * 1000
