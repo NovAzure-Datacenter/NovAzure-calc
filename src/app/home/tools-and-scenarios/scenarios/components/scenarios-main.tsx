@@ -141,6 +141,7 @@ export function ScenariosMain() {
 				availableTechnologies={availableTechnologies}
 				isLoading={isLoading}
 				searchQuery={searchQuery}
+				userId={user?._id || ""}
 			/>
 		</div>
 	);

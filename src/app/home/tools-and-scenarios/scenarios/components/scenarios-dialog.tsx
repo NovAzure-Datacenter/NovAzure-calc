@@ -25,14 +25,14 @@ import {
 	TrendingUp,
 	Info,
 } from "lucide-react";
-import type { SavedCalculationScenario } from "../mock-data";
+import type { ScenarioData } from "@/lib/actions/scenarios/scenarios";
 import type {
 	Industry,
 	Technology,
 } from "../../../admin/industries-and-technologies/types";
 
 interface ScenariosDialogProps {
-	scenario: SavedCalculationScenario | null;
+	scenario: ScenarioData | null;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	availableIndustries: Industry[];
@@ -54,18 +54,6 @@ export function ScenariosDialog({
 	function getResolvedName(type: "solution" | "user", id: string): string {
 		const cacheKey = `${type}_${id}`;
 		return resolvedNames[cacheKey] || id;
-	}
-
-	function getIndustryName(industryId: string): string {
-		const industry = availableIndustries.find((ind) => ind.id === industryId);
-		return industry?.name || industryId;
-	}
-
-	function getTechnologyName(technologyId: string): string {
-		const technology = availableTechnologies.find(
-			(tech) => tech.id === technologyId
-		);
-		return technology?.name || technologyId;
 	}
 
 	function getResultInfo(results: any[]): {
@@ -106,36 +94,6 @@ export function ScenariosDialog({
 							</CardTitle>
 						</CardHeader>
 						<CardContent className="space-y-4">
-							{/* Industry and Technology */}
-							<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-								<div>
-									<h4 className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
-										<Building2 className="h-4 w-4" />
-										Industry
-									</h4>
-									<div className="flex flex-wrap gap-1">
-										{scenario.industry.map((industryId, index) => (
-											<Badge key={index} variant="outline">
-												{getIndustryName(industryId)}
-											</Badge>
-										))}
-									</div>
-								</div>
-								<div>
-									<h4 className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
-										<Zap className="h-4 w-4" />
-										Technology
-									</h4>
-									<div className="flex flex-wrap gap-1">
-										{scenario.technology.map((techId, index) => (
-											<Badge key={index} variant="outline">
-												{getTechnologyName(techId)}
-											</Badge>
-										))}
-									</div>
-								</div>
-							</div>
-
 							{/* Solution Information */}
 							<div>
 								<h4 className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
