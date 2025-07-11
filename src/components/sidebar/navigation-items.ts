@@ -71,6 +71,12 @@ export const getMainNavigationItems = (
 			isActive: true,
 		},
 		{
+			title: "My Clients",
+			icon: UsersIcon,
+			url: "/home/leads",
+			isActive: true,
+		},
+		{
 			title: "News & Updates",
 			icon: BookOpenIcon,
 			url: "/home/news",

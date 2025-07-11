@@ -51,7 +51,7 @@ export const authOptions: NextAuthOptions = {
 						email: user.email,
 						name: `${user.first_name || ""} ${user.last_name || ""}`.trim() || "Unknown User",
 						role: user.role || "user",
-						company_id: user.company_id?.toString() || "",
+						client_id: user.client_id?.toString() || "",
 					};
 				} catch (error) {
 					console.error("Auth error:", error);
@@ -68,7 +68,7 @@ export const authOptions: NextAuthOptions = {
 			if (user) {
 				// Store only essential data in JWT
 				token.role = user.role;
-				token.company_id = user.company_id;
+				token.client_id = user.client_id;
 			}
 			return token;
 		},
@@ -77,7 +77,7 @@ export const authOptions: NextAuthOptions = {
 				// Add essential data to session
 				session.user.id = token.sub!;
 				session.user.role = token.role!;
-				session.user.company_id = token.company_id!;
+				session.user.client_id = token.client_id!;
 			}
 			return session;
 		},
