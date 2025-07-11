@@ -38,8 +38,12 @@ async def test_basiccooling_solutions_calculation():
     assert result["it_equipment_capex"] == 0
     assert 3000000 > result["annual_cooling_opex"] > 2500000
     assert 30000000 > result["total_opex_over_lifetime"] > 25000000
-    assert result["tco_excluding_it"] == result["total_opex_over_lifetime"] + result["cooling_equipment_capex"]
+    assert (
+        result["tco_excluding_it"]
+        == result["total_opex_over_lifetime"] + result["cooling_equipment_capex"]
+    )
     assert result["tco_including_it"] == result["tco_excluding_it"]
+
 
 @pytest.mark.asyncio
 async def test_IT_cost_air_cooling_solutions_calculation():
@@ -61,5 +65,13 @@ async def test_IT_cost_air_cooling_solutions_calculation():
     assert result["it_equipment_capex"] > 0
     assert 35000000 > result["it_equipment_capex"] > 30000000
     assert result["tco_excluding_it"] < result["tco_including_it"]
-    assert result["tco_excluding_it"] == result["total_opex_over_lifetime"] - result["annual_it_maintenance"] + result["cooling_equipment_capex"]
-    assert result["tco_including_it"] == result["total_opex_over_lifetime"] + result["total_capex"]
+    assert (
+        result["tco_excluding_it"]
+        == result["total_opex_over_lifetime"]
+        - result["annual_it_maintenance"]
+        + result["cooling_equipment_capex"]
+    )
+    assert (
+        result["tco_including_it"]
+        == result["total_opex_over_lifetime"] + result["total_capex"]
+    )
