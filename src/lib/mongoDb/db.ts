@@ -44,6 +44,17 @@ export async function getClientsLeadsCollection(): Promise<Collection> {
 	return db.collection("clients_leads");
 }
 
+export async function getClientsProjectsCollection(): Promise<Collection> {
+	const db = await getDb();
+	return db.collection("clients_projects");
+}
+
+// Scenarios Collection
+export async function getScenariosCollection(): Promise<Collection> {
+	const db = await getDb();
+	return db.collection("scenarios");
+}
+
 // Solutions Collection
 export async function getSolutionsCollection(): Promise<Collection> {
 	const db = await getDb();
@@ -60,12 +71,6 @@ export async function getSolutionVariantsCollection(): Promise<Collection> {
 export async function getProductsCollection(): Promise<Collection> {
 	const db = await getDb();
 	return db.collection("products");
-}
-
-// Scenarios Collection
-export async function getScenariosCollection(): Promise<Collection> {
-	const db = await getDb();
-	return db.collection("scenarios");
 }
 
 

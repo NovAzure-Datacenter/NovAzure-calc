@@ -21,8 +21,7 @@ import {
 
 export interface SavedCalculationScenario {
 	scenario_name: string;
-	industry: string[];
-	technology: string[];
+	associated_project_id: string;
 	solution: string[];
 	solution_variant: string;
 	compared_to: string[]; // Array of other scenario IDs for comparison
@@ -37,8 +36,7 @@ export interface SavedCalculationScenario {
 export const mockSavedScenarios: SavedCalculationScenario[] = [
 	{
 		scenario_name: "TestCase1 - DC",
-		industry: ["6863fa8958e3b56ff7092ec6"],
-		technology: ["6863f4a53ab6ba579bf4a8ec"],
+		associated_project_id: "6870d278e9f38dbbe8a30c6c",
 		solution: ["686d5186a84ea2c9381926c8"],
 		solution_variant: "N/A",
 		compared_to: ["TestCase2 - DC"],
@@ -102,8 +100,7 @@ export const mockSavedScenarios: SavedCalculationScenario[] = [
 	},
     {
 		scenario_name: "TestCase2 - DC",
-		industry: ["6863fa8958e3b56ff7092ec6"],
-		technology: ["6863f4a53ab6ba579bf4a8ec"],
+		associated_project_id: "6870d278e9f38dbbe8a30c6c",
 		solution: ["686d5186a84ea2c9381926c8"],
 		solution_variant: "N/A",
 		compared_to: [],
