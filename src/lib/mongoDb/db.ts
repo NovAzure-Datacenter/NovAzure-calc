@@ -44,10 +44,22 @@ export async function getClientsLeadsCollection(): Promise<Collection> {
 	return db.collection("clients_leads");
 }
 
-//Solution Variants Collection
+// Solution Variants Collection
 export async function getSolutionVariantsCollection(): Promise<Collection> {
 	const db = await getDb();
 	return db.collection("solution_variants");
+}
+
+// Clients Projects Collection
+export async function getClientsProjectsCollection(): Promise<Collection> {
+	const db = await getDb();
+	return db.collection("clients_projects");
+}
+
+// Scenarios Collection
+export async function getScenariosCollection(): Promise<Collection> {
+	const db = await getDb();
+	return db.collection("scenarios");
 }
 
 // Solutions Collection
@@ -62,15 +74,8 @@ export async function getProductsCollection(): Promise<Collection> {
 	return db.collection("products");
 }
 
-
 // Product Configuration Collection
 export async function getProductConfigCollection(): Promise<Collection> {
 	const db = await getDb();
 	return db.collection("product_configurations");
-}
-
-// Scenarios Collection
-export async function getScenariosCollection(): Promise<Collection> {
-	const db = await getDb();
-	return db.collection("scenarios");
 }

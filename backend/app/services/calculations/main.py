@@ -47,6 +47,7 @@ class CoolingSolutionsCalculator:
             "data_hall_design_capacity_mw": self.inputs.data_hall_design_capacity_mw,
             "first_year_of_operation": self.inputs.first_year_of_operation,
             "country": self.inputs.project_location,
+            "advanced": self.inputs.advanced,
             "advanced_config": self._build_advanced_config(),
         }
 

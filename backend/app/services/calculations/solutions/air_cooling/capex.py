@@ -52,11 +52,14 @@ def calculate_cooling_equipment_capex(
 
 
 def calculate_it_capex(
+    advanced,
     data_hall_capacity_mw,
     data_center_type,
     air_rack_cooling_capacity_kw_per_rack,
     planned_years,
 ):
+    if not advanced:
+        return 0
     total_it_cost = calculate_total_it_cost(
         data_hall_capacity_mw,
         data_center_type,
@@ -68,6 +71,7 @@ def calculate_it_capex(
 
 
 def calculate_cooling_capex(input_data):
+    advanced = input_data.get("advanced")
     capacity_mw = input_data.get("data_hall_design_capacity_mw")
     first_year_of_operation = input_data.get("first_year_of_operation")
     country = input_data.get("country")
@@ -77,6 +81,7 @@ def calculate_cooling_capex(input_data):
     )
 
     it_equipment_capex = calculate_it_capex(
+        advanced,
         capacity_mw,
         input_data.get("data_center_type"),
         input_data.get("air_rack_cooling_capacity_kw_per_rack"),
