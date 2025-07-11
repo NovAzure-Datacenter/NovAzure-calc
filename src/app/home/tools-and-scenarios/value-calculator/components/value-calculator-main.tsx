@@ -35,9 +35,28 @@ interface ValueCalculatorMainProps {
   onCompareValidityChange?: (valid: boolean) => void;
   hideResultsSection?: boolean;
   onCompareClick?: () => void;
+  onIndustryChange?: (industry: string) => void;
+  onTechnologyChange?: (technology: string) => void;
+  inheritedIndustry?: string;
+  inheritedTechnology?: string;
+  isFirstCalculator?: boolean;
+  isSecondCalculator?: boolean;
 }
 
-const ValueCalculatorMain = forwardRef(function ValueCalculatorMain({ hideCompareButton = false, onCalculationResult, isCompareMode = false, onCompareValidityChange, hideResultsSection = false, onCompareClick }: ValueCalculatorMainProps, ref) {
+const ValueCalculatorMain = forwardRef(function ValueCalculatorMain({ 
+  hideCompareButton = false, 
+  onCalculationResult, 
+  isCompareMode = false, 
+  onCompareValidityChange, 
+  hideResultsSection = false, 
+  onCompareClick,
+  onIndustryChange,
+  onTechnologyChange,
+  inheritedIndustry,
+  inheritedTechnology,
+  isFirstCalculator = false,
+  isSecondCalculator = false
+}: ValueCalculatorMainProps, ref) {
     // Single calculator state and logic must be inside the component
     const [selectedIndustry, setSelectedIndustry] = useState("");
     const [selectedTechnology, setSelectedTechnology] = useState("");
@@ -78,6 +97,33 @@ const ValueCalculatorMain = forwardRef(function ValueCalculatorMain({ hideCompar
         spaceUnit: '',
     });
     const [calculationRawResult, setCalculationRawResult] = useState<any>(null);
+
+    // Handle inherited industry and technology for second calculator
+    useEffect(() => {
+        if (isSecondCalculator && inheritedIndustry && inheritedTechnology) {
+            // Only update if the values are different to avoid unnecessary re-renders
+            if (selectedIndustry !== inheritedIndustry) {
+                setSelectedIndustry(inheritedIndustry);
+            }
+            if (selectedTechnology !== inheritedTechnology) {
+                setSelectedTechnology(inheritedTechnology);
+            }
+        }
+    }, [inheritedIndustry, inheritedTechnology, isSecondCalculator, selectedIndustry, selectedTechnology]);
+
+    // Handle callbacks for first calculator
+    useEffect(() => {
+        if (isFirstCalculator && onIndustryChange) {
+            onIndustryChange(selectedIndustry);
+        }
+    }, [selectedIndustry, isFirstCalculator, onIndustryChange]);
+
+    useEffect(() => {
+        if (isFirstCalculator && onTechnologyChange) {
+            onTechnologyChange(selectedTechnology);
+        }
+    }, [selectedTechnology, isFirstCalculator, onTechnologyChange]);
+
     useEffect(() => { 
         if (selectedSolutionInfo?.name) {
             setIsLoadingConfig(true);
@@ -251,6 +297,10 @@ const ValueCalculatorMain = forwardRef(function ValueCalculatorMain({ hideCompar
                     selectedSolutionVariant={selectedSolutionVariant}
                     setSelectedSolutionVariant={setSelectedSolutionVariant}
                     onSolutionInfoChange={setSelectedSolutionInfo}
+                    disableIndustry={isSecondCalculator}
+                    disableTechnology={isSecondCalculator}
+                    inheritedIndustry={inheritedIndustry}
+                    inheritedTechnology={inheritedTechnology}
                 />
                 {/* Configuration Section */}
                 <ConfigurationCard

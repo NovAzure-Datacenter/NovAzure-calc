@@ -53,7 +53,7 @@ export function ResultsSection({ results, showResults, calculationResult }: Resu
                                 </CardHeader>
                                 <CardContent>
                                     <ResponsiveContainer width="100%" height={400}>
-                                        <BarChart data={individualData.chartData} margin={{ top: 20, right: 30, left: 20, bottom: 80 }}>
+                                        <BarChart data={individualData.chartData} margin={{ top: 20, right: 30, left: 60, bottom: 80 }}>
                                             <CartesianGrid strokeDasharray="3 3" />
                                             <XAxis 
                                                 dataKey="metric" 
@@ -63,7 +63,17 @@ export function ResultsSection({ results, showResults, calculationResult }: Resu
                                                 fontSize={11}
                                                 interval={0}
                                             />
-                                            <YAxis />
+                                            <YAxis 
+                                                width={50}
+                                                tickFormatter={(value) => {
+                                                    if (value >= 1000000) {
+                                                        return `${(value / 1000000).toFixed(1)}M`;
+                                                    } else if (value >= 1000) {
+                                                        return `${(value / 1000).toFixed(1)}K`;
+                                                    }
+                                                    return value.toLocaleString();
+                                                }}
+                                            />
                                             <Tooltip 
                                                 formatter={(value) => [typeof value === 'number' ? value.toLocaleString() : value, 'Value']}
                                             />

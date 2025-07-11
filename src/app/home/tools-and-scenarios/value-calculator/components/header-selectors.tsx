@@ -80,6 +80,10 @@ interface HeaderSelectorsProps {
     selectedSolutionVariant: string;
     setSelectedSolutionVariant: (value: string) => void;
     onSolutionInfoChange?: (solutionInfo: {name: string, description?: string} | null) => void;
+    disableIndustry?: boolean;
+    disableTechnology?: boolean;
+    inheritedIndustry?: string;
+    inheritedTechnology?: string;
 }
 
 export function HeaderSelectors({
@@ -92,6 +96,10 @@ export function HeaderSelectors({
     selectedSolutionVariant,
     setSelectedSolutionVariant,
     onSolutionInfoChange,
+    disableIndustry = false,
+    disableTechnology = false,
+    inheritedIndustry,
+    inheritedTechnology,
 }: HeaderSelectorsProps) {
     
     const [industries, setIndustries] = useState<Industry[]>([]);
@@ -105,6 +113,66 @@ export function HeaderSelectors({
         solutions: false,
         solutionVariants: false,
     });
+
+    // Handle inherited values for second calculator
+    useEffect(() => {
+        if (inheritedIndustry && inheritedTechnology) {
+            console.log('Setting inherited values:', { inheritedIndustry, inheritedTechnology });
+            setSelectedIndustry(inheritedIndustry);
+            setSelectedTechnology(inheritedTechnology);
+        }
+    }, [inheritedIndustry, inheritedTechnology]);
+
+    // Ensure solutions are loaded when inherited values are set
+    useEffect(() => {
+        if (inheritedIndustry && inheritedTechnology && selectedIndustry === inheritedIndustry && selectedTechnology === inheritedTechnology) {
+            console.log('Inherited values set, triggering solution load');
+            // This will trigger the solutions useEffect
+        }
+    }, [inheritedIndustry, inheritedTechnology, selectedIndustry, selectedTechnology]);
+
+    // Force reload technologies and solutions when inherited values are set
+    useEffect(() => {
+        if (inheritedIndustry && inheritedTechnology) {
+            console.log('Inherited values detected, forcing reload');
+            // Force reload technologies
+            const loadTechnologies = async () => {
+                console.log('Force loading technologies for inherited industry:', inheritedIndustry);
+                setLoading(prev => ({ ...prev, technologies: true }));
+                try {
+                    const data = await fetchTechnologies(inheritedIndustry);
+                    console.log('Technologies loaded for inherited values:', data);
+                    setTechnologies(data);
+                } catch (error) {
+                    console.error('Failed to load technologies for inherited values:', error);
+                    setTechnologies([]);
+                } finally {
+                    setLoading(prev => ({ ...prev, technologies: false }));
+                }
+            };
+
+            // Force reload solutions
+            const loadSolutions = async () => {
+                console.log('Force loading solutions for inherited values:', { inheritedIndustry, inheritedTechnology });
+                setLoading(prev => ({ ...prev, solutions: true }));
+                try {
+                    const data = await fetchSolutions(inheritedIndustry, inheritedTechnology);
+                    console.log('Solutions loaded for inherited values:', data);
+                    setSolutions(data);
+                } catch (error) {
+                    console.error('Failed to load solutions for inherited values:', error);
+                    setSolutions([]);
+                } finally {
+                    setLoading(prev => ({ ...prev, solutions: false }));
+                }
+            };
+
+            loadTechnologies().then(() => {
+                // Load solutions after technologies are loaded
+                loadSolutions();
+            });
+        }
+    }, [inheritedIndustry, inheritedTechnology]);
 
     // Simple handlers that just pass the ID directly
     const handleIndustryChange = (value: string) => {
@@ -163,9 +231,11 @@ export function HeaderSelectors({
                 return;
             }
 
+            console.log('Loading technologies for industry:', selectedIndustry);
             setLoading(prev => ({ ...prev, technologies: true }));
             try {
                 const data = await fetchTechnologies(selectedIndustry);
+                console.log('Technologies loaded:', data);
                 setTechnologies(data);
             } catch (error) {
                 console.error('Failed to load technologies:', error);
@@ -176,23 +246,28 @@ export function HeaderSelectors({
         };
 
         loadTechnologies();
-        // Reset downstream selections
-        setSelectedTechnology("");
-        setSelectedSolution("");
-        setSelectedSolutionVariant("");
-    }, [selectedIndustry]);
+        // Reset downstream selections only if not inheriting values
+        if (!inheritedIndustry || !inheritedTechnology) {
+            setSelectedTechnology("");
+            setSelectedSolution("");
+            setSelectedSolutionVariant("");
+        }
+    }, [selectedIndustry, inheritedIndustry, inheritedTechnology]);
 
     // Fetch solutions when technology changes
     useEffect(() => {
         const loadSolutions = async () => {
             if (!selectedIndustry || !selectedTechnology) {
+                console.log('Cannot load solutions: missing industry or technology', { selectedIndustry, selectedTechnology });
                 setSolutions([]);
                 return;
             }
 
+            console.log('Loading solutions for:', { selectedIndustry, selectedTechnology });
             setLoading(prev => ({ ...prev, solutions: true }));
             try {
                 const data = await fetchSolutions(selectedIndustry, selectedTechnology);
+                console.log('Solutions loaded:', data);
                 setSolutions(data);
             } catch (error) {
                 console.error('Failed to load solutions:', error);
@@ -203,10 +278,12 @@ export function HeaderSelectors({
         };
 
         loadSolutions();
-        // Reset downstream selections
-        setSelectedSolution("");
-        setSelectedSolutionVariant("");
-    }, [selectedIndustry, selectedTechnology]);
+        // Reset downstream selections only if not inheriting values
+        if (!inheritedIndustry || !inheritedTechnology) {
+            setSelectedSolution("");
+            setSelectedSolutionVariant("");
+        }
+    }, [selectedIndustry, selectedTechnology, inheritedIndustry, inheritedTechnology]);
 
     // Fetch solution variants when solution changes
     useEffect(() => {
@@ -243,58 +320,82 @@ export function HeaderSelectors({
                 {/* Industry Selector */}
                 <div className="space-y-2 min-w-0">
                     <Label htmlFor="industry">Industry</Label>
-                    <Select value={selectedIndustry} onValueChange={handleIndustryChange}>
-                        <SelectTrigger id="industry" className="w-full">
-                            <SelectValue placeholder={loading.industries ? "Loading..." : "Select Industry"} />
-                        </SelectTrigger>
-                        <SelectContent className="max-w-[300px]">
-                            {industries.map((industry) => {
-                                // Handle both id and _id fields from MongoDB
-                                const industryId = industry.id || (industry as { _id?: string })._id || '';
-                                return (
-                                    <SelectItem key={industryId} value={industryId} className="max-w-[280px]">
-                                        <div className="flex items-center">
-                                            <span className="truncate" title={industry.name}>
-                                                {industry.name}
-                                            </span>
-                                        </div>
-                                    </SelectItem>
-                                );
-                            })}
-                        </SelectContent>
-                    </Select>
+                    {disableIndustry ? (
+                        <input
+                            type="text"
+                            value={industries.find(i => i.id === selectedIndustry)?.name || 
+                                   industries.find(i => (i as any)._id === selectedIndustry)?.name || 
+                                   "Inherited from first calculator"}
+                            disabled
+                            className="w-full px-3 py-2 bg-gray-50 rounded-md border border-gray-200 text-gray-700 font-medium cursor-not-allowed"
+                            readOnly
+                        />
+                    ) : (
+                        <Select value={selectedIndustry} onValueChange={handleIndustryChange}>
+                            <SelectTrigger id="industry" className="w-full">
+                                <SelectValue placeholder={loading.industries ? "Loading..." : "Select Industry"} />
+                            </SelectTrigger>
+                            <SelectContent className="max-w-[300px]">
+                                {industries.map((industry) => {
+                                    // Handle both id and _id fields from MongoDB
+                                    const industryId = industry.id || (industry as { _id?: string })._id || '';
+                                    return (
+                                        <SelectItem key={industryId} value={industryId} className="max-w-[280px]">
+                                            <div className="flex items-center">
+                                                <span className="truncate" title={industry.name}>
+                                                    {industry.name}
+                                                </span>
+                                            </div>
+                                        </SelectItem>
+                                    );
+                                })}
+                            </SelectContent>
+                        </Select>
+                    )}
                 </div>
 
                 {/* Technology Selector */}
                 <div className="space-y-2 min-w-0">
                     <Label htmlFor="technology">Technology</Label>
-                    <Select 
-                        value={selectedTechnology} 
-                        onValueChange={handleTechnologyChange}
-                        disabled={!selectedIndustry || loading.technologies}
-                    >
-                        <SelectTrigger id="technology" className="w-full min-h-[40px]">
-                            <span className="block w-full truncate text-base text-left">
-                                {!selectedIndustry
-                                    ? "Select Industry First"
-                                    : loading.technologies
-                                        ? "Loading..."
-                                        : selectedTechnology && technologies.find(t => t.id === selectedTechnology)?.name
-                                            ? technologies.find(t => t.id === selectedTechnology)?.name
-                                            : "Select Technology"
-                                }
-                            </span>
-                        </SelectTrigger>
-                        <SelectContent className="max-w-[300px]">
-                            {technologies.map((tech) => (
-                                <SelectItem key={tech.id} value={tech.id} className="max-w-[280px]">
-                                    <span className="truncate" title={tech.name}>
-                                        {tech.name}
-                                    </span>
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    {disableTechnology ? (
+                        <input
+                            type="text"
+                            value={technologies.find(t => t.id === selectedTechnology)?.name || 
+                                   technologies.find(t => (t as any)._id === selectedTechnology)?.name || 
+                                   "Inherited from first calculator"}
+                            disabled
+                            className="w-full px-3 py-2 bg-gray-50 rounded-md border border-gray-200 text-gray-700 font-medium cursor-not-allowed"
+                            readOnly
+                        />
+                    ) : (
+                        <Select 
+                            value={selectedTechnology} 
+                            onValueChange={handleTechnologyChange}
+                            disabled={!selectedIndustry || loading.technologies}
+                        >
+                            <SelectTrigger id="technology" className="w-full min-h-[40px]">
+                                <span className="block w-full truncate text-base text-left">
+                                    {!selectedIndustry
+                                        ? "Select Industry First"
+                                        : loading.technologies
+                                            ? "Loading..."
+                                            : selectedTechnology && technologies.find(t => t.id === selectedTechnology)?.name
+                                                ? technologies.find(t => t.id === selectedTechnology)?.name
+                                                : "Select Technology"
+                                    }
+                                </span>
+                            </SelectTrigger>
+                            <SelectContent className="max-w-[300px]">
+                                {technologies.map((tech) => (
+                                    <SelectItem key={tech.id} value={tech.id} className="max-w-[280px]">
+                                        <span className="truncate" title={tech.name}>
+                                            {tech.name}
+                                        </span>
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    )}
                 </div>
 
                 {/* Solution Selector */}
@@ -308,12 +409,12 @@ export function HeaderSelectors({
                         <SelectTrigger id="solution" className="w-full min-h-[40px]">
                             <span className="block w-full truncate text-base text-left">
                                 {!selectedTechnology
-                                    ? "Select Technology First"
+                                    ? `Select Technology First (Tech: ${selectedTechnology})`
                                     : loading.solutions
                                         ? "Loading..."
                                         : selectedSolution && solutions.find(s => s.id === selectedSolution)?.name
                                             ? solutions.find(s => s.id === selectedSolution)?.name
-                                            : "Select Solution"
+                                            : `Select Solution (${solutions.length} available)`
                                 }
                             </span>
                         </SelectTrigger>

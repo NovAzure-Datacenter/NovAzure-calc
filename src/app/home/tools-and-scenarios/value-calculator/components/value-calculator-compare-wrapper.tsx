@@ -92,7 +92,7 @@ function ChartsSection({ calc1Result, calc2Result }: { calc1Result: any, calc2Re
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={400}>
-              <BarChart data={comparisonData.chartData} margin={{ top: 20, right: 30, left: 20, bottom: 80 }}>
+              <BarChart data={comparisonData.chartData} margin={{ top: 20, right: 30, left: 60, bottom: 80 }}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis 
                   dataKey="metric" 
@@ -102,7 +102,17 @@ function ChartsSection({ calc1Result, calc2Result }: { calc1Result: any, calc2Re
                   fontSize={11}
                   interval={0}
                 />
-                <YAxis />
+                <YAxis 
+                  width={50}
+                  tickFormatter={(value) => {
+                    if (value >= 1000000) {
+                      return `${(value / 1000000).toFixed(1)}M`;
+                    } else if (value >= 1000) {
+                      return `${(value / 1000).toFixed(1)}K`;
+                    }
+                    return value.toLocaleString();
+                  }}
+                />
                 <Tooltip 
                   formatter={(value, name) => [
                     typeof value === 'number' ? value.toLocaleString() : value,
@@ -188,6 +198,10 @@ export default function ValueCalculatorCompareWrapper({ onBack }: { onBack?: () 
   const calc1Ref = useRef<any>(null);
   const calc2Ref = useRef<any>(null);
 
+  // Track industry and technology from first calculator
+  const [sharedIndustry, setSharedIndustry] = useState("");
+  const [sharedTechnology, setSharedTechnology] = useState("");
+
   // Handler to receive calculation result and validity from ValueCalculatorMain
   // Store results in refs, update state in useEffect to avoid React warning
   const calc1ResultBuffer = useRef<{result: any, valid: boolean} | null>(null);
@@ -244,6 +258,9 @@ export default function ValueCalculatorCompareWrapper({ onBack }: { onBack?: () 
             isCompareMode 
             onCompareValidityChange={setCalc1Valid}
             hideResultsSection={true}
+            onIndustryChange={setSharedIndustry}
+            onTechnologyChange={setSharedTechnology}
+            isFirstCalculator={true}
           />
         </div>
         <div className="flex-1 min-w-0">
@@ -254,6 +271,9 @@ export default function ValueCalculatorCompareWrapper({ onBack }: { onBack?: () 
             isCompareMode 
             onCompareValidityChange={setCalc2Valid}
             hideResultsSection={true}
+            inheritedIndustry={sharedIndustry}
+            inheritedTechnology={sharedTechnology}
+            isSecondCalculator={true}
           />
         </div>
       </div>
