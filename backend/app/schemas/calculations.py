@@ -16,7 +16,9 @@ class CoolingSolutionRequest(BaseModel):
     planned_years_of_operation: int = Field(
         ..., description="Planned years of operation"
     )
-    annualised_air_ppue: float = Field(..., description="Annualised air PPUE")
+    annualised_ppue: float = Field(
+        ..., description="Annualised air and chassis immersion PPUE"
+    )
 
     advanced: bool = Field(default=False, description="Use advanced configuration")
 
