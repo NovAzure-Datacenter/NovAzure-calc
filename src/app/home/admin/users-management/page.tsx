@@ -1,14 +1,13 @@
 import { SidebarInset } from "@/components/ui/sidebar";
-import UnderConstruction from "@/components/under-construction";
 import { checkRoutePermission } from "@/lib/auth/check-permissions";
+import { UserManagementMain } from "./components/user-management-main";
 
 export default async function UsersManagementPage() {
-	// This will redirect if user doesn't have permission
 	await checkRoutePermission("/home/admin/users-management");
 
 	return (
-		<SidebarInset>
-			<UnderConstruction title="Users Management Page" />
-		</SidebarInset>
+		<div className="w-full min-h-full p-8 bg-gradient-to-br from-blue-50 to-sky-50 relative">
+			<UserManagementMain />
+		</div>
 	);
 }

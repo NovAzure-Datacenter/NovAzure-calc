@@ -15,6 +15,8 @@ async def test_basic_air_cooling_solutions_calculation():
     inputs = {
         "solution_type": "air_cooling",
         "data_hall_design_capacity_mw": 2.0,
+        "solution_type": "air_cooling",
+        "data_hall_design_capacity_mw": 2.0,
         "first_year_of_operation": 2025,
         "project_location": "United States",
         "percentage_of_utilisation": 0.8,
@@ -24,6 +26,7 @@ async def test_basic_air_cooling_solutions_calculation():
     }
 
     update_inputs(inputs)
+    result = await calculate(inputs["solution_type"])
     result = await calculate(inputs["solution_type"])
 
     assert "cooling_equipment_capex" in result
