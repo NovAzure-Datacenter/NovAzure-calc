@@ -1,4 +1,4 @@
-from ...it_config import calculate_total_it_cost
+from ...it_config import (calculate_it_equipment_capex_complete, calculate_it_equipment_maintenance_per_year)
 
 # Country-specific multipliers (USD per kW)
 COUNTRY_MULTIPLIERS = {
@@ -56,12 +56,24 @@ def calculate_it_capex(
     data_center_type,
     air_rack_cooling_capacity_kw_per_rack,
     planned_years,
+    it_cost_per_server,
+    it_maintenance_cost,
+    it_cost_included,
+    total_it_cost_per_kw,
+    project_location,
+    advanced,
 ):
-    total_it_cost = calculate_total_it_cost(
-        data_hall_capacity_mw,
+    total_it_cost = calculate_it_equipment_capex_complete(
+        advanced,
+        it_cost_included,
+        total_it_cost_per_kw,
         data_center_type,
-        air_rack_cooling_capacity_kw_per_rack,
+        data_hall_capacity_mw,
         planned_years,
+        air_rack_cooling_capacity_kw_per_rack,
+        project_location,
+        it_cost_per_server,
+        it_maintenance_cost,
     )
 
     return round(total_it_cost)
