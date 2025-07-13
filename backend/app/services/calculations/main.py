@@ -32,7 +32,7 @@ class CalculationInputs(BaseModel):
 
     # Advanced Data Centre Configuration inputs
     inlet_temperature: float = 27
-    electricity_price_per_kwh: float = 0.1
+    electricity_price_per_kwh: float = 0
     water_price_per_litre: float = 0.00134
 
 
