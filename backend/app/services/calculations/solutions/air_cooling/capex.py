@@ -1,4 +1,4 @@
-from ...it_config import (calculate_it_equipment_capex_complete, calculate_it_equipment_maintenance_per_year)
+from ...it_config import calculate_it_equipment_capex_complete
 
 # Country-specific multipliers (USD per kW)
 COUNTRY_MULTIPLIERS = {
@@ -101,4 +101,4 @@ def calculate_cooling_capex(input_data):
         "cooling_equipment_capex": int(cooling_equipment_capex),
         "it_equipment_capex": int(it_equipment_capex),
         "total_capex": int(total_capex),
-    }
+    } 

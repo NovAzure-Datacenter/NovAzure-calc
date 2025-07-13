@@ -1,7 +1,4 @@
-from ...it_config import (
-    calculate_it_equipment_capex_complete,
-    calculate_it_equipment_maintenance_per_year
-)
+from ...it_config import calculate_it_equipment_capex_complete
 
 # Company inputs - hard coded for now
 COOLANT_PRICE_PER_KW = 40

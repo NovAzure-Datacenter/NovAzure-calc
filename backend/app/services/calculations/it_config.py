@@ -14,7 +14,7 @@ DEFAULT_32_400_SWITCH_COST = 8000
 DEFAULT_CPU_PRICE_PER_UNIT = 2400
 DEFAULT_TOTAL_CHANNELS = 16
 DEFAULT_ASUMPTION_OF_IT_MAINTENANCE_COST_PER_YEAR = 0.08
-TYPICAL_IT_COST_PER_SERVER = 0
+TYPICAL_IT_COST_PER_SERVER = 16559
 
 # Default IT Configuration Values AIR COOLING
 DEFAULT_SWITCH_COST_PER_UNIT = 8000
@@ -298,18 +298,27 @@ DEFAULT_CPU_PRICE_PER_UNIT_CHASSIS = 2400
 #     return int(initial_server_cost + refresh_cost)
 
 #IT CAPEX Functions
-def calculate_it_equipment_capex_complete(advanced: bool, it_cost_included: bool, total_it_cost_per_kw: int, data_center_type: str, data_hall_design_capacity_mw: int, planned_number_of_years: int, number_of_server_refreshes: int, air_rack_cooling_capacity_kw_per_rack: int, project_location: str, it_cost_per_server: int = None):
-    # Return 0 if IT cost is not included
-    if not it_cost_included:
-        return 0
+def calculate_it_equipment_capex_complete(advanced: bool, it_cost_included: bool, typical_it_cost_per_server: int = None, data_center_type: str = None, data_hall_design_capacity_mw: int = None, planned_number_of_years: int = None, air_rack_cooling_capacity_kw_per_rack: int = None, project_location: str = None, server_rated_max_power: int = None):
+    
+
+    
+    # Use default values if not provided
+    if typical_it_cost_per_server is None:
+        typical_it_cost_per_server = TYPICAL_IT_COST_PER_SERVER
     
     nameplate_power_kw = data_hall_design_capacity_mw * 1000
-    server_rated_max_power = calculate_server_rated_max_power(data_center_type)
+    if server_rated_max_power is None:
+        server_rated_max_power = calculate_server_rated_max_power(data_center_type)
+    
     total_n_of_servers = nameplate_power_kw / server_rated_max_power
-    total_it_cost = calculate_total_it_cost_greenfield_basic(it_cost_per_server, total_n_of_servers)
+    total_it_cost = calculate_total_it_cost_greenfield_basic(typical_it_cost_per_server, total_n_of_servers)
     total_it_cost_per_kw = calculate_total_it_cost_per_kw_basic(total_it_cost, nameplate_power_kw)
     air_cooled_it_capex = calculate_air_cooled_it_capex_greenfield_basic(total_it_cost_per_kw, nameplate_power_kw)
-    if(advanced == True):
+    
+    if advanced:
+
+        if not it_cost_included:
+            return 0
         total_it_cost_adv = calculate_total_it_cost_greenfield_advanced(total_it_cost, total_n_of_servers, it_cost_included)
         total_it_cost_per_kw_adv = calculate_total_it_cost_per_kw_advanced(total_it_cost, nameplate_power_kw)
         air_cooled_it_capex_adv = calculate_air_cooled_it_capex_greenfield_advanced(total_it_cost_per_kw_adv, nameplate_power_kw)
@@ -331,22 +340,24 @@ def calculate_it_equipment_capex_complete(advanced: bool, it_cost_included: bool
         elif(project_location == "United Arab Emirates"):
             return air_cooled_it_capex/1000
 
-def calculate_it_equipment_maintenance_per_year(advanced: bool, it_cost_included: bool, total_it_cost_per_kw: int, data_center_type: str, data_hall_design_capacity_mw: int, planned_number_of_years: int, number_of_server_refreshes: int, air_rack_cooling_capacity_kw_per_rack: int, project_location: str, it_maintenance_cost: float = None, it_cost_per_server: int = None):
+def calculate_it_equipment_maintenance_per_year(advanced: bool, it_cost_included: bool, typical_it_cost_per_server: int = None, data_center_type: str = None, data_hall_design_capacity_mw: int = None, planned_number_of_years: int = None, air_rack_cooling_capacity_kw_per_rack: int = None, project_location: str = None, it_maintenance_cost: float = None, server_rated_max_power: int = None):
     # Return 0 if IT cost is not included
     if not it_cost_included:
         return 0
     
     nameplate_power_kw = data_hall_design_capacity_mw * 1000
-    server_rated_max_power = calculate_server_rated_max_power(data_center_type)
+    if(server_rated_max_power is None):
+        server_rated_max_power = calculate_server_rated_max_power(data_center_type)
     total_n_of_servers = calculate_total_n_of_servers(server_rated_max_power, nameplate_power_kw)
     
     # Calculate total IT capex for maintenance calculation
-    total_it_capex = calculate_it_equipment_capex_complete(advanced, it_cost_included, total_it_cost_per_kw, data_center_type, data_hall_design_capacity_mw, planned_number_of_years, number_of_server_refreshes, air_rack_cooling_capacity_kw_per_rack, project_location, it_cost_per_server)
+    total_it_capex = calculate_it_equipment_capex_complete(advanced, it_cost_included, typical_it_cost_per_server, data_center_type, data_hall_design_capacity_mw, planned_number_of_years, air_rack_cooling_capacity_kw_per_rack, project_location, server_rated_max_power)
     
     if advanced:
         return calculate_it_maintenance_cost_advanced(it_maintenance_cost, total_it_capex)
     else:
         return DEFAULT_ASUMPTION_OF_IT_MAINTENANCE_COST_PER_YEAR * total_it_capex
+    
 
 
 def calculate_it_equipment_capex(advanced: bool):
@@ -386,9 +397,9 @@ def calculate_air_cooled_it_capex_greenfield_basic(total_it_cost_per_kw:int, nam
 def calculate_total_it_cost_per_kw_basic(total_it_cost:int, nameplate_power_kw:int):
     return total_it_cost / math.ceil(nameplate_power_kw)
 
-def calculate_total_it_cost_greenfield_basic(it_cost_per_server:int, total_n_of_servers:int):
-    if(it_cost_per_server is not None):
-        return it_cost_per_server * total_n_of_servers
+def calculate_total_it_cost_greenfield_basic(typical_it_cost_per_server:int, total_n_of_servers:int):
+    if(typical_it_cost_per_server is not None):
+        return typical_it_cost_per_server * total_n_of_servers
     else:
         return TYPICAL_IT_COST_PER_SERVER * total_n_of_servers
 
@@ -413,10 +424,9 @@ def calculate_air_cooled_it_capex_greenfield_advanced(total_it_cost_per_kw:int, 
 def calculate_total_it_cost_per_kw_advanced(total_it_cost:int, nameplate_power_kw:int):
     return total_it_cost / nameplate_power_kw
 
-def calculate_total_it_cost_greenfield_advanced(typical_it_cost_per_server_incl_server_memory_and_network_cost:int, total_n_of_servers:int, include_it_cost:bool):
-    if(include_it_cost == True):
-        #this is an empty location at f60 cdata center customer inputs
-        return typical_it_cost_per_server_incl_server_memory_and_network_cost * math.floor(total_n_of_servers)
+def calculate_total_it_cost_greenfield_advanced(typical_it_cost_per_server:int, total_n_of_servers:int, include_it_cost:bool):
+    if include_it_cost:
+        return typical_it_cost_per_server * math.floor(total_n_of_servers)
     else:
         return 0
 
