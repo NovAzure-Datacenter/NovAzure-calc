@@ -300,7 +300,8 @@ DEFAULT_CPU_PRICE_PER_UNIT_CHASSIS = 2400
 #IT CAPEX Functions
 def calculate_it_equipment_capex_complete(advanced: bool, it_cost_included: bool, typical_it_cost_per_server: int = None, data_center_type: str = None, data_hall_design_capacity_mw: int = None, planned_number_of_years: int = None, air_rack_cooling_capacity_kw_per_rack: int = None, project_location: str = None, server_rated_max_power: int = None):
     
-
+    if not advanced:
+        return 0
     
     # Use default values if not provided
     if typical_it_cost_per_server is None:
@@ -342,7 +343,7 @@ def calculate_it_equipment_capex_complete(advanced: bool, it_cost_included: bool
 
 def calculate_it_equipment_maintenance_per_year(advanced: bool, it_cost_included: bool, typical_it_cost_per_server: int = None, data_center_type: str = None, data_hall_design_capacity_mw: int = None, planned_number_of_years: int = None, air_rack_cooling_capacity_kw_per_rack: int = None, project_location: str = None, it_maintenance_cost: float = None, server_rated_max_power: int = None):
     # Return 0 if IT cost is not included
-    if not it_cost_included:
+    if not it_cost_included or not advanced:
         return 0
     
     nameplate_power_kw = data_hall_design_capacity_mw * 1000
