@@ -335,9 +335,6 @@ def calculate_it_equipment_capex_complete(
     if advanced:
         if not it_cost_included:
             return 0
-        total_it_cost_adv = calculate_total_it_cost_greenfield_advanced(
-            total_it_cost, total_n_of_servers, it_cost_included
-        )
         total_it_cost_per_kw_adv = calculate_total_it_cost_per_kw_advanced(
             total_it_cost, nameplate_power_kw
         )
@@ -379,7 +376,6 @@ def calculate_it_equipment_maintenance_per_year(
     if not it_cost_included or not advanced:
         return 0
 
-    nameplate_power_kw = data_hall_design_capacity_mw * 1000
     if server_rated_max_power is None:
         server_rated_max_power = calculate_server_rated_max_power(data_center_type)
 
