@@ -10,6 +10,9 @@ from .solutions.air_cooling.opex import (
 from .solutions.chassis_immersion.capex import (
     calculate_cooling_capex as calculate_chassis_immersion_capex,
 )
+from .solutions.chassis_immersion.opex import (
+    calculate_chassis_opex as calculate_chassis_immersion_opex,
+)
 
 
 class CalculationInputs(BaseModel):
@@ -19,7 +22,7 @@ class CalculationInputs(BaseModel):
     project_location: str = None
     percentage_of_utilisation: float = None
     planned_years_of_operation: int = None
-    annualised_air_ppue: float = None
+    annualised_ppue: float = None
 
     advanced: bool = False
 
@@ -29,8 +32,8 @@ class CalculationInputs(BaseModel):
 
     # Advanced Data Centre Configuration inputs
     inlet_temperature: float = 27
-    electricity_price_per_kwh: float = 0.1
-    water_price_per_litre: float = 0.0001
+    electricity_price_per_kwh: float = 0
+    water_price_per_litre: float = 0.00134
 
 
 class CoolingSolutionsCalculator:
@@ -47,13 +50,11 @@ class CoolingSolutionsCalculator:
             "data_hall_design_capacity_mw": self.inputs.data_hall_design_capacity_mw,
             "first_year_of_operation": self.inputs.first_year_of_operation,
             "country": self.inputs.project_location,
+            "advanced": self.inputs.advanced,
             "advanced_config": self._build_advanced_config(),
         }
 
     def _build_advanced_config(self) -> Optional[Dict[str, Any]]:
-        if not self.inputs.advanced:
-            return None
-
         return {
             "inlet_temperature": self.inputs.inlet_temperature,
             "electricity_price_per_kwh": self.inputs.electricity_price_per_kwh,
@@ -80,14 +81,18 @@ class CoolingSolutionsCalculator:
         return input_data
 
     def _build_opex_input_data(self) -> Dict[str, Any]:
-        return {
+        input_data = {
             "data_hall_design_capacity_mw": self.inputs.data_hall_design_capacity_mw,
-            "annualised_air_ppue": self.inputs.annualised_air_ppue,
+            "annualised_ppue": self.inputs.annualised_ppue,
             "percentage_of_utilisation": self.inputs.percentage_of_utilisation,
             "first_year_of_operation": self.inputs.first_year_of_operation,
             "planned_years_of_operation": self.inputs.planned_years_of_operation,
             "country": self.inputs.project_location,
         }
+
+        input_data.update(self._build_advanced_config())
+
+        return input_data
 
     async def _calculate_air_cooling_solution(self) -> Dict[str, Any]:
         capex_input = self._build_capex_input_data()
@@ -98,11 +103,17 @@ class CoolingSolutionsCalculator:
             opex_input, air_cooling_capex["cooling_equipment_capex"]
         )
 
-        # Come back to TCO in the future
-        tco_excluding_it = (
-            air_cooling_capex["cooling_equipment_capex"]
-            + air_cooling_opex["total_opex_over_lifetime"]
-        )
+        if not self.inputs.advanced:
+            tco_excluding_it = (
+                air_cooling_capex["cooling_equipment_capex"]
+                + air_cooling_opex["total_opex_over_lifetime"]
+                - air_cooling_opex["annual_it_maintenance"]
+            )
+        else:
+            tco_excluding_it = (
+                air_cooling_capex["cooling_equipment_capex"]
+                + air_cooling_opex["total_opex_over_lifetime"]
+            )
         tco_including_it = (
             air_cooling_capex["total_capex"]
             + air_cooling_opex["total_opex_over_lifetime"]
@@ -123,17 +134,25 @@ class CoolingSolutionsCalculator:
         capex_input = self._build_capex_input_data()
         chassis_immersion_capex = calculate_chassis_immersion_capex(capex_input)
 
-        # TODO: Implement chassis immersion OPEX calculations
-        annual_cooling_opex = 0
-        annual_it_maintenance = 0
-        total_opex_over_lifetime = 0
-
-        tco_excluding_it = (
-            chassis_immersion_capex["cooling_equipment_capex"]
-            + total_opex_over_lifetime
+        opex_input = self._build_opex_input_data()
+        chassis_immersion_opex = calculate_chassis_immersion_opex(
+            opex_input, chassis_immersion_capex["cooling_equipment_capex"]
         )
+
+        if not self.inputs.advanced:
+            tco_excluding_it = (
+                chassis_immersion_capex["cooling_equipment_capex"]
+                + chassis_immersion_opex["total_opex_over_lifetime"]
+                - chassis_immersion_opex["annual_it_maintenance"]
+            )
+        else:
+            tco_excluding_it = (
+                chassis_immersion_capex["cooling_equipment_capex"]
+                + chassis_immersion_opex["total_opex_over_lifetime"]
+            )
         tco_including_it = (
-            chassis_immersion_capex["total_capex"] + total_opex_over_lifetime
+            chassis_immersion_capex["total_capex"]
+            + chassis_immersion_opex["total_opex_over_lifetime"]
         )
 
         return {
@@ -142,9 +161,11 @@ class CoolingSolutionsCalculator:
             ],
             "it_equipment_capex": chassis_immersion_capex["it_equipment_capex"],
             "total_capex": chassis_immersion_capex["total_capex"],
-            "annual_cooling_opex": annual_cooling_opex,
-            "annual_it_maintenance": annual_it_maintenance,
-            "total_opex_over_lifetime": total_opex_over_lifetime,
+            "annual_cooling_opex": chassis_immersion_opex["annual_cooling_opex"],
+            "annual_it_maintenance": chassis_immersion_opex["annual_it_maintenance"],
+            "total_opex_over_lifetime": chassis_immersion_opex[
+                "total_opex_over_lifetime"
+            ],
             "tco_excluding_it": tco_excluding_it,
             "tco_including_it": tco_including_it,
         }

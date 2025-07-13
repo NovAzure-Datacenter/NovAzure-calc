@@ -63,7 +63,4 @@ async def list_collections(db: AsyncIOMotorDatabase = Depends(get_db)):
 
 @app.get("/", tags=["Root"])
 async def read_root():
-    """
-    A simple endpoint to check if the API is running.
-    """
     return {"message": f"Welcome to the {settings.APP_TITLE}!"}
