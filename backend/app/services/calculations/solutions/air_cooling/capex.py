@@ -80,7 +80,6 @@ def calculate_it_capex(
 
 
 def calculate_cooling_capex(input_data):
-    advanced = input_data.get("advanced")
     capacity_mw = input_data.get("data_hall_design_capacity_mw")
     first_year_of_operation = input_data.get("first_year_of_operation")
     country = input_data.get("country")

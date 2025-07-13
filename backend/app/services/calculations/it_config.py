@@ -382,9 +382,6 @@ def calculate_it_equipment_maintenance_per_year(
     nameplate_power_kw = data_hall_design_capacity_mw * 1000
     if server_rated_max_power is None:
         server_rated_max_power = calculate_server_rated_max_power(data_center_type)
-    total_n_of_servers = calculate_total_n_of_servers(
-        server_rated_max_power, nameplate_power_kw
-    )
 
     # Calculate total IT capex for maintenance calculation
     total_it_capex = calculate_it_equipment_capex_complete(
@@ -408,14 +405,14 @@ def calculate_it_equipment_maintenance_per_year(
 
 
 def calculate_it_equipment_capex(advanced: bool):
-    if advanced == True:
+    if advanced:
         return calculate_input_type_filter() / 1000
     else:
         return calculate_total_it_cost_with_geographical_adjustments() / 1000
 
 
 def calculate_input_type_filter(advanced: bool):
-    if advanced == False:
+    if not advanced:
         return calculate_project_type_filter() / calculate_greenfield_basic()
     else:
         return calculate_project_type_filter() / calculate_greenfield_advanced()
@@ -585,7 +582,7 @@ def calculate_nameplate_power_kw(data_hall_design_capacity_mw: int):
 
 
 def calculate_it_maintenance_cost(advanced: bool):
-    if advanced == True:
+    if advanced:
         return calculate_it_maintenance_cost_advanced()
     else:
         return calculate_it_maintenance_cost_basic()
