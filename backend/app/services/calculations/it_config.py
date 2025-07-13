@@ -4,7 +4,7 @@ IT Configuration Module for Data Center Cost Modeling
 
 import math
 
-#Default IT Configuration Values
+# Default IT Configuration Values
 DEFAULT_25_SERVER_L2_BOM = 1200
 DEFAULT_DIMM_COST_PER_GB = 4
 DEFAULT_DIMM_CAPACITY_IN_GB = 96
@@ -297,201 +297,338 @@ DEFAULT_CPU_PRICE_PER_UNIT_CHASSIS = 2400
 #     # Return just the total IT cost as a number
 #     return int(initial_server_cost + refresh_cost)
 
-#IT CAPEX Functions
-def calculate_it_equipment_capex_complete(advanced: bool, it_cost_included: bool, typical_it_cost_per_server: int = None, data_center_type: str = None, data_hall_design_capacity_mw: int = None, planned_number_of_years: int = None, air_rack_cooling_capacity_kw_per_rack: int = None, project_location: str = None, server_rated_max_power: int = None):
-    
+
+# IT CAPEX Functions
+def calculate_it_equipment_capex_complete(
+    advanced: bool,
+    it_cost_included: bool,
+    typical_it_cost_per_server: int = None,
+    data_center_type: str = None,
+    data_hall_design_capacity_mw: int = None,
+    planned_number_of_years: int = None,
+    air_rack_cooling_capacity_kw_per_rack: int = None,
+    project_location: str = None,
+    server_rated_max_power: int = None,
+):
     if not advanced:
         return 0
-    
+
     # Use default values if not provided
     if typical_it_cost_per_server is None:
         typical_it_cost_per_server = TYPICAL_IT_COST_PER_SERVER
-    
+
     nameplate_power_kw = data_hall_design_capacity_mw * 1000
     if server_rated_max_power is None:
         server_rated_max_power = calculate_server_rated_max_power(data_center_type)
-    
-    total_n_of_servers = nameplate_power_kw / server_rated_max_power
-    total_it_cost = calculate_total_it_cost_greenfield_basic(typical_it_cost_per_server, total_n_of_servers)
-    total_it_cost_per_kw = calculate_total_it_cost_per_kw_basic(total_it_cost, nameplate_power_kw)
-    air_cooled_it_capex = calculate_air_cooled_it_capex_greenfield_basic(total_it_cost_per_kw, nameplate_power_kw)
-    
-    if advanced:
 
+    total_n_of_servers = nameplate_power_kw / server_rated_max_power
+    total_it_cost = calculate_total_it_cost_greenfield_basic(
+        typical_it_cost_per_server, total_n_of_servers
+    )
+    total_it_cost_per_kw = calculate_total_it_cost_per_kw_basic(
+        total_it_cost, nameplate_power_kw
+    )
+    air_cooled_it_capex = calculate_air_cooled_it_capex_greenfield_basic(
+        total_it_cost_per_kw, nameplate_power_kw
+    )
+
+    if advanced:
         if not it_cost_included:
             return 0
-        total_it_cost_adv = calculate_total_it_cost_greenfield_advanced(total_it_cost, total_n_of_servers, it_cost_included)
-        total_it_cost_per_kw_adv = calculate_total_it_cost_per_kw_advanced(total_it_cost, nameplate_power_kw)
-        air_cooled_it_capex_adv = calculate_air_cooled_it_capex_greenfield_advanced(total_it_cost_per_kw_adv, nameplate_power_kw)
-        if(project_location == "United States"):
-            return air_cooled_it_capex_adv/1000
-        elif(project_location == "United Kingdom"):
-            return air_cooled_it_capex_adv/1000
-        elif(project_location == "Singapore"):
-            return air_cooled_it_capex_adv/1000
-        elif(project_location == "United Arab Emirates"):
-            return air_cooled_it_capex_adv/1000
+        total_it_cost_adv = calculate_total_it_cost_greenfield_advanced(
+            total_it_cost, total_n_of_servers, it_cost_included
+        )
+        total_it_cost_per_kw_adv = calculate_total_it_cost_per_kw_advanced(
+            total_it_cost, nameplate_power_kw
+        )
+        air_cooled_it_capex_adv = calculate_air_cooled_it_capex_greenfield_advanced(
+            total_it_cost_per_kw_adv, nameplate_power_kw
+        )
+        if project_location == "United States":
+            return air_cooled_it_capex_adv / 1000
+        elif project_location == "United Kingdom":
+            return air_cooled_it_capex_adv / 1000
+        elif project_location == "Singapore":
+            return air_cooled_it_capex_adv / 1000
+        elif project_location == "United Arab Emirates":
+            return air_cooled_it_capex_adv / 1000
     else:
-        if(project_location == "United States"):
-            return air_cooled_it_capex/1000
-        elif(project_location == "United Kingdom"):
-            return air_cooled_it_capex/1000
-        elif(project_location == "Singapore"):
-            return air_cooled_it_capex/1000
-        elif(project_location == "United Arab Emirates"):
-            return air_cooled_it_capex/1000
+        if project_location == "United States":
+            return air_cooled_it_capex / 1000
+        elif project_location == "United Kingdom":
+            return air_cooled_it_capex / 1000
+        elif project_location == "Singapore":
+            return air_cooled_it_capex / 1000
+        elif project_location == "United Arab Emirates":
+            return air_cooled_it_capex / 1000
 
-def calculate_it_equipment_maintenance_per_year(advanced: bool, it_cost_included: bool, typical_it_cost_per_server: int = None, data_center_type: str = None, data_hall_design_capacity_mw: int = None, planned_number_of_years: int = None, air_rack_cooling_capacity_kw_per_rack: int = None, project_location: str = None, it_maintenance_cost: float = None, server_rated_max_power: int = None):
+
+def calculate_it_equipment_maintenance_per_year(
+    advanced: bool,
+    it_cost_included: bool,
+    typical_it_cost_per_server: int = None,
+    data_center_type: str = None,
+    data_hall_design_capacity_mw: int = None,
+    planned_number_of_years: int = None,
+    air_rack_cooling_capacity_kw_per_rack: int = None,
+    project_location: str = None,
+    it_maintenance_cost: float = None,
+    server_rated_max_power: int = None,
+):
     # Return 0 if IT cost is not included
     if not it_cost_included or not advanced:
         return 0
-    
+
     nameplate_power_kw = data_hall_design_capacity_mw * 1000
-    if(server_rated_max_power is None):
+    if server_rated_max_power is None:
         server_rated_max_power = calculate_server_rated_max_power(data_center_type)
-    total_n_of_servers = calculate_total_n_of_servers(server_rated_max_power, nameplate_power_kw)
-    
+    total_n_of_servers = calculate_total_n_of_servers(
+        server_rated_max_power, nameplate_power_kw
+    )
+
     # Calculate total IT capex for maintenance calculation
-    total_it_capex = calculate_it_equipment_capex_complete(advanced, it_cost_included, typical_it_cost_per_server, data_center_type, data_hall_design_capacity_mw, planned_number_of_years, air_rack_cooling_capacity_kw_per_rack, project_location, server_rated_max_power)
-    
+    total_it_capex = calculate_it_equipment_capex_complete(
+        advanced,
+        it_cost_included,
+        typical_it_cost_per_server,
+        data_center_type,
+        data_hall_design_capacity_mw,
+        planned_number_of_years,
+        air_rack_cooling_capacity_kw_per_rack,
+        project_location,
+        server_rated_max_power,
+    )
+
     if advanced:
-        return calculate_it_maintenance_cost_advanced(it_maintenance_cost, total_it_capex)
+        return calculate_it_maintenance_cost_advanced(
+            it_maintenance_cost, total_it_capex
+        )
     else:
         return DEFAULT_ASUMPTION_OF_IT_MAINTENANCE_COST_PER_YEAR * total_it_capex
-    
 
 
 def calculate_it_equipment_capex(advanced: bool):
-    if(advanced == True):
-        return calculate_input_type_filter()/1000
+    if advanced == True:
+        return calculate_input_type_filter() / 1000
     else:
-        return calculate_total_it_cost_with_geographical_adjustments()/1000
+        return calculate_total_it_cost_with_geographical_adjustments() / 1000
 
 
-def calculate_input_type_filter(advanced:bool):
-    if(advanced == False):
+def calculate_input_type_filter(advanced: bool):
+    if advanced == False:
         return calculate_project_type_filter() / calculate_greenfield_basic()
     else:
         return calculate_project_type_filter() / calculate_greenfield_advanced()
 
-def calculate_project_type_filter(project_type:str):
-    #if(project_type == "Greenfield"):
+
+def calculate_project_type_filter(project_type: str):
+    # if(project_type == "Greenfield"):
     return calculate_greenfield_basic()
 
-#greenfield basic
+
+# greenfield basic
+
 
 def calculate_greenfield_basic(country_filter: str):
-    if(country_filter == "United States"):
-        return calculate_air_cooled_it_capex_greenfield_basic(0, 0)  # Placeholder values
-    elif(country_filter == "United Kingdom"):
-        return calculate_air_cooled_it_capex_greenfield_basic(0, 0)  # Placeholder values
-    elif(country_filter == "Singapore"):
-        return calculate_air_cooled_it_capex_greenfield_basic(0, 0)  # Placeholder values
-    elif(country_filter == "United Arab Emirates"):
-        return calculate_air_cooled_it_capex_greenfield_basic(0, 0)  # Placeholder values
+    if country_filter == "United States":
+        return calculate_air_cooled_it_capex_greenfield_basic(
+            0, 0
+        )  # Placeholder values
+    elif country_filter == "United Kingdom":
+        return calculate_air_cooled_it_capex_greenfield_basic(
+            0, 0
+        )  # Placeholder values
+    elif country_filter == "Singapore":
+        return calculate_air_cooled_it_capex_greenfield_basic(
+            0, 0
+        )  # Placeholder values
+    elif country_filter == "United Arab Emirates":
+        return calculate_air_cooled_it_capex_greenfield_basic(
+            0, 0
+        )  # Placeholder values
     else:
         return 0
 
-def calculate_air_cooled_it_capex_greenfield_basic(total_it_cost_per_kw:int, nameplate_power_kw: int):
+
+def calculate_air_cooled_it_capex_greenfield_basic(
+    total_it_cost_per_kw: int, nameplate_power_kw: int
+):
     return total_it_cost_per_kw * nameplate_power_kw
 
-def calculate_total_it_cost_per_kw_basic(total_it_cost:int, nameplate_power_kw:int):
+
+def calculate_total_it_cost_per_kw_basic(total_it_cost: int, nameplate_power_kw: int):
     return total_it_cost / math.ceil(nameplate_power_kw)
 
-def calculate_total_it_cost_greenfield_basic(typical_it_cost_per_server:int, total_n_of_servers:int):
-    if(typical_it_cost_per_server is not None):
+
+def calculate_total_it_cost_greenfield_basic(
+    typical_it_cost_per_server: int, total_n_of_servers: int
+):
+    if typical_it_cost_per_server is not None:
         return typical_it_cost_per_server * total_n_of_servers
     else:
         return TYPICAL_IT_COST_PER_SERVER * total_n_of_servers
 
-#greenfield advanced
+
+# greenfield advanced
+
 
 def calculate_greenfield_advanced(country_filter: str):
-    if(country_filter == "United States"):
-        return calculate_air_cooled_it_capex_greenfield_advanced(0, 0)  # Placeholder values
-    elif(country_filter == "United Kingdom"):
-        return calculate_air_cooled_it_capex_greenfield_advanced(0, 0)  # Placeholder values
-    elif(country_filter == "Singapore"):
-        return calculate_air_cooled_it_capex_greenfield_advanced(0, 0)  # Placeholder values
-    elif(country_filter == "United Arab Emirates"):
-        return calculate_air_cooled_it_capex_greenfield_advanced(0, 0)  # Placeholder values
+    if country_filter == "United States":
+        return calculate_air_cooled_it_capex_greenfield_advanced(
+            0, 0
+        )  # Placeholder values
+    elif country_filter == "United Kingdom":
+        return calculate_air_cooled_it_capex_greenfield_advanced(
+            0, 0
+        )  # Placeholder values
+    elif country_filter == "Singapore":
+        return calculate_air_cooled_it_capex_greenfield_advanced(
+            0, 0
+        )  # Placeholder values
+    elif country_filter == "United Arab Emirates":
+        return calculate_air_cooled_it_capex_greenfield_advanced(
+            0, 0
+        )  # Placeholder values
     else:
         return 0
 
 
-def calculate_air_cooled_it_capex_greenfield_advanced(total_it_cost_per_kw:int, nameplate_power_kw: int):
+def calculate_air_cooled_it_capex_greenfield_advanced(
+    total_it_cost_per_kw: int, nameplate_power_kw: int
+):
     return total_it_cost_per_kw * nameplate_power_kw
 
-def calculate_total_it_cost_per_kw_advanced(total_it_cost:int, nameplate_power_kw:int):
+
+def calculate_total_it_cost_per_kw_advanced(
+    total_it_cost: int, nameplate_power_kw: int
+):
     return total_it_cost / nameplate_power_kw
 
-def calculate_total_it_cost_greenfield_advanced(typical_it_cost_per_server:int, total_n_of_servers:int, include_it_cost:bool):
+
+def calculate_total_it_cost_greenfield_advanced(
+    typical_it_cost_per_server: int, total_n_of_servers: int, include_it_cost: bool
+):
     if include_it_cost:
         return typical_it_cost_per_server * math.floor(total_n_of_servers)
     else:
         return 0
 
 
-def calculate_total_it_cost_with_geographical_adjustments(total_it_cost_per_kw:int, nameplate_power_kw:int):
+def calculate_total_it_cost_with_geographical_adjustments(
+    total_it_cost_per_kw: int, nameplate_power_kw: int
+):
     return total_it_cost_per_kw * nameplate_power_kw
 
-#GetTotal it cost per chassis = need to do calculation
-def calculate_it_cost_reduction_due_to_low_network_cost(total_server_cost:int, total_it_cost_per_chassis:int):
+
+# GetTotal it cost per chassis = need to do calculation
+def calculate_it_cost_reduction_due_to_low_network_cost(
+    total_server_cost: int, total_it_cost_per_chassis: int
+):
     if total_it_cost_per_chassis > 0:
         return total_server_cost / total_it_cost_per_chassis
     else:
         return 1.0  # Default to no reduction if chassis cost is 0
 
-def calculate_total_server_cost(total_network_cost_per_server:int, total_memory_cost_per_server:int, twentyfive_server_l2_bom:int, total_cpu_price_per_server:int):
-    return total_network_cost_per_server + total_memory_cost_per_server + DEFAULT_25_SERVER_L2_BOM + total_cpu_price_per_server
 
-def calculate_total_network_cost_per_server(total_network_cost_per_rack:int):
+def calculate_total_server_cost(
+    total_network_cost_per_server: int,
+    total_memory_cost_per_server: int,
+    twentyfive_server_l2_bom: int,
+    total_cpu_price_per_server: int,
+):
+    return (
+        total_network_cost_per_server
+        + total_memory_cost_per_server
+        + DEFAULT_25_SERVER_L2_BOM
+        + total_cpu_price_per_server
+    )
+
+
+def calculate_total_network_cost_per_server(total_network_cost_per_rack: int):
     return total_network_cost_per_rack / DEFAULT_SERVERS_PER_RACK
 
-def calculate_total_network_cost_per_rack():
-    return (DEFAULT_NETWORK_CABLE_COST_PER_SERVER_CHASSIS * DEFAULT_SERVERS_PER_RACK_CHASSIS) + DEFAULT_32_400_SWITCH_COST
 
-def calculate_total_memory_cost_per_server(total_channels:int):
+def calculate_total_network_cost_per_rack():
+    return (
+        DEFAULT_NETWORK_CABLE_COST_PER_SERVER_CHASSIS * DEFAULT_SERVERS_PER_RACK_CHASSIS
+    ) + DEFAULT_32_400_SWITCH_COST
+
+
+def calculate_total_memory_cost_per_server(total_channels: int):
     return total_channels * DEFAULT_DIMM_CAPACITY_IN_GB * DEFAULT_DIMM_COST_PER_GB
+
 
 def calculate_total_channels():
     return DEFAULT_DDRS_6400_CHANNELS * DEFAULT_NUMBER_OF_SOCKETS_PER_SERVER
 
+
 def calculate_total_cpu_price_per_server():
     return DEFAULT_NUMBER_OF_SOCKETS_PER_SERVER * DEFAULT_CPU_PRICE_PER_UNIT
 
-def calculate_total_n_of_servers(server_rated_max_power:int, nameplate_power_kw:int):
+
+def calculate_total_n_of_servers(server_rated_max_power: int, nameplate_power_kw: int):
     return nameplate_power_kw / server_rated_max_power
 
-def calculate_server_rated_max_power(data_center_type:str):
-    if(data_center_type == "General Purpose"):
+
+def calculate_server_rated_max_power(data_center_type: str):
+    if data_center_type == "General Purpose":
         return 1
-    elif(data_center_type == "HPC/AI"):
+    elif data_center_type == "HPC/AI":
         return 2
 
-def calculate_nameplate_power_kw(data_hall_design_capacity_mw:int):
+
+def calculate_nameplate_power_kw(data_hall_design_capacity_mw: int):
     return data_hall_design_capacity_mw * 1000
 
 
-#IT maintenance cost
+# IT maintenance cost
 
-def calculate_it_maintenance_cost(advanced:bool):
-    if(advanced == True):
+
+def calculate_it_maintenance_cost(advanced: bool):
+    if advanced == True:
         return calculate_it_maintenance_cost_advanced()
     else:
         return calculate_it_maintenance_cost_basic()
 
-def calculate_it_maintenance_cost_advanced(maintenance_cost_per_year: float = None, total_it_cost: float = None):
+
+def calculate_it_maintenance_cost_advanced(
+    maintenance_cost_per_year: float = None, total_it_cost: float = None
+):
     if maintenance_cost_per_year is not None and maintenance_cost_per_year > 0:
         return maintenance_cost_per_year * total_it_cost
     else:
         return DEFAULT_ASUMPTION_OF_IT_MAINTENANCE_COST_PER_YEAR * total_it_cost
 
-def calculate_total_it_cost_maintenance(it_cost_reduction_due_to_low_network_cost:int, total_n_of_servers:int):
-    return it_cost_reduction_due_to_low_network_cost * TYPICAL_IT_COST_PER_SERVER * total_n_of_servers
 
-def calculate_it_maintenance_cost_basic(assumption_of_it_maintenance_cost_per_year:int, total_it_cost_with_geographical_adjustments:int):
-    return DEFAULT_ASUMPTION_OF_IT_MAINTENANCE_COST_PER_YEAR * total_it_cost_with_geographical_adjustments
+def calculate_total_it_cost_maintenance(
+    it_cost_reduction_due_to_low_network_cost: int, total_n_of_servers: int
+):
+    return (
+        it_cost_reduction_due_to_low_network_cost
+        * TYPICAL_IT_COST_PER_SERVER
+        * total_n_of_servers
+    )
 
-def calculate_assumption_of_it_maintenance_cost_per_year(total_network_cost_per_server:int, total_memory_cost_per_server:int, total_cpu_price_per_server:int, twentyfive_server_l2_bom:int):
-    return total_network_cost_per_server + total_memory_cost_per_server + total_cpu_price_per_server + DEFAULT_25_SERVER_L2_BOM
+
+def calculate_it_maintenance_cost_basic(
+    assumption_of_it_maintenance_cost_per_year: int,
+    total_it_cost_with_geographical_adjustments: int,
+):
+    return (
+        DEFAULT_ASUMPTION_OF_IT_MAINTENANCE_COST_PER_YEAR
+        * total_it_cost_with_geographical_adjustments
+    )
+
+
+def calculate_assumption_of_it_maintenance_cost_per_year(
+    total_network_cost_per_server: int,
+    total_memory_cost_per_server: int,
+    total_cpu_price_per_server: int,
+    twentyfive_server_l2_bom: int,
+):
+    return (
+        total_network_cost_per_server
+        + total_memory_cost_per_server
+        + total_cpu_price_per_server
+        + DEFAULT_25_SERVER_L2_BOM
+    )

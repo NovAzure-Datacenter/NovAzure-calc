@@ -209,7 +209,6 @@ async def calculate_annual_opex(input_data, cooling_capex: float):
     return int(annual_opex)
 
 
-<<<<<<< HEAD
 def calculate_annual_it_cost(input_data, total_capex: float):
     """
     Calculate annual IT maintenance cost
@@ -220,12 +219,14 @@ def calculate_annual_it_cost(input_data, total_capex: float):
     data_center_type = input_data.get("data_center_type", "General Purpose")
     data_hall_design_capacity_mw = input_data.get("data_hall_design_capacity_mw", 1)
     planned_number_of_years = input_data.get("planned_years_of_operation", 10)
-    air_rack_cooling_capacity_kw_per_rack = input_data.get("air_rack_cooling_capacity_kw_per_rack", 30)
+    air_rack_cooling_capacity_kw_per_rack = input_data.get(
+        "air_rack_cooling_capacity_kw_per_rack", 30
+    )
     project_location = input_data.get("country", "United States")
     it_maintenance_cost = input_data.get("it_maintenance_cost", 0.08)
     server_rated_max_power = input_data.get("server_rated_max_power", None)
     advanced = input_data.get("advanced", False)
-    
+
     # Calculate annual IT maintenance cost
     annual_it_maintenance = calculate_it_equipment_maintenance_per_year(
         advanced=advanced,
@@ -237,38 +238,29 @@ def calculate_annual_it_cost(input_data, total_capex: float):
         air_rack_cooling_capacity_kw_per_rack=air_rack_cooling_capacity_kw_per_rack,
         project_location=project_location,
         it_maintenance_cost=it_maintenance_cost,
-        server_rated_max_power=server_rated_max_power
+        server_rated_max_power=server_rated_max_power,
     )
-    
+
     return int(annual_it_maintenance)
-=======
-def calculate_annual_it_cost():
-    return int(0)
->>>>>>> 4a8c19c0636dce3eb7c3b6f44f3ba412588b5498
 
 
 async def calculate_total_opex_over_lifetime(input_data, total_capex: float):
     annual_opex = await calculate_annual_opex(input_data, total_capex)
     planned_years = input_data.get("planned_years_of_operation")
-<<<<<<< HEAD
     annual_it_cost = calculate_annual_it_cost(input_data, total_capex)
-    
+
     # Calculate total IT maintenance over lifetime
     total_it_maintenance = annual_it_cost * planned_years
-    
+
     # Calculate total OPEX over lifetime (cooling + IT maintenance)
     total_opex_lifetime = (annual_opex * planned_years) + total_it_maintenance
-=======
-    annual_it_cost = calculate_annual_it_cost()
-    total_opex_lifetime = (annual_opex + annual_it_cost) * planned_years
->>>>>>> 4a8c19c0636dce3eb7c3b6f44f3ba412588b5498
 
     return int(total_opex_lifetime)
 
 
 async def calculate_cooling_opex(input_data, cooling_capex: float):
     annual_opex = await calculate_annual_opex(input_data, cooling_capex)
-    annual_it_cost = calculate_annual_it_cost()
+    annual_it_cost = calculate_annual_it_cost(input_data, cooling_capex)
     total_opex_lifetime = await calculate_total_opex_over_lifetime(
         input_data, cooling_capex
     )

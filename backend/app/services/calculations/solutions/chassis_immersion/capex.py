@@ -4,7 +4,7 @@ from ...it_config import calculate_it_equipment_capex_complete
 COOLANT_PRICE_PER_KW = 40
 MANIFOLD_CAPEX_PER_RACK = 1200
 RACK_COOLING_CAPACITY_LIMIT = 16  # kW/rack (Default)
-CHASSIS_UPLIFT_COST = -150
+CHASSIS_UPLIFT_COST = 150
 SERVER_RATED_MAX_POWER = 1
 HYBRID_COOLER_CAPACITY = 800  # kW
 HYBRID_COOLER_CAPEX_800KW_UNIT = 131100
@@ -265,7 +265,7 @@ def calculate_it_capex(
         planned_number_of_years=planned_years,
         air_rack_cooling_capacity_kw_per_rack=air_rack_cooling_capacity_kw_per_rack,
         project_location=project_location,
-        server_rated_max_power=server_rated_max_power
+        server_rated_max_power=server_rated_max_power,
     )
 
     return round(total_it_cost)
@@ -275,24 +275,29 @@ def calculate_cooling_capex(input_data):
     capacity_mw = input_data.get("data_hall_design_capacity_mw")
     first_year_of_operation = input_data.get("first_year_of_operation")
     country = input_data.get("country")
+    advanced = input_data.get("advanced", False)
 
     cooling_equipment_capex = calculate_chassis_solution_capex_with_markup(
         first_year_of_operation, capacity_mw, country
     )
 
-    it_equipment_capex = calculate_it_capex(
-        data_hall_capacity_mw=capacity_mw,
-        data_center_type=input_data.get("data_center_type"),
-        air_rack_cooling_capacity_kw_per_rack=input_data.get("air_rack_cooling_capacity_kw_per_rack"),
-        planned_years=input_data.get("planned_years_of_operation"),
-        it_cost_per_server=input_data.get("typical_it_cost_per_server", 16559),
-        it_maintenance_cost=input_data.get("it_maintenance_cost", 0.08),
-        it_cost_included=input_data.get("it_cost_included", True),
-        total_it_cost_per_kw=0,  # Not used in new function
-        project_location=input_data.get("project_location", "United States"),
-        advanced=input_data.get("advanced", False),
-        server_rated_max_power=input_data.get("server_rated_max_power", None)
-    )
+    it_equipment_capex = 0
+    if advanced:
+        it_equipment_capex = calculate_it_capex(
+            data_hall_capacity_mw=capacity_mw,
+            data_center_type=input_data.get("data_center_type"),
+            air_rack_cooling_capacity_kw_per_rack=input_data.get(
+                "air_rack_cooling_capacity_kw_per_rack"
+            ),
+            planned_years=input_data.get("planned_years_of_operation"),
+            it_cost_per_server=input_data.get("typical_it_cost_per_server", 16559),
+            it_maintenance_cost=input_data.get("it_maintenance_cost", 0.08),
+            it_cost_included=input_data.get("it_cost_included", True),
+            total_it_cost_per_kw=0,  # Not used in new function
+            project_location=input_data.get("project_location", "United States"),
+            advanced=input_data.get("advanced", False),
+            server_rated_max_power=input_data.get("server_rated_max_power", None),
+        )
 
     total_capex = cooling_equipment_capex + it_equipment_capex
 
