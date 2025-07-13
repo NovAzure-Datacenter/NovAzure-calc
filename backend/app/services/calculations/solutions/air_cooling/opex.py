@@ -153,40 +153,6 @@ async def calculate_cost_of_energy(
     return total_energy * electricity_rate
 
 
-async def calculate_cost_of_energy_over_planned_period(
-    capacity_mw: float,
-    ppue: float,
-    utilisation: float,
-    first_year_of_operation: int,
-    planned_years: int,
-    country: str,
-):
-    budgeted_it_energy = await get_budget_IT_energy()
-    budgeted_fan_energy = await get_budget_fan_energy()
-    actual_fan_power = await get_actual_fan_power()
-
-    capacity_kw = capacity_mw * 1000
-    fan_power = capacity_kw * budgeted_fan_energy * actual_fan_power
-    it_power = capacity_kw * budgeted_it_energy * utilisation
-
-    energy_per_year = (fan_power + it_power) * 365 * 24
-    total_energy_per_year = ppue * energy_per_year
-
-    total_energy_cost = 0
-    for year_offset in range(planned_years):
-        current_year = first_year_of_operation + year_offset
-        if current_year in ELECTRICITY_RATES[country]:
-            electricity_rate = ELECTRICITY_RATES[country][current_year]
-            total_energy_cost += total_energy_per_year * electricity_rate
-        else:
-            # Use the last available year's rate if beyond forecast
-            last_year = max(ELECTRICITY_RATES[country].keys())
-            electricity_rate = ELECTRICITY_RATES[country][last_year]
-            total_energy_cost += total_energy_per_year * electricity_rate
-
-    return total_energy_cost
-
-
 async def calculate_cost_of_water_annually(energy_required_per_year_kwh: float):
     water_price = await get_water_price_per_litre()
     water_use = await get_water_use_per_kwh()
@@ -195,12 +161,12 @@ async def calculate_cost_of_water_annually(energy_required_per_year_kwh: float):
     return water_required * water_price
 
 
-async def calculate_cooling_maintenance_annually(total_capex: float, country: str):
+async def calculate_cooling_maintenance_annually(cooling_capex: float):
     maintenance_rate = 0.08
-    return total_capex * maintenance_rate
+    return cooling_capex * maintenance_rate
 
 
-async def calculate_annual_opex(input_data, total_capex: float):
+async def calculate_annual_opex(input_data, cooling_capex: float):
     """
     Calculates the annual OPEX for an air cooling solution.
 
@@ -215,7 +181,7 @@ async def calculate_annual_opex(input_data, total_capex: float):
     And the total_capex value calculated separately.
     """
     capacity_mw = input_data.get("data_hall_design_capacity_mw")
-    ppue = input_data.get("annualised_air_ppue")
+    ppue = input_data.get("annualised_ppue")
     utilisation = input_data.get("percentage_of_utilisation")
     first_year_of_operation = input_data.get("first_year_of_operation")
     country = input_data.get("country")
@@ -234,33 +200,31 @@ async def calculate_annual_opex(input_data, total_capex: float):
     energy_per_year = (fan_power + it_power) * 365 * 24
 
     cost_of_water = await calculate_cost_of_water_annually(energy_per_year)
-    maintenance_cost = await calculate_cooling_maintenance_annually(
-        total_capex, country
-    )
+    maintenance_cost = await calculate_cooling_maintenance_annually(cooling_capex)
 
     annual_opex = cost_of_energy + cost_of_water + maintenance_cost
 
     return int(annual_opex)
 
 
-def calculate_annual_it_cost(input_data, total_capex: float):
+def calculate_annual_it_cost():
     return int(0)
 
 
 async def calculate_total_opex_over_lifetime(input_data, total_capex: float):
     annual_opex = await calculate_annual_opex(input_data, total_capex)
     planned_years = input_data.get("planned_years_of_operation")
-    annual_it_cost = calculate_annual_it_cost(input_data, total_capex)
+    annual_it_cost = calculate_annual_it_cost()
     total_opex_lifetime = (annual_opex + annual_it_cost) * planned_years
 
     return int(total_opex_lifetime)
 
 
-async def calculate_cooling_opex(input_data, total_capex: float):
-    annual_opex = await calculate_annual_opex(input_data, total_capex)
-    annual_it_cost = calculate_annual_it_cost(input_data, total_capex)
+async def calculate_cooling_opex(input_data, cooling_capex: float):
+    annual_opex = await calculate_annual_opex(input_data, cooling_capex)
+    annual_it_cost = calculate_annual_it_cost()
     total_opex_lifetime = await calculate_total_opex_over_lifetime(
-        input_data, total_capex
+        input_data, cooling_capex
     )
 
     return {

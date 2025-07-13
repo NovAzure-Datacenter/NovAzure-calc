@@ -30,7 +30,7 @@ interface calcInputs{
     project_location: string;
     percentage_of_utilisation: number;
     planned_years_of_operation: number;
-    annualised_air_ppue: number;
+    annualised_ppue: number;
     advanced: boolean;
 }
 
@@ -68,7 +68,7 @@ const ConfigurationCard = forwardRef(function ConfigurationCard({
             project_location: "",
             percentage_of_utilisation: 0,
             planned_years_of_operation: 0,
-            annualised_air_ppue: 0,
+            annualised_ppue: 0,
             advanced: false
         };
         // Populate inputs based on configFields
@@ -92,7 +92,7 @@ const ConfigurationCard = forwardRef(function ConfigurationCard({
                     inputs.planned_years_of_operation = Number(field.value);
                     break;
                 case 'air_annualised_ppue':
-                    inputs.annualised_air_ppue = Number(field.value);
+                    inputs.annualised_ppue = Number(field.value);
                     break;
                 default:
                     break;
