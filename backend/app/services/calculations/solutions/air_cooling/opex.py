@@ -5,7 +5,6 @@ from app.database.queries.company_inputs import (
 )
 
 # Constants
-WUE = 0.026  # Water Usage Effectiveness
 COOLING_MAINTENANCE_OPEX_TO_CAPEX_RATIO = 0.08
 
 # Electricity forecast rates ($/kWh) by country and year
@@ -156,28 +155,9 @@ async def calculate_cost_of_energy(
 
 
 async def calculate_cost_of_water_annually(
-    water_price_per_litre: float, capacity_kw: float, utilisation: float
+    water_price_per_litre: float, energy_required_per_year_kwh: float
 ):
-    """
-    Calculate annual water cost using the same approach as chassis immersion.
-    Uses WUE (Water Usage Effectiveness) constant and direct input parameters.
-    """
-    # Get the actual energy consumption values from database
-    budgeted_it_energy = await get_budget_IT_energy()
-    budgeted_fan_energy = await get_budget_fan_energy()
-    actual_fan_power = await get_actual_fan_power()
-    
-    # Calculate actual power consumption
-    fan_power = capacity_kw * budgeted_fan_energy * actual_fan_power
-    it_power = capacity_kw * budgeted_it_energy * utilisation
-    
-    # Calculate energy required per year in kWh
-    energy_required_per_year_kwh = (fan_power + it_power) * 365 * 24
-    
-    # Calculate water required annually using WUE
-    water_required_annually = energy_required_per_year_kwh * WUE
-    
-    # Calculate cost
+    water_required_annually = energy_required_per_year_kwh * 0.026
     return water_price_per_litre * water_required_annually
 
 
@@ -219,7 +199,7 @@ async def calculate_annual_opex(input_data, cooling_capex: float):
     energy_per_year = (fan_power + it_power) * 365 * 24
 
     cost_of_water = await calculate_cost_of_water_annually(
-        input_data.get("water_price_per_litre"), capacity_kw, utilisation
+        input_data.get("water_price_per_litre"), energy_per_year
     )
     maintenance_cost = await calculate_cooling_maintenance_annually(cooling_capex)
 
