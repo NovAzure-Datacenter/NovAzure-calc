@@ -151,7 +151,7 @@ async def calculate_cost_of_energy(
 
     energy_per_year = (fan_power + it_power) * 365 * 24
     total_energy = ppue * energy_per_year
-    
+
     if electricity_price_per_kwh > 0:
         electricity_rate = electricity_price_per_kwh
     else:
@@ -195,7 +195,12 @@ async def calculate_annual_opex(input_data, cooling_capex: float):
     electricity_price_per_kwh = input_data.get("electricity_price_per_kwh", 0)
 
     cost_of_energy = await calculate_cost_of_energy(
-        capacity_mw, ppue, utilisation, first_year_of_operation, country, electricity_price_per_kwh
+        capacity_mw,
+        ppue,
+        utilisation,
+        first_year_of_operation,
+        country,
+        electricity_price_per_kwh,
     )
 
     budgeted_it_energy = await get_budget_IT_energy()
@@ -216,7 +221,6 @@ async def calculate_annual_opex(input_data, cooling_capex: float):
 
 
 def calculate_annual_it_cost(input_data, total_capex: float):
-
     # Get IT-specific parameters from input data
     it_cost_included = input_data.get("it_cost_included", True)
     typical_it_cost_per_server = input_data.get("typical_it_cost_per_server", 16559)

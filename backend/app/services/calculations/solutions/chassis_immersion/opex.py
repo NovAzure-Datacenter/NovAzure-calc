@@ -177,12 +177,12 @@ def calculate_cost_of_energy_annually(
     energy_for_computing_cooling_annually = (
         energy_for_computing_annualy * annualised_liquid_pPUE
     )
-    
+
     if electricity_price_per_kwh > 0:
         electricity_rate = electricity_price_per_kwh
     else:
         electricity_rate = ELECTRICITY_RATES[country][first_year_of_operation]
-    
+
     return energy_for_computing_cooling_annually * electricity_rate
 
 
@@ -258,7 +258,7 @@ def calculate_annual_opex(input_data, cooling_capex: float):
     capacity_kw = input_data.get("data_hall_design_capacity_mw") * 1000
     annual_it_cost = calculate_annual_it_cost(input_data, cooling_capex)
     electricity_price_per_kwh = input_data.get("electricity_price_per_kwh", 0)
-    
+
     return (
         HEAT_RECOVERY_TO_LIQUID_PERCENTAGE
         * (
@@ -308,17 +308,17 @@ def calculate_total_opex_over_lifetime(input_data, cooling_capex: float):
 
 def calculate_chassis_opex(input_data, cooling_capex: float):
     chassis_product = input_data.get("chassis_product")
-    
+
     opex_cooling_capex = cooling_capex
     if chassis_product == "KU:L 2":
-        opex_cooling_capex = cooling_capex / 1.8  
-    
+        opex_cooling_capex = cooling_capex / 1.8
+
     annual_opex = calculate_annual_opex(input_data, opex_cooling_capex)
     annual_it_cost = calculate_annual_it_cost(input_data, opex_cooling_capex)
-    
+
     if chassis_product == "KU:L 2":
         annual_opex *= 1.3
-    
+
     planned_years = input_data.get("planned_years_of_operation")
     total_it_maintenance = annual_it_cost * planned_years
     total_opex_lifetime = (annual_opex * planned_years) + total_it_maintenance
