@@ -71,6 +71,8 @@ const ConfigurationCard = forwardRef(function ConfigurationCard(
 				selectedSolutionInfo.name?.toLowerCase().replace(/\s+/g, "_") || "";
 		}
 
+		console.log("Backend solution type: " + backendSolutionType);
+
         // Prepare the inputs for the calculation
         const inputs: calcInputs = {
             solution_type: backendSolutionType,
@@ -108,6 +110,7 @@ const ConfigurationCard = forwardRef(function ConfigurationCard(
                 default:
                     break;
             }
+			console.log(`field ${field.id}: ${field.value}`);
         });
 
 		console.log("Prepared inputs for calculation:", inputs);

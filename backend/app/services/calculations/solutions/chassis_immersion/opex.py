@@ -229,6 +229,7 @@ def calculate_annual_opex_for_air_cooled_equipment(
     capacity_kw: float,
     utilisation: float,
     water_price_per_litre: float,
+    input_data,
 ):
     total_opex_annually = (
         calculate_cooling_maintenance_annually(air_cooled_capex)
@@ -242,7 +243,7 @@ def calculate_annual_opex_for_air_cooled_equipment(
         + calculate_cost_of_water_annually(
             water_price_per_litre, capacity_kw, utilisation
         )
-        + calculate_annual_it_cost()
+        + calculate_annual_it_cost(input_data, air_cooled_capex)
     )
     return total_opex_annually * HEAT_RECOVERY_TO_AIR_PERCENTAGE
 
@@ -275,6 +276,7 @@ def calculate_annual_opex(input_data, cooling_capex: float):
             capacity_kw,
             input_data.get("percentage_of_utilisation"),
             input_data.get("water_price_per_litre"),
+            input_data,
         )
         + annual_it_cost
     )
