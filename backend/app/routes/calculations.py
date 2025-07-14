@@ -8,6 +8,7 @@ from ..services.calculations.main import calculate, update_inputs, compare
 
 router = APIRouter(prefix="/calculations", tags=["calculations"])
 
+
 @router.post("/calculate", response_model=SingleCoolingSolution)
 async def main_calculate(request: CoolingSolutionRequest):
     try:
