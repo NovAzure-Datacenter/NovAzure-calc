@@ -1,3 +1,5 @@
+from ...it_config import calculate_it_equipment_maintenance_per_year
+
 HEAT_RECOVERY_TO_LIQUID_PERCENTAGE = 0.95
 HEAT_RECOVERY_TO_AIR_PERCENTAGE = 0.05
 BUDGETED_IT_ENERGY_CONSUMPTION = 0.9
@@ -162,6 +164,7 @@ def calculate_cost_of_energy_annually(
     annualised_liquid_pPUE: float,
     capacity_kw: float,
     utilisation: float,
+    electricity_price_per_kwh: float,
 ):
     energy_for_computing_annualy = (
         (
@@ -174,18 +177,52 @@ def calculate_cost_of_energy_annually(
     energy_for_computing_cooling_annually = (
         energy_for_computing_annualy * annualised_liquid_pPUE
     )
-    return (
-        energy_for_computing_cooling_annually
-        * ELECTRICITY_RATES[country][first_year_of_operation]
-    )
+
+    if electricity_price_per_kwh > 0:
+        electricity_rate = electricity_price_per_kwh
+    else:
+        electricity_rate = ELECTRICITY_RATES[country][first_year_of_operation]
+
+    return energy_for_computing_cooling_annually * electricity_rate
 
 
 def calculate_cooling_maintenance_annually(cooling_capex: float):
     return cooling_capex * COOLING_MAINTENANCE_OPEX_TO_CAPEX_RATIO
 
 
-def calculate_annual_it_cost():
-    return 0
+def calculate_annual_it_cost(input_data, cooling_capex: float):
+    """
+    Calculate annual IT maintenance cost
+    """
+    # Get IT-specific parameters from input data
+    it_cost_included = input_data.get("it_cost_included", True)
+    typical_it_cost_per_server = input_data.get("typical_it_cost_per_server", 16559)
+    data_center_type = input_data.get("data_center_type", "General Purpose")
+    data_hall_design_capacity_mw = input_data.get("data_hall_design_capacity_mw", 1)
+    planned_number_of_years = input_data.get("planned_years_of_operation", 10)
+    air_rack_cooling_capacity_kw_per_rack = input_data.get(
+        "air_rack_cooling_capacity_kw_per_rack", 30
+    )
+    project_location = input_data.get("country", "United States")
+    it_maintenance_cost = input_data.get("it_maintenance_cost", 0.08)
+    server_rated_max_power = input_data.get("server_rated_max_power", None)
+    advanced = input_data.get("advanced", False)
+
+    # Calculate annual IT maintenance cost
+    annual_it_maintenance = calculate_it_equipment_maintenance_per_year(
+        advanced=advanced,
+        it_cost_included=it_cost_included,
+        typical_it_cost_per_server=typical_it_cost_per_server,
+        data_center_type=data_center_type,
+        data_hall_design_capacity_mw=data_hall_design_capacity_mw,
+        planned_number_of_years=planned_number_of_years,
+        air_rack_cooling_capacity_kw_per_rack=air_rack_cooling_capacity_kw_per_rack,
+        project_location=project_location,
+        it_maintenance_cost=it_maintenance_cost,
+        server_rated_max_power=server_rated_max_power,
+    )
+
+    return int(annual_it_maintenance)
 
 
 def calculate_annual_opex_for_air_cooled_equipment(
@@ -196,6 +233,8 @@ def calculate_annual_opex_for_air_cooled_equipment(
     capacity_kw: float,
     utilisation: float,
     water_price_per_litre: float,
+    input_data,
+    electricity_price_per_kwh: float,
 ):
     total_opex_annually = (
         calculate_cooling_maintenance_annually(air_cooled_capex)
@@ -205,17 +244,21 @@ def calculate_annual_opex_for_air_cooled_equipment(
             annualised_liquid_pPUE,
             capacity_kw,
             utilisation,
+            electricity_price_per_kwh,
         )
         + calculate_cost_of_water_annually(
             water_price_per_litre, capacity_kw, utilisation
         )
-        + calculate_annual_it_cost()
+        + calculate_annual_it_cost(input_data, air_cooled_capex)
     )
     return total_opex_annually * HEAT_RECOVERY_TO_AIR_PERCENTAGE
 
 
 def calculate_annual_opex(input_data, cooling_capex: float):
     capacity_kw = input_data.get("data_hall_design_capacity_mw") * 1000
+    annual_it_cost = calculate_annual_it_cost(input_data, cooling_capex)
+    electricity_price_per_kwh = input_data.get("electricity_price_per_kwh", 0)
+
     return (
         HEAT_RECOVERY_TO_LIQUID_PERCENTAGE
         * (
@@ -230,6 +273,7 @@ def calculate_annual_opex(input_data, cooling_capex: float):
                 input_data.get("annualised_ppue"),
                 capacity_kw,
                 input_data.get("percentage_of_utilisation"),
+                electricity_price_per_kwh,
             )
             + calculate_cooling_maintenance_annually(cooling_capex)
         )
@@ -241,24 +285,43 @@ def calculate_annual_opex(input_data, cooling_capex: float):
             capacity_kw,
             input_data.get("percentage_of_utilisation"),
             input_data.get("water_price_per_litre"),
+            input_data,
+            electricity_price_per_kwh,
         )
-        + calculate_annual_it_cost()
+        + annual_it_cost
     )
 
 
 def calculate_total_opex_over_lifetime(input_data, cooling_capex: float):
     annual_opex = calculate_annual_opex(input_data, cooling_capex)
     planned_years = input_data.get("planned_years_of_operation")
-    annual_it_cost = calculate_annual_it_cost()
-    total_opex_lifetime = (annual_opex + annual_it_cost) * planned_years
+    annual_it_cost = calculate_annual_it_cost(input_data, cooling_capex)
+
+    # Calculate total IT maintenance over lifetime
+    total_it_maintenance = annual_it_cost * planned_years
+
+    # Calculate total OPEX over lifetime (cooling + IT maintenance)
+    total_opex_lifetime = (annual_opex * planned_years) + total_it_maintenance
 
     return int(total_opex_lifetime)
 
 
 def calculate_chassis_opex(input_data, cooling_capex: float):
-    annual_opex = calculate_annual_opex(input_data, cooling_capex)
-    annual_it_cost = calculate_annual_it_cost()
-    total_opex_lifetime = calculate_total_opex_over_lifetime(input_data, cooling_capex)
+    chassis_product = input_data.get("chassis_product")
+
+    opex_cooling_capex = cooling_capex
+    if chassis_product == "KU:L 2":
+        opex_cooling_capex = cooling_capex / 1.8
+
+    annual_opex = calculate_annual_opex(input_data, opex_cooling_capex)
+    annual_it_cost = calculate_annual_it_cost(input_data, opex_cooling_capex)
+
+    if chassis_product == "KU:L 2":
+        annual_opex *= 1.3
+
+    planned_years = input_data.get("planned_years_of_operation")
+    total_it_maintenance = annual_it_cost * planned_years
+    total_opex_lifetime = (annual_opex * planned_years) + total_it_maintenance
 
     return {
         "annual_cooling_opex": int(annual_opex),

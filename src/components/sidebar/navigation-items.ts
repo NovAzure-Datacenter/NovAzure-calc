@@ -104,7 +104,7 @@ export const getProductsAndSolutionsItems = (
 			title: "View Products",
 			icon: Package,
 			url: "/home/product-and-solutions/products",
-			isActive: true,
+			isActive: false,
 		},
 	];
 

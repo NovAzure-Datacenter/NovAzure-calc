@@ -1,4 +1,4 @@
-'use server';
+"use server";
 
 import { ObjectId } from "mongodb";
 import { getScenariosCollection } from "@/lib/mongoDb/db";
@@ -54,8 +54,12 @@ export async function getScenariosByProjectId(
 			results: scenario.results || [],
 			client_id: scenario.client_id || "",
 			user_id: scenario.user_id || "",
-			created_at: scenario.created_at ? new Date(scenario.created_at).toISOString() : new Date().toISOString(),
-			updated_at: scenario.updated_at ? new Date(scenario.updated_at).toISOString() : new Date().toISOString(),
+			created_at: scenario.created_at
+				? new Date(scenario.created_at).toISOString()
+				: new Date().toISOString(),
+			updated_at: scenario.updated_at
+				? new Date(scenario.updated_at).toISOString()
+				: new Date().toISOString(),
 		}));
 
 		return {
@@ -117,7 +121,9 @@ export async function createScenario(
 export async function updateScenario(
 	userId: string,
 	scenarioId: string,
-	updateData: Partial<Omit<ScenarioData, "id" | "client_id" | "user_id" | "created_at">>
+	updateData: Partial<
+		Omit<ScenarioData, "id" | "client_id" | "user_id" | "created_at">
+	>
 ): Promise<{
 	success: boolean;
 	scenario?: ScenarioData;
@@ -161,8 +167,12 @@ export async function updateScenario(
 			results: scenarioDoc.results || [],
 			client_id: scenarioDoc.client_id || "",
 			user_id: scenarioDoc.user_id || "",
-			created_at: scenarioDoc.created_at ? new Date(scenarioDoc.created_at).toISOString() : new Date().toISOString(),
-			updated_at: scenarioDoc.updated_at ? new Date(scenarioDoc.updated_at).toISOString() : new Date().toISOString(),
+			created_at: scenarioDoc.created_at
+				? new Date(scenarioDoc.created_at).toISOString()
+				: new Date().toISOString(),
+			updated_at: scenarioDoc.updated_at
+				? new Date(scenarioDoc.updated_at).toISOString()
+				: new Date().toISOString(),
 		};
 
 		return {

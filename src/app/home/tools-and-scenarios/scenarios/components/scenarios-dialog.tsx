@@ -56,59 +56,105 @@ export function ScenariosDialog({
 		return resolvedNames[cacheKey] || id;
 	}
 
-	function getResultInfo(results: any[]): {
+	function getResultInfo(results: any): {
 		name: string;
 		data: Record<string, any>;
+		keyMetrics?: any;
 	} {
-		if (!results || results.length === 0) {
+		if (!results || typeof results !== 'object') {
 			return { name: "No Results", data: {} };
 		}
 
-		const firstResult = results[0];
-		const resultKeys = Object.keys(firstResult);
-		const resultName = resultKeys[0] || "Unknown";
-		const resultData = firstResult[resultName];
+		// For value calculator scenarios, extract key financial metrics
+		const keyMetrics = {
+			tco: results.tco_including_it || results.tco_excluding_it || 0,
+			capex: results.total_capex || 0,
+			opex: results.total_opex_over_lifetime || 0,
+			annualCoolingOpex: results.annual_cooling_opex || 0,
+			annualItMaintenance: results.annual_it_maintenance || 0,
+		};
 
-		return { name: resultName, data: resultData || {} };
+		return { 
+			name: "Value Calculator", 
+			data: results,
+			keyMetrics 
+		};
+	}
+
+	function getInputParametersInfo(inputParams: any): { 
+		dataCenterType?: string; 
+		location?: string; 
+		capacity?: string; 
+		utilization?: string;
+		years?: string;
+		firstYear?: string;
+		airPpue?: string;
+		defaultAirPpue?: string;
+		allParams?: Record<string, any>;
+	} {
+		if (!inputParams || typeof inputParams !== 'object') {
+			return {};
+		}
+
+		return {
+			dataCenterType: inputParams.data_centre_type,
+			location: inputParams.project_location,
+			capacity: inputParams.data_hall_capacity,
+			utilization: inputParams.utilisation_percentage,
+			years: inputParams.planned_years_operation,
+			firstYear: inputParams.first_year_operation,
+			airPpue: inputParams.air_annualized_ppue,
+			defaultAirPpue: inputParams.default_air_ppue,
+			allParams: inputParams,
+		};
+	}
+
+	function formatCurrency(amount: number): string {
+		return new Intl.NumberFormat('en-US', {
+			style: 'currency',
+			currency: 'USD',
+			minimumFractionDigits: 0,
+			maximumFractionDigits: 0,
+		}).format(amount);
 	}
 
 	const resultInfo = getResultInfo(scenario.results);
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="min-w-[60vw] max-h-[90vh] overflow-y-auto">
+			<DialogContent className="min-w-[50vw] max-h-[85vh] overflow-y-auto">
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2">
-						<FileText className="h-5 w-5" />
+						<FileText className="h-4 w-4" />
 						{scenario.scenario_name}
 					</DialogTitle>
 				</DialogHeader>
 
-				<div className="space-y-6">
+				<div className="space-y-4">
 					{/* Basic Information */}
 					<Card>
-						<CardHeader>
-							<CardTitle className="text-lg flex items-center gap-2">
-								<Info className="h-5 w-5" />
+						<CardHeader className="pb-3">
+							<CardTitle className="text-base flex items-center gap-2">
+								<Info className="h-4 w-4" />
 								Scenario Overview
 							</CardTitle>
 						</CardHeader>
-						<CardContent className="space-y-4">
+						<CardContent className="space-y-3">
 							{/* Solution Information */}
 							<div>
-								<h4 className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
-									<Target className="h-4 w-4" />
+								<h4 className="text-xs font-medium text-muted-foreground mb-1 flex items-center gap-1">
+									<Target className="h-3 w-3" />
 									Solution
 								</h4>
 								<div className="flex flex-wrap gap-1">
 									{scenario.solution.map((solutionId, index) => (
-										<Badge key={index} variant="secondary">
+										<Badge key={index} variant="secondary" className="text-xs">
 											{getResolvedName("solution", solutionId)}
 										</Badge>
 									))}
 									{scenario.solution_variant &&
 										scenario.solution_variant !== "N/A" && (
-											<Badge variant="secondary">
+											<Badge variant="secondary" className="text-xs">
 												{scenario.solution_variant}
 											</Badge>
 										)}
@@ -118,12 +164,12 @@ export function ScenariosDialog({
 							{/* Comparison */}
 							{scenario.compared_to && scenario.compared_to.length > 0 && (
 								<div>
-									<h4 className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
-										<TrendingUp className="h-4 w-4" />
+									<h4 className="text-xs font-medium text-muted-foreground mb-1 flex items-center gap-1">
+										<TrendingUp className="h-3 w-3" />
 										Comparison
 									</h4>
 									<div className="flex flex-wrap gap-1">
-										<Badge variant="outline">
+										<Badge variant="outline" className="text-xs">
 											Compared to: {scenario.compared_to.join(", ")}
 										</Badge>
 									</div>
@@ -131,31 +177,31 @@ export function ScenariosDialog({
 							)}
 
 							{/* Metadata */}
-							<div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t">
-								<div className="flex items-center gap-2">
-									<User className="h-4 w-4 text-muted-foreground" />
-									<span className="text-sm text-muted-foreground">
+							<div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 border-t">
+								<div className="flex items-center gap-1">
+									<User className="h-3 w-3 text-muted-foreground" />
+									<span className="text-xs text-muted-foreground">
 										Created by:
 									</span>
-									<span className="text-sm font-medium">
+									<span className="text-xs font-medium">
 										{getResolvedName("user", scenario.user_id)}
 									</span>
 								</div>
-								<div className="flex items-center gap-2">
-									<Calendar className="h-4 w-4 text-muted-foreground" />
-									<span className="text-sm text-muted-foreground">
+								<div className="flex items-center gap-1">
+									<Calendar className="h-3 w-3 text-muted-foreground" />
+									<span className="text-xs text-muted-foreground">
 										Created:
 									</span>
-									<span className="text-sm font-medium">
+									<span className="text-xs font-medium">
 										{new Date(scenario.created_at).toLocaleDateString()}
 									</span>
 								</div>
-								<div className="flex items-center gap-2">
-									<Calendar className="h-4 w-4 text-muted-foreground" />
-									<span className="text-sm text-muted-foreground">
+								<div className="flex items-center gap-1">
+									<Calendar className="h-3 w-3 text-muted-foreground" />
+									<span className="text-xs text-muted-foreground">
 										Updated:
 									</span>
-									<span className="text-sm font-medium">
+									<span className="text-xs font-medium">
 										{new Date(scenario.updated_at).toLocaleDateString()}
 									</span>
 								</div>
@@ -165,89 +211,245 @@ export function ScenariosDialog({
 
 					{/* Input Parameters */}
 					<Card>
-						<CardHeader>
-							<CardTitle className="text-lg flex items-center gap-2">
-								<Settings className="h-5 w-5" />
-								Input Parameters ({scenario.input_parameters?.length || 0})
+						<CardHeader className="pb-3">
+							<CardTitle className="text-base flex items-center gap-2">
+								<Settings className="h-4 w-4" />
+								Configuration Parameters
 							</CardTitle>
 						</CardHeader>
 						<CardContent>
-							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
-								{scenario.input_parameters?.map((param, index) => (
-									<div key={index} className="border rounded-lg p-3">
-										<div className="flex items-center justify-between mb-2">
-											<h5 className="text-sm font-medium">{param.name}</h5>
-											<Badge variant="outline" className="text-xs">
-												{param.level}
-											</Badge>
-										</div>
-										<div className="space-y-1">
-											<div className="flex justify-between text-xs">
-												<span className="text-muted-foreground">Default:</span>
-												<span className="font-medium">
-													{param.defaultValue} {param.units}
-												</span>
+							{(() => {
+								const inputInfo = getInputParametersInfo(scenario.input_parameters);
+								if (inputInfo.allParams) {
+									return (
+										<div className="space-y-4">
+											{/* Key Configuration */}
+											<div>
+												<h4 className="text-xs font-medium text-muted-foreground mb-2">
+													Data Center Configuration
+												</h4>
+												<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+													{inputInfo.dataCenterType && (
+														<div className="border rounded-md p-2">
+															<div className="text-xs text-muted-foreground mb-1">Type</div>
+															<div className="text-sm font-medium text-primary">
+																{inputInfo.dataCenterType}
+															</div>
+														</div>
+													)}
+													{inputInfo.location && (
+														<div className="border rounded-md p-2">
+															<div className="text-xs text-muted-foreground mb-1">Location</div>
+															<div className="text-sm font-medium text-primary">
+																{inputInfo.location}
+															</div>
+														</div>
+													)}
+													{inputInfo.capacity && (
+														<div className="border rounded-md p-2">
+															<div className="text-xs text-muted-foreground mb-1">Capacity</div>
+															<div className="text-sm font-medium text-primary">
+																{inputInfo.capacity} MW
+															</div>
+														</div>
+													)}
+													{inputInfo.utilization && (
+														<div className="border rounded-md p-2">
+															<div className="text-xs text-muted-foreground mb-1">Utilization</div>
+															<div className="text-sm font-medium text-primary">
+																{inputInfo.utilization}
+															</div>
+														</div>
+													)}
+													{inputInfo.years && (
+														<div className="border rounded-md p-2">
+															<div className="text-xs text-muted-foreground mb-1">Years</div>
+															<div className="text-sm font-medium text-primary">
+																{inputInfo.years}
+															</div>
+														</div>
+													)}
+													{inputInfo.firstYear && (
+														<div className="border rounded-md p-2">
+															<div className="text-xs text-muted-foreground mb-1">First Year</div>
+															<div className="text-sm font-medium text-primary">
+																{inputInfo.firstYear}
+															</div>
+														</div>
+													)}
+												</div>
 											</div>
-											{param.overrideValue !== null && (
-												<div className="flex justify-between text-xs">
-													<span className="text-muted-foreground">
-														Override:
-													</span>
-													<span className="font-medium text-blue-600">
-														{param.overrideValue} {param.units}
-													</span>
+
+											{/* Energy Efficiency */}
+											{(inputInfo.airPpue || inputInfo.defaultAirPpue) && (
+												<div>
+													<h4 className="text-xs font-medium text-muted-foreground mb-2">
+														Energy Efficiency
+													</h4>
+													<div className="grid grid-cols-2 gap-3">
+														{inputInfo.airPpue && (
+															<div className="border rounded-md p-2">
+																<div className="text-xs text-muted-foreground mb-1">Air PPUE</div>
+																<div className="text-sm font-medium text-primary">
+																	{inputInfo.airPpue}
+																</div>
+															</div>
+														)}
+														{inputInfo.defaultAirPpue && (
+															<div className="border rounded-md p-2">
+																<div className="text-xs text-muted-foreground mb-1">Default PPUE</div>
+																<div className="text-sm font-medium text-primary">
+																	{inputInfo.defaultAirPpue}
+																</div>
+															</div>
+														)}
+													</div>
 												</div>
 											)}
-											<div className="flex justify-between text-xs">
-												<span className="text-muted-foreground">Category:</span>
-												<Badge variant="outline" className="text-xs">
-													{param.category}
-												</Badge>
+
+											{/* All Parameters */}
+											<div>
+												<h4 className="text-xs font-medium text-muted-foreground mb-2">
+													All Parameters
+												</h4>
+												<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+													{Object.entries(inputInfo.allParams).map(([key, value]) => (
+														<div key={key} className="border rounded-md p-2">
+															<div className="text-xs text-muted-foreground mb-1 capitalize">
+																{key.replace(/_/g, " ")}
+															</div>
+															<div className="text-sm font-medium text-primary">
+																{String(value)}
+															</div>
+														</div>
+													))}
+												</div>
 											</div>
 										</div>
-										{param.description && (
-											<p className="text-xs text-muted-foreground mt-2">
-												{param.description}
-											</p>
-										)}
+									);
+								}
+								return (
+									<div className="text-center py-6 text-muted-foreground">
+										<Settings className="h-8 w-8 mx-auto mb-2 opacity-50" />
+										<p className="text-sm">No configuration parameters available</p>
 									</div>
-								))}
-							</div>
+								);
+							})()}
 						</CardContent>
 					</Card>
 
 					{/* Results */}
 					<Card>
-						<CardHeader>
-							<CardTitle className="text-lg flex items-center gap-2">
-								<BarChart3 className="h-5 w-5" />
-								Results - {resultInfo.name}
+						<CardHeader className="pb-3">
+							<CardTitle className="text-base flex items-center gap-2">
+								<BarChart3 className="h-4 w-4" />
+								Financial Results - {resultInfo.name}
 							</CardTitle>
 						</CardHeader>
 						<CardContent>
-							{Object.keys(resultInfo.data).length > 0 ? (
-								<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
-									{Object.entries(resultInfo.data).map(([key, value]) => (
-										<div key={key} className="border rounded-lg p-3">
-											<div className="flex items-center justify-between mb-2">
-												<h5 className="text-sm font-medium capitalize">
-													{key.replace(/_/g, " ")}
-												</h5>
+							{(() => {
+								if (resultInfo.keyMetrics) {
+									return (
+										<div className="space-y-4">
+											{/* Key Financial Metrics */}
+											<div>
+												<h4 className="text-xs font-medium text-muted-foreground mb-2">
+													Key Financial Metrics
+												</h4>
+												<div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+													<div className="border rounded-md p-3 bg-green-50">
+														<div className="text-xs text-muted-foreground mb-1">TCO</div>
+														<div className="text-lg font-bold text-green-600">
+															{formatCurrency(resultInfo.keyMetrics.tco)}
+														</div>
+													</div>
+													<div className="border rounded-md p-3 bg-blue-50">
+														<div className="text-xs text-muted-foreground mb-1">CAPEX</div>
+														<div className="text-lg font-bold text-blue-600">
+															{formatCurrency(resultInfo.keyMetrics.capex)}
+														</div>
+													</div>
+													<div className="border rounded-md p-3 bg-orange-50">
+														<div className="text-xs text-muted-foreground mb-1">OPEX</div>
+														<div className="text-lg font-bold text-orange-600">
+															{formatCurrency(resultInfo.keyMetrics.opex)}
+														</div>
+													</div>
+												</div>
 											</div>
-											<div className="text-2xl font-bold text-primary">
-												{typeof value === "number"
-													? value.toLocaleString()
-													: value}
+
+											{/* Annual Costs */}
+											<div>
+												<h4 className="text-xs font-medium text-muted-foreground mb-2">
+													Annual Costs
+												</h4>
+												<div className="grid grid-cols-2 gap-3">
+													<div className="border rounded-md p-2">
+														<div className="text-xs text-muted-foreground mb-1">Annual Cooling OPEX</div>
+														<div className="text-sm font-medium text-primary">
+															{formatCurrency(resultInfo.keyMetrics.annualCoolingOpex)}
+														</div>
+													</div>
+													<div className="border rounded-md p-2">
+														<div className="text-xs text-muted-foreground mb-1">Annual IT Maintenance</div>
+														<div className="text-sm font-medium text-primary">
+															{formatCurrency(resultInfo.keyMetrics.annualItMaintenance)}
+														</div>
+													</div>
+												</div>
+											</div>
+
+											{/* All Results */}
+											<div>
+												<h4 className="text-xs font-medium text-muted-foreground mb-2">
+													All Financial Results
+												</h4>
+												<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+													{Object.entries(resultInfo.data).map(([key, value]) => (
+														<div key={key} className="border rounded-md p-2">
+															<div className="text-xs text-muted-foreground mb-1 capitalize">
+																{key.replace(/_/g, " ")}
+															</div>
+															<div className="text-sm font-medium text-primary">
+																{typeof value === "number" 
+																	? formatCurrency(value)
+																	: value.toLocaleString()
+																}
+															</div>
+														</div>
+													))}
+												</div>
 											</div>
 										</div>
-									))}
-								</div>
-							) : (
-								<div className="text-center py-8 text-muted-foreground">
-									<Calculator className="h-12 w-12 mx-auto mb-4 opacity-50" />
-									<p>No results available</p>
-								</div>
-							)}
+									);
+								}
+								
+								if (Object.keys(resultInfo.data).length > 0) {
+									return (
+										<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+											{Object.entries(resultInfo.data).map(([key, value]) => (
+												<div key={key} className="border rounded-md p-2">
+													<div className="text-xs text-muted-foreground mb-1 capitalize">
+														{key.replace(/_/g, " ")}
+													</div>
+													<div className="text-sm font-medium text-primary">
+														{typeof value === "number"
+															? value.toLocaleString()
+															: value}
+													</div>
+												</div>
+											))}
+										</div>
+									);
+								}
+								
+								return (
+									<div className="text-center py-6 text-muted-foreground">
+										<Calculator className="h-8 w-8 mx-auto mb-2 opacity-50" />
+										<p className="text-sm">No results available</p>
+									</div>
+								);
+							})()}
 						</CardContent>
 					</Card>
 				</div>

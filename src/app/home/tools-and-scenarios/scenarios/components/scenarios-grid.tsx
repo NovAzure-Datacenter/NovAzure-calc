@@ -42,18 +42,60 @@ export function ScenariosGrid({
 		return resolvedNames[cacheKey] || id;
 	}
 
-	function getResultInfo(results: any[]): { name: string; count: number } {
-		if (!results || results.length === 0) {
+	// Helper function to get scenario names from compared_to IDs
+	function getComparedScenarioNames(comparedToIds: string[]): string[] {
+		return comparedToIds.map(id => {
+			const comparedScenario = scenarios.find(s => s.id === id);
+			return comparedScenario?.scenario_name || id;
+		});
+	}
+
+	function getResultInfo(results: any): { name: string; count: number; keyMetrics?: any } {
+		if (!results || typeof results !== 'object') {
 			return { name: "No Results", count: 0 };
 		}
 
-		const firstResult = results[0];
-		const resultKeys = Object.keys(firstResult);
-		const resultName = resultKeys[0] || "Unknown";
-		const resultData = firstResult[resultName];
-		const dataKeys = resultData ? Object.keys(resultData) : [];
+		// For value calculator scenarios, extract key financial metrics
+		const keyMetrics = {
+			tco: results.tco_including_it || results.tco_excluding_it || 0,
+			capex: results.total_capex || 0,
+			opex: results.total_opex_over_lifetime || 0,
+		};
 
-		return { name: resultName, count: dataKeys.length };
+		return { 
+			name: "Value Calculator", 
+			count: Object.keys(results).length,
+			keyMetrics 
+		};
+	}
+
+	function getInputParametersInfo(inputParams: any): { 
+		dataCenterType?: string; 
+		location?: string; 
+		capacity?: string; 
+		utilization?: string;
+		years?: string;
+	} {
+		if (!inputParams || typeof inputParams !== 'object') {
+			return {};
+		}
+
+		return {
+			dataCenterType: inputParams.data_centre_type,
+			location: inputParams.project_location,
+			capacity: inputParams.data_hall_capacity,
+			utilization: inputParams.utilisation_percentage,
+			years: inputParams.planned_years_operation,
+		};
+	}
+
+	function formatCurrency(amount: number): string {
+		return new Intl.NumberFormat('en-US', {
+			style: 'currency',
+			currency: 'USD',
+			minimumFractionDigits: 0,
+			maximumFractionDigits: 0,
+		}).format(amount);
 	}
 
 	return (
@@ -85,8 +127,17 @@ export function ScenariosGrid({
 										<div className="mt-2">
 											<div className="flex flex-wrap gap-1">
 												<Badge variant="outline" className="text-xs">
-													Compared to: {scenario.compared_to.join(", ")}
+													Compared to: {getComparedScenarioNames(scenario.compared_to).join(", ")}
 												</Badge>
+											</div>
+										</div>
+									)}
+
+									{/* Creation date */}
+									{scenario.created_at && (
+										<div className="mt-1">
+											<div className="text-xs text-muted-foreground">
+												Created: {new Date(scenario.created_at).toLocaleDateString()}
 											</div>
 										</div>
 									)}
@@ -97,47 +148,118 @@ export function ScenariosGrid({
 
 					{/* Scenario-specific information */}
 					<CardContent className="pt-0 pb-3 space-y-3">
-						{/* Solution badges */}
-						<div>
-							<div className="text-xs font-medium text-muted-foreground mb-1">
-								Solution
+						{/* Input Parameters */}
+						{scenario.input_parameters && (
+							<div>
+								<div className="text-xs font-medium text-muted-foreground mb-1">
+									Configuration
+								</div>
+								<div className="space-y-1">
+									{(() => {
+										const inputInfo = getInputParametersInfo(scenario.input_parameters);
+										return (
+											<>
+												{inputInfo.dataCenterType && (
+													<div className="flex justify-between text-xs">
+														<span className="text-muted-foreground">Type:</span>
+														<span className="font-medium">{inputInfo.dataCenterType}</span>
+													</div>
+												)}
+												{inputInfo.location && (
+													<div className="flex justify-between text-xs">
+														<span className="text-muted-foreground">Location:</span>
+														<span className="font-medium">{inputInfo.location}</span>
+													</div>
+												)}
+												{inputInfo.capacity && (
+													<div className="flex justify-between text-xs">
+														<span className="text-muted-foreground">Capacity:</span>
+														<span className="font-medium">{inputInfo.capacity} MW</span>
+													</div>
+												)}
+												{inputInfo.utilization && (
+													<div className="flex justify-between text-xs">
+														<span className="text-muted-foreground">Utilization:</span>
+														<span className="font-medium">{inputInfo.utilization}</span>
+													</div>
+												)}
+												{inputInfo.years && (
+													<div className="flex justify-between text-xs">
+														<span className="text-muted-foreground">Years:</span>
+														<span className="font-medium">{inputInfo.years}</span>
+													</div>
+												)}
+											</>
+										);
+									})()}
+								</div>
 							</div>
-							<div className="flex flex-wrap gap-1">
-								{scenario.solution.map((solutionId, index) => (
-									<Badge key={index} variant="secondary" className="text-xs">
-										{getResolvedName("solution", solutionId)}
-									</Badge>
-								))}
-								{scenario.solution_variant &&
-									scenario.solution_variant !== "N/A" && (
-										<Badge variant="secondary" className="text-xs">
-											{scenario.solution_variant}
-										</Badge>
-									)}
-							</div>
-						</div>
+						)}
 
-						{/* Parameters and Results on same horizontal line */}
-						<div>
-							<div className="text-xs font-medium text-muted-foreground mb-1">
-								Parameters & Results
-							</div>
-							<div className="flex flex-wrap gap-2">
-								<Badge variant="outline" className="text-xs">
-									{scenario.input_parameters?.length || 0} parameters
-								</Badge>
-								{scenario.results &&
-									scenario.results.length > 0 &&
-									(() => {
+						{/* Financial Results */}
+						{scenario.results && (
+							<div>
+								<div className="text-xs font-medium text-muted-foreground mb-1">
+									Financial Results
+								</div>
+								<div className="space-y-1">
+									{(() => {
 										const resultInfo = getResultInfo(scenario.results);
+										if (resultInfo.keyMetrics) {
+											return (
+												<>
+													<div className="flex justify-between text-xs">
+														<span className="text-muted-foreground">TCO:</span>
+														<span className="font-medium text-green-600">
+															{formatCurrency(resultInfo.keyMetrics.tco)}
+														</span>
+													</div>
+													<div className="flex justify-between text-xs">
+														<span className="text-muted-foreground">CAPEX:</span>
+														<span className="font-medium text-blue-600">
+															{formatCurrency(resultInfo.keyMetrics.capex)}
+														</span>
+													</div>
+													<div className="flex justify-between text-xs">
+														<span className="text-muted-foreground">OPEX:</span>
+														<span className="font-medium text-orange-600">
+															{formatCurrency(resultInfo.keyMetrics.opex)}
+														</span>
+													</div>
+												</>
+											);
+										}
 										return (
 											<Badge variant="outline" className="text-xs">
 												{resultInfo.name}: {resultInfo.count} values
 											</Badge>
 										);
 									})()}
+								</div>
 							</div>
-						</div>
+						)}
+
+						{/* Solution badges - only show if there are solutions */}
+						{scenario.solution && scenario.solution.length > 0 && (
+							<div>
+								<div className="text-xs font-medium text-muted-foreground mb-1">
+									Solution
+								</div>
+								<div className="flex flex-wrap gap-1">
+									{scenario.solution.map((solutionId, index) => (
+										<Badge key={index} variant="secondary" className="text-xs">
+											{getResolvedName("solution", solutionId)}
+										</Badge>
+									))}
+									{scenario.solution_variant &&
+										scenario.solution_variant !== "N/A" && (
+											<Badge variant="secondary" className="text-xs">
+												{scenario.solution_variant}
+											</Badge>
+										)}
+								</div>
+							</div>
+						)}
 					</CardContent>
 
 					{/* User info at bottom right - always positioned at bottom */}

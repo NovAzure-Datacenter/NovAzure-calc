@@ -1,5 +1,6 @@
 // API client for calculation endpoints
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+// Use relative URLs for Next.js API routes
+const API_BASE_URL = '';
 
 export interface CapexCalculationRequest {
   data_hall_design_capacity_mw: number;
@@ -63,7 +64,7 @@ class CalculationAPI {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
-    const url = `${API_BASE_URL}${endpoint}`;
+    const url = `${API_BASE_URL}/api${endpoint}`;
     
     const response = await fetch(url, {
       headers: {
@@ -76,7 +77,7 @@ class CalculationAPI {
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(
-        errorData.detail || `HTTP error! status: ${response.status}`
+        errorData.detail || errorData.error || `HTTP error! status: ${response.status}`
       );
     }
 
