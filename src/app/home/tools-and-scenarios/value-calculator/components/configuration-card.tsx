@@ -31,15 +31,15 @@ interface ConfigurationCardProps {
 	hideCompareButton?: boolean;
 }
 
-interface calcInputs{
-    solution_type: string;
-    data_hall_design_capacity_mw: number;
-    first_year_of_operation: number;
-    project_location: string;
-    percentage_of_utilisation: number;
-    planned_years_of_operation: number;
-    annualised_ppue: number;
-    advanced: boolean;
+interface calcInputs {
+	solution_type: string;
+	data_hall_design_capacity_mw: number;
+	first_year_of_operation: number;
+	project_location: string;
+	percentage_of_utilisation: number;
+	planned_years_of_operation: number;
+	annualised_ppue: number;
+	advanced: boolean;
 }
 
 const ConfigurationCard = forwardRef(function ConfigurationCard(
@@ -73,45 +73,45 @@ const ConfigurationCard = forwardRef(function ConfigurationCard(
 
 		console.log("Backend solution type: " + backendSolutionType);
 
-        // Prepare the inputs for the calculation
-        const inputs: calcInputs = {
-            solution_type: backendSolutionType,
-            data_hall_design_capacity_mw: 0,
-            first_year_of_operation: 0,
-            project_location: "",
-            percentage_of_utilisation: 0,
-            planned_years_of_operation: 0,
-            annualised_ppue: 0,
-            advanced: false
-        };
-        // Populate inputs based on configFields
-        configFields.forEach(field => {
-            switch (field.id) {
-                case 'data_hall_capacity':
-                    inputs.data_hall_design_capacity_mw = Number(field.value);
-                    break;
-                case 'first_year_operation':
-                    inputs.first_year_of_operation = Number(field.value);
-                    break;
-                case 'project_location':
-                    inputs.project_location = field.value as string;
-                    break;
-                case 'utilisation_percentage':
-                    // Remove % symbol and convert to number
-                    const percentageValue = (field.value as string).replace('%', '');
-                    inputs.percentage_of_utilisation = Number(percentageValue);
-                    break;
-                case 'planned_years_operation':
-                    inputs.planned_years_of_operation = Number(field.value);
-                    break;
-                case 'air_annualised_ppue':
-                    inputs.annualised_ppue = Number(field.value);
-                    break;
-                default:
-                    break;
-            }
+		// Prepare the inputs for the calculation
+		const inputs: calcInputs = {
+			solution_type: backendSolutionType,
+			data_hall_design_capacity_mw: 0,
+			first_year_of_operation: 0,
+			project_location: "",
+			percentage_of_utilisation: 0,
+			planned_years_of_operation: 0,
+			annualised_ppue: 0,
+			advanced: false,
+		};
+		// Populate inputs based on configFields
+		configFields.forEach((field) => {
+			switch (field.id) {
+				case "data_hall_capacity":
+					inputs.data_hall_design_capacity_mw = Number(field.value);
+					break;
+				case "first_year_operation":
+					inputs.first_year_of_operation = Number(field.value);
+					break;
+				case "project_location":
+					inputs.project_location = field.value as string;
+					break;
+				case "utilisation_percentage":
+					// Remove % symbol and convert to number
+					const percentageValue = (field.value as string).replace("%", "");
+					inputs.percentage_of_utilisation = Number(percentageValue);
+					break;
+				case "planned_years_operation":
+					inputs.planned_years_of_operation = Number(field.value);
+					break;
+				case "air_annualised_ppue":
+					inputs.annualised_ppue = Number(field.value);
+					break;
+				default:
+					break;
+			}
 			console.log(`field ${field.id}: ${field.value}`);
-        });
+		});
 
 		console.log("Prepared inputs for calculation:", inputs);
 
@@ -380,52 +380,6 @@ const ConfigurationCard = forwardRef(function ConfigurationCard(
 															}
 														/>
 													</div>
-													<div className="space-y-1">
-														<Label
-															htmlFor="waterloop"
-															className="text-xs font-medium"
-														>
-															Waterloop?
-														</Label>
-														<Select
-															value={advancedConfig?.waterloop || ""}
-															onValueChange={(value) =>
-																handleAdvancedChange("waterloop", value)
-															}
-														>
-															<SelectTrigger className="text-xs h-8">
-																<SelectValue placeholder="Select option" />
-															</SelectTrigger>
-															<SelectContent>
-																<SelectItem value="yes">Yes</SelectItem>
-																<SelectItem value="no">No</SelectItem>
-															</SelectContent>
-														</Select>
-													</div>
-													<div className="md:col-span-2 space-y-1">
-														<Label
-															htmlFor="requiredElectricalPowerIncrease"
-															className="text-xs font-medium"
-														>
-															Required Increase of Electrical Plant Power
-														</Label>
-														<Input
-															id="requiredElectricalPowerIncrease"
-															type="number"
-															className="text-xs h-8"
-															placeholder="Enter power increase"
-															value={
-																advancedConfig?.requiredElectricalPowerIncrease ||
-																""
-															}
-															onChange={(e) =>
-																handleAdvancedChange(
-																	"requiredElectricalPowerIncrease",
-																	Number(e.target.value)
-																)
-															}
-														/>
-													</div>
 												</div>
 											</div>
 
@@ -443,65 +397,35 @@ const ConfigurationCard = forwardRef(function ConfigurationCard(
 															>
 																Cooling Alternative to be Compared with Chassis
 															</Label>
-															<Input
-																id="coolingAlternative"
-																type="text"
-																className="text-xs h-8"
-																placeholder="Enter cooling alternative"
+															<Select
 																value={advancedConfig?.coolingAlternative || ""}
-																onChange={(e) =>
+																onValueChange={(value) =>
 																	handleAdvancedChange(
 																		"coolingAlternative",
-																		e.target.value
+																		value
 																	)
 																}
-															/>
-														</div>
-														<div className="space-y-1">
-															<Label
-																htmlFor="defaultAirCoolingTechnology"
-																className="text-xs font-medium"
 															>
-																Default Air Cooling Technology in UK
-															</Label>
-															<Input
-																id="defaultAirCoolingTechnology"
-																type="text"
-																className="text-xs h-8"
-																placeholder="Enter technology"
-																value={
-																	advancedConfig?.defaultAirCoolingTechnology ||
-																	""
-																}
-																onChange={(e) =>
-																	handleAdvancedChange(
-																		"defaultAirCoolingTechnology",
-																		e.target.value
-																	)
-																}
-															/>
+																<SelectTrigger className="text-xs h-8">
+																	<SelectValue placeholder="Select cooling alternative" />
+																</SelectTrigger>
+																<SelectContent>
+																	<SelectItem value="CRAH with chiller/tower">
+																		CRAH with chiller/tower
+																	</SelectItem>
+																	<SelectItem value="CRAH with packaged chiller & economiser">
+																		CRAH with packaged chiller & economiser
+																	</SelectItem>
+																	<SelectItem value="indirect air evap cooler">
+																		indirect air evap cooler
+																	</SelectItem>
+																	<SelectItem value="CRAC DX glycol-cooled system with dry cooler">
+																		CRAC DX glycol-cooled system with dry cooler
+																	</SelectItem>
+																</SelectContent>
+															</Select>
 														</div>
-														<div className="space-y-1">
-															<Label
-																htmlFor="airChassisPerRack"
-																className="text-xs font-medium"
-															>
-																Number of Air Chassis per Rack
-															</Label>
-															<Input
-																id="airChassisPerRack"
-																type="number"
-																className="text-xs h-8"
-																placeholder="Enter number"
-																value={advancedConfig?.airChassisPerRack || ""}
-																onChange={(e) =>
-																	handleAdvancedChange(
-																		"airChassisPerRack",
-																		Number(e.target.value)
-																	)
-																}
-															/>
-														</div>
+
 														<div className="space-y-1">
 															<Label
 																htmlFor="airCoolingCapexCost"
@@ -594,43 +518,33 @@ const ConfigurationCard = forwardRef(function ConfigurationCard(
 															>
 																Chassis Immersion Technology
 															</Label>
-															<Input
-																id="chassisTechnology"
-																type="text"
-																className="text-xs h-8"
-																placeholder="Enter technology"
+															<Select
 																value={advancedConfig?.chassisTechnology || ""}
-																onChange={(e) =>
+																onValueChange={(value) =>
 																	handleAdvancedChange(
 																		"chassisTechnology",
-																		e.target.value
+																		value
 																	)
 																}
-															/>
-														</div>
-														<div className="space-y-1">
-															<Label
-																htmlFor="plcRackCoolingCapacity"
-																className="text-xs font-medium"
 															>
-																PLC Rack Cooling Capacity (kW/rack)
-															</Label>
-															<Input
-																id="plcRackCoolingCapacity"
-																type="number"
-																className="text-xs h-8"
-																placeholder="Enter capacity"
-																value={
-																	advancedConfig?.plcRackCoolingCapacity || ""
-																}
-																onChange={(e) =>
-																	handleAdvancedChange(
-																		"plcRackCoolingCapacity",
-																		Number(e.target.value)
-																	)
-																}
-															/>
+																<SelectTrigger className="text-xs h-8">
+																	<SelectValue placeholder="Select technology" />
+																</SelectTrigger>
+																<SelectContent>
+																	<SelectItem value="Purposed Optimized Multinode">
+																		Purposed Optimized Multinode
+																	</SelectItem>
+																	<SelectItem value="KU:L 2">KU:L 2</SelectItem>
+																	<SelectItem value="JBOD KU:L 2">
+																		JBOD KU:L 2
+																	</SelectItem>
+																	<SelectItem value="JBOD purposed optimized">
+																		JBOD purposed optimized
+																	</SelectItem>
+																</SelectContent>
+															</Select>
 														</div>
+
 														<div className="space-y-1">
 															<Label
 																htmlFor="annualPLCMaintenance"
@@ -656,49 +570,7 @@ const ConfigurationCard = forwardRef(function ConfigurationCard(
 																}
 															/>
 														</div>
-														<div className="space-y-1">
-															<Label
-																htmlFor="includePoCCost"
-																className="text-xs font-medium"
-															>
-																Include PoC Cost
-															</Label>
-															<Select
-																value={advancedConfig?.includePoCCost || ""}
-																onValueChange={(value) =>
-																	handleAdvancedChange("includePoCCost", value)
-																}
-															>
-																<SelectTrigger className="text-xs h-8">
-																	<SelectValue placeholder="Select option" />
-																</SelectTrigger>
-																<SelectContent>
-																	<SelectItem value="yes">Yes</SelectItem>
-																	<SelectItem value="no">No</SelectItem>
-																</SelectContent>
-															</Select>
-														</div>
-														<div className="space-y-1">
-															<Label
-																htmlFor="totalPoCCost"
-																className="text-xs font-medium"
-															>
-																Total PoC Cost in USD
-															</Label>
-															<Input
-																id="totalPoCCost"
-																type="number"
-																className="text-xs h-8"
-																placeholder="Enter cost"
-																value={advancedConfig?.totalPoCCost || ""}
-																onChange={(e) =>
-																	handleAdvancedChange(
-																		"totalPoCCost",
-																		Number(e.target.value)
-																	)
-																}
-															/>
-														</div>
+
 														<div className="space-y-1">
 															<Label
 																htmlFor="plcChassisPerRack"
@@ -724,84 +596,42 @@ const ConfigurationCard = forwardRef(function ConfigurationCard(
 												</div>
 											)}
 
-											{/* Space Configuration */}
-											<div className="space-y-3">
-												<h3 className="text-xs font-medium text-gray-700">
-													Space Configuration
-												</h3>
-												<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-													<div className="space-y-1">
-														<Label
-															htmlFor="floorSpacePerAirRack"
-															className="text-xs font-medium"
-														>
-															Floor Space Required Per Air Cooled Rack (sq m)
-														</Label>
-														<Input
-															id="floorSpacePerAirRack"
-															type="number"
-															step="0.01"
-															className="text-xs h-8"
-															placeholder="Enter space"
-															value={advancedConfig?.floorSpacePerAirRack || ""}
-															onChange={(e) =>
-																handleAdvancedChange(
-																	"floorSpacePerAirRack",
-																	Number(e.target.value)
-																)
-															}
-														/>
-													</div>
-													<div className="space-y-1">
-														<Label
-															htmlFor="floorSpacePerPLCRack"
-															className="text-xs font-medium"
-														>
-															Floor Space Per PLC Rack (sq m)
-														</Label>
-														<Input
-															id="floorSpacePerPLCRack"
-															type="number"
-															step="0.01"
-															className="text-xs h-8"
-															placeholder="Enter space"
-															value={advancedConfig?.floorSpacePerPLCRack || ""}
-															onChange={(e) =>
-																handleAdvancedChange(
-																	"floorSpacePerPLCRack",
-																	Number(e.target.value)
-																)
-															}
-														/>
-													</div>
-													<div className="space-y-1">
-														<Label
-															htmlFor="spaceUnit"
-															className="text-xs font-medium"
-														>
-															Unit
-														</Label>
-														<Select
-															value={advancedConfig?.spaceUnit || ""}
-															onValueChange={(value) =>
-																handleAdvancedChange("spaceUnit", value)
-															}
-														>
-															<SelectTrigger className="text-xs h-8">
-																<SelectValue placeholder="Select unit" />
-															</SelectTrigger>
-															<SelectContent>
-																<SelectItem value="sq_m">
-																	Square meters
-																</SelectItem>
-																<SelectItem value="sq_ft">
-																	Square feet
-																</SelectItem>
-															</SelectContent>
-														</Select>
+											{/* Space Configuration - Only show if liquid cooling solution is selected */}
+											{isLiquidCoolingSolution(
+												selectedSolutionInfo || null
+											) && (
+												<div className="space-y-3">
+													<h3 className="text-xs font-medium text-gray-700">
+														Space Configuration
+													</h3>
+													<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+														<div className="space-y-1">
+															<Label
+																htmlFor="floorSpacePerPLCRack"
+																className="text-xs font-medium"
+															>
+																Number of servers per Rack (sq m)
+															</Label>
+															<Input
+																id="floorSpacePerPLCRack"
+																type="number"
+																step="0.01"
+																className="text-xs h-8"
+																placeholder="Enter space"
+																value={
+																	advancedConfig?.floorSpacePerPLCRack || ""
+																}
+																onChange={(e) =>
+																	handleAdvancedChange(
+																		"floorSpacePerPLCRack",
+																		Number(e.target.value)
+																	)
+																}
+															/>
+														</div>
 													</div>
 												</div>
-											</div>
+											)}
 
 											{/* IT Configuration - Advanced (Optional) */}
 											<div className="space-y-3">
