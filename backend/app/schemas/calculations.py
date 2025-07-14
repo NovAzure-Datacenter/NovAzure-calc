@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from typing import Optional
 
 
@@ -34,11 +34,40 @@ class CoolingSolutionRequest(BaseModel):
     # Advanced Data Centre Configuration inputs
     inlet_temperature: float = Field(default=27, description="Inlet temperature")
     electricity_price_per_kwh: float = Field(
-        default=0.1, description="Electricity price per kWh"
+        default=0, description="Electricity price per kWh"
     )
     water_price_per_litre: float = Field(
-        default=0.0001, description="Water price per litre"
+        default=0.00134, description="Water price per litre"
     )
+    
+    chassis_product: Optional[str] = Field(
+        default=None, description="Chassis immersion product type"
+    )
+    air_cooling_technology: Optional[str] = Field(
+        default=None, description="Air cooling technology type"
+    )
+
+    @model_validator(mode='after')
+    def set_default_products(self):
+        
+        air_cooling_defaults = {
+            "United Kingdom": "CRAH with Packaged chiller and economiser",
+            "United States": "CRAH with Packaged chiller and economiser",
+            "Singapore": "CRAH with chiller/tower",
+            "United Arab Emirates": "CRAC DX glycol-cooled system with dry cooler",
+        }
+        
+        if self.chassis_product is None:
+            self.chassis_product = "purpose_optimized_multinode"
+        
+        if self.air_cooling_technology is None:
+            self.air_cooling_technology = air_cooling_defaults.get(
+                self.project_location
+            )
+        
+        return self
+
+
 
 
 class SingleCoolingSolution(BaseModel):

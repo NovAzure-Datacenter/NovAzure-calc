@@ -29,13 +29,7 @@ CW_PUMPS_PIPEWORK_VALVES_CAPEX = {
     "United Arab Emirates": 187.9314,
 }
 
-# Default air cooling technology by country
-DEFAULT_AIR_COOLING_TECHNOLOGY = {
-    "United Kingdom": "CRAH with Packaged chiller and economiser",
-    "United States": "CRAH with Packaged chiller and economiser",
-    "Singapore": "CRAH with chiller/tower",
-    "United Arab Emirates": "CRAC DX glycol-cooled system with dry cooler",
-}
+
 
 INFLATION_FACTORS = {
     2023: 1.0,

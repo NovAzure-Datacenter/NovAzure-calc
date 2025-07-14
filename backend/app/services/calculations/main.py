@@ -34,6 +34,9 @@ class CalculationInputs(BaseModel):
     inlet_temperature: float = 27
     electricity_price_per_kwh: float = 0
     water_price_per_litre: float = 0.00134
+    
+    chassis_product: Optional[str] = None
+    air_cooling_technology: Optional[str] = None
 
 
 class CoolingSolutionsCalculator:
@@ -90,7 +93,8 @@ class CoolingSolutionsCalculator:
             "country": self.inputs.project_location,
         }
 
-        input_data.update(self._build_advanced_config())
+        if self.inputs.advanced:
+            input_data.update(self._build_advanced_config(), self.inputs.advanced)
 
         return input_data
 
