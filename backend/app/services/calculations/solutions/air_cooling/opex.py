@@ -138,6 +138,7 @@ async def calculate_cost_of_energy(
     utilisation: float,
     first_year_of_operation: int,
     country: str,
+    electricity_price_per_kwh: float = 0,
 ):
     budgeted_it_energy = await get_budget_IT_energy()
     budgeted_fan_energy = await get_budget_fan_energy()
@@ -149,7 +150,12 @@ async def calculate_cost_of_energy(
 
     energy_per_year = (fan_power + it_power) * 365 * 24
     total_energy = ppue * energy_per_year
-    electricity_rate = ELECTRICITY_RATES[country][first_year_of_operation]
+    
+    # Use user-provided electricity price if available (non-zero), otherwise use hardcoded rates
+    if electricity_price_per_kwh > 0:
+        electricity_rate = electricity_price_per_kwh
+    else:
+        electricity_rate = ELECTRICITY_RATES[country][first_year_of_operation]
 
     return total_energy * electricity_rate
 
@@ -172,7 +178,7 @@ async def calculate_annual_opex(input_data, cooling_capex: float):
     It receives a dictionary with required inputs:
     {
         'data_hall_design_capacity_mw': float,
-        'annualised_air_ppue': float,
+        'annualised_ppue': float,
         'percentage_of_utilisation': float,
         'first_year_of_operation': int,
         'country': str
@@ -186,7 +192,8 @@ async def calculate_annual_opex(input_data, cooling_capex: float):
     country = input_data.get("country")
 
     cost_of_energy = await calculate_cost_of_energy(
-        capacity_mw, ppue, utilisation, first_year_of_operation, country
+        capacity_mw, ppue, utilisation, first_year_of_operation, country, 
+        input_data.get("electricity_price_per_kwh", 0)
     )
 
     budgeted_it_energy = await get_budget_IT_energy()
