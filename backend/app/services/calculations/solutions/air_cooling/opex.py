@@ -152,7 +152,7 @@ async def calculate_cost_of_energy(
 
     energy_per_year = (fan_power + it_power) * 365 * 24
     total_energy = ppue * energy_per_year
-    
+
     # Use user-provided electricity price if available (non-zero), otherwise use hardcoded rates
     if electricity_price_per_kwh > 0:
         electricity_rate = electricity_price_per_kwh
