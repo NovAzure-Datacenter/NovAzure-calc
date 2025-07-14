@@ -23,6 +23,7 @@ import {
 	Settings,
 	Package,
 	Activity,
+	Zap,
 } from "lucide-react";
 
 // Separate Charts Section Component
@@ -620,6 +621,8 @@ export default function ValueCalculatorCompareWrapper({
 					<></>
 				);
 			})()}
+
+		
 		</div>
 	);
 }
