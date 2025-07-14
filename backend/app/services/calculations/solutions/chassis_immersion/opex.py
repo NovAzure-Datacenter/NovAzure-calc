@@ -297,9 +297,21 @@ def calculate_total_opex_over_lifetime(input_data, cooling_capex: float):
 
 
 def calculate_chassis_opex(input_data, cooling_capex: float):
-    annual_opex = calculate_annual_opex(input_data, cooling_capex)
-    annual_it_cost = calculate_annual_it_cost(input_data, cooling_capex)
-    total_opex_lifetime = calculate_total_opex_over_lifetime(input_data, cooling_capex)
+    chassis_product = input_data.get("chassis_product")
+    
+    opex_cooling_capex = cooling_capex
+    if chassis_product == "KU:L 2":
+        opex_cooling_capex = cooling_capex / 1.8  
+    
+    annual_opex = calculate_annual_opex(input_data, opex_cooling_capex)
+    annual_it_cost = calculate_annual_it_cost(input_data, opex_cooling_capex)
+    
+    if chassis_product == "KU:L 2":
+        annual_opex *= 1.3
+    
+    planned_years = input_data.get("planned_years_of_operation")
+    total_it_maintenance = annual_it_cost * planned_years
+    total_opex_lifetime = (annual_opex * planned_years) + total_it_maintenance
 
     return {
         "annual_cooling_opex": int(annual_opex),

@@ -270,10 +270,14 @@ def calculate_cooling_capex(input_data):
     first_year_of_operation = input_data.get("first_year_of_operation")
     country = input_data.get("country")
     advanced = input_data.get("advanced", False)
+    chassis_product = input_data.get("chassis_product")
 
     cooling_equipment_capex = calculate_chassis_solution_capex_with_markup(
         first_year_of_operation, capacity_mw, country
     )
+    
+    if chassis_product == "KU:L 2":
+        cooling_equipment_capex *= 1.8
 
     it_equipment_capex = 0
     if advanced:

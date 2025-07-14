@@ -91,10 +91,11 @@ class CoolingSolutionsCalculator:
             "first_year_of_operation": self.inputs.first_year_of_operation,
             "planned_years_of_operation": self.inputs.planned_years_of_operation,
             "country": self.inputs.project_location,
+            "water_price_per_litre": self.inputs.water_price_per_litre,
         }
 
         if self.inputs.advanced:
-            input_data.update(self._build_advanced_config(), self.inputs.advanced)
+            input_data.update(self._build_advanced_config())
 
         return input_data
 
@@ -136,9 +137,11 @@ class CoolingSolutionsCalculator:
 
     async def _calculate_chassis_immersion_solution(self) -> Dict[str, Any]:
         capex_input = self._build_capex_input_data()
+        capex_input["chassis_product"] = self.inputs.chassis_product
         chassis_immersion_capex = calculate_chassis_immersion_capex(capex_input)
 
         opex_input = self._build_opex_input_data()
+        opex_input["chassis_product"] = self.inputs.chassis_product
         chassis_immersion_opex = calculate_chassis_immersion_opex(
             opex_input, chassis_immersion_capex["cooling_equipment_capex"]
         )
