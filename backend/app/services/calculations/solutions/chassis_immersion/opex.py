@@ -164,6 +164,7 @@ def calculate_cost_of_energy_annually(
     annualised_liquid_pPUE: float,
     capacity_kw: float,
     utilisation: float,
+    electricity_price_per_kwh: float,
 ):
     energy_for_computing_annualy = (
         (
@@ -176,10 +177,13 @@ def calculate_cost_of_energy_annually(
     energy_for_computing_cooling_annually = (
         energy_for_computing_annualy * annualised_liquid_pPUE
     )
-    return (
-        energy_for_computing_cooling_annually
-        * ELECTRICITY_RATES[country][first_year_of_operation]
-    )
+    
+    if electricity_price_per_kwh > 0:
+        electricity_rate = electricity_price_per_kwh
+    else:
+        electricity_rate = ELECTRICITY_RATES[country][first_year_of_operation]
+    
+    return energy_for_computing_cooling_annually * electricity_rate
 
 
 def calculate_cooling_maintenance_annually(cooling_capex: float):
@@ -230,6 +234,7 @@ def calculate_annual_opex_for_air_cooled_equipment(
     utilisation: float,
     water_price_per_litre: float,
     input_data,
+    electricity_price_per_kwh: float,
 ):
     total_opex_annually = (
         calculate_cooling_maintenance_annually(air_cooled_capex)
@@ -239,6 +244,7 @@ def calculate_annual_opex_for_air_cooled_equipment(
             annualised_liquid_pPUE,
             capacity_kw,
             utilisation,
+            electricity_price_per_kwh,
         )
         + calculate_cost_of_water_annually(
             water_price_per_litre, capacity_kw, utilisation
@@ -251,6 +257,8 @@ def calculate_annual_opex_for_air_cooled_equipment(
 def calculate_annual_opex(input_data, cooling_capex: float):
     capacity_kw = input_data.get("data_hall_design_capacity_mw") * 1000
     annual_it_cost = calculate_annual_it_cost(input_data, cooling_capex)
+    electricity_price_per_kwh = input_data.get("electricity_price_per_kwh", 0)
+    
     return (
         HEAT_RECOVERY_TO_LIQUID_PERCENTAGE
         * (
@@ -265,6 +273,7 @@ def calculate_annual_opex(input_data, cooling_capex: float):
                 input_data.get("annualised_ppue"),
                 capacity_kw,
                 input_data.get("percentage_of_utilisation"),
+                electricity_price_per_kwh,
             )
             + calculate_cooling_maintenance_annually(cooling_capex)
         )
@@ -277,6 +286,7 @@ def calculate_annual_opex(input_data, cooling_capex: float):
             input_data.get("percentage_of_utilisation"),
             input_data.get("water_price_per_litre"),
             input_data,
+            electricity_price_per_kwh,
         )
         + annual_it_cost
     )

@@ -31,7 +31,6 @@ class CalculationInputs(BaseModel):
     data_center_type: Optional[str] = None
 
     # Advanced Data Centre Configuration inputs
-    inlet_temperature: float = 27
     electricity_price_per_kwh: float = 0
     water_price_per_litre: float = 0.00134
     
@@ -94,11 +93,9 @@ class CoolingSolutionsCalculator:
             "first_year_of_operation": self.inputs.first_year_of_operation,
             "planned_years_of_operation": self.inputs.planned_years_of_operation,
             "country": self.inputs.project_location,
-            "water_price_per_litre": self.inputs.water_price_per_litre,
         }
 
-        if self.inputs.advanced:
-            input_data.update(self._build_advanced_config())
+        input_data.update(self._build_advanced_config())
 
         return input_data
 
