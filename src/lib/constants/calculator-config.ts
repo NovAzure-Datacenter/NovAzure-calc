@@ -87,32 +87,12 @@ export const AIR_COOLING_FIELDS: CalculatorConfigField[] = [
     step: '0.1',
     placeholder: 'Enter pPUE value'
   },
-  {
-    id: 'default_air_ppue',
-    label: 'Default Air Annualised pPUE for Location and Utilisation',
-    type: 'number',
-    value: '#N/A',
-    unit: '',
-    required: false,
-    min_value: 1.0,
-    max_value: 3.0,
-    step: '0.1'
-  }
+ 
 ];
 
 // Liquid cooling specific fields
 export const LIQUID_COOLING_FIELDS: CalculatorConfigField[] = [
-  {
-    id: 'annualised_liquid_cooled_ppue',
-    label: 'Annualised Liquid Cooled pPUE',
-    type: 'number',
-    value: '#N/A',
-    unit: '',
-    required: false,
-    min_value: 1.0,
-    max_value: 2.0,
-    step: '0.1'
-  }
+
 ];
 
 // Helper function to get configuration based on solution type

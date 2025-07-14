@@ -22,6 +22,7 @@ import {
 	Activity,
 	BarChart3,
 	Zap,
+	Save,
 } from "lucide-react";
 import { SaveResultsDialog } from "./save-results-dialog";
 import { useState } from "react";
@@ -542,14 +543,14 @@ export function ResultsSection({
 			{/* Action Buttons */}
 			<div className="flex justify-center space-x-4 mt-6">
 				<Button
-					variant="outline"
+				
 					className="px-6"
 					onClick={() => setIsSaveDialogOpen(true)}
 				>
-					<Zap className="h-4 w-4 mr-2" />
+					<Save className="h-4 w-4 mr-2" />
 					Save Results
 				</Button>
-				<Button variant="outline" className="px-6">
+				<Button variant="outline" className="px-6" disabled>
 					<BarChart3 className="h-4 w-4 mr-2" />
 					Export Data
 				</Button>

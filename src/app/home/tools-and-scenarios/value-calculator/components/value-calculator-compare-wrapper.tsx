@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ValueCalculatorMain from "./value-calculator-main";
 import { ValueCalculatorProgress } from "./value-calculator-progress";
+import { SaveResultsDialog } from "./save-results-dialog";
 import {
 	BarChart,
 	Bar,
@@ -24,6 +25,7 @@ import {
 	Package,
 	Activity,
 	Zap,
+	Save,
 } from "lucide-react";
 
 // Separate Charts Section Component
@@ -478,6 +480,9 @@ export default function ValueCalculatorCompareWrapper({
 	// Track advanced configuration
 	const [advancedConfig, setAdvancedConfig] = useState<any>(null);
 
+	// Save dialog state
+	const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
+
 	// Handler to receive calculation result and validity from ValueCalculatorMain
 	// Store results in refs, update state in useEffect to avoid React warning
 	const calc1ResultBuffer = useRef<{ result: any; valid: boolean } | null>(
@@ -504,6 +509,42 @@ export default function ValueCalculatorCompareWrapper({
 
 	const handleAdvancedConfig = (config: any) => {
 		setAdvancedConfig(config);
+	};
+
+	const handleSaveProject = async (projectData: {
+		projectId?: string;
+		name: string;
+		description: string;
+		start_date: string;
+		end_date?: string;
+		project_manager?: string;
+		budget?: number;
+		location?: string;
+		status: "active" | "completed" | "on-hold" | "cancelled";
+		priority: "critical" | "high" | "medium" | "low";
+	}) => {
+		try {
+			// Here you would typically call your API to save the project
+
+			// For now, just close the dialog
+			setIsSaveDialogOpen(false);
+
+			// TODO: Implement actual save functionality
+			// const response = await fetch('/api/projects', {
+			//     method: projectData.projectId ? 'PUT' : 'POST',
+			//     headers: { 'Content-Type': 'application/json' },
+			//     body: JSON.stringify({
+			//         ...projectData,
+			//         calc1Result,
+			//         calc2Result,
+			//         solution1Name,
+			//         solution2Name,
+			//         advancedConfig
+			//     })
+			// });
+		} catch (error) {
+			console.error("Error saving project:", error);
+		}
 	};
 
 	// Transfer buffered results to state to avoid React warnings
@@ -552,7 +593,7 @@ export default function ValueCalculatorCompareWrapper({
 					isConfigurationComplete={calc1Valid && calc2Valid}
 				/>
 				<Button
-					variant="outline"
+					
 					size="sm"
 					onClick={() => {
 						// Trigger calculation in both calculators before going back
@@ -622,7 +663,37 @@ export default function ValueCalculatorCompareWrapper({
 				);
 			})()}
 
-		
+			{/* Action Buttons */}
+			<div className="flex justify-center space-x-4 mt-6">
+				<Button
+					
+					className="px-6"
+					onClick={() => setIsSaveDialogOpen(true)}
+				>
+					<Save className="h-4 w-4 mr-2" />
+					Save Results
+				</Button>
+				<Button variant="outline" className="px-6" disabled>
+					<BarChart3 className="h-4 w-4 mr-2" />
+					Export Data
+				</Button>
+			</div>
+
+			{/* Save Results Dialog */}
+			<SaveResultsDialog
+				isOpen={isSaveDialogOpen}
+				onOpenChange={setIsSaveDialogOpen}
+				onSave={handleSaveProject}
+				isLoading={false}
+				calculationResult={calc1Result}
+				advancedConfig={advancedConfig}
+				inputParameters={{
+					calc1Result,
+					calc2Result,
+					solution1Name: solution1Name || "Solution 1",
+					solution2Name: solution2Name || "Solution 2",
+				}}
+			/>
 		</div>
 	);
 }
