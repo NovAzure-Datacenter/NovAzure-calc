@@ -120,7 +120,7 @@ const ConfigurationCard = forwardRef(function ConfigurationCard(
 		// Call the API with the prepared inputs
 		try {
 			const response = await fetch(
-				"http://localhost:8000/calculations/calculate",
+				"/api/calculations/calculate",
 				{
 					method: "POST",
 					headers: {
@@ -131,7 +131,8 @@ const ConfigurationCard = forwardRef(function ConfigurationCard(
 			);
 
 			if (!response.ok) {
-				throw new Error("Failed to calculate");
+				const errorData = await response.json().catch(() => ({}));
+				throw new Error(errorData.error || "Failed to calculate");
 			}
 
 			const result = await response.json();
@@ -139,7 +140,7 @@ const ConfigurationCard = forwardRef(function ConfigurationCard(
 			onCalculationResult(result);
 		} catch (error) {
 			console.error("Error during calculation:", error);
-			console.log("SOlution name: " + selectedSolutionInfo.name);
+			console.log("Solution name: " + selectedSolutionInfo.name);
 		}
 	};
 
