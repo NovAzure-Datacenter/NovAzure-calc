@@ -42,6 +42,14 @@ export function ScenariosGrid({
 		return resolvedNames[cacheKey] || id;
 	}
 
+	// Helper function to get scenario names from compared_to IDs
+	function getComparedScenarioNames(comparedToIds: string[]): string[] {
+		return comparedToIds.map(id => {
+			const comparedScenario = scenarios.find(s => s.id === id);
+			return comparedScenario?.scenario_name || id;
+		});
+	}
+
 	function getResultInfo(results: any): { name: string; count: number; keyMetrics?: any } {
 		if (!results || typeof results !== 'object') {
 			return { name: "No Results", count: 0 };
@@ -119,7 +127,7 @@ export function ScenariosGrid({
 										<div className="mt-2">
 											<div className="flex flex-wrap gap-1">
 												<Badge variant="outline" className="text-xs">
-													Compared to: {scenario.compared_to.join(", ")}
+													Compared to: {getComparedScenarioNames(scenario.compared_to).join(", ")}
 												</Badge>
 											</div>
 										</div>

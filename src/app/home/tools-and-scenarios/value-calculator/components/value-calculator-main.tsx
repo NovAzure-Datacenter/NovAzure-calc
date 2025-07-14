@@ -204,6 +204,7 @@ const ValueCalculatorMain = forwardRef(function ValueCalculatorMain(
 					// Add solution_type as a config field
 					const baseFields = convertConfigFields(config.config_fields || []);
 					// Only add if not already present
+					
 					setConfigFields(baseFields);
 				})
 				.catch((error) => {
@@ -417,7 +418,7 @@ const ValueCalculatorMain = forwardRef(function ValueCalculatorMain(
 						/>
 						{!hideCompareButton && onCompareClick && (
 							<Button
-								variant="outline"
+								
 								size="sm"
 								onClick={onCompareClick}
 								className="absolute top-4 right-4 h-8 px-3 text-xs"
