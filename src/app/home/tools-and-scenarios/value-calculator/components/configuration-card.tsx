@@ -31,15 +31,15 @@ interface ConfigurationCardProps {
 	hideCompareButton?: boolean;
 }
 
-interface calcInputs {
-	solution_type: string;
-	data_hall_design_capacity_mw: number;
-	first_year_of_operation: number;
-	project_location: string;
-	percentage_of_utilisation: number;
-	planned_years_of_operation: number;
-	annualised_air_ppue: number;
-	advanced: boolean;
+interface calcInputs{
+    solution_type: string;
+    data_hall_design_capacity_mw: number;
+    first_year_of_operation: number;
+    project_location: string;
+    percentage_of_utilisation: number;
+    planned_years_of_operation: number;
+    annualised_ppue: number;
+    advanced: boolean;
 }
 
 const ConfigurationCard = forwardRef(function ConfigurationCard(
@@ -71,44 +71,44 @@ const ConfigurationCard = forwardRef(function ConfigurationCard(
 				selectedSolutionInfo.name?.toLowerCase().replace(/\s+/g, "_") || "";
 		}
 
-		// Prepare the inputs for the calculation
-		const inputs: calcInputs = {
-			solution_type: backendSolutionType,
-			data_hall_design_capacity_mw: 0,
-			first_year_of_operation: 0,
-			project_location: "",
-			percentage_of_utilisation: 0,
-			planned_years_of_operation: 0,
-			annualised_air_ppue: 0,
-			advanced: false,
-		};
-		// Populate inputs based on configFields
-		configFields.forEach((field) => {
-			switch (field.id) {
-				case "data_hall_capacity":
-					inputs.data_hall_design_capacity_mw = Number(field.value);
-					break;
-				case "first_year_operation":
-					inputs.first_year_of_operation = Number(field.value);
-					break;
-				case "project_location":
-					inputs.project_location = field.value as string;
-					break;
-				case "utilisation_percentage":
-					// Remove % symbol and convert to number
-					const percentageValue = (field.value as string).replace("%", "");
-					inputs.percentage_of_utilisation = Number(percentageValue);
-					break;
-				case "planned_years_operation":
-					inputs.planned_years_of_operation = Number(field.value);
-					break;
-				case "air_annualised_ppue":
-					inputs.annualised_air_ppue = Number(field.value);
-					break;
-				default:
-					break;
-			}
-		});
+        // Prepare the inputs for the calculation
+        const inputs: calcInputs = {
+            solution_type: backendSolutionType,
+            data_hall_design_capacity_mw: 0,
+            first_year_of_operation: 0,
+            project_location: "",
+            percentage_of_utilisation: 0,
+            planned_years_of_operation: 0,
+            annualised_ppue: 0,
+            advanced: false
+        };
+        // Populate inputs based on configFields
+        configFields.forEach(field => {
+            switch (field.id) {
+                case 'data_hall_capacity':
+                    inputs.data_hall_design_capacity_mw = Number(field.value);
+                    break;
+                case 'first_year_operation':
+                    inputs.first_year_of_operation = Number(field.value);
+                    break;
+                case 'project_location':
+                    inputs.project_location = field.value as string;
+                    break;
+                case 'utilisation_percentage':
+                    // Remove % symbol and convert to number
+                    const percentageValue = (field.value as string).replace('%', '');
+                    inputs.percentage_of_utilisation = Number(percentageValue);
+                    break;
+                case 'planned_years_operation':
+                    inputs.planned_years_of_operation = Number(field.value);
+                    break;
+                case 'air_annualised_ppue':
+                    inputs.annualised_ppue = Number(field.value);
+                    break;
+                default:
+                    break;
+            }
+        });
 
 		console.log("Prepared inputs for calculation:", inputs);
 
