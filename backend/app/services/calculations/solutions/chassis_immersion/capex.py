@@ -1,4 +1,5 @@
 from ...it_config import calculate_it_equipment_capex_complete
+from typing import Optional
 
 # Company inputs - hard coded for now
 COOLANT_PRICE_PER_KW = 40
@@ -29,13 +30,6 @@ CW_PUMPS_PIPEWORK_VALVES_CAPEX = {
     "United Arab Emirates": 187.9314,
 }
 
-# Default air cooling technology by country
-DEFAULT_AIR_COOLING_TECHNOLOGY = {
-    "United Kingdom": "CRAH with Packaged chiller and economiser",
-    "United States": "CRAH with Packaged chiller and economiser",
-    "Singapore": "CRAH with chiller/tower",
-    "United Arab Emirates": "CRAC DX glycol-cooled system with dry cooler",
-}
 
 INFLATION_FACTORS = {
     2023: 1.0,
@@ -74,14 +68,22 @@ def calculate_number_of_racks(nameplate_power_kw: float):
     return nameplate_power_kw / RACK_COOLING_CAPACITY_LIMIT
 
 
-def calculate_number_of_chassis_per_rack():
-    return RACK_COOLING_CAPACITY_LIMIT / SERVER_RATED_MAX_POWER
+def calculate_number_of_chassis_per_rack(
+    number_of_chassis_per_rack: Optional[int] = 16,
+):
+    if number_of_chassis_per_rack is None:
+        return 16
+    return number_of_chassis_per_rack
 
 
 # Functions using helpers
-def calculate_chassis_equipment_price_per_kw(nameplate_power_kw: float):
+def calculate_chassis_equipment_price_per_kw(
+    nameplate_power_kw: float, number_of_chassis_per_rack: Optional[int] = 16
+):
     number_of_racks = calculate_number_of_racks(nameplate_power_kw)
-    number_of_chassis_per_rack = calculate_number_of_chassis_per_rack()
+    number_of_chassis_per_rack = calculate_number_of_chassis_per_rack(
+        number_of_chassis_per_rack
+    )
     manifold_cost = MANIFOLD_CAPEX_PER_RACK * number_of_racks
     chassis_cost = CHASSIS_UPLIFT_COST * number_of_racks * number_of_chassis_per_rack
     return (manifold_cost + chassis_cost) / nameplate_power_kw
@@ -101,9 +103,13 @@ def calculate_air_cooled_equipment_base_capex_per_kw(
 
 
 # Component calculations (1-14)
-def calculate_chassis_equipment_and_coolant_price_per_kw(nameplate_power_kw: float):
+def calculate_chassis_equipment_and_coolant_price_per_kw(
+    nameplate_power_kw: float, number_of_chassis_per_rack: Optional[int] = 16
+):
     return (
-        calculate_chassis_equipment_price_per_kw(nameplate_power_kw)
+        calculate_chassis_equipment_price_per_kw(
+            nameplate_power_kw, number_of_chassis_per_rack
+        )
         + COOLANT_PRICE_PER_KW
     )
 
@@ -194,9 +200,15 @@ def calculate_total_it_cost_per_kw():
 
 
 # Main calculation pipeline
-def calculate_total_price_per_kw_nameplate(nameplate_power_kw: float, country: str):
+def calculate_total_price_per_kw_nameplate(
+    nameplate_power_kw: float,
+    country: str,
+    number_of_chassis_per_rack: Optional[int] = 16,
+):
     return (
-        calculate_chassis_equipment_and_coolant_price_per_kw(nameplate_power_kw)
+        calculate_chassis_equipment_and_coolant_price_per_kw(
+            nameplate_power_kw, number_of_chassis_per_rack
+        )
         + calculate_cw_pumps_pipework_valves_capex_per_kw(country)
         + calculate_hybrid_cooler_capex_per_kw(nameplate_power_kw)
         + calculate_cdu_capex_per_kw(nameplate_power_kw)
@@ -213,34 +225,40 @@ def calculate_total_price_per_kw_nameplate(nameplate_power_kw: float, country: s
     )
 
 
-def calculate_chassis_solution_total_capex(nameplate_power_kw: float, country: str):
+def calculate_chassis_solution_total_capex(
+    nameplate_power_kw: float,
+    country: str,
+    number_of_chassis_per_rack: Optional[int] = 16,
+):
     return (
-        calculate_total_price_per_kw_nameplate(nameplate_power_kw, country)
+        calculate_total_price_per_kw_nameplate(
+            nameplate_power_kw, country, number_of_chassis_per_rack
+        )
         * nameplate_power_kw
     )
 
 
 def calculate_chassis_solution_capex_with_inflation(
-    first_year_of_operation: int, nameplate_power_kw: float, country: str
+    first_year_of_operation: int,
+    nameplate_power_kw: float,
+    country: str,
+    number_of_chassis_per_rack: Optional[int] = 16,
 ):
-    return (
-        calculate_chassis_solution_total_capex(nameplate_power_kw, country)
-        * INFLATION_FACTORS[first_year_of_operation]
-    )
+    return calculate_chassis_solution_total_capex(
+        nameplate_power_kw, country, number_of_chassis_per_rack
+    ) * 1.022 ** (first_year_of_operation - 2024)
 
 
 def calculate_chassis_solution_capex_with_markup(
-    first_year_of_operation: int, capacity_mw: float, country: str
+    first_year_of_operation: int,
+    capacity_mw: float,
+    country: str,
+    number_of_chassis_per_rack: Optional[int] = 16,
 ):
     nameplate_power_kw = capacity_mw * 1000
-    markup = nameplate_power_kw * FIXED_MARKUP
-    result = (
-        calculate_chassis_solution_capex_with_inflation(
-            first_year_of_operation, nameplate_power_kw, country
-        )
-        + markup
-    )
-    return round(result)
+    return calculate_chassis_solution_capex_with_inflation(
+        first_year_of_operation, nameplate_power_kw, country, number_of_chassis_per_rack
+    ) + (nameplate_power_kw * FIXED_MARKUP)
 
 
 def calculate_it_capex(
@@ -276,10 +294,15 @@ def calculate_cooling_capex(input_data):
     first_year_of_operation = input_data.get("first_year_of_operation")
     country = input_data.get("country")
     advanced = input_data.get("advanced", False)
+    chassis_product = input_data.get("chassis_product")
+    number_of_chassis_per_rack = input_data.get("number_of_chassis_per_rack", 16)
 
     cooling_equipment_capex = calculate_chassis_solution_capex_with_markup(
-        first_year_of_operation, capacity_mw, country
+        first_year_of_operation, capacity_mw, country, number_of_chassis_per_rack
     )
+
+    if chassis_product == "KU:L 2":
+        cooling_equipment_capex *= 1.8
 
     it_equipment_capex = 0
     if advanced:
