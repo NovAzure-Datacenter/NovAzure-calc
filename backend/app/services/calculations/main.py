@@ -38,6 +38,9 @@ class CalculationInputs(BaseModel):
     chassis_product: Optional[str] = None
     air_cooling_technology: Optional[str] = None
 
+    # Advanced Chassis Immersion Configuration inputs
+    number_of_chassis_per_rack: Optional[int] = None
+
 
 class CoolingSolutionsCalculator:
     def __init__(self):
@@ -138,6 +141,7 @@ class CoolingSolutionsCalculator:
     async def _calculate_chassis_immersion_solution(self) -> Dict[str, Any]:
         capex_input = self._build_capex_input_data()
         capex_input["chassis_product"] = self.inputs.chassis_product
+        capex_input["number_of_chassis_per_rack"] = self.inputs.number_of_chassis_per_rack
         chassis_immersion_capex = calculate_chassis_immersion_capex(capex_input)
 
         opex_input = self._build_opex_input_data()

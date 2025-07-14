@@ -46,6 +46,10 @@ class CoolingSolutionRequest(BaseModel):
     air_cooling_technology: Optional[str] = Field(
         default=None, description="Air cooling technology type"
     )
+    
+    number_of_chassis_per_rack: Optional[int] = Field(
+        default=None, description="Number of chassis per rack"
+    )
 
     @model_validator(mode='after')
     def set_default_products(self):
