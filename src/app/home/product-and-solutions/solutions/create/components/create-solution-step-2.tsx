@@ -87,10 +87,10 @@ export function CreateSolutionStep2({
 					{/* Client's Selected Technologies Section */}
 					<div className="flex-shrink-0 mb-6">
 						<Label className="text-sm font-medium">
-							Your Organization's Technologies
+							Your Organization&apos;s Technologies
 						</Label>
 						<p className="text-xs text-muted-foreground mb-2">
-							Select from your organization's available technologies
+							Select from your organization&apos;s available technologies
 						</p>
 						{clientSelectedTechnologies.length > 0 ? (
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-2">

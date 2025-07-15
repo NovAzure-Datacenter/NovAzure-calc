@@ -301,7 +301,7 @@ export function TableView({
 							<DialogDescription className="space-y-2">
 								<p>
 									Are you sure you want to remove{" "}
-									<strong>"{selectedIndustry.name}"</strong>?
+									<strong>&quot;{selectedIndustry.name}&quot;</strong>?
 								</p>
 								<p className="text-sm text-muted-foreground">
 									This will permanently delete the industry

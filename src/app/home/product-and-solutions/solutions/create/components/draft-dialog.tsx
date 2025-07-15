@@ -83,7 +83,7 @@ export function DraftDialog({
 								<div className="text-sm font-medium text-gray-900 mb-1">
 									Draft Saved
 								</div>
-								<div className="text-sm text-gray-600">"{solutionName}"</div>
+								<div className="text-sm text-gray-600">&quot;{solutionName}&quot;</div>
 								<Badge
 									variant="outline"
 									className="text-xs mt-2 bg-gray-100 text-gray-800 border-gray-200"

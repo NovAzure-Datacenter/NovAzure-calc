@@ -165,7 +165,7 @@ export function CreateSolutionStep6({
 						</div>
 						<ul className="text-xs text-muted-foreground space-y-0.5 mb-3">
 							<li>• Solution will be reviewed by administrators</li>
-							<li>• You'll be notified of approval status</li>
+							<li>• You&apos;ll be notified of approval status</li>
 							<li>• Changes may be required before approval</li>
 						</ul>
 						<Button

@@ -42,8 +42,6 @@ export function ResultsSection({
 	advancedConfig,
 	inputParameters,
 }: ResultsSectionProps) {
-	if (!showResults) return null;
-
 	// Process individual calculation result data
 	const processIndividualData = (result: any) => {
 		if (!result) return { tableData: [], chartData: [] };
@@ -170,6 +168,8 @@ export function ResultsSection({
 	};
 
 	const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
+
+	if (!showResults) return null;
 
 	const handleSaveProject = async (projectData: {
 		projectId?: string;

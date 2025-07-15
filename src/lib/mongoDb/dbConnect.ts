@@ -1,11 +1,12 @@
 import { MongoClient, Db, ServerApiVersion } from "mongodb";
 
+const getMongoUri = () => {
+	if (!process.env.MONGODB_URI) {
+		throw new Error("MONGODB_URI is not defined in environment variables");
+	}
+	return process.env.MONGODB_URI;
+};
 
-if (!process.env.MONGODB_URI) {
-	throw new Error("MONGODB_URI is not defined in environment variables");
-}
-
-const uri = process.env.MONGODB_URI;
 const dbName = "platform_db"; 
 
 // Global connection cache
@@ -50,6 +51,7 @@ export async function getConnectedClient(): Promise<{
 }
 
 async function createNewConnection(): Promise<{ client: MongoClient; db: Db }> {
+	const uri = getMongoUri();
 	const client = new MongoClient(uri, {
 		serverApi: {
 			version: ServerApiVersion.v1,

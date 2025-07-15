@@ -267,7 +267,7 @@ export function TechnologyGridView({ data, industries, onTechnologyDeleted, onTe
 							<DialogDescription className="space-y-2">
 								<p>
 									Are you sure you want to remove{" "}
-									<strong>"{selectedTechnology.name}"</strong>?
+									<strong>&quot;{selectedTechnology.name}&quot;</strong>?
 								</p>
 								<p className="text-sm text-muted-foreground">
 									This will permanently delete the technology

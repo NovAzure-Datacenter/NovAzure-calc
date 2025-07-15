@@ -817,7 +817,7 @@ function TabContentParameters({
 							No Parameters
 						</h3>
 						<p className="text-muted-foreground text-sm">
-							This technology doesn't have any parameters defined yet.
+							This technology doesn&apos;t have any parameters defined yet.
 						</p>
 						{isEditing && (
 							<Button
@@ -885,7 +885,7 @@ function RenderTechnologyRemoveDialog({
 					<DialogDescription className="space-y-2">
 						<p>
 							Are you sure you want to remove{" "}
-							<strong>"{technology?.name}"</strong>?
+							<strong>&quot;{technology?.name}&quot;</strong>?
 						</p>
 						<p className="text-sm text-muted-foreground">
 							This will permanently delete the technology
