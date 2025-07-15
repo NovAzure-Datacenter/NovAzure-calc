@@ -1,11 +1,12 @@
 import { MongoClient, Db, ServerApiVersion } from "mongodb";
 
+const getMongoUri = () => {
+	if (!process.env.MONGODB_URI) {
+		throw new Error("MONGODB_URI is not defined in environment variables");
+	}
+	return process.env.MONGODB_URI;
+};
 
-if (!process.env.MONGODB_URI) {
-	throw new Error("MONGODB_URI is not defined in environment variables");
-}
-
-const uri = process.env.MONGODB_URI;
 const dbName = "platform_db"; 
 
 // Global connection cache
