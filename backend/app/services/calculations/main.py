@@ -31,6 +31,7 @@ class CalculationInputs(BaseModel):
     data_center_type: Optional[str] = None
 
     # Advanced Data Centre Configuration inputs
+    inlet_temperature: float = 30
     electricity_price_per_kwh: float = 0
     water_price_per_litre: float = 0.00134
 
@@ -56,10 +57,10 @@ class CoolingSolutionsCalculator:
             "first_year_of_operation": self.inputs.first_year_of_operation,
             "country": self.inputs.project_location,
             "advanced": self.inputs.advanced,
-            "advanced_config": self._build_advanced_config(),
+            "advanced_data_centre_config": self._build_advanced_data_centre_config(),
         }
 
-    def _build_advanced_config(self) -> Optional[Dict[str, Any]]:
+    def _build_advanced_data_centre_config(self) -> Optional[Dict[str, Any]]:
         return {
             "inlet_temperature": self.inputs.inlet_temperature,
             "electricity_price_per_kwh": self.inputs.electricity_price_per_kwh,
@@ -95,7 +96,9 @@ class CoolingSolutionsCalculator:
             "country": self.inputs.project_location,
         }
 
-        input_data.update(self._build_advanced_config())
+        advanced_config = self._build_advanced_data_centre_config()
+        if self.inputs.advanced and advanced_config is not None:
+            input_data.update(advanced_config)
 
         return input_data
 
