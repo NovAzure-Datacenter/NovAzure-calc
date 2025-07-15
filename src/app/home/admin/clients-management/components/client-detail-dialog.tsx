@@ -79,13 +79,11 @@ export function ClientsDetailDialog({
 	const [isLoadingIndustries, setIsLoadingIndustries] = useState(false);
 	const [isLoadingTechnologies, setIsLoadingTechnologies] = useState(false);
 
-	if (!client) return null;
-	const IconComponent = stringToIconComponent(client.logo);
-
 	// Load industries and technologies when dialog opens
 	useEffect(() => {
 		if (
 			open &&
+			client &&
 			(client.selected_industries?.length || client.selected_technologies?.length)
 		) {
 			loadIndustriesAndTechnologies();
@@ -105,6 +103,9 @@ export function ClientsDetailDialog({
 			setIsEditing(initialEditMode);
 		}
 	}, [open, initialEditMode]);
+
+	if (!client) return null;
+	const IconComponent = stringToIconComponent(client.logo);
 
 	const loadIndustriesAndTechnologies = async () => {
 		// Load industries

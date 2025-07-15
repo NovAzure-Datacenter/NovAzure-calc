@@ -51,6 +51,7 @@ export async function getConnectedClient(): Promise<{
 }
 
 async function createNewConnection(): Promise<{ client: MongoClient; db: Db }> {
+	const uri = getMongoUri();
 	const client = new MongoClient(uri, {
 		serverApi: {
 			version: ServerApiVersion.v1,

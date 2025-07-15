@@ -22,6 +22,9 @@ COPY . .
 # Uncomment the following line in case you want to disable telemetry during the build.
 ENV NEXT_TELEMETRY_DISABLED 1
 
+# Install sharp for the current platform
+RUN npm install sharp
+
 RUN npm run build
 
 # Production image, copy all the files and run next
@@ -47,7 +50,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 # Copy sharp from node_modules to ensure it's available in production
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/sharp ./node_modules/sharp
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/sharp* ./node_modules/
 
 USER nextjs
 

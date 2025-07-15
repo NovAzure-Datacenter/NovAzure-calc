@@ -76,9 +76,9 @@ export function CreateSolutionStep1({
 				<>
 					{/* Client's Selected Industries Section */}
 					<div className="flex-shrink-0 mb-6">
-						<Label className="text-sm font-medium">Your Organization's Industries</Label>
+						<Label className="text-sm font-medium">Your Organization&apos;s Industries</Label>
 						<p className="text-xs text-muted-foreground mb-2">
-							Select from your organization's available industries
+							Select from your organization&apos;s available industries
 						</p>
 						{clientSelectedIndustries.length > 0 ? (
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-2">
