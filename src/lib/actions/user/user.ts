@@ -211,7 +211,7 @@ export async function createUser(data: CreateUserData) {
 
 		// Use the generated login email for authentication
 		const loginEmail = data.email.toLowerCase();
-		const originalEmail = data.email; // Store the original email for contact purposes
+		const originalEmail = data.original_email || data.email; // Use original_email if provided, otherwise fallback to data.email
 
 		const existingUser = await usersCollection.findOne({
 			email: loginEmail,
