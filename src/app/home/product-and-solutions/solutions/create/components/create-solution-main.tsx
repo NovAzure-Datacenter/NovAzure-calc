@@ -97,9 +97,12 @@ export function CreateSolutionMain() {
 		newVariantName: "",
 		newVariantDescription: "",
 		newVariantIcon: "",
-		parameters: [...defaultParameters],
+		parameters: [],
 		calculations: [...defaultCalculations],
 	});
+
+	// Custom categories state for parameters
+	const [customCategories, setCustomCategories] = useState<string[]>([]);
 
 	// Load client data and available industries/technologies
 	useEffect(() => {
@@ -692,7 +695,7 @@ export function CreateSolutionMain() {
 						{getStepDescription()}
 					</CardDescription>
 				</CardHeader>
-				<CardContent className="space-y-4 overflow-y-auto">
+				<CardContent className="space-y-4">
 					{/* Step 1: Industry Selection */}
 					{currentStep === 1 && (
 						<CreateSolutionStep1
@@ -753,6 +756,8 @@ export function CreateSolutionMain() {
 						<ParametersConfiguration
 							parameters={formData.parameters}
 							onParametersChange={handleParametersChange}
+							customCategories={customCategories}
+							setCustomCategories={setCustomCategories}
 						/>
 					)}
 
