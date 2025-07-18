@@ -36,21 +36,8 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { Edit, Save, X, Info, Plus, Trash } from "lucide-react";
-
-export interface Parameter {
-	id: string;
-	level: number; 
-	name: string;
-	value: number;
-	testValue: number;
-	unit: string;
-	description: string;
-	providedBy: "global" | "company" | "user";
-	inputType: "simple" | "advanced";
-	output: boolean;
-	category: string; 
-}
+import { Edit, Save, X, Info, Plus, Trash, Search } from "lucide-react";
+import { type Parameter } from "../../mock-data";
 
 interface ParametersConfigurationProps {
 	parameters: Parameter[];
@@ -69,77 +56,83 @@ export function ParametersConfiguration({
 	const [editData, setEditData] = useState<{
 		name: string;
 		value: string;
-		testValue: string;
+		test_value: string;
 		unit: string;
 		description: string;
-		providedBy: string;
-		inputType: string;
-		output: boolean;
 		category: string;
+		provided_by: string;
+		input_type: string;
+		output: boolean;
 	}>({
 		name: "",
 		value: "",
-		testValue: "",
+		test_value: "",
 		unit: "",
 		description: "",
-		providedBy: "user",
-		inputType: "simple",
+		category: "",
+		provided_by: "user",
+		input_type: "simple",
 		output: false,
-		category: "all",
 	});
 	const [activeTab, setActiveTab] = useState("all");
 	const [isAddCategoryDialogOpen, setIsAddCategoryDialogOpen] = useState(false);
 	const [newCategoryData, setNewCategoryData] = useState({
 		name: "",
 		description: "",
+		color: "bg-blue-500 text-blue-700 border-blue-200",
 	});
 	const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
 	const [confirmCategory, setConfirmCategory] = useState<string | null>(null);
 
-	const [isParameterConfirmDialogOpen, setIsParameterConfirmDialogOpen] = useState(false);
+	const [isParameterConfirmDialogOpen, setIsParameterConfirmDialogOpen] =
+		useState(false);
 	const [confirmParameter, setConfirmParameter] = useState<string | null>(null);
-	
+
 	const [isAddingParameter, setIsAddingParameter] = useState(false);
 	const [newParameterData, setNewParameterData] = useState<{
 		name: string;
 		value: string;
-		testValue: string;
+		test_value: string;
 		unit: string;
 		description: string;
-		providedBy: string;
-		inputType: string;
-		output: boolean;
 		category: string;
+		provided_by: string;
+		input_type: string;
+		output: boolean;
 	}>({
 		name: "",
 		value: "",
-		testValue: "",
+		test_value: "",
 		unit: "",
 		description: "",
-		providedBy: "user",
-		inputType: "simple",
+		category: "",
+		provided_by: "user",
+		input_type: "simple",
 		output: false,
-		category: "none",
 	});
+
+	// Search state
+	const [searchQuery, setSearchQuery] = useState("");
 
 	const handleEditParameter = (parameter: Parameter) => {
 		setEditingParameter(parameter.id);
 		setEditData({
 			name: parameter.name,
-			value: parameter.value.toString(),
-			testValue: parameter.testValue.toString(),
+			value: parameter.value,
+			test_value: parameter.test_value,
 			unit: parameter.unit,
 			description: parameter.description,
-			providedBy: parameter.providedBy,
-			inputType: parameter.inputType,
+			category: parameter.category.name,
+			provided_by: parameter.provided_by,
+			input_type: parameter.input_type,
 			output: parameter.output,
-			category: parameter.category,
 		});
 	};
 
 	const handleSaveParameter = (parameterId: string) => {
 		const numericValue = parseFloat(editData.value);
-		if (isNaN(numericValue)) {
+		const numericTestValue = parseFloat(editData.test_value);
+		if (isNaN(numericValue) || isNaN(numericTestValue)) {
 			return;
 		}
 
@@ -151,14 +144,17 @@ export function ParametersConfiguration({
 				? {
 						...param,
 						name: editData.name,
-						value: numericValue,
-						testValue: parseFloat(editData.testValue),
+						value: editData.value,
+						test_value: editData.test_value,
 						unit: editData.unit,
 						description: editData.description,
-						providedBy: editData.providedBy as "global" | "company" | "user",
-						inputType: editData.inputType as "simple" | "advanced",
+						category: {
+							name: editData.category,
+							color: currentParameter.category.color,
+						},
+						provided_by: editData.provided_by,
+						input_type: editData.input_type,
 						output: editData.output,
-						category: editData.category,
 				  }
 				: param
 		);
@@ -167,13 +163,13 @@ export function ParametersConfiguration({
 		setEditData({
 			name: "",
 			value: "",
-			testValue: "",
+			test_value: "",
 			unit: "",
 			description: "",
-			providedBy: "user",
-			inputType: "simple",
+			category: "",
+			provided_by: "user",
+			input_type: "simple",
 			output: false,
-			category: "all",
 		});
 	};
 
@@ -182,21 +178,14 @@ export function ParametersConfiguration({
 		setEditData({
 			name: "",
 			value: "",
-			testValue: "",
+			test_value: "",
 			unit: "",
 			description: "",
-			providedBy: "user",
-			inputType: "simple",
+			category: "",
+			provided_by: "user",
+			input_type: "simple",
 			output: false,
-			category: "all",
 		});
-	};
-
-	const handleResetParameter = (parameterId: string) => {
-		const updatedParameters = parameters.map((param) =>
-			param.id === parameterId ? { ...param, overrideValue: null } : param
-		);
-		onParametersChange(updatedParameters);
 	};
 
 	const handleAddParameter = () => {
@@ -204,35 +193,42 @@ export function ParametersConfiguration({
 		setNewParameterData({
 			name: "",
 			value: "",
-			testValue: "",
+			test_value: "",
 			unit: "",
 			description: "",
-			providedBy: "user",
-			inputType: "simple",
+			category: "",
+			provided_by: "user",
+			input_type: "simple",
 			output: false,
-			category: "none",
 		});
 	};
 
 	const handleSaveNewParameter = () => {
 		const numericValue = parseFloat(newParameterData.value);
-		if (isNaN(numericValue) || !newParameterData.name.trim()) {
-			// Handle invalid input
+		const numericTestValue = parseFloat(newParameterData.test_value);
+		if (
+			isNaN(numericValue) ||
+			isNaN(numericTestValue) ||
+			!newParameterData.name.trim()
+		) {
 			return;
 		}
 
 		const newParameter: Parameter = {
-			id: `param-${Date.now()}`, 
-			level: 1, 
+			id: `param-${Date.now()}`,
+			level: "L1",
 			name: newParameterData.name.trim(),
-			value: numericValue, 
-			testValue: parseFloat(newParameterData.testValue), 
+			value: newParameterData.value,
+			test_value: newParameterData.test_value,
 			unit: newParameterData.unit,
 			description: newParameterData.description,
-			providedBy: newParameterData.providedBy as "global" | "company" | "user", 
-			inputType: newParameterData.inputType as "simple" | "advanced", 
-			output: newParameterData.output, 
-			category: newParameterData.category, 
+			category: {
+				name: newParameterData.category,
+				color: "blue",
+			},
+			provided_by: newParameterData.provided_by,
+			input_type: newParameterData.input_type,
+			output: newParameterData.output,
 		};
 
 		onParametersChange([newParameter, ...parameters]);
@@ -240,13 +236,13 @@ export function ParametersConfiguration({
 		setNewParameterData({
 			name: "",
 			value: "",
-			testValue: "",
+			test_value: "",
 			unit: "",
 			description: "",
-			providedBy: "user",
-			inputType: "simple",
+			category: "",
+			provided_by: "user",
+			input_type: "simple",
 			output: false,
-			category: "none",
 		});
 	};
 
@@ -260,13 +256,13 @@ export function ParametersConfiguration({
 		setNewParameterData({
 			name: "",
 			value: "",
-			testValue: "",
+			test_value: "",
 			unit: "",
 			description: "",
-			providedBy: "user",
-			inputType: "simple",
+			category: "",
+			provided_by: "user",
+			input_type: "simple",
 			output: false,
-			category: "none",
 		});
 	};
 
@@ -294,6 +290,7 @@ export function ParametersConfiguration({
 			setNewCategoryData({
 				name: "",
 				description: "",
+				color: "bg-blue-500 text-blue-700 border-blue-200",
 			});
 		}
 	};
@@ -332,29 +329,49 @@ export function ParametersConfiguration({
 		}
 	};
 
-	const getCategoryColor = (category: string) => {
-		switch (category) {
-			case "performance":
-				return "bg-blue-50 text-blue-700 border-blue-200";
-			case "cost":
-				return "bg-green-50 text-green-700 border-green-200";
-			case "environmental":
-				return "bg-yellow-50 text-yellow-700 border-yellow-200";
-			case "operational":
-				return "bg-purple-50 text-purple-700 border-purple-200";
-			default:
-				return "bg-gray-50 text-gray-700 border-gray-200";
-		}
+	const getCategoryColor = (categoryName: string) => {
+		const parameter = parameters.find(
+			(param) => param.category.name === categoryName
+		);
+		const colorName = parameter?.category.color || "gray";
+
+		const colorMap: Record<string, string> = {
+			red: "!bg-red-100 !text-red-800 !border-red-300",
+			blue: "!bg-blue-100 !text-blue-800 !border-blue-300",
+			green: "!bg-green-100 !text-green-800 !border-green-300",
+			yellow: "!bg-yellow-100 !text-yellow-800 !border-yellow-300",
+			purple: "!bg-purple-100 !text-purple-800 !border-purple-300",
+			orange: "!bg-orange-100 !text-orange-800 !border-orange-300",
+			pink: "!bg-pink-100 !text-pink-800 !border-pink-300",
+			teal: "!bg-teal-100 !text-teal-800 !border-teal-300",
+			indigo: "!bg-indigo-100 !text-indigo-800 !border-indigo-300",
+			cyan: "!bg-cyan-100 !text-cyan-800 !border-cyan-300",
+			gray: "!bg-gray-100 !text-gray-800 !border-gray-300",
+		};
+
+		return colorMap[colorName] || colorMap.gray;
 	};
 
 	const allCategories = [...customCategories];
 
-	const filteredParameters =
-		activeTab === "all"
-			? parameters
-			: activeTab === "none"
-			? parameters.filter((param) => param.category === "none")
-			: parameters.filter((param) => param.category === activeTab);
+	const filteredParameters = parameters
+		.filter((param) => {
+			// First filter by active tab
+			const tabFiltered = activeTab === "all" || param.category.name === activeTab;
+			
+			// Then filter by search query
+			const searchFiltered = searchQuery.trim() === "" || 
+				param.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+				param.category.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+				param.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+				param.value.toLowerCase().includes(searchQuery.toLowerCase()) ||
+				param.test_value.toLowerCase().includes(searchQuery.toLowerCase()) ||
+				param.unit.toLowerCase().includes(searchQuery.toLowerCase()) ||
+				param.provided_by.toLowerCase().includes(searchQuery.toLowerCase()) ||
+				param.input_type.toLowerCase().includes(searchQuery.toLowerCase());
+			
+			return tabFiltered && searchFiltered;
+		});
 
 	return (
 		<div className="space-y-6">
@@ -373,6 +390,7 @@ export function ParametersConfiguration({
 				handleCancelAddParameter={handleCancelAddParameter}
 				isAddingParameter={isAddingParameter}
 				editingParameter={editingParameter}
+				parameters={parameters}
 			/>
 
 			<ConfirmCategoryRemovalDialog
@@ -392,6 +410,11 @@ export function ParametersConfiguration({
 
 			{activeTab !== "add-new-category" && (
 				<>
+					<Searchbar 
+						searchQuery={searchQuery} 
+						setSearchQuery={setSearchQuery} 
+						filteredParameters={filteredParameters}
+					/>
 					<TableContent
 						filteredParameters={filteredParameters}
 						editingParameter={editingParameter}
@@ -401,7 +424,6 @@ export function ParametersConfiguration({
 						handleSaveParameter={handleSaveParameter}
 						handleCancelEdit={handleCancelEdit}
 						handleDeleteParameter={handleDeleteParameter}
-						handleResetParameter={handleResetParameter}
 						getLevelColor={getLevelColor}
 						getCategoryColor={getCategoryColor}
 						isAddingParameter={isAddingParameter}
@@ -411,6 +433,8 @@ export function ParametersConfiguration({
 						handleCancelAddParameter={handleCancelAddParameter}
 						handleAddParameter={handleAddParameter}
 						customCategories={customCategories}
+						searchQuery={searchQuery}
+						parameters={parameters}
 					/>
 				</>
 			)}
@@ -432,6 +456,7 @@ function CategoryTabs({
 	isAddingParameter,
 	editingParameter,
 	handleCancelAddParameter,
+	parameters,
 }: {
 	activeTab: string;
 	setActiveTab: (tab: string) => void;
@@ -441,11 +466,13 @@ function CategoryTabs({
 	newCategoryData: {
 		name: string;
 		description: string;
+		color: string;
 	};
 	setNewCategoryData: React.Dispatch<
 		React.SetStateAction<{
 			name: string;
 			description: string;
+			color: string;
 		}>
 	>;
 	handleAddCategory: () => void;
@@ -454,7 +481,126 @@ function CategoryTabs({
 	isAddingParameter: boolean;
 	editingParameter: string | null;
 	handleCancelAddParameter: () => void;
+	parameters: Parameter[];
 }) {
+	const categoryColors = [
+		"bg-blue-500 text-blue-700 border-blue-200 ",
+		"bg-green-500 text-green-700 border-green-200",
+		"bg-yellow-500 text-yellow-700 border-yellow-200",
+		"bg-purple-500 text-purple-700 border-purple-200",
+		"bg-red-500 text-red-700 border-red-200",
+		"bg-orange-500 text-orange-700 border-orange-200",
+		"bg-pink-500 text-pink-700 border-pink-200",
+		"bg-gray-500 text-gray-700 border-gray-200",
+		"bg-teal-500 text-teal-700 border-teal-200",
+		"bg-indigo-500 text-indigo-700 border-indigo-200",
+	];
+
+	// Get unique categories from parameters
+	const uniqueCategories = Array.from(
+		new Set(parameters.map((param) => param.category.name))
+	);
+
+	// Function to get category color
+	const getCategoryColor = (categoryName: string) => {
+		const parameter = parameters.find(
+			(param) => param.category.name === categoryName
+		);
+		const colorName = parameter?.category.color || "gray";
+
+		// Map color names to Tailwind classes with higher specificity
+		const colorMap: Record<string, string> = {
+			red: "!bg-red-100 !text-red-800 !border-red-300",
+			blue: "!bg-blue-100 !text-blue-800 !border-blue-300",
+			green: "!bg-green-100 !text-green-800 !border-green-300",
+			yellow: "!bg-yellow-100 !text-yellow-800 !border-yellow-300",
+			purple: "!bg-purple-100 !text-purple-800 !border-purple-300",
+			orange: "!bg-orange-100 !text-orange-800 !border-orange-300",
+			pink: "!bg-pink-100 !text-pink-800 !border-pink-300",
+			teal: "!bg-teal-100 !text-teal-800 !border-teal-300",
+			indigo: "!bg-indigo-100 !text-indigo-800 !border-indigo-300",
+			cyan: "!bg-cyan-100 !text-cyan-800 !border-cyan-300",
+			gray: "!bg-gray-100 !text-gray-800 !border-gray-300",
+		};
+
+		return colorMap[colorName] || colorMap.gray;
+	};
+
+	// Function to get category inline styles
+	const getCategoryStyle = (categoryName: string) => {
+		const parameter = parameters.find(
+			(param) => param.category.name === categoryName
+		);
+		const colorName = parameter?.category.color || "gray";
+
+		// Map color names to hex colors for inline styles
+		const colorMap: Record<
+			string,
+			{ backgroundColor: string; color: string; borderColor: string }
+		> = {
+			red: {
+				backgroundColor: "#fef2f2",
+				color: "#991b1b",
+				borderColor: "#fca5a5",
+			},
+			blue: {
+				backgroundColor: "#eff6ff",
+				color: "#1e40af",
+				borderColor: "#93c5fd",
+			},
+			green: {
+				backgroundColor: "#f0fdf4",
+				color: "#166534",
+				borderColor: "#86efac",
+			},
+			yellow: {
+				backgroundColor: "#fefce8",
+				color: "#a16207",
+				borderColor: "#fde047",
+			},
+			purple: {
+				backgroundColor: "#faf5ff",
+				color: "#7c3aed",
+				borderColor: "#c4b5fd",
+			},
+			orange: {
+				backgroundColor: "#fff7ed",
+				color: "#c2410c",
+				borderColor: "#fdba74",
+			},
+			pink: {
+				backgroundColor: "#fdf2f8",
+				color: "#be185d",
+				borderColor: "#f9a8d4",
+			},
+			teal: {
+				backgroundColor: "#f0fdfa",
+				color: "#134e4a",
+				borderColor: "#5eead4",
+			},
+			indigo: {
+				backgroundColor: "#eef2ff",
+				color: "#3730a3",
+				borderColor: "#a5b4fc",
+			},
+			cyan: {
+				backgroundColor: "#ecfeff",
+				color: "#0e7490",
+				borderColor: "#67e8f9",
+			},
+			gray: {
+				backgroundColor: "#f9fafb",
+				color: "#374151",
+				borderColor: "#d1d5db",
+			},
+		};
+
+		return colorMap[colorName] || colorMap.gray;
+	};
+
+	// Combine auto-generated categories with custom categories
+	const allTabs = ["all", ...uniqueCategories, ...allCategories];
+
 	return (
 		<>
 			<Tabs value={activeTab} onValueChange={setActiveTab} className="w-full ">
@@ -465,6 +611,19 @@ function CategoryTabs({
 					>
 						All
 					</TabsTrigger>
+					{uniqueCategories.map((category) => {
+						const categoryStyle = getCategoryStyle(category);
+						return (
+							<TabsTrigger
+								key={category}
+								value={category}
+								className="data-[state=active]:!bg-primary data-[state=active]:!text-primary-foreground text-muted-foreground text-sm bg-background/80 hover:bg-background border-backdrop"
+								style={categoryStyle}
+							>
+								{category}
+							</TabsTrigger>
+						);
+					})}
 					{allCategories.map((category) => (
 						<TabsTrigger
 							key={category}
@@ -562,12 +721,42 @@ function CategoryTabs({
 								placeholder="Enter category name"
 							/>
 						</div>
-						
+						<div className="grid grid-cols-4 items-center gap-4">
+							<Label htmlFor="category-color" className="text-right">
+								Color
+							</Label>
+							<div className="col-span-3 flex gap-2">
+								{categoryColors.map((color) => (
+									<button
+										key={color}
+										type="button"
+										onClick={() =>
+											setNewCategoryData((prev) => ({
+												...prev,
+												color: color,
+											}))
+										}
+										className={`w-6 h-6 rounded-full ${color} transition-all duration-200 hover:scale-110 ${
+											newCategoryData.color === color
+												? "ring-2 ring-black ring-offset-2"
+												: ""
+										}`}
+									/>
+								))}
+							</div>
+						</div>
 					</div>
 					<DialogFooter>
 						<Button
 							variant="outline"
-							onClick={() => setIsAddCategoryDialogOpen(false)}
+							onClick={() => {
+								setIsAddCategoryDialogOpen(false);
+								setNewCategoryData({
+									name: "",
+									description: "",
+									color: "bg-blue-500 text-blue-700 border-blue-200",
+								});
+							}}
 						>
 							Cancel
 						</Button>
@@ -584,6 +773,67 @@ function CategoryTabs({
 	);
 }
 
+function Searchbar({ 
+	searchQuery, 
+	setSearchQuery,
+	filteredParameters
+}: { 
+	searchQuery: string; 
+	setSearchQuery: (query: string) => void; 
+	filteredParameters: Parameter[];
+}) {
+	const handleKeyDown = (e: React.KeyboardEvent) => {
+		if (e.key === "Escape") {
+			setSearchQuery("");
+		}
+	};
+
+	return (
+		<div className="mb-4">
+			<div className="relative">
+				<Input
+					placeholder="Search parameters by name, category, description, value, unit, provider, or input type..."
+					value={searchQuery}
+					onChange={(e) => setSearchQuery(e.target.value)}
+					onKeyDown={handleKeyDown}
+					className="pl-10 pr-10"
+				/>
+				<div className="absolute left-3 top-1/2 -translate-y-1/2">
+					<Search className="h-4 w-4 text-muted-foreground" />
+				</div>
+				{searchQuery && (
+					<Button
+						variant="ghost"
+						size="sm"
+						onClick={() => setSearchQuery("")}
+						className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 p-0 hover:bg-muted"
+						title="Clear search (Esc)"
+					>
+						<X className="h-3 w-3" />
+					</Button>
+				)}
+			</div>
+			{searchQuery && (
+				<div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+					<span>
+						Searching for: "{searchQuery}" • {filteredParameters.length} result{filteredParameters.length !== 1 ? 's' : ''}
+					</span>
+					{searchQuery && (
+						<Button
+							variant="ghost"
+							size="sm"
+							onClick={() => setSearchQuery("")}
+							className="h-6 px-2 text-xs"
+						>
+							Clear
+						</Button>
+					)}
+				</div>
+			)}
+		</div>
+	);
+}
+
 function TableContent({
 	filteredParameters,
 	editingParameter,
@@ -593,7 +843,6 @@ function TableContent({
 	handleSaveParameter,
 	handleCancelEdit,
 	handleDeleteParameter,
-	handleResetParameter,
 	getLevelColor,
 	getCategoryColor,
 	isAddingParameter,
@@ -603,70 +852,237 @@ function TableContent({
 	handleCancelAddParameter,
 	handleAddParameter,
 	customCategories,
+	searchQuery,
+	parameters,
 }: {
 	filteredParameters: Parameter[];
 	editingParameter: string | null;
 	editData: {
 		name: string;
 		value: string;
-		testValue: string;
+		test_value: string;
 		unit: string;
 		description: string;
-		providedBy: string;
-		inputType: string;
-		output: boolean;
 		category: string;
+		provided_by: string;
+		input_type: string;
+		output: boolean;
 	};
 	setEditData: React.Dispatch<
 		React.SetStateAction<{
 			name: string;
 			value: string;
-			testValue: string;
+			test_value: string;
 			unit: string;
 			description: string;
-			providedBy: string;
-			inputType: string;
-			output: boolean;
 			category: string;
+			provided_by: string;
+			input_type: string;
+			output: boolean;
 		}>
 	>;
 	handleEditParameter: (parameter: Parameter) => void;
 	handleSaveParameter: (parameterId: string) => void;
 	handleCancelEdit: () => void;
 	handleDeleteParameter: (parameterId: string) => void;
-	handleResetParameter: (parameterId: string) => void;
 	getLevelColor: (level: string) => string;
 	getCategoryColor: (category: string) => string;
 	isAddingParameter: boolean;
 	newParameterData: {
 		name: string;
 		value: string;
-		testValue: string;
+		test_value: string;
 		unit: string;
 		description: string;
-		providedBy: string;
-		inputType: string;
-		output: boolean;
 		category: string;
+		provided_by: string;
+		input_type: string;
+		output: boolean;
 	};
 	setNewParameterData: React.Dispatch<
 		React.SetStateAction<{
 			name: string;
 			value: string;
-			testValue: string;
+			test_value: string;
 			unit: string;
 			description: string;
-			providedBy: string;
-			inputType: string;
-			output: boolean;
 			category: string;
+			provided_by: string;
+			input_type: string;
+			output: boolean;
 		}>
 	>;
 	handleSaveNewParameter: () => void;
 	handleCancelAddParameter: () => void;
 	handleAddParameter: () => void;
 	customCategories: string[];
+	searchQuery: string;
+	parameters: Parameter[];
 }) {
+	// Function to get category badge style
+	const getCategoryBadgeStyle = (categoryName: string) => {
+		// Map color names to hex colors for badge styling
+		const colorMap: Record<
+			string,
+			{ backgroundColor: string; color: string; borderColor: string }
+		> = {
+			red: {
+				backgroundColor: "#fef2f2",
+				color: "#991b1b",
+				borderColor: "#fca5a5",
+			},
+			blue: {
+				backgroundColor: "#eff6ff",
+				color: "#1e40af",
+				borderColor: "#93c5fd",
+			},
+			green: {
+				backgroundColor: "#f0fdf4",
+				color: "#166534",
+				borderColor: "#86efac",
+			},
+			yellow: {
+				backgroundColor: "#fefce8",
+				color: "#a16207",
+				borderColor: "#fde047",
+			},
+			purple: {
+				backgroundColor: "#faf5ff",
+				color: "#7c3aed",
+				borderColor: "#c4b5fd",
+			},
+			orange: {
+				backgroundColor: "#fff7ed",
+				color: "#c2410c",
+				borderColor: "#fdba74",
+			},
+			pink: {
+				backgroundColor: "#fdf2f8",
+				color: "#be185d",
+				borderColor: "#f9a8d4",
+			},
+			teal: {
+				backgroundColor: "#f0fdfa",
+				color: "#134e4a",
+				borderColor: "#5eead4",
+			},
+			indigo: {
+				backgroundColor: "#eef2ff",
+				color: "#3730a3",
+				borderColor: "#a5b4fc",
+			},
+			cyan: {
+				backgroundColor: "#ecfeff",
+				color: "#0e7490",
+				borderColor: "#67e8f9",
+			},
+			gray: {
+				backgroundColor: "#f9fafb",
+				color: "#374151",
+				borderColor: "#d1d5db",
+			},
+		};
+		
+		// Find the parameter with this category to get the color
+		const parameter = filteredParameters.find(
+			(param) => param.category.name === categoryName
+		);
+		const colorName = parameter?.category.color || "gray";
+		
+		return colorMap[colorName] || colorMap.gray;
+	};
+
+	// Function to get category badge style for dropdown (simpler version)
+	const getCategoryBadgeStyleForDropdown = (categoryName: string) => {
+		// Map color names to hex colors for badge styling
+		const colorMap: Record<
+			string,
+			{ backgroundColor: string; color: string; borderColor: string }
+		> = {
+			red: {
+				backgroundColor: "#fef2f2",
+				color: "#991b1b",
+				borderColor: "#fca5a5",
+			},
+			blue: {
+				backgroundColor: "#eff6ff",
+				color: "#1e40af",
+				borderColor: "#93c5fd",
+			},
+			green: {
+				backgroundColor: "#f0fdf4",
+				color: "#166534",
+				borderColor: "#86efac",
+			},
+			yellow: {
+				backgroundColor: "#fefce8",
+				color: "#a16207",
+				borderColor: "#fde047",
+			},
+			purple: {
+				backgroundColor: "#faf5ff",
+				color: "#7c3aed",
+				borderColor: "#c4b5fd",
+			},
+			orange: {
+				backgroundColor: "#fff7ed",
+				color: "#c2410c",
+				borderColor: "#fdba74",
+			},
+			pink: {
+				backgroundColor: "#fdf2f8",
+				color: "#be185d",
+				borderColor: "#f9a8d4",
+			},
+			teal: {
+				backgroundColor: "#f0fdfa",
+				color: "#134e4a",
+				borderColor: "#5eead4",
+			},
+			indigo: {
+				backgroundColor: "#eef2ff",
+				color: "#3730a3",
+				borderColor: "#a5b4fc",
+			},
+			cyan: {
+				backgroundColor: "#ecfeff",
+				color: "#0e7490",
+				borderColor: "#67e8f9",
+			},
+			gray: {
+				backgroundColor: "#f9fafb",
+				color: "#374151",
+				borderColor: "#d1d5db",
+			},
+		};
+		
+		// Find the parameter with this category to get the color
+		const parameter = parameters.find(
+			(param) => param.category.name === categoryName
+		);
+		const colorName = parameter?.category.color || "gray";
+		
+		return colorMap[colorName] || colorMap.gray;
+	};
+
+	// Function to highlight search terms
+	const highlightSearchTerm = (text: string, searchTerm: string) => {
+		if (!searchTerm.trim()) return text;
+		
+		const regex = new RegExp(`(${searchTerm})`, 'gi');
+		const parts = text.split(regex);
+		
+		return parts.map((part, index) => 
+			regex.test(part) ? (
+				<mark key={index} className="bg-yellow-200 text-yellow-900 px-0.5 rounded">
+					{part}
+				</mark>
+			) : (
+				part
+			)
+		);
+	};
+
 	return (
 		<div className="border rounded-lg">
 			<div className="max-h-[55vh] overflow-y-auto ">
@@ -677,16 +1093,16 @@ function TableContent({
 								<TableHead className="w-48 bg-background">
 									Parameter Name
 								</TableHead>
+								<TableHead className="w-32 bg-background">Category</TableHead>
 								<TableHead className="w-32 bg-background">Value</TableHead>
 								<TableHead className="w-32 bg-background">Test Value</TableHead>
 								<TableHead className="w-20 bg-background">Unit</TableHead>
 								<TableHead className="bg-background">Description</TableHead>
-								<TableHead className="w-32 bg-background">Category</TableHead>
 								<TableHead className="w-32 bg-background">
 									Provided By
 								</TableHead>
-								<TableHead className="w-24 bg-background">Input Type</TableHead>
-								<TableHead className="w-20 bg-background">Output</TableHead>
+								<TableHead className="w-32 bg-background">Input Type</TableHead>
+								<TableHead className="w-24 bg-background">Output</TableHead>
 								<TableHead className="w-24 bg-background">Actions</TableHead>
 							</TableRow>
 						</TableHeader>
@@ -716,6 +1132,89 @@ function TableContent({
 										</div>
 									</TableCell>
 									<TableCell className="py-2">
+										{newParameterData.category.trim() ? (
+											<div className="flex items-center gap-2">
+												<Badge
+													variant="outline"
+													className="text-xs"
+													style={getCategoryBadgeStyle(
+														newParameterData.category
+													)}
+												>
+													{newParameterData.category}
+												</Badge>
+												<Button
+													size="sm"
+													variant="ghost"
+													onClick={() =>
+														setNewParameterData((prev) => ({
+															...prev,
+															category: "",
+														}))
+													}
+													className="h-4 w-4 p-0 text-red-600 hover:text-red-700"
+												>
+													<X className="h-3 w-3" />
+												</Button>
+											</div>
+										) : (
+											<Select
+												value={newParameterData.category}
+												onValueChange={(value) =>
+													setNewParameterData((prev) => ({
+														...prev,
+														category: value,
+													}))
+												}
+											>
+												<SelectTrigger className="h-7 text-xs">
+													<SelectValue placeholder="Select category" />
+												</SelectTrigger>
+												<SelectContent>
+													{/* Get unique categories from existing parameters */}
+													{Array.from(
+														new Set(
+															parameters.map((param: Parameter) => param.category.name)
+														)
+													).map((category: string) => (
+														<SelectItem key={category} value={category}>
+															<div className="flex items-center gap-2">
+																<Badge
+																	variant="outline"
+																	className="text-xs"
+																	style={getCategoryBadgeStyleForDropdown(category)}
+																>
+																	{category}
+																</Badge>
+															</div>
+														</SelectItem>
+													))}
+													{/* Add custom categories */}
+													{customCategories
+														.filter(
+															(cat: string) =>
+																!parameters.some(
+																	(param: Parameter) => param.category.name === cat
+																)
+														)
+														.map((category: string) => (
+															<SelectItem key={category} value={category}>
+																<div className="flex items-center gap-2">
+																	<Badge
+																		variant="outline"
+																		className="text-xs"
+																		style={getCategoryBadgeStyleForDropdown(category)}
+																	>
+																		{category}
+																	</Badge>
+																</div>
+															</SelectItem>
+														))}
+												</SelectContent>
+											</Select>
+										)}
+									</TableCell>
+									<TableCell className="py-2">
 										<Input
 											value={newParameterData.value}
 											onChange={(e) =>
@@ -738,11 +1237,11 @@ function TableContent({
 									</TableCell>
 									<TableCell className="py-2">
 										<Input
-											value={newParameterData.testValue}
+											value={newParameterData.test_value}
 											onChange={(e) =>
 												setNewParameterData((prev) => ({
 													...prev,
-													testValue: e.target.value,
+													test_value: e.target.value,
 												}))
 											}
 											className="h-7 text-xs"
@@ -799,63 +1298,40 @@ function TableContent({
 									</TableCell>
 									<TableCell className="py-2">
 										<Select
-											value={newParameterData.category}
+											value={newParameterData.provided_by}
 											onValueChange={(value) =>
 												setNewParameterData((prev) => ({
 													...prev,
-													category: value,
+													provided_by: value,
 												}))
 											}
 										>
 											<SelectTrigger className="h-7 text-xs">
-												<SelectValue />
-											</SelectTrigger>
-											<SelectContent>
-												<SelectItem value="none">None</SelectItem>
-												{customCategories.map((category: string) => (
-													<SelectItem key={category} value={category}>
-														{category}
-													</SelectItem>
-												))}
-											</SelectContent>
-										</Select>
-									</TableCell>
-									<TableCell className="py-2">
-										<Select
-											value={newParameterData.providedBy}
-											onValueChange={(value) =>
-												setNewParameterData((prev) => ({
-													...prev,
-													providedBy: value,
-													// Reset inputType to "simple" if changing from user to something else
-													inputType:
-														value !== "user" ? "simple" : prev.inputType,
-												}))
-											}
-										>
-											<SelectTrigger className="h-7 text-xs">
-												<SelectValue />
+												<SelectValue>
+													{newParameterData.provided_by || "Select provider"}
+												</SelectValue>
 											</SelectTrigger>
 											<SelectContent>
 												<SelectItem value="global">Global</SelectItem>
-												<SelectItem value="company">Company</SelectItem>
 												<SelectItem value="user">User</SelectItem>
+												<SelectItem value="company">Company</SelectItem>
 											</SelectContent>
 										</Select>
 									</TableCell>
 									<TableCell className="py-2">
 										<Select
-											value={newParameterData.inputType}
+											value={newParameterData.input_type}
 											onValueChange={(value) =>
 												setNewParameterData((prev) => ({
 													...prev,
-													inputType: value,
+													input_type: value,
 												}))
 											}
-											disabled={newParameterData.providedBy !== "user"}
 										>
 											<SelectTrigger className="h-7 text-xs">
-												<SelectValue />
+												<SelectValue>
+													{newParameterData.input_type || "Select type"}
+												</SelectValue>
 											</SelectTrigger>
 											<SelectContent>
 												<SelectItem value="simple">Simple</SelectItem>
@@ -865,7 +1341,7 @@ function TableContent({
 									</TableCell>
 									<TableCell className="py-2">
 										<Select
-											value={newParameterData.output.toString()}
+											value={newParameterData.output ? "true" : "false"}
 											onValueChange={(value) =>
 												setNewParameterData((prev) => ({
 													...prev,
@@ -874,11 +1350,13 @@ function TableContent({
 											}
 										>
 											<SelectTrigger className="h-7 text-xs">
-												<SelectValue />
+												<SelectValue>
+													{newParameterData.output ? "True" : "False"}
+												</SelectValue>
 											</SelectTrigger>
 											<SelectContent>
-												<SelectItem value="true">Yes</SelectItem>
-												<SelectItem value="false">No</SelectItem>
+												<SelectItem value="true">True</SelectItem>
+												<SelectItem value="false">False</SelectItem>
 											</SelectContent>
 										</Select>
 									</TableCell>
@@ -892,7 +1370,6 @@ function TableContent({
 												disabled={
 													!newParameterData.name.trim() ||
 													!newParameterData.value.trim() ||
-													!newParameterData.testValue.trim() ||
 													!newParameterData.unit.trim()
 												}
 											>
@@ -953,9 +1430,59 @@ function TableContent({
 												) : (
 													<div className="flex items-center gap-2">
 														<span className="font-medium text-sm">
-															{parameter.name}
+															{highlightSearchTerm(parameter.name, searchQuery)}
 														</span>
 													</div>
+												)}
+											</TableCell>
+											<TableCell className="py-2">
+												{isEditing ? (
+													editData.category.trim() ? (
+														<div className="flex items-center gap-2">
+															<Badge
+																variant="outline"
+																className="text-xs"
+																style={getCategoryBadgeStyle(editData.category)}
+															>
+																{editData.category}
+															</Badge>
+															<Button
+																size="sm"
+																variant="ghost"
+																onClick={() =>
+																	setEditData((prev) => ({
+																		...prev,
+																		category: "",
+																	}))
+																}
+																className="h-4 w-4 p-0 text-red-600 hover:text-red-700"
+															>
+																<X className="h-3 w-3" />
+															</Button>
+														</div>
+													) : (
+														<Input
+															value={editData.category}
+															onChange={(e) =>
+																setEditData((prev) => ({
+																	...prev,
+																	category: e.target.value,
+																}))
+															}
+															className="h-7 text-xs"
+															placeholder="Category"
+														/>
+													)
+												) : (
+													<Badge
+														variant="outline"
+														className="text-xs"
+														style={getCategoryBadgeStyle(
+															parameter.category.name
+														)}
+													>
+														{highlightSearchTerm(parameter.category.name, searchQuery)}
+													</Badge>
 												)}
 											</TableCell>
 											<TableCell className="py-2">
@@ -981,18 +1508,18 @@ function TableContent({
 													/>
 												) : (
 													<span className="text-xs text-muted-foreground">
-														{parameter.value}
+														{highlightSearchTerm(parameter.value, searchQuery)}
 													</span>
 												)}
 											</TableCell>
 											<TableCell className="py-2">
 												{isEditing ? (
 													<Input
-														value={editData.testValue}
+														value={editData.test_value}
 														onChange={(e) =>
 															setEditData((prev) => ({
 																...prev,
-																testValue: e.target.value,
+																test_value: e.target.value,
 															}))
 														}
 														className="h-7 text-xs"
@@ -1008,7 +1535,7 @@ function TableContent({
 													/>
 												) : (
 													<span className="text-xs text-muted-foreground">
-														{parameter.testValue}
+														{highlightSearchTerm(parameter.test_value, searchQuery)}
 													</span>
 												)}
 											</TableCell>
@@ -1027,7 +1554,7 @@ function TableContent({
 													/>
 												) : (
 													<span className="text-xs text-muted-foreground">
-														{parameter.unit}
+														{highlightSearchTerm(parameter.unit, searchQuery)}
 													</span>
 												)}
 											</TableCell>
@@ -1047,7 +1574,7 @@ function TableContent({
 												) : (
 													<div className="flex items-center gap-2">
 														<span className="text-xs text-muted-foreground max-w-xs truncate">
-															{parameter.description}
+															{highlightSearchTerm(parameter.description, searchQuery)}
 														</span>
 														<Tooltip>
 															<TooltipTrigger asChild>
@@ -1064,76 +1591,52 @@ function TableContent({
 											</TableCell>
 											<TableCell className="py-2">
 												{isEditing ? (
-													<Select
-														value={editData.category}
-														onValueChange={(value) =>
-															setEditData((prev) => ({
-																...prev,
-																category: value,
-															}))
-														}
-													>
-														<SelectTrigger className="h-7 text-xs">
-															<SelectValue />
-														</SelectTrigger>
-														<SelectContent>
-															<SelectItem value="none">None</SelectItem>
-															{customCategories.map((category: string) => (
-																<SelectItem key={category} value={category}>
-																	{category}
-																</SelectItem>
-															))}
-														</SelectContent>
-													</Select>
+													parameter.provided_by === "global" ? (
+														<span className="text-xs text-muted-foreground">
+															Global (Not Editable)
+														</span>
+													) : (
+														<Select
+															value={editData.provided_by}
+															onValueChange={(value) =>
+																setEditData((prev) => ({
+																	...prev,
+																	provided_by: value,
+																}))
+															}
+														>
+															<SelectTrigger className="h-7 text-xs">
+																<SelectValue>
+																	{editData.provided_by || "Select provider"}
+																</SelectValue>
+															</SelectTrigger>
+															<SelectContent>
+																<SelectItem value="user">User</SelectItem>
+																<SelectItem value="company">Company</SelectItem>
+															</SelectContent>
+														</Select>
+													)
 												) : (
 													<Badge variant="outline" className="text-xs">
-														{parameter.category === "none" ? "None" : parameter.category}
+														{highlightSearchTerm(parameter.provided_by, searchQuery)}
 													</Badge>
 												)}
 											</TableCell>
 											<TableCell className="py-2">
 												{isEditing ? (
 													<Select
-														value={editData.providedBy}
+														value={editData.input_type}
 														onValueChange={(value) =>
 															setEditData((prev) => ({
 																...prev,
-																providedBy: value,
-																// Reset inputType to "simple" if changing from user to something else
-																inputType:
-																	value !== "user" ? "simple" : prev.inputType,
+																input_type: value,
 															}))
 														}
 													>
 														<SelectTrigger className="h-7 text-xs">
-															<SelectValue />
-														</SelectTrigger>
-														<SelectContent>
-															<SelectItem value="global">Global</SelectItem>
-															<SelectItem value="company">Company</SelectItem>
-															<SelectItem value="user">User</SelectItem>
-														</SelectContent>
-													</Select>
-												) : (
-													<Badge variant="outline" className="text-xs">
-														{parameter.providedBy}
-													</Badge>
-												)}
-											</TableCell>
-											<TableCell className="py-2">
-												{isEditing ? (
-													<Select
-														value={editData.inputType}
-														onValueChange={(value) =>
-															setEditData((prev) => ({
-																...prev,
-																inputType: value,
-															}))
-														}
-														disabled={editData.providedBy !== "user"}
-													>
-														<SelectTrigger className="h-7 text-xs">
-															<SelectValue />
+															<SelectValue>
+																{editData.input_type || "Select type"}
+															</SelectValue>
 														</SelectTrigger>
 														<SelectContent>
 															<SelectItem value="simple">Simple</SelectItem>
@@ -1141,22 +1644,37 @@ function TableContent({
 														</SelectContent>
 													</Select>
 												) : (
-													<Badge
-														variant="outline"
-														className={`text-xs ${
-															parameter.providedBy !== "user"
-																? "opacity-50 cursor-not-allowed"
-																: ""
-														}`}
-													>
-														{parameter.inputType}
+													<Badge variant="outline" className="text-xs">
+														{highlightSearchTerm(parameter.input_type, searchQuery)}
 													</Badge>
 												)}
 											</TableCell>
 											<TableCell className="py-2">
-												<Badge variant="outline" className="text-xs">
-													{parameter.output ? "Yes" : "No"}
-												</Badge>
+												{isEditing ? (
+													<Select
+														value={editData.output ? "true" : "false"}
+														onValueChange={(value) =>
+															setEditData((prev) => ({
+																...prev,
+																output: value === "true",
+															}))
+														}
+													>
+														<SelectTrigger className="h-7 text-xs">
+															<SelectValue>
+																{editData.output ? "True" : "False"}
+															</SelectValue>
+														</SelectTrigger>
+														<SelectContent>
+															<SelectItem value="true">True</SelectItem>
+															<SelectItem value="false">False</SelectItem>
+														</SelectContent>
+													</Select>
+												) : (
+													<Badge variant="outline" className="text-xs">
+														{parameter.output ? "True" : "False"}
+													</Badge>
+												)}
 											</TableCell>
 											<TableCell className="py-2">
 												<div className="flex items-center gap-1">
@@ -1176,7 +1694,9 @@ function TableContent({
 															<Button
 																size="sm"
 																variant="ghost"
-																onClick={() => handleDeleteParameter(parameter.id)}
+																onClick={() =>
+																	handleDeleteParameter(parameter.id)
+																}
 																className="h-5 w-5 p-0 text-red-600 hover:text-red-700"
 															>
 																<Trash className="h-3 w-3" />
@@ -1231,7 +1751,6 @@ function TableContent({
 						</TableBody>
 					</Table>
 				</TooltipProvider>
-				
 			</div>
 		</div>
 	);
@@ -1318,7 +1837,10 @@ function ConfirmParameterRemovalDialog({
 						>
 							Cancel
 						</Button>
-						<Button variant="destructive" onClick={handleConfirmRemoveParameter}>
+						<Button
+							variant="destructive"
+							onClick={handleConfirmRemoveParameter}
+						>
 							Remove Parameter
 						</Button>
 					</DialogFooter>
