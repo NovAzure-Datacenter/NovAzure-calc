@@ -14,7 +14,7 @@ import { IndustryDetailDialog } from "./industry-detail-dialog";
 import { deleteIndustry } from "@/lib/actions/industry/industry";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { getIndustryStatusColor, getParameterCategoryColor } from "../utils/color-utils";
-import { getClients, ClientData } from "@/lib/actions/client/client";
+import { getClients, ClientData } from "@/lib/actions/clients/clients";
 
 export function GridView({ data, onIndustryDeleted }: { 
 	data: Industry[];

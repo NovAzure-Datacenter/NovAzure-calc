@@ -8,9 +8,9 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, Trash2 } from "lucide-react";
-import { deleteClient } from "@/lib/actions/client/client";
+import { deleteClient } from "@/lib/actions/clients/clients";
 import { toast } from "sonner";
-import type { ClientData } from "@/lib/actions/client/client";
+import type { ClientData } from "@/lib/actions/clients/clients";
 
 interface ClientRemoveConfirmationDialogProps {
 	client: ClientData | null;

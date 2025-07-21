@@ -43,7 +43,7 @@ import Searchbar from "./search-bar";
 import TableContent from "./table-content";
 import { getLevelColor, getCategoryTailwindClasses } from "./color-utils";
 
-interface ParametersConfigurationProps {
+interface CreateSolutionParametersProps {
 	parameters: Parameter[];
 	onParametersChange: (parameters: Parameter[]) => void;
 	customCategories: Array<{ name: string; color: string }>;
@@ -52,12 +52,12 @@ interface ParametersConfigurationProps {
 	>;
 }
 
-export function ParametersConfiguration({
+export function CreateSolutionParameters({
 	parameters,
 	onParametersChange,
 	customCategories,
 	setCustomCategories,
-}: ParametersConfigurationProps) {
+}: CreateSolutionParametersProps) {
 	const [editingParameter, setEditingParameter] = useState<string | null>(null);
 	const [editData, setEditData] = useState<{
 		name: string;
@@ -399,8 +399,17 @@ export function ParametersConfiguration({
 
 	const filteredParameters = parameters.filter((param) => {
 		// First filter by active tab
-		const tabFiltered =
-			activeTab === "all" || param.category.name === activeTab;
+		let tabFiltered = false;
+		
+		if (activeTab === "all") {
+			tabFiltered = true;
+		} else if (activeTab === "Global") {
+			// Show Global, Industry, and Technology parameters under Global tab
+			tabFiltered = ["Global", "Industry", "Technology", "Technologies"].includes(param.category.name);
+		} else {
+			// For other tabs, show only parameters that match the exact category
+			tabFiltered = param.category.name === activeTab;
+		}
 
 		// Then filter by search query
 		const searchFiltered =
@@ -481,6 +490,7 @@ export function ParametersConfiguration({
 						customCategories={customCategories}
 						searchQuery={searchQuery}
 						parameters={parameters}
+						activeTab={activeTab}
 					/>
 				</>
 			)}
