@@ -1,6 +1,7 @@
 # Parameter model
 import re
 from typing import List
+from .parser import FormulaParser
 
 VARIABLES_REGEX = re.compile(r"\b[a-zA-Z_][a-zA-Z0-9_]*\b")
 
@@ -54,5 +55,32 @@ class Parameter:
         self.evaluated = True
         return self.result
     
-    def evaluate_formula(self, context: dict[str, float]):
-        pass
+    def evaluate_formula(self, context: dict[str, float])-> float:
+        ast_tree, _ = FormulaParser().parse_formula_to_ast(self.formula)
+
+        def evaluate_ast(node)-> float:
+            if isinstance(node, (int, float)):
+                return node
+            if isinstance(node, str):
+                if node in context:
+                    return context[node]
+                raise ValueError(f"Variable '{node}' not found in context.")
+            if isinstance(node, dict):
+                op_type = node["type"]
+                left = evaluate_ast(node["left"]) if "left" in node else None
+                right = evaluate_ast(node["right"]) if "right" in node else None
+                if op_type == "Add":
+                    return left + right
+                elif op_type == "Subtract":
+                    return left - right
+                elif op_type == "Multiply":
+                    return left * right
+                elif op_type == "Divide":
+                    return left / right
+                elif op_type == "Power":
+                    return left ** right
+                elif op_type.startswith("Unary"):
+                    return -evaluate_ast(node["operand"])
+            raise ValueError(f"Unsupported AST node structure: {node}")
+
+        return evaluate_ast(ast_tree)
