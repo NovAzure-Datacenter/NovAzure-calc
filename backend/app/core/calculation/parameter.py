@@ -37,8 +37,22 @@ class Parameter:
         variables = set(VARIABLES_REGEX.findall(self.formula))
         return list(variables)
     
-    def resolve_value(self):
-        pass
+    def resolve_value(self, context: dict[str, float]):
+        if self.evaluated:
+            return self.result
+        
+        if self.type in ["COMPANY", "GLOBAL"]:
+            self.result = self.value
+        
+        # User value can only be a number ?!?
+        elif self.type == "USER":
+            self.result = context[self.name]
+            
+        elif self.type == "CALCULATION":
+            self.result = self.evaluate_formula(context)
+            
+        self.evaluated = True
+        return self.result
     
-    def compile_ast(self):
+    def evaluate_formula(self, context: dict[str, float]):
         pass
