@@ -4,7 +4,7 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Save, Send, AlertTriangle } from "lucide-react";
-import { type Parameter, type Calculation } from "../../../mock-data";
+import { type Parameter, type Calculation } from "../../../types";
 
 interface CreateSolutionStep6Props {
 	formData: {
