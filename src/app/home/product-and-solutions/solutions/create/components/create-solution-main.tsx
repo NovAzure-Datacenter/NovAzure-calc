@@ -29,15 +29,14 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import {
-	defaultParameters,
 	defaultCalculations,
 	solutionTypes,
-	type Parameter,
 	type Calculation,
 	type SolutionType,
 	type SolutionVariant,
 } from "../../mock-data";
-import { ParametersConfiguration } from "./create-solution-parameters";
+import { Parameter } from "../../../types";
+import { ParametersConfiguration } from "./create-solution-parameters/create-solution-parameters";
 import { CalculationsConfiguration } from "./create-solution-calculations";
 import { CreateSolutionProgress } from "./create-solution-progress";
 import { CreateSolutionStep1 } from "./create-solution-step-1";
@@ -111,12 +110,12 @@ export function CreateSolutionMain() {
 		newVariantName: "",
 		newVariantDescription: "",
 		newVariantIcon: "",
-		parameters: [...defaultParameters],
+		parameters: [...globalParameters],
 		calculations: [...defaultCalculations],
 	});
 
 	// Custom categories state for parameters
-	const [customCategories, setCustomCategories] = useState<string[]>([]);
+	const [customCategories, setCustomCategories] = useState<Array<{ name: string; color: string }>>([]);
 
 	// Load client data and available industries/technologies
 	useEffect(() => {

@@ -1,4 +1,5 @@
 import { Droplets, Wind, Thermometer } from "lucide-react";
+import { Parameter, Calculation } from "../types";
 
 export interface Product {
 	id: string;
@@ -48,33 +49,8 @@ export interface SolutionVariant {
 	icon: React.ComponentType<{ className?: string }>;
 }
 
-export interface Parameter {
-	id: string;
-	name: string;
-	value: string;
-	test_value: string;
-	unit: string;
-	description: string;
-	provided_by: string;
-	input_type: string;
-	output: boolean;
-	level: string;
-	category: {
-		name: string;
-		color: string;
-	};
-}
-
-export interface Calculation {
-	id: string;
-	name: string;
-	formula: string;
-	result: number | string;
-	units: string;
-	description: string;
-	status: "valid" | "error" | "pending";
-	category: "financial" | "performance" | "efficiency" | "operational";
-}
+// Re-export the centralized types
+export type { Parameter, Calculation } from "../types";
 
 // Default calculations for solution configuration
 export const defaultCalculations: Calculation[] = [

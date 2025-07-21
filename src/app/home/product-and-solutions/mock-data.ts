@@ -1,4 +1,5 @@
 import { Droplets, Wind, Thermometer } from "lucide-react";
+import { LegacyParameter, Calculation } from "./types";
 
 export interface Product {
 	id: string;
@@ -48,27 +49,8 @@ export interface SolutionVariant {
 	icon: React.ComponentType<{ className?: string }>;
 }
 
-export interface Parameter {
-	id: string;
-	level: string;
-	name: string;
-	defaultValue: number;
-	overrideValue: number | null;
-	units: string;
-	description: string;
-	category: "performance" | "cost" | "environmental" | "operational";
-}
-
-export interface Calculation {
-	id: string;
-	name: string;
-	formula: string;
-	result: number | string;
-	units: string;
-	description: string;
-	status: "valid" | "error" | "pending";
-	category: "financial" | "performance" | "efficiency" | "operational";
-}
+// Re-export the centralized types
+export type { LegacyParameter, Calculation } from "./types";
 
 // Default calculations for solution configuration
 export const defaultCalculations: Calculation[] = [
@@ -175,7 +157,7 @@ export const defaultCalculations: Calculation[] = [
 ];
 
 // Default parameters for solution configuration
-export const defaultParameters: Parameter[] = [
+export const defaultParameters: LegacyParameter[] = [
 	// L1 - Facility Level Parameters
 	{
 		id: "facility-size",
