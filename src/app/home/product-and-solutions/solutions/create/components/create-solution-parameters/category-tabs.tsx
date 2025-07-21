@@ -17,6 +17,19 @@ import {
 	getActiveTabStyle,
 	getAvailableColors,
 } from "./color-utils";
+import { useState } from "react";
+
+
+const RESERVED_CATEGORY_NAMES = ["industry", "technologies", "global", "technologies"];
+const HIDDEN_CATEGORIES = ["industry", "technology", "technologies"];
+
+function isReservedCategoryName(name: string): boolean {
+	return RESERVED_CATEGORY_NAMES.includes(name.toLowerCase());
+}
+
+function isHiddenCategory(name: string): boolean {
+	return HIDDEN_CATEGORIES.includes(name.toLowerCase());
+}
 
 export default function CategoryTabs({
 	activeTab,
@@ -62,6 +75,7 @@ export default function CategoryTabs({
 	customCategories: Array<{ name: string; color: string }>;
 }) {
 	const categoryColors = getAvailableColors();
+	const [categoryNameError, setCategoryNameError] = useState<string>("");
 
 	// Wrapper functions to match the expected signatures
 	const getCategoryStyleWrapper = (categoryName: string) => {
@@ -70,6 +84,64 @@ export default function CategoryTabs({
 
 	const getActiveTabStyleWrapper = (categoryName: string) => {
 		return getActiveTabStyle(categoryName, parameters, customCategories);
+	};
+
+	// Filter categories to exclude hidden ones
+	const visibleCategories = allCategories.filter(category => !isHiddenCategory(category));
+
+	// Handle category name input change with validation
+	const handleCategoryNameChange = (name: string) => {
+		setNewCategoryData((prev) => ({
+			...prev,
+			name: name,
+		}));
+
+		// Clear error when user starts typing
+		if (categoryNameError) {
+			setCategoryNameError("");
+		}
+
+		// Check for reserved names
+		if (isReservedCategoryName(name)) {
+			setCategoryNameError(`"${name}" is a reserved category name and cannot be used.`);
+		} else if (name.trim() && allCategories.some(cat => cat.toLowerCase() === name.toLowerCase())) {
+			setCategoryNameError(`A category named "${name}" already exists.`);
+		} else {
+			setCategoryNameError("");
+		}
+	};
+
+	// Handle add category with validation
+	const handleAddCategoryWithValidation = () => {
+		if (isReservedCategoryName(newCategoryData.name)) {
+			setCategoryNameError(`"${newCategoryData.name}" is a reserved category name and cannot be used.`);
+			return;
+		}
+
+		if (allCategories.some(cat => cat.toLowerCase() === newCategoryData.name.toLowerCase())) {
+			setCategoryNameError(`A category named "${newCategoryData.name}" already exists.`);
+			return;
+		}
+
+		if (!newCategoryData.name.trim()) {
+			setCategoryNameError("Category name is required.");
+			return;
+		}
+
+		// If validation passes, proceed with adding the category
+		handleAddCategory();
+		setCategoryNameError("");
+	};
+
+	// Handle dialog close
+	const handleDialogClose = () => {
+		setIsAddCategoryDialogOpen(false);
+		setNewCategoryData({
+			name: "",
+			description: "",
+			color: "blue",
+		});
+		setCategoryNameError("");
 	};
 
 	return (
@@ -82,8 +154,9 @@ export default function CategoryTabs({
 					>
 						All
 					</TabsTrigger>
+					
 					{/* Show Global tab if it exists in categories */}
-					{allCategories.includes("Global") && (
+					{visibleCategories.includes("Global") && (
 						<TabsTrigger
 							value="Global"
 							className="text-muted-foreground text-sm bg-background/80 hover:bg-background border-backdrop"
@@ -96,8 +169,9 @@ export default function CategoryTabs({
 							Global
 						</TabsTrigger>
 					)}
-					{/* Show other categories (excluding Global since it's already shown above) */}
-					{allCategories
+
+					{/* Show other visible categories */}
+					{visibleCategories
 						.filter((category) => category !== "Global")
 						.map((category) => {
 							const isCustomCategory = customCategories.some(
@@ -165,7 +239,7 @@ export default function CategoryTabs({
 						onClick={
 							isAddingParameter ? handleCancelAddParameter : handleAddParameter
 						}
-						disabled={editingParameter !== null}
+						disabled={editingParameter !== null || activeTab === "Global"}
 					>
 						{isAddingParameter ? (
 							<>
@@ -192,6 +266,8 @@ export default function CategoryTabs({
 						<DialogTitle>Add New Category</DialogTitle>
 						<DialogDescription>
 							Create a new parameter category to organize your parameters.
+							<br />
+							<strong>Note:</strong> "Industry", "Technologies", and "Global" are reserved names and cannot be used.
 						</DialogDescription>
 					</DialogHeader>
 					<div className="grid gap-4 py-4">
@@ -199,18 +275,18 @@ export default function CategoryTabs({
 							<Label htmlFor="category-name" className="text-right">
 								Name
 							</Label>
-							<Input
-								id="category-name"
-								value={newCategoryData.name}
-								onChange={(e) =>
-									setNewCategoryData((prev) => ({
-										...prev,
-										name: e.target.value,
-									}))
-								}
-								className="col-span-3"
-								placeholder="Enter category name"
-							/>
+							<div className="col-span-3">
+								<Input
+									id="category-name"
+									value={newCategoryData.name}
+									onChange={(e) => handleCategoryNameChange(e.target.value)}
+									className={`${categoryNameError ? "border-red-500" : ""}`}
+									placeholder="Enter category name"
+								/>
+								{categoryNameError && (
+									<p className="text-sm text-red-500 mt-1">{categoryNameError}</p>
+								)}
+							</div>
 						</div>
 						<div className="grid grid-cols-4 items-center gap-4">
 							<Label htmlFor="category-color" className="text-right">
@@ -240,20 +316,13 @@ export default function CategoryTabs({
 					<DialogFooter>
 						<Button
 							variant="outline"
-							onClick={() => {
-								setIsAddCategoryDialogOpen(false);
-								setNewCategoryData({
-									name: "",
-									description: "",
-									color: "blue",
-								});
-							}}
+							onClick={handleDialogClose}
 						>
 							Cancel
 						</Button>
 						<Button
-							onClick={handleAddCategory}
-							disabled={!newCategoryData.name.trim()}
+							onClick={handleAddCategoryWithValidation}
+							disabled={!newCategoryData.name.trim() || !!categoryNameError}
 						>
 							Add Category
 						</Button>

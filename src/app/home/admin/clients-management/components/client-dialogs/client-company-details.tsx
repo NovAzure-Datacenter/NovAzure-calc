@@ -15,7 +15,7 @@ import {
 	clientStatusOptions,
 	getStatusVariant,
 } from "../../utils/constants";
-import type { ClientData } from "@/lib/actions/client/client";
+import type { ClientData } from "@/lib/actions/clients/clients";
 
 interface ClientCompanyDetailsProps {
 	client: ClientData;

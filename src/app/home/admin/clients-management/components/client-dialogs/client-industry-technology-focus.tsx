@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/collapsible";
 import { ChevronDown, X } from "lucide-react";
 import { stringToIconComponent } from "@/lib/icons/lucide-icons";
-import type { ClientData } from "@/lib/actions/client/client";
+import type { ClientData } from "@/lib/actions/clients/clients";
 
 interface IndustryData {
 	id: string;

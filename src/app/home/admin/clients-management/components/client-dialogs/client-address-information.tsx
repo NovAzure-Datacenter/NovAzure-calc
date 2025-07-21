@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/select";
 import { MapPin } from "lucide-react";
 import { countryOptions } from "@/lib/constants/country-options";
-import type { ClientData } from "@/lib/actions/client/client";
+import type { ClientData } from "@/lib/actions/clients/clients";
 
 interface ClientAddressInformationProps {
 	client: ClientData;

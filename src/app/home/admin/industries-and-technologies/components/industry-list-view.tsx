@@ -44,7 +44,7 @@ import { TechnologyIcons, CompanyIcons } from "@/components/icons/technology-com
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { IndustryDetailDialog } from "./industry-detail-dialog";
 import { deleteIndustry } from "@/lib/actions/industry/industry";
-import { getClients, ClientData } from "@/lib/actions/client/client";
+import { getClients, ClientData } from "@/lib/actions/clients/clients";
 
 interface IndustryDetailDialogProps {
 	industry: Industry | null;
