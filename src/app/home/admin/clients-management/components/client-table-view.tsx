@@ -39,13 +39,13 @@ import {
 } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
-import type { ClientData } from "@/lib/actions/client/client";
+import type { ClientData } from "@/lib/actions/clients/clients";
 import {
 	getClients,
 	deleteClient,
 	updateClient,
 	getClientsWithRelatedData,
-} from "@/lib/actions/client/client";
+} from "@/lib/actions/clients/clients";
 import { stringToIconComponent } from "@/lib/icons/lucide-icons";
 import { ClientsDetailDialog } from "./client-detail-dialog";
 import Loading from "@/components/loading-main";

@@ -13,8 +13,8 @@ import {
 	DialogTrigger,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import type { ClientData } from "@/lib/actions/client/client";
-import { createClient } from "@/lib/actions/client/client";
+import type { ClientData } from "@/lib/actions/clients/clients";
+import { createClient } from "@/lib/actions/clients/clients";
 import { getIndustries } from "@/lib/actions/industry/industry";
 import { getTechnologies } from "@/lib/actions/technology/technology";
 import { updateIndustryCompanies } from "@/lib/actions/industry/industry";

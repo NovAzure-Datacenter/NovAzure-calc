@@ -42,7 +42,7 @@ import React from "react";
 import { updateIndustry } from "@/lib/actions/industry/industry";
 import { deleteIndustry } from "@/lib/actions/industry/industry";
 import { toast } from "sonner";
-import { getClients, ClientData } from "@/lib/actions/client/client";
+import { getClients, ClientData } from "@/lib/actions/clients/clients";
 
 interface IndustryDetailDialogProps {
 	industry: Industry | null;

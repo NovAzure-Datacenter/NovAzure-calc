@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Mail, Phone } from "lucide-react";
 import { PhoneInputWrapper } from "../phone-input-wrapper";
-import type { ClientData } from "@/lib/actions/client/client";
+import type { ClientData } from "@/lib/actions/clients/clients";
 
 interface ClientContactInformationProps {
 	client: ClientData;

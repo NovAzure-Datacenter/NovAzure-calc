@@ -23,13 +23,13 @@ import {
 	TooltipProvider,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Edit, Info, Save, X, Plus, Trash, Lock } from "lucide-react";
+import { Edit, Info, Save, X, Plus, Trash } from "lucide-react";
 import {
 	getCategoryBadgeStyle,
 	getCategoryBadgeStyleForDropdown,
-} from "./color-utils";
+} from "@/app/home/product-and-solutions/solutions/create/components/create-solution-parameters/color-utils";
 
-export default function TableContent({
+export default function GlobalParametersTableContent({
 	filteredParameters,
 	editingParameter,
 	editData,
@@ -49,7 +49,6 @@ export default function TableContent({
 	customCategories,
 	searchQuery,
 	parameters,
-	activeTab,
 }: {
 	filteredParameters: Parameter[];
 	editingParameter: string | null;
@@ -60,9 +59,6 @@ export default function TableContent({
 		unit: string;
 		description: string;
 		category: string;
-		provided_by: string;
-		input_type: string;
-		output: boolean;
 	};
 	setEditData: React.Dispatch<
 		React.SetStateAction<{
@@ -72,9 +68,6 @@ export default function TableContent({
 			unit: string;
 			description: string;
 			category: string;
-			provided_by: string;
-			input_type: string;
-			output: boolean;
 		}>
 	>;
 	handleEditParameter: (parameter: Parameter) => void;
@@ -91,9 +84,6 @@ export default function TableContent({
 		unit: string;
 		description: string;
 		category: string;
-		provided_by: string;
-		input_type: string;
-		output: boolean;
 	};
 	setNewParameterData: React.Dispatch<
 		React.SetStateAction<{
@@ -103,9 +93,6 @@ export default function TableContent({
 			unit: string;
 			description: string;
 			category: string;
-			provided_by: string;
-			input_type: string;
-			output: boolean;
 		}>
 	>;
 	handleSaveNewParameter: () => void;
@@ -114,7 +101,6 @@ export default function TableContent({
 	customCategories: Array<{ name: string; color: string }>;
 	searchQuery: string;
 	parameters: Parameter[];
-	activeTab: string;
 }) {
 	// Wrapper functions to match the expected signatures
 	const getCategoryBadgeStyleWrapper = (categoryName: string) => {
@@ -193,67 +179,6 @@ export default function TableContent({
 								</TableHead>
 								<TableHead className="w-20 bg-background">Unit</TableHead>
 								<TableHead className="bg-background">Description</TableHead>
-								<TableHead className="w-32 bg-background">
-									<Tooltip>
-										<TooltipTrigger asChild>
-											<div className="flex items-center gap-1 cursor-help">
-												Provided By
-												<Info className="h-3 w-3 text-muted-foreground" />
-											</div>
-										</TooltipTrigger>
-										<TooltipContent>
-											<p className="text-sm">
-												Who provides this value during the value calculator
-											</p>
-											<p className="text-xs text-muted-foreground mt-1">
-												• <strong>User:</strong> Client provides during
-												calculation
-												<br />• <strong>Company:</strong> Pre-loaded by company
-												<br />• <strong>Global:</strong> System-managed
-												(read-only)
-											</p>
-										</TooltipContent>
-									</Tooltip>
-								</TableHead>
-								<TableHead className="w-32 bg-background">
-									<Tooltip>
-										<TooltipTrigger asChild>
-											<div className="flex items-center gap-1 cursor-help">
-												Input Type
-												<Info className="h-3 w-3 text-muted-foreground" />
-											</div>
-										</TooltipTrigger>
-										<TooltipContent>
-											<p className="text-sm">
-												Where this parameter appears in the value calculator
-											</p>
-											<p className="text-xs text-muted-foreground mt-1">
-												• <strong>Simple:</strong> Basic section
-												<br />• <strong>Advanced:</strong> Advanced section
-											</p>
-										</TooltipContent>
-									</Tooltip>
-								</TableHead>
-								<TableHead className="w-24 bg-background">
-									<Tooltip>
-										<TooltipTrigger asChild>
-											<div className="flex items-center gap-1 cursor-help">
-												Output
-												<Info className="h-3 w-3 text-muted-foreground" />
-											</div>
-										</TooltipTrigger>
-										<TooltipContent>
-											<p className="text-sm">
-												Whether this parameter is visible during the value
-												calculator
-											</p>
-											<p className="text-xs text-muted-foreground mt-1">
-												• <strong>True:</strong> Visible to client
-												<br />• <strong>False:</strong> Hidden from client
-											</p>
-										</TooltipContent>
-									</Tooltip>
-								</TableHead>
 								<TableHead className="w-24 bg-background">Actions</TableHead>
 							</TableRow>
 						</TableHeader>
@@ -296,7 +221,6 @@ export default function TableContent({
 												<SelectValue placeholder="Select category" />
 											</SelectTrigger>
 											<SelectContent>
-												{/* Only show custom categories */}
 												{customCategories.length > 0 ? (
 													customCategories.map((category) => (
 														<SelectItem
@@ -318,7 +242,7 @@ export default function TableContent({
 													))
 												) : (
 													<div className="px-2 py-1.5 text-xs text-muted-foreground">
-														No custom categories available. Create one first.
+														No categories available.
 													</div>
 												)}
 											</SelectContent>
@@ -334,11 +258,7 @@ export default function TableContent({
 												}))
 											}
 											className="h-7 text-xs"
-											placeholder={
-												newParameterData.provided_by === "company"
-													? "Value *"
-													: "Value (optional)"
-											}
+											placeholder="Value *"
 											type="number"
 											onKeyDown={(e) => {
 												if (e.key === "Enter") {
@@ -411,69 +331,6 @@ export default function TableContent({
 										/>
 									</TableCell>
 									<TableCell className="py-2">
-										<Select
-											value={newParameterData.provided_by}
-											onValueChange={(value) =>
-												setNewParameterData((prev) => ({
-													...prev,
-													provided_by: value,
-												}))
-											}
-										>
-											<SelectTrigger className="h-7 text-xs">
-												<SelectValue>
-													{newParameterData.provided_by || "Select provider"}
-												</SelectValue>
-											</SelectTrigger>
-											<SelectContent>
-												<SelectItem value="user">User</SelectItem>
-												<SelectItem value="company">Company</SelectItem>
-											</SelectContent>
-										</Select>
-									</TableCell>
-									<TableCell className="py-2">
-										<Select
-											value={newParameterData.input_type}
-											onValueChange={(value) =>
-												setNewParameterData((prev) => ({
-													...prev,
-													input_type: value,
-												}))
-											}
-										>
-											<SelectTrigger className="h-7 text-xs">
-												<SelectValue>
-													{newParameterData.input_type || "Select type"}
-												</SelectValue>
-											</SelectTrigger>
-											<SelectContent>
-												<SelectItem value="simple">Simple</SelectItem>
-												<SelectItem value="advanced">Advanced</SelectItem>
-											</SelectContent>
-										</Select>
-									</TableCell>
-									<TableCell className="py-2">
-										<Select
-											value={newParameterData.output ? "true" : "false"}
-											onValueChange={(value) =>
-												setNewParameterData((prev) => ({
-													...prev,
-													output: value === "true",
-												}))
-											}
-										>
-											<SelectTrigger className="h-7 text-xs">
-												<SelectValue>
-													{newParameterData.output ? "True" : "False"}
-												</SelectValue>
-											</SelectTrigger>
-											<SelectContent>
-												<SelectItem value="true">True</SelectItem>
-												<SelectItem value="false">False</SelectItem>
-											</SelectContent>
-										</Select>
-									</TableCell>
-									<TableCell className="py-2">
 										<div className="flex items-center gap-1">
 											<Button
 												size="sm"
@@ -483,8 +340,7 @@ export default function TableContent({
 												disabled={
 													!newParameterData.name.trim() ||
 													!newParameterData.unit.trim() ||
-													(newParameterData.provided_by === "company" &&
-														!newParameterData.value.trim())
+													!newParameterData.value.trim()
 												}
 											>
 												<Save className="h-3 w-3" />
@@ -503,7 +359,7 @@ export default function TableContent({
 							)}
 							{filteredParameters.length === 0 && !isAddingParameter ? (
 								<TableRow>
-									<TableCell colSpan={10} className="text-center py-8">
+									<TableCell colSpan={7} className="text-center py-8">
 										<div className="flex flex-col items-center gap-2 text-muted-foreground">
 											<Info className="h-8 w-8" />
 											<p className="text-sm font-medium">No parameters found</p>
@@ -514,10 +370,6 @@ export default function TableContent({
 							) : (
 								filteredParameters.map((parameter) => {
 									const isEditing = editingParameter === parameter.id;
-									const isGlobal = parameter.category.name === "Global";
-									const isIndustry = parameter.category.name === "Industry";
-									const isTechnology = parameter.category.name === "Technology" || parameter.category.name === "Technologies";
-									const isReadOnly = isGlobal || isIndustry || isTechnology;
 
 									return (
 										<TableRow
@@ -568,7 +420,6 @@ export default function TableContent({
 															<SelectValue placeholder="Select category" />
 														</SelectTrigger>
 														<SelectContent>
-															{/* Only show custom categories */}
 															{customCategories.length > 0 ? (
 																customCategories.map((category) => (
 																	<SelectItem
@@ -590,8 +441,7 @@ export default function TableContent({
 																))
 															) : (
 																<div className="px-2 py-1.5 text-xs text-muted-foreground">
-																	No custom categories available. Create one
-																	first.
+																	No categories available.
 																</div>
 															)}
 														</SelectContent>
@@ -622,11 +472,7 @@ export default function TableContent({
 															}))
 														}
 														className="h-7 text-xs"
-														placeholder={
-															editData.provided_by === "company"
-																? "Value *"
-																: "Value (optional)"
-														}
+														placeholder="Value *"
 														type="number"
 														onKeyDown={(e) => {
 															if (e.key === "Enter") {
@@ -726,150 +572,30 @@ export default function TableContent({
 												)}
 											</TableCell>
 											<TableCell className="py-2">
-												{isEditing ? (
-													parameter.provided_by === "global" ? (
-														<span className="text-xs text-muted-foreground">
-															Global (Not Editable)
-														</span>
-													) : (
-														<Select
-															value={editData.provided_by}
-															onValueChange={(value) =>
-																setEditData((prev) => ({
-																	...prev,
-																	provided_by: value,
-																}))
-															}
-														>
-															<SelectTrigger className="h-7 text-xs">
-																<SelectValue>
-																	{editData.provided_by || "Select provider"}
-																</SelectValue>
-															</SelectTrigger>
-															<SelectContent>
-																<SelectItem value="user">User</SelectItem>
-																<SelectItem value="company">Company</SelectItem>
-															</SelectContent>
-														</Select>
-													)
-												) : (
-													<Badge variant="outline" className={`${isReadOnly ? "bg-blue-50 border-blue-200" : ""}`}>
-														{isReadOnly ? (
-															<span className=" text-blue-800 px-2 py-1 rounded text-xs">
-																NovAzure
-															</span>
-														) : highlightSearchTerm(
-															parameter.provided_by,
-															searchQuery
-														)}
-													</Badge>
-												)}
-											</TableCell>
-											<TableCell className="py-2">
-												{isEditing ? (
-													<Select
-														value={editData.input_type}
-														onValueChange={(value) =>
-															setEditData((prev) => ({
-																...prev,
-																input_type: value,
-															}))
-														}
-													>
-														<SelectTrigger className="h-7 text-xs">
-															<SelectValue>
-																{editData.input_type || "Select type"}
-															</SelectValue>
-														</SelectTrigger>
-														<SelectContent>
-															<SelectItem value="simple">Simple</SelectItem>
-															<SelectItem value="advanced">Advanced</SelectItem>
-														</SelectContent>
-													</Select>
-												) : (
-													<Badge variant="outline" className="text-xs">
-														{isReadOnly ? "—" : highlightSearchTerm(
-															parameter.input_type,
-															searchQuery
-														)}
-													</Badge>
-												)}
-											</TableCell>
-											<TableCell className="py-2">
-												{isEditing ? (
-													<Select
-														value={editData.output ? "true" : "false"}
-														onValueChange={(value) =>
-															setEditData((prev) => ({
-																...prev,
-																output: value === "true",
-															}))
-														}
-													>
-														<SelectTrigger className="h-7 text-xs">
-															<SelectValue>
-																{editData.output ? "True" : "False"}
-															</SelectValue>
-														</SelectTrigger>
-														<SelectContent>
-															<SelectItem value="true">True</SelectItem>
-															<SelectItem value="false">False</SelectItem>
-														</SelectContent>
-													</Select>
-												) : (
-													<Badge variant="outline" className="text-xs">
-														{isReadOnly ? "—" : (parameter.output ? "True" : "False")}
-													</Badge>
-												)}
-											</TableCell>
-											<TableCell className="py-2">
 												<div className="flex items-center gap-1">
 													{!isEditing ? (
 														<>
-															{isReadOnly ? (
-																<Tooltip>
-																	<TooltipTrigger asChild>
-																		<Lock className="h-3 w-3 text-muted-foreground cursor-help" />
-																	</TooltipTrigger>
-																	<TooltipContent>
-																		<p className="text-sm">
-																			{isGlobal 
-																				? "Global parameter - read only"
-																				: isIndustry 
-																				? "Industry parameter - read only"
-																				: "Technology parameter - read only"
-																			}
-																		</p>
-																	</TooltipContent>
-																</Tooltip>
-															) : (
-																<>
-																	<Button
-																		size="sm"
-																		variant="ghost"
-																		onClick={() =>
-																			handleEditParameter(parameter)
-																		}
-																		className="h-5 w-5 p-0"
-																		disabled={
-																			editingParameter !== null ||
-																			isAddingParameter
-																		}
-																	>
-																		<Edit className="h-3 w-3" />
-																	</Button>
-																	<Button
-																		size="sm"
-																		variant="ghost"
-																		onClick={() =>
-																			handleDeleteParameter(parameter.id)
-																		}
-																		className="h-5 w-5 p-0 text-red-600 hover:text-red-700"
-																	>
-																		<Trash className="h-3 w-3" />
-																	</Button>
-																</>
-															)}
+															<Button
+																size="sm"
+																variant="ghost"
+																onClick={() => handleEditParameter(parameter)}
+																className="h-5 w-5 p-0"
+																disabled={
+																	editingParameter !== null || isAddingParameter
+																}
+															>
+																<Edit className="h-3 w-3" />
+															</Button>
+															<Button
+																size="sm"
+																variant="ghost"
+																onClick={() =>
+																	handleDeleteParameter(parameter.id)
+																}
+																className="h-5 w-5 p-0 text-red-600 hover:text-red-700"
+															>
+																<Trash className="h-3 w-3" />
+															</Button>
 														</>
 													) : (
 														<>
@@ -883,8 +609,7 @@ export default function TableContent({
 																disabled={
 																	!editData.name.trim() ||
 																	!editData.unit.trim() ||
-																	(editData.provided_by === "company" &&
-																		!editData.value.trim())
+																	!editData.value.trim()
 																}
 															>
 																<Save className="h-3 w-3" />
@@ -905,10 +630,10 @@ export default function TableContent({
 									);
 								})
 							)}
-							{!isAddingParameter && activeTab !== "Global" && (
+							{!isAddingParameter && (
 								<TableRow className="border-t-2">
 									<TableCell
-										colSpan={10}
+										colSpan={7}
 										className="text-center bg-muted/50 cursor-pointer py-2"
 										onClick={
 											isAddingParameter
@@ -929,4 +654,4 @@ export default function TableContent({
 			</div>
 		</div>
 	);
-}
+} 

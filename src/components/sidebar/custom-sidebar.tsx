@@ -60,7 +60,7 @@ import { Separator } from "@/components/ui/separator";
 
 import { UserData, useUser } from "@/hooks/useUser";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { getClientDetails } from "@/lib/actions/client/client";
+import { getClientDetails } from "@/lib/actions/clients/clients";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

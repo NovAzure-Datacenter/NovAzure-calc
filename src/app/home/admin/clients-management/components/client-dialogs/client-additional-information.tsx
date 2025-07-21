@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/select";
 import { Clock } from "lucide-react";
 
-import type { ClientData } from "@/lib/actions/client/client";
+import type { ClientData } from "@/lib/actions/clients/clients";
 import { timezoneOptions } from "../../utils/constants";
 
 interface ClientAdditionalInformationProps {

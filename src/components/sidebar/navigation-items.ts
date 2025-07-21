@@ -182,10 +182,10 @@ export const getAdminItems = (accountType: AccountType): NavigationItem[] => {
 				isActive: true,
 			},
 			{
-				title: "Manage Market Parameters",
+				title: "Manage Global Parameters",
 				icon: BarChart3,
-				url: "/home/admin/market-parameters",
-				isActive: false,
+				url: "/home/admin/global-parameters",
+				isActive: true,
 			}
 		);
 	}

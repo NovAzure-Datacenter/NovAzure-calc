@@ -14,7 +14,7 @@ import { ExternalLink, Users } from "lucide-react";
 import { stringToIconComponent } from "@/lib/icons/lucide-icons";
 import { companySizeOptions } from "../../utils/constants";
 import { toast } from "sonner";
-import type { ClientData } from "@/lib/actions/client/client";
+import type { ClientData } from "@/lib/actions/clients/clients";
 
 interface ClientCompanyOverviewProps {
 	client: ClientData;
