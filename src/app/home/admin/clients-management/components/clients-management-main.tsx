@@ -1,7 +1,7 @@
 "use client";
 
 import { ClientsTableView } from "./client-table-view";
-import type { ClientData } from "@/lib/actions/client/client";
+import type { ClientData } from "@/lib/actions/clients/clients";
 import { Card, CardContent } from "@/components/ui/card";
 import { Grid3X3, List, Search, RefreshCw } from "lucide-react";
 import { Input } from "@/components/ui/input";

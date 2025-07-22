@@ -17,10 +17,10 @@ import {
 import {
 	stringToIconComponent,
 } from "@/lib/icons/lucide-icons";
-import type { ClientData } from "@/lib/actions/client/client";
+import type { ClientData } from "@/lib/actions/clients/clients";
 import { getIndustries } from "@/lib/actions/industry/industry";
 import { getTechnologies } from "@/lib/actions/technology/technology";
-import { updateClient } from "@/lib/actions/client/client";
+import { updateClient } from "@/lib/actions/clients/clients";
 import { toast } from "sonner";
 import { getStatusVariant } from "../utils/constants";
 import { ClientCompanyOverview } from "./client-dialogs/client-company-overview";

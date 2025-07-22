@@ -2,7 +2,7 @@
 
 import { useUser } from "@/hooks/useUser";
 import { useEffect, useState } from "react";
-import { getClientDetails } from "@/lib/actions/client/client";
+import { getClientDetails } from "@/lib/actions/clients/clients";
 import Loading from "@/components/loading-main";
 
 export default function DashboardClientWrapper({

@@ -59,7 +59,6 @@ export function generateWelcomeEmail(
 		process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
 	}/verify?token=${resetToken}`;
 
-	console.log("companyName", companyName);
 	return `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #0b519f;">Welcome to NovAzure</h2>

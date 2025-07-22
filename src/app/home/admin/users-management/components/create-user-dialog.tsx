@@ -24,7 +24,7 @@ import { Plus, Loader2, Mail, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { createUserForCurrentCompany, getCurrentUserClientId } from "@/lib/actions/user/user";
 import { PhoneInputWrapper } from "../../clients-management/components/phone-input-wrapper";
-import { getClientDetails } from "@/lib/actions/client/client";
+import { getClientDetails } from "@/lib/actions/clients/clients";
 
 interface CreateUserDialogProps {
 	onCreate: () => Promise<void>;

@@ -31,9 +31,10 @@ export interface SavedCalculationScenario {
 	user_id: string;
 	created_at: string;
 	updated_at: string;
+
 }
 
-export const mockSavedScenarios: SavedCalculationScenario[] = [
+export const mockSavedScenarios = [
 	{
 		scenario_name: "TestCase1 - DC",
 		associated_project_id: "6870d278e9f38dbbe8a30c6c",

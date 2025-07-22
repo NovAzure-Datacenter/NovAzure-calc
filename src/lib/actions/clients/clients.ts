@@ -9,6 +9,22 @@ import crypto from "crypto";
 import { sendEmail, generateWelcomeEmail } from "../utils/SMTP-email-template";
 import { monitorDatabaseOperation } from "../utils/connection-monitor";
 
+// Cache for client data to avoid multiple database calls
+let clientCache: { [userId: string]: ClientData } = {};
+let cacheTimestamp: number = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+// Helper function to check if cache is valid
+function isCacheValid(): boolean {
+	return Date.now() - cacheTimestamp < CACHE_DURATION;
+}
+
+// Helper function to invalidate cache
+function invalidateCache(): void {
+	clientCache = {};
+	cacheTimestamp = 0;
+}
+
 export interface ClientData {
 	id?: string;
 	logo: string;
@@ -43,219 +59,19 @@ export interface ClientData {
 	updated_at?: Date;
 }
 
-export async function getClients(): Promise<{
-	clients?: ClientData[];
-	error?: string;
-}> {
-	try {
-		const collection = await getClientsCollection();
-		const clients = await collection.find({}).toArray();
-
-		const transformedClients: ClientData[] = clients
-			.filter((client) => client._id.toString() !== "684ad0ca270ad70b516c4bd0")
-			.map((client) => ({
-				id: client._id.toString(),
-				logo: client.logo || "Building2",
-				company_name: client.company_name	,
-				website: client.website,
-				main_contact_email: client.main_contact_email,
-				main_contact_first_name: client.main_contact_first_name,
-				main_contact_last_name: client.main_contact_last_name,
-				main_contact_phone: client.main_contact_phone,
-				tech_contact_first_name: client.tech_contact_first_name,
-				tech_contact_last_name: client.tech_contact_last_name,
-				tech_contact_email: client.tech_contact_email,
-				tech_contact_phone: client.tech_contact_phone,
-				company_industry: client.company_industry,
-				company_size: client.company_size,
-				street: client.street,
-				city: client.city,
-				state_province: client.state_province,
-				zipcode_postal_code: client.zipcode_postal_code,	
-				country: client.country,
-				timezone: client.timezone,
-				client_status: client.client_status || "prospect",
-				additional_notes: client.additional_notes,
-				selected_industries: client.selected_industries || [],
-				selected_technologies: client.selected_technologies || [],
-				user_count: client.user_count || 0,
-				product_count: client.product_count || 0,
-				product_pending_count: client.product_pending_count || 0,
-				scenario_count: client.scenario_count || 0,
-				login_email: client.login_email,
-				created_at: client.created_at,
-				updated_at: client.updated_at,
-			}));
-
-		return { clients: transformedClients };
-	} catch (error) {
-		console.error("Error fetching clients:", error);
-		return { error: "Failed to fetch clients" };
-	}
-}
-
-export async function createClient(
-	clientData: Omit<ClientData, "id" | "created_at" | "updated_at">
-): Promise<{
-	clientId?: string;
-	loginEmail?: string;
-	error?: string;
-}> {
-	try {
-		const collection = await getClientsCollection();
-
-		// Generate login email
-		const loginEmail = generateClientLoginEmail(
-			clientData.main_contact_first_name || "",
-			clientData.main_contact_last_name || "",
-			clientData.company_name
-		);
-
-		const newClient = {
-			...clientData,
-			login_email: loginEmail,
-			user_count: clientData.user_count || 0,
-			product_count: clientData.product_count || 0,
-			product_pending_count: clientData.product_pending_count || 0,
-			scenario_count: clientData.scenario_count || 0,
-			created_at: new Date(),
-			updated_at: new Date(),
-		};
-
-		const result = await collection.insertOne(newClient);
-
-		if (result.insertedId) {
-			// Create a user account for the main contact
-			const userCreationResult = await createClientUser(
-				clientData,
-				result.insertedId.toString()
-			);
-
-			if (userCreationResult.error) {
-				console.error("Warning: Failed to create user account:", userCreationResult.error);
-				// Don't fail the client creation, just log the warning
-			}
-
-			return { clientId: result.insertedId.toString(), loginEmail };
-		} else {
-			return { error: "Failed to create client" };
-		}
-	} catch (error) {
-		console.error("Error creating client:", error);
-		return { error: "Failed to create client" };
-	}
-}
-
-export async function updateClient(
-	clientId: string,
-	clientData: Partial<ClientData>
-): Promise<{
-	success?: boolean;
-	error?: string;
-}> {
-	try {
-		const collection = await getClientsCollection();
-
-		const updateData = {
-			...clientData,
-			updated_at: new Date(),
-		};
-
-		const result = await collection.updateOne(
-			{ _id: new ObjectId(clientId) },
-			{ $set: updateData }
-		);
-
-		if (result.matchedCount > 0) {
-			return { success: true };
-		} else {
-			return { error: "Client not found" };
-		}
-	} catch (error) {
-		console.error("Error updating client:", error);
-		return { error: "Failed to update client" };
-	}
-}
-
-export async function deleteClient(clientId: string): Promise<{
-	success?: boolean;
-	error?: string;
-}> {
-	try {
-		const collection = await getClientsCollection();
-
-		// First, get the client to find which industries it's associated with
-		const client = await collection.findOne({ _id: new ObjectId(clientId) });
-
-		if (!client) {
-			return { error: "Client not found" };
-		}
-
-		// Remove the company from all associated industries
-		if (client.selected_industries && client.selected_industries.length > 0) {
-			const removeResult = await removeCompanyFromIndustries(
-				client.selected_industries,
-				clientId
-			);
-			if (removeResult.error) {
-				console.error(
-					"Warning: Failed to remove company from industries:",
-					removeResult.error
-				);
-				// Continue with deletion even if industry update fails
-			}
-		}
-
-		// Delete the client
-		const result = await collection.deleteOne({ _id: new ObjectId(clientId) });
-
-		if (result.deletedCount > 0) {
-			return { success: true };
-		} else {
-			return { error: "Client not found" };
-		}
-	} catch (error) {
-		console.error("Error deleting client:", error);
-		return { error: "Failed to delete client" };
-	}
-}
-
-export async function getClientDetails(clientId: string) {
-	try {
-		const collection = await getClientsCollection();
-		const client = await collection.findOne({ _id: new ObjectId(clientId) });
-		if (!client) {
-			return { error: "Client not found" };
-		}
-
-		return {
-			success: true,
-			client: {
-				name: client.company_name,
-				_id: client._id.toString(),
-				industry: client.company_industry,
-				contact_email: client.main_contact_email,
-				contact_number: client.main_contact_phone,
-				website: client.website,
-				logo: client.logo,
-				country: client.country,
-				currency: "USD", // Default currency for clients
-				address: `${client.street || ""} ${client.city || ""} ${client.state_province || ""} ${client.zipcode_postal_code || ""}`.trim(),
-				plan: "standard", // Default plan for clients
-				created_at: client.created_at
-			}
-		};
-	} catch (error) {
-		console.error("Error fetching client details:", error);
-		return { error: "Failed to fetch client details" };
-	}
-}
-
+/**
+ * Get client by user ID with caching
+ */
 export async function getClientByUserId(userId: string): Promise<{
 	client?: ClientData;
 	error?: string;
 }> {
 	try {
+		// Return cached data if valid
+		if (isCacheValid() && clientCache[userId]) {
+			return { client: clientCache[userId] };
+		}
+
 		const usersCollection = await getUsersCollection();
 		const clientsCollection = await getClientsCollection();
 
@@ -309,10 +125,244 @@ export async function getClientByUserId(userId: string): Promise<{
 			updated_at: client.updated_at,
 		};
 
+		// Update cache
+		clientCache[userId] = transformedClient;
+		cacheTimestamp = Date.now();
+
 		return { client: transformedClient };
 	} catch (error) {
 		console.error("Error fetching client by user ID:", error);
 		return { error: "Failed to fetch client data" };
+	}
+}
+
+/**
+ * Get all clients
+ */
+export async function getClients(): Promise<{
+	clients?: ClientData[];
+	error?: string;
+}> {
+	try {
+		const collection = await getClientsCollection();
+		const clients = await collection.find({}).toArray();
+
+		const transformedClients: ClientData[] = clients
+			.filter((client) => client._id.toString() !== "684ad0ca270ad70b516c4bd0")
+			.map((client) => ({
+				id: client._id.toString(),
+				logo: client.logo || "Building2",
+				company_name: client.company_name	,
+				website: client.website,
+				main_contact_email: client.main_contact_email,
+				main_contact_first_name: client.main_contact_first_name,
+				main_contact_last_name: client.main_contact_last_name,
+				main_contact_phone: client.main_contact_phone,
+				tech_contact_first_name: client.tech_contact_first_name,
+				tech_contact_last_name: client.tech_contact_last_name,
+				tech_contact_email: client.tech_contact_email,
+				tech_contact_phone: client.tech_contact_phone,
+				company_industry: client.company_industry,
+				company_size: client.company_size,
+				street: client.street,
+				city: client.city,
+				state_province: client.state_province,
+				zipcode_postal_code: client.zipcode_postal_code,	
+				country: client.country,
+				timezone: client.timezone,
+				client_status: client.client_status || "prospect",
+				additional_notes: client.additional_notes,
+				selected_industries: client.selected_industries || [],
+				selected_technologies: client.selected_technologies || [],
+				user_count: client.user_count || 0,
+				product_count: client.product_count || 0,
+				product_pending_count: client.product_pending_count || 0,
+				scenario_count: client.scenario_count || 0,
+				login_email: client.login_email,
+				created_at: client.created_at,
+				updated_at: client.updated_at,
+			}));
+
+		return { clients: transformedClients };
+	} catch (error) {
+		console.error("Error fetching clients:", error);
+		return { error: "Failed to fetch clients" };
+	}
+}
+
+/**
+ * Create a new client
+ */
+export async function createClient(
+	clientData: Omit<ClientData, "id" | "created_at" | "updated_at">
+): Promise<{
+	clientId?: string;
+	loginEmail?: string;
+	error?: string;
+}> {
+	try {
+		const collection = await getClientsCollection();
+
+		// Generate login email
+		const loginEmail = generateClientLoginEmail(
+			clientData.main_contact_first_name || "",
+			clientData.main_contact_last_name || "",
+			clientData.company_name
+		);
+
+		const newClient = {
+			...clientData,
+			login_email: loginEmail,
+			user_count: clientData.user_count || 0,
+			product_count: clientData.product_count || 0,
+			product_pending_count: clientData.product_pending_count || 0,
+			scenario_count: clientData.scenario_count || 0,
+			created_at: new Date(),
+			updated_at: new Date(),
+		};
+
+		const result = await collection.insertOne(newClient);
+
+		if (result.insertedId) {
+			// Create a user account for the main contact
+			const userCreationResult = await createClientUser(
+				clientData,
+				result.insertedId.toString()
+			);
+
+			if (userCreationResult.error) {
+				console.error("Warning: Failed to create user account:", userCreationResult.error);
+				// Don't fail the client creation, just log the warning
+			}
+
+			// Invalidate cache to ensure fresh data
+			invalidateCache();
+
+			return { clientId: result.insertedId.toString(), loginEmail };
+		} else {
+			return { error: "Failed to create client" };
+		}
+	} catch (error) {
+		console.error("Error creating client:", error);
+		return { error: "Failed to create client" };
+	}
+}
+
+/**
+ * Update a client
+ */
+export async function updateClient(
+	clientId: string,
+	clientData: Partial<ClientData>
+): Promise<{
+	success?: boolean;
+	error?: string;
+}> {
+	try {
+		const collection = await getClientsCollection();
+
+		const updateData = {
+			...clientData,
+			updated_at: new Date(),
+		};
+
+		const result = await collection.updateOne(
+			{ _id: new ObjectId(clientId) },
+			{ $set: updateData }
+		);
+
+		if (result.matchedCount > 0) {
+			// Invalidate cache to ensure fresh data
+			invalidateCache();
+			return { success: true };
+		} else {
+			return { error: "Client not found" };
+		}
+	} catch (error) {
+		console.error("Error updating client:", error);
+		return { error: "Failed to update client" };
+	}
+}
+
+/**
+ * Delete a client
+ */
+export async function deleteClient(clientId: string): Promise<{
+	success?: boolean;
+	error?: string;
+}> {
+	try {
+		const collection = await getClientsCollection();
+
+		// First, get the client to find which industries it's associated with
+		const client = await collection.findOne({ _id: new ObjectId(clientId) });
+
+		if (!client) {
+			return { error: "Client not found" };
+		}
+
+		// Remove the company from all associated industries
+		if (client.selected_industries && client.selected_industries.length > 0) {
+			const removeResult = await removeCompanyFromIndustries(
+				client.selected_industries,
+				clientId
+			);
+			if (removeResult.error) {
+				console.error(
+					"Warning: Failed to remove company from industries:",
+					removeResult.error
+				);
+				// Continue with deletion even if industry update fails
+			}
+		}
+
+		// Delete the client
+		const result = await collection.deleteOne({ _id: new ObjectId(clientId) });
+
+		if (result.deletedCount > 0) {
+			// Invalidate cache to ensure fresh data
+			invalidateCache();
+			return { success: true };
+		} else {
+			return { error: "Client not found" };
+		}
+	} catch (error) {
+		console.error("Error deleting client:", error);
+		return { error: "Failed to delete client" };
+	}
+}
+
+/**
+ * Get client details
+ */
+export async function getClientDetails(clientId: string) {
+	try {
+		const collection = await getClientsCollection();
+		const client = await collection.findOne({ _id: new ObjectId(clientId) });
+		if (!client) {
+			return { error: "Client not found" };
+		}
+
+		return {
+			success: true,
+			client: {
+				name: client.company_name,
+				_id: client._id.toString(),
+				industry: client.company_industry,
+				contact_email: client.main_contact_email,
+				contact_number: client.main_contact_phone,
+				website: client.website,
+				logo: client.logo,
+				country: client.country,
+				currency: "USD", // Default currency for clients
+				address: `${client.street || ""} ${client.city || ""} ${client.state_province || ""} ${client.zipcode_postal_code || ""}`.trim(),
+				plan: "standard", // Default plan for clients
+				created_at: client.created_at
+			}
+		};
+	} catch (error) {
+		console.error("Error fetching client details:", error);
+		return { error: "Failed to fetch client details" };
 	}
 }
 
@@ -435,7 +485,9 @@ function generateClientLoginEmail(
 	return email;
 }
 
-// Optimized function to load clients with related data in a single operation
+/**
+ * Optimized function to load clients with related data in a single operation
+ */
 export async function getClientsWithRelatedData(): Promise<{
 	clients?: ClientData[];
 	industries?: Array<{ id: string; name: string; icon: string }>;
@@ -514,4 +566,11 @@ export async function getClientsWithRelatedData(): Promise<{
 			return { error: "Failed to fetch data" };
 		}
 	});
+}
+
+/**
+ * Force refresh cache (useful for testing or manual refresh)
+ */
+export async function refreshClientCache(): Promise<void> {
+	invalidateCache();
 }

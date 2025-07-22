@@ -2,7 +2,7 @@
 
 import { getSolutionsCollection } from "../../mongoDb/db";
 import { ObjectId } from "mongodb";
-import { type Parameter, type Calculation } from "../../../app/home/product-and-solutions/mock-data";
+import { type Parameter, type Calculation } from "../../../app/home/product-and-solutions/types";
 
 export interface CreateSolutionData {
 	applicable_industries: string;

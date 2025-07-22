@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import { useUser } from "@/hooks/useUser";
 import { toast } from "sonner";
-import { getClientByUserId } from "@/lib/actions/client/client";
+import { getClientByUserId } from "@/lib/actions/clients/clients";
 import { getIndustries } from "@/lib/actions/industry/industry";
 import { getTechnologies } from "@/lib/actions/technology/technology";
 import { stringToIconComponent } from "@/lib/icons/lucide-icons";
