@@ -25,7 +25,7 @@ export async function getConnectedClient(): Promise<{
 			await cachedClient.db().admin().ping({ maxTimeMS: 5000 });
 			return { client: cachedClient, db: cachedDb };
 		} catch (error) {
-			console.log("Cached connection failed, creating new connection...");
+			//console.log("Cached connection failed, creating new connection...");
 			cachedClient = null;
 			cachedDb = null;
 		}
@@ -91,7 +91,7 @@ async function createNewConnection(): Promise<{ client: MongoClient; db: Db }> {
 		cachedClient = client;
 		cachedDb = db;
 
-		console.log("Successfully connected to MongoDB with connection pooling.");
+		//console.log("Successfully connected to MongoDB with connection pooling.");
 		return { client, db };
 	} catch (error) {
 		console.error("Could not connect to MongoDB", error);
@@ -111,7 +111,7 @@ export async function closeConnection(): Promise<void> {
 	if (cachedClient) {
 		try {
 			await cachedClient.close();
-			console.log("MongoDB connection closed gracefully.");
+			//console.log("MongoDB connection closed gracefully.");
 		} catch (error) {
 			console.error("Error closing MongoDB connection:", error);
 		} finally {
@@ -136,7 +136,7 @@ export async function checkConnectionHealth(): Promise<boolean> {
 		
 		// If it's an SSL/TLS error, try to reset the connection
 		if (error instanceof Error && (error.message.includes('SSL') || error.message.includes('TLS'))) {
-			console.log("SSL/TLS error detected, resetting connection...");
+			//console.log("SSL/TLS error detected, resetting connection...");
 			try {
 				await closeConnection();
 			} catch (closeError) {
@@ -165,7 +165,7 @@ export async function getConnectedClientWithRetry(maxRetries: number = 3): Promi
 			if (attempt < maxRetries) {
 				// Wait before retrying (exponential backoff)
 				const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
-				console.log(`Retrying in ${delay}ms...`);
+				//console.log(`Retrying in ${delay}ms...`);
 				await new Promise(resolve => setTimeout(resolve, delay));
 			}
 		}

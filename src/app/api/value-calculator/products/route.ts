@@ -24,7 +24,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: true, data: [] });
     }
 
-    console.log('Found solution variants:', solutionVariants.length);
+    //console.log('Found solution variants:', solutionVariants.length);
 
     // Get all products that belong to these solution variants
     const productsCollection = await getProductsCollection();
@@ -34,7 +34,7 @@ export async function GET(request: Request) {
       solution_variant_id: { $in: solutionVariantIds }
     }).toArray();
 
-    console.log('Found products:', productDocs.length);
+    //console.log('Found products:', productDocs.length);
 
     // Transform to consistent format
     const products = productDocs.map((product) => ({

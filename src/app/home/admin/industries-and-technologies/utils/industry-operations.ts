@@ -15,7 +15,7 @@ export async function removeIndustry(industryId: string): Promise<boolean> {
 		// return result.deletedCount > 0;
 
 		// Mock implementation for now
-		console.log(`Removing industry with ID: ${industryId}`);
+		//console.log(`Removing industry with ID: ${industryId}`);
 
 		// Simulate API call delay
 		await new Promise((resolve) => setTimeout(resolve, 500));
@@ -24,7 +24,7 @@ export async function removeIndustry(industryId: string): Promise<boolean> {
 		const success = Math.random() > 0.1; // 90% success rate for testing
 
 		if (success) {
-			console.log(`Successfully removed industry with ID: ${industryId}`);
+			//console.log(`Successfully removed industry with ID: ${industryId}`);
 			return true;
 		} else {
 			console.error(`Failed to remove industry with ID: ${industryId}`);

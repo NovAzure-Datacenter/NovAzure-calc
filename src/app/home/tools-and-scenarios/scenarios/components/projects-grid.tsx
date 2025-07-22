@@ -118,7 +118,7 @@ export function ProjectsGrid({
 	const handleCreateProject = (newProject: ProjectData) => {
 		// Add the new project to the list
 		// In a real implementation, this would be handled by the parent component
-		console.log("New project created:", newProject);
+		//console.log("New project created:", newProject);
 		// You might want to call a callback to update the projects list
 		if (onCreateProject) {
 			onCreateProject(newProject);

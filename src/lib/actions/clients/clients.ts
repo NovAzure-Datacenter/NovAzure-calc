@@ -448,7 +448,7 @@ async function createClientUser(
 			// Don't fail user creation if email fails
 		}
 
-		console.log(`User account created for client ${clientData.company_name}: ${loginEmail}`);
+		//console.log(`User account created for client ${clientData.company_name}: ${loginEmail}`);
 		return { success: true };
 	} catch (error) {
 		console.error("Error creating client user:", error);

@@ -88,7 +88,7 @@ class ConnectionMonitor {
 			this.checkHealth();
 		}, interval);
 		
-		console.log(`Adjusted monitoring frequency to ${interval}ms due to connection issues`);
+		//console.log(`Adjusted monitoring frequency to ${interval}ms due to connection issues`);
 	}
 
 	private startMonitoring() {
