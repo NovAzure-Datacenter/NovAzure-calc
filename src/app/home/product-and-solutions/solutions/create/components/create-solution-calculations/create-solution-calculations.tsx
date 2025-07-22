@@ -548,8 +548,8 @@ export function CalculationsConfiguration({
 					formula: newFormula,
 				}));
 			} else {
-				setEditData((prev) => ({
-					...prev,
+		setEditData((prev) => ({
+			...prev,
 					formula: newFormula,
 				}));
 			}

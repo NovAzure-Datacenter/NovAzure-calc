@@ -3,7 +3,22 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Save, Send, AlertTriangle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Save, Send, AlertTriangle, Building2, Cpu, Package, Layers, Info } from "lucide-react";
 import { type Parameter, type Calculation } from "../../../types";
 
 interface CreateSolutionStep6Props {
@@ -27,6 +42,27 @@ interface CreateSolutionStep6Props {
 	getSelectedSolutionVariant: () => any;
 }
 
+// Combined item type for unified table
+type ConfigurationItem = {
+	id: string;
+	name: string;
+	category: any;
+	description: string;
+	units?: string;
+	type: 'parameter' | 'calculation';
+	// Parameter specific fields
+	value?: string;
+	test_value?: string;
+	input_type?: string;
+	provided_by?: string;
+	// Calculation specific fields
+	formula?: string;
+	result?: any;
+	status?: string;
+	output?: boolean;
+	level?: number;
+};
+
 export function CreateSolutionStep6({
 	formData,
 	showCustomSolutionType,
@@ -39,72 +75,468 @@ export function CreateSolutionStep6({
 	getSelectedSolutionType,
 	getSelectedSolutionVariant,
 }: CreateSolutionStep6Props) {
+	// Helper function to get category color
+	const getCategoryColor = (category: any, type: 'parameter' | 'calculation') => {
+		if (!category) return "bg-gray-50 text-gray-700 border-gray-200";
+		
+		if (type === 'parameter') {
+			if (!category.color) return "bg-gray-50 text-gray-700 border-gray-200";
+			
+			switch (category.color.toLowerCase()) {
+				case "green":
+					return "bg-green-50 text-green-700 border-green-200";
+				case "blue":
+					return "bg-blue-50 text-blue-700 border-blue-200";
+				case "yellow":
+					return "bg-yellow-50 text-yellow-700 border-yellow-200";
+				case "purple":
+					return "bg-purple-50 text-purple-700 border-purple-200";
+				case "red":
+					return "bg-red-50 text-red-700 border-red-200";
+				case "orange":
+					return "bg-orange-50 text-orange-700 border-orange-200";
+				case "pink":
+					return "bg-pink-50 text-pink-700 border-pink-200";
+				case "indigo":
+					return "bg-indigo-50 text-indigo-700 border-indigo-200";
+				default:
+					return "bg-gray-50 text-gray-700 border-gray-200";
+			}
+		} else {
+			// Calculation category colors
+			const categoryName = typeof category === "string" ? category : category.name;
+			
+			switch (categoryName.toLowerCase()) {
+				case "financial":
+					return "bg-green-50 text-green-700 border-green-200";
+				case "performance":
+					return "bg-blue-50 text-blue-700 border-blue-200";
+				case "efficiency":
+					return "bg-yellow-50 text-yellow-700 border-yellow-200";
+				case "operational":
+					return "bg-purple-50 text-purple-700 border-purple-200";
+				default:
+					return "bg-gray-50 text-gray-700 border-gray-200";
+			}
+		}
+	};
+
+	// Helper function to get status color for calculations
+	const getStatusColor = (status: string) => {
+		switch (status) {
+			case "valid":
+				return "bg-green-50 text-green-700 border-green-200";
+			case "error":
+				return "bg-red-50 text-red-700 border-red-200";
+			case "pending":
+				return "bg-yellow-50 text-yellow-700 border-yellow-200";
+			default:
+				return "bg-gray-50 text-gray-700 border-gray-200";
+		}
+	};
+
+	// Combine parameters and calculations into unified items
+	const configurationItems: ConfigurationItem[] = [
+		// Add parameters
+		...formData.parameters.map((param): ConfigurationItem => ({
+			id: param.id,
+			name: param.name,
+			category: param.category,
+			description: param.description,
+			units: param.unit,
+			type: 'parameter',
+			value: param.value,
+			test_value: param.test_value,
+			input_type: param.input_type,
+			provided_by: param.provided_by,
+		})),
+		// Add calculations
+		...formData.calculations.map((calc): ConfigurationItem => ({
+			id: calc.id,
+			name: calc.name,
+			category: calc.category,
+			description: calc.description,
+			units: calc.units,
+			type: 'calculation',
+			formula: calc.formula,
+			result: calc.result,
+			status: calc.status,
+			output: calc.output,
+			level: typeof calc.category === "string"
+				? 1
+				: calc.category?.name === "financial"
+				? 1
+				: calc.category?.name === "performance"
+				? 2
+				: calc.category?.name === "efficiency"
+				? 2
+				: calc.category?.name === "operational"
+				? 3
+				: 1,
+		})),
+	];
+
+	// Sort items: parameters first, then calculations by level
+	configurationItems.sort((a, b) => {
+		if (a.type !== b.type) {
+			return a.type === 'parameter' ? -1 : 1;
+		}
+		if (a.type === 'calculation' && b.type === 'calculation') {
+			return (a.level || 1) - (b.level || 1);
+		}
+		return 0;
+	});
+
 	return (
-		<div className="space-y-4">
+		<div className="space-y-6">
 			{/* Solution Summary */}
-			<div className="p-3 border rounded-md bg-muted/30">
-				<h3 className="font-semibold mb-2 text-sm">Solution Summary</h3>
-				<div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-					<div className="space-y-1">
-						<div>
-							<span className="text-muted-foreground">Industry:</span>
-							<p className="font-medium">{getSelectedIndustryName()}</p>
-						</div>
-						<div>
-							<span className="text-muted-foreground">Technology:</span>
-							<p className="font-medium">{getSelectedTechnologyName()}</p>
-						</div>
-						<div>
-							<span className="text-muted-foreground">Solution Type:</span>
-							<p className="font-medium">
-								{showCustomSolutionType
-									? formData.solutionName || "New Solution"
-									: getSelectedSolutionType()?.name || "Not selected"}
-							</p>
-						</div>
-						<div>
-							<span className="text-muted-foreground">Solution Variant:</span>
-							<p className="font-medium">
-								{showCustomSolutionVariant
-									? formData.customSolutionVariant || "New Variant"
-									: formData.solutionVariant === ""
-									? "None selected"
-									: getSelectedSolutionVariant()?.name || "None selected"}
-							</p>
-						</div>
-						{showCustomSolutionVariant && formData.customSolutionVariantDescription && (
-							<div>
-								<span className="text-muted-foreground">Variant Description:</span>
-								<p className="font-medium line-clamp-2">
-									{formData.customSolutionVariantDescription}
-								</p>
-							</div>
-						)}
-					</div>
-					<div className="space-y-1">
-						{showCustomSolutionType && (
-							<>
-								<div>
-									<span className="text-muted-foreground">New Solution Name:</span>
-									<p className="font-medium">{formData.solutionName}</p>
-								</div>
-								<div>
-									<span className="text-muted-foreground">New Solution Description:</span>
-									<p className="font-medium line-clamp-2">{formData.solutionDescription}</p>
-								</div>
-							</>
-						)}
-						<div>
-							<span className="text-muted-foreground">Parameters:</span>
-							<p className="font-medium">{formData.parameters.length} configured</p>
-						</div>
-						<div>
-							<span className="text-muted-foreground">Calculations:</span>
-							<p className="font-medium">{formData.calculations.length} configured</p>
-						</div>
-					</div>
+			<div className="space-y-4">
+				<div className="flex items-center gap-2">
+					<h3 className="text-lg font-semibold">Solution Summary</h3>
+					<Badge variant="secondary" className="text-xs">
+						Ready for Review
+					</Badge>
 				</div>
+
+				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+					{/* Industry Card */}
+					<Card className="border border-border hover:border-primary/50 transition-colors">
+						<CardContent className="p-4">
+							<div className="flex items-center gap-3 mb-3">
+								<div className="p-2 bg-blue-100 rounded-lg">
+									<Building2 className="h-4 w-4 text-blue-600" />
+								</div>
+								<div>
+									<p className="text-xs text-muted-foreground">Industry</p>
+									<p className="font-medium text-sm">{getSelectedIndustryName()}</p>
+								</div>
+							</div>
+						</CardContent>
+					</Card>
+
+					{/* Technology Card */}
+					<Card className="border border-border hover:border-primary/50 transition-colors">
+						<CardContent className="p-4">
+							<div className="flex items-center gap-3 mb-3">
+								<div className="p-2 bg-green-100 rounded-lg">
+									<Cpu className="h-4 w-4 text-green-600" />
+								</div>
+								<div>
+									<p className="text-xs text-muted-foreground">Technology</p>
+									<p className="font-medium text-sm">{getSelectedTechnologyName()}</p>
+								</div>
+							</div>
+						</CardContent>
+					</Card>
+
+					{/* Solution Type Card */}
+					<Card className="border border-border hover:border-primary/50 transition-colors">
+						<CardContent className="p-4">
+							<div className="flex items-center gap-3 mb-3">
+								<div className="p-2 bg-purple-100 rounded-lg">
+									<Package className="h-4 w-4 text-purple-600" />
+								</div>
+								<div>
+									<p className="text-xs text-muted-foreground">Solution Type</p>
+									<p className="font-medium text-sm">
+										{showCustomSolutionType
+											? formData.solutionName || "New Solution"
+											: getSelectedSolutionType()?.name || "Not selected"}
+									</p>
+								</div>
+							</div>
+						</CardContent>
+					</Card>
+
+					{/* Solution Variant Card */}
+					<Card className="border border-border hover:border-primary/50 transition-colors">
+						<CardContent className="p-4">
+							<div className="flex items-center gap-3 mb-3">
+								<div className="p-2 bg-orange-100 rounded-lg">
+									<Layers className="h-4 w-4 text-orange-600" />
+								</div>
+								<div>
+									<p className="text-xs text-muted-foreground">Solution Variant</p>
+									<p className="font-medium text-sm">
+										{showCustomSolutionVariant
+											? formData.customSolutionVariant || "New Variant"
+											: formData.solutionVariant === ""
+											? "None selected"
+											: getSelectedSolutionVariant()?.name || "None selected"}
+									</p>
+								</div>
+							</div>
+						</CardContent>
+					</Card>
+				</div>
+
+				{/* Additional Details */}
+				{(showCustomSolutionType || showCustomSolutionVariant) && (
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						{showCustomSolutionType && (
+							<Card className="border border-border">
+								<CardContent className="p-4">
+									<h4 className="font-medium text-sm mb-3">New Solution Details</h4>
+									<div className="space-y-2 text-sm">
+										<div>
+											<p className="text-xs text-muted-foreground">Name</p>
+											<p className="font-medium">{formData.solutionName}</p>
+										</div>
+										<div>
+											<p className="text-xs text-muted-foreground">Description</p>
+											<p className="font-medium line-clamp-2">{formData.solutionDescription}</p>
+										</div>
+									</div>
+								</CardContent>
+							</Card>
+						)}
+
+						{showCustomSolutionVariant && formData.customSolutionVariantDescription && (
+							<Card className="border border-border">
+								<CardContent className="p-4">
+									<h4 className="font-medium text-sm mb-3">New Variant Details</h4>
+									<div className="space-y-2 text-sm">
+										<div>
+											<p className="text-xs text-muted-foreground">Name</p>
+											<p className="font-medium">{formData.customSolutionVariant}</p>
+										</div>
+										<div>
+											<p className="text-xs text-muted-foreground">Description</p>
+											<p className="font-medium line-clamp-2">{formData.customSolutionVariantDescription}</p>
+										</div>
+									</div>
+								</CardContent>
+							</Card>
+						)}
+					</div>
+				)}
 			</div>
+
+			{/* Unified Configuration Table */}
+			{configurationItems.length > 0 && (
+				<div className="space-y-4">
+					<div className="flex items-center justify-between">
+						<h3 className="text-lg font-semibold">Configuration Summary</h3>
+						<div className="flex items-center gap-4">
+							<Badge variant="outline" className="text-xs">
+								{formData.parameters.length} Parameters
+							</Badge>
+							<Badge variant="outline" className="text-xs">
+								{formData.calculations.length} Calculations
+							</Badge>
+						</div>
+					</div>
+
+					<Card className="border border-border">
+						<CardContent className="p-4">
+							<div className="border rounded-md">
+								<div className="max-h-[35vh] overflow-y-auto">
+									<TooltipProvider>
+										<Table>
+											<TableHeader className="sticky top-0 bg-background z-10">
+												<TableRow>
+													<TableHead className="w-12 bg-background">
+														<Tooltip>
+															<TooltipTrigger asChild>
+																<div className="flex items-center gap-1 cursor-help">
+																	Type
+																	<Info className="h-3 w-3 text-muted-foreground" />
+																</div>
+															</TooltipTrigger>
+															<TooltipContent>
+																<p className="text-sm">Item type (Parameter or Calculation)</p>
+															</TooltipContent>
+														</Tooltip>
+													</TableHead>
+													<TableHead className="w-12 bg-background">
+														<Tooltip>
+															<TooltipTrigger asChild>
+																<div className="flex items-center gap-1 cursor-help">
+																	Level
+																	<Info className="h-3 w-3 text-muted-foreground" />
+																</div>
+															</TooltipTrigger>
+															<TooltipContent>
+																<p className="text-sm">Priority level for calculations</p>
+															</TooltipContent>
+														</Tooltip>
+													</TableHead>
+													<TableHead className="w-28 bg-background">Name</TableHead>
+													<TableHead className="w-20 bg-background">Category</TableHead>
+													<TableHead className="w-60 bg-background">
+														<Tooltip>
+															<TooltipTrigger asChild>
+																<div className="flex items-center gap-1 cursor-help">
+																	Formula/Value
+																	<Info className="h-3 w-3 text-muted-foreground" />
+																</div>
+															</TooltipTrigger>
+															<TooltipContent>
+																<p className="text-sm">Formula for calculations, value for parameters</p>
+															</TooltipContent>
+														</Tooltip>
+													</TableHead>
+													<TableHead className="w-40 bg-background">Description</TableHead>
+													<TableHead className="w-28 bg-background">
+														<Tooltip>
+															<TooltipTrigger asChild>
+																<div className="flex items-center gap-1 cursor-help">
+																	Result/Test
+																	<Info className="h-3 w-3 text-muted-foreground" />
+																</div>
+															</TooltipTrigger>
+															<TooltipContent>
+																<p className="text-sm">Calculated result or test value</p>
+															</TooltipContent>
+														</Tooltip>
+													</TableHead>
+													<TableHead className="w-12 bg-background">Unit</TableHead>
+													<TableHead className="w-20 bg-background">Details</TableHead>
+												</TableRow>
+											</TableHeader>
+											<TableBody>
+												{configurationItems.map((item) => (
+													<TableRow key={`${item.type}-${item.id}`} className="h-12">
+														{/* Type */}
+														<TableCell className="py-2">
+															<Badge
+																variant="outline"
+																className={`text-xs ${
+																	item.type === 'parameter'
+																		? "bg-blue-50 text-blue-700 border-blue-200"
+																		: "bg-green-50 text-green-700 border-green-200"
+																}`}
+															>
+																{item.type === 'parameter' ? 'Param' : 'Calc'}
+															</Badge>
+														</TableCell>
+														
+														{/* Level */}
+														<TableCell className="py-2">
+															{item.type === 'calculation' ? (
+																<span className="text-sm font-mono">{item.level}</span>
+															) : (
+																<span className="text-sm text-muted-foreground">-</span>
+															)}
+														</TableCell>
+														
+														{/* Name */}
+														<TableCell className="py-2">
+															<span className="font-medium text-sm truncate block">{item.name}</span>
+														</TableCell>
+														
+														{/* Category */}
+														<TableCell className="py-2">
+															<Badge
+																variant="outline"
+																className={`text-xs ${getCategoryColor(item.category, item.type)}`}
+															>
+																{typeof item.category === "string"
+																	? item.category
+																	: item.category?.name || "Unknown"}
+															</Badge>
+														</TableCell>
+														
+														{/* Formula/Value */}
+														<TableCell className="py-2">
+															<Tooltip>
+																<TooltipTrigger asChild>
+																	<div className="max-w-xs truncate cursor-help">
+																		<span className="text-sm font-mono">
+																			{item.type === 'calculation' ? item.formula : item.value}
+																		</span>
+																	</div>
+																</TooltipTrigger>
+																<TooltipContent className="max-w-xs">
+																	<p className="text-sm font-mono">
+																		{item.type === 'calculation' ? item.formula : item.value}
+																	</p>
+																</TooltipContent>
+															</Tooltip>
+														</TableCell>
+														
+														{/* Description */}
+														<TableCell className="py-2">
+															<Tooltip>
+																<TooltipTrigger asChild>
+																	<div className="max-w-xs truncate cursor-help">
+																		<span className="text-sm text-muted-foreground">
+																			{item.description}
+																		</span>
+																	</div>
+																</TooltipTrigger>
+																<TooltipContent className="max-w-xs">
+																	<p className="text-sm">{item.description}</p>
+																</TooltipContent>
+															</Tooltip>
+														</TableCell>
+														
+														{/* Result/Test */}
+														<TableCell className="py-2">
+															{item.type === 'calculation' ? (
+																<div className="flex items-center gap-1">
+																	<span
+																		className={`text-sm font-mono ${
+																			item.status === "error"
+																				? "text-red-600"
+																				: "text-green-600"
+																		}`}
+																	>
+																		{typeof item.result === "number"
+																			? item.result.toLocaleString()
+																			: item.result}
+																	</span>
+																	<Badge
+																		className={`text-xs ${getStatusColor(item.status || 'pending')}`}
+																	>
+																		{item.status || 'pending'}
+																	</Badge>
+																</div>
+															) : (
+																<span className="text-sm font-mono">{item.test_value}</span>
+															)}
+														</TableCell>
+														
+														{/* Unit */}
+														<TableCell className="py-2">
+															<span className="text-sm text-muted-foreground">{item.units}</span>
+														</TableCell>
+														
+														{/* Details */}
+														<TableCell className="py-2">
+															{item.type === 'parameter' ? (
+																<div className="space-y-0.5">
+																	<Badge variant="outline" className="text-xs">
+																		{item.input_type}
+																	</Badge>
+																	<Badge variant="outline" className="text-xs">
+																		{item.provided_by}
+																	</Badge>
+																</div>
+															) : (
+																<Badge
+																	variant="outline"
+																	className={`text-xs ${
+																		item.output
+																			? "bg-green-50 text-green-700 border-green-200"
+																			: "bg-gray-50 text-gray-700 border-gray-200"
+																	}`}
+																>
+																	{item.output ? "Output" : "Internal"}
+																</Badge>
+															)}
+														</TableCell>
+													</TableRow>
+												))}
+											</TableBody>
+										</Table>
+									</TooltipProvider>
+								</div>
+							</div>
+						</CardContent>
+					</Card>
+				</div>
+			)}
 
 			{/* Action Cards */}
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-4">

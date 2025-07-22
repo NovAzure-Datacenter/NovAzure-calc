@@ -41,8 +41,6 @@ import { CreateSolutionParameters } from "./create-solution-parameters/create-so
 import { CalculationsConfiguration, mockCalculations } from "./create-solution-calculations/create-solution-calculations";
 import { CreateSolutionProgress } from "./create-solution-progress";
 import { CreateSolutionStep1 } from "./create-solution-step-1";
-import { CreateSolutionStep2 } from "./create-solution-step-2";
-import { CreateSolutionStep3 } from "./create-solution-step-3";
 import { CreateSolutionStep6 } from "./create-solution-step-6";
 import { SubmissionDialog } from "./submission-dialog";
 import { DraftDialog } from "./draft-dialog";
@@ -99,8 +97,9 @@ export function CreateSolutionMain() {
 	);
 	const [draftMessage, setDraftMessage] = useState("");
 	const [draftSolutionName, setDraftSolutionName] = useState("");
-	const [globalParameters, setGlobalParameters] = useState<Parameter[]>([]);
+	const [customCategories, setCustomCategories] = useState<any[]>([]);
 
+	// Form data state
 	const [formData, setFormData] = useState<CreateSolutionData>({
 		selectedIndustry: "",
 		selectedTechnology: "",
@@ -113,108 +112,111 @@ export function CreateSolutionMain() {
 		newVariantDescription: "",
 		newVariantIcon: "",
 		parameters: [],
-		calculations: [...mockCalculations],
+		calculations: mockCalculations,
 	});
 
-	// Custom categories state for parameters
-	const [customCategories, setCustomCategories] = useState<
-		Array<{ name: string; color: string }>
-	>([]);
-
-	// Load client data and available industries/technologies
+	// Load initial data
 	useEffect(() => {
 		async function loadData() {
-			if (!user?._id) return;
+			if (!user) return;
 
-			setIsLoading(true);
 			try {
-				// Get client data (now cached automatically)
-				const clientResult = await getClientByUserId(user._id);
-				if (clientResult.error) {
-					toast.error("Failed to load client data");
-					return;
-				}
-				setClientData(clientResult.client);
+			setIsLoading(true);
 
-				// Load global parameters from MongoDB
-				try {
-					const globalParams = await getAllGlobalParameters();
-					setGlobalParameters(globalParams);
-					// Update formData with loaded global parameters
-					setFormData((prev) => ({
-						...prev,
-						parameters: globalParams,
-					}));
-				} catch (error) {
-					console.error("Failed to load global parameters:", error);
-					toast.error("Failed to load global parameters");
-				}
+				// Load client data
+				const client = await getClientByUserId(user._id);
+				setClientData(client);
 
-				// Load available industries
+				// Load industries
 				setIsLoadingIndustries(true);
 				const industriesResult = await getIndustries();
-				if (industriesResult.error) {
-					toast.error("Failed to load industries");
-				} else {
+				if (industriesResult.success) {
 					setAvailableIndustries(industriesResult.industries || []);
 				}
 				setIsLoadingIndustries(false);
 
-				// Load available technologies
+				// Load technologies
 				setIsLoadingTechnologies(true);
 				const technologiesResult = await getTechnologies();
-				if (technologiesResult.error) {
-					toast.error("Failed to load technologies");
-				} else {
+				if (technologiesResult.success) {
 					setAvailableTechnologies(technologiesResult.technologies || []);
 				}
 				setIsLoadingTechnologies(false);
+
+				// Load global parameters
+				const globalParams = await getAllGlobalParameters();
+				setFormData(prev => ({
+					...prev,
+					parameters: globalParams,
+				}));
+
 			} catch (error) {
-				toast.error("Failed to load required data");
+				console.error("Error loading data:", error);
+				toast.error("Failed to load initial data");
 			} finally {
 				setIsLoading(false);
 			}
 		}
 
 		loadData();
-	}, [user?._id]);
+	}, [user]);
 
 	const handleNext = () => {
-		if (currentStep < 6) {
-			setCurrentStep(currentStep + 1);
-		}
+		setCurrentStep(prev => prev + 1);
 	};
 
 	const handlePrevious = () => {
-		if (currentStep > 1) {
-			setCurrentStep(currentStep - 1);
-		}
+		setCurrentStep(prev => prev - 1);
 	};
 
 	const handleIndustrySelect = (industryId: string) => {
-		setFormData((prev) => ({ ...prev, selectedIndustry: industryId }));
-		// Fetch solution types when both industry and technology are selected
-		if (industryId && formData.selectedTechnology) {
-			fetchSolutionTypes(industryId, formData.selectedTechnology);
-		}
+		setFormData(prev => ({ ...prev, selectedIndustry: industryId }));
+		// Reset technology and solution when industry changes
+		setFormData(prev => ({ 
+			...prev, 
+			selectedTechnology: "",
+			selectedSolutionId: "",
+			selectedSolutionVariantId: ""
+		}));
+		setAvailableSolutionTypes([]);
+		setAvailableSolutionVariants([]);
 	};
 
 	const handleTechnologySelect = (technologyId: string) => {
-		setFormData((prev) => ({ ...prev, selectedTechnology: technologyId }));
-		// Fetch solution types when both industry and technology are selected
+		setFormData(prev => ({ ...prev, selectedTechnology: technologyId }));
+		// Reset solution when technology changes
+		setFormData(prev => ({ 
+			...prev, 
+			selectedSolutionId: "",
+			selectedSolutionVariantId: ""
+		}));
+		setAvailableSolutionVariants([]);
+		
+		// Fetch solution types for the selected industry and technology
 		if (formData.selectedIndustry && technologyId) {
 			fetchSolutionTypes(formData.selectedIndustry, technologyId);
 		}
 	};
 
 	const handleSolutionTypeSelect = (solutionTypeId: string) => {
-		setFormData((prev) => ({
+		setFormData(prev => ({ 
 			...prev,
 			selectedSolutionId: solutionTypeId,
-			selectedSolutionVariantId: "", // Reset variant when type changes
+			selectedSolutionVariantId: ""
 		}));
 		setIsCreatingNewSolution(false);
 		setIsCreatingNewVariant(false);
+		
+		// Reset new solution/variant data
+		setFormData(prev => ({
+			...prev,
+			solutionName: "",
+			solutionDescription: "",
+			solutionIcon: "",
+			newVariantName: "",
+			newVariantDescription: "",
+			newVariantIcon: "",
+		}));
 
 		// Fetch solution variants for the selected solution type
 		if (solutionTypeId) {
@@ -223,187 +225,198 @@ export function CreateSolutionMain() {
 	};
 
 	const handleSolutionVariantSelect = (variantId: string) => {
-		setFormData((prev) => ({ ...prev, selectedSolutionVariantId: variantId }));
+		setFormData(prev => ({ ...prev, selectedSolutionVariantId: variantId }));
 		setIsCreatingNewVariant(false);
+		setFormData(prev => ({
+			...prev,
+			newVariantName: "",
+			newVariantDescription: "",
+			newVariantIcon: "",
+		}));
 	};
 
 	const handleCreateNewSolution = () => {
-		setFormData((prev) => ({
+		setIsCreatingNewSolution(true);
+		setFormData(prev => ({ 
 			...prev,
 			selectedSolutionId: "",
-			selectedSolutionVariantId: "",
+			selectedSolutionVariantId: ""
 		}));
-		setIsCreatingNewSolution(true);
-		setIsCreatingNewVariant(false);
 		setAvailableSolutionVariants([]);
 	};
 
 	const handleCreateNewVariant = () => {
-		setFormData((prev) => ({ ...prev, selectedSolutionVariantId: "" }));
 		setIsCreatingNewVariant(true);
+		setFormData(prev => ({ ...prev, selectedSolutionVariantId: "" }));
 	};
 
 	const handleNoVariantSelect = () => {
-		setFormData((prev) => ({ ...prev, selectedSolutionVariantId: "" }));
+		setFormData(prev => ({ ...prev, selectedSolutionVariantId: "" }));
 		setIsCreatingNewVariant(false);
+		setFormData(prev => ({
+			...prev,
+			newVariantName: "",
+			newVariantDescription: "",
+			newVariantIcon: "",
+		}));
+	};
+
+	const handleAddSolutionVariant = (newVariant: any) => {
+		setAvailableSolutionVariants(prev => [...prev, newVariant]);
 	};
 
 	const fetchSolutionTypes = async (
 		industryId: string,
 		technologyId: string
 	) => {
-		setIsLoadingSolutionTypes(true);
 		try {
+			setIsLoadingSolutionTypes(true);
 			const result = await getSolutionTypesByIndustryAndTechnology(
 				industryId,
 				technologyId
 			);
-			if (result.error) {
-				toast.error("Failed to load solution types");
-				setAvailableSolutionTypes([]);
-			} else {
+			if (result.success) {
 				setAvailableSolutionTypes(result.solutionTypes || []);
 			}
 		} catch (error) {
+			console.error("Error fetching solution types:", error);
 			toast.error("Failed to load solution types");
-			setAvailableSolutionTypes([]);
 		} finally {
 			setIsLoadingSolutionTypes(false);
 		}
 	};
 
 	const fetchSolutionVariants = async (solutionId: string) => {
-		setIsLoadingSolutionVariants(true);
 		try {
-			// Extract the actual MongoDB ObjectId from the solution type ID
-			// If it starts with "custom_", remove that prefix
-			const actualSolutionId = solutionId.startsWith("custom_")
-				? solutionId.replace("custom_", "")
-				: solutionId;
-
-			const result = await getSolutionVariantsBySolutionId(actualSolutionId);
-			if (result.error) {
-				toast.error("Failed to load solution variants");
-				setAvailableSolutionVariants([]);
-			} else {
+		setIsLoadingSolutionVariants(true);
+			const result = await getSolutionVariantsBySolutionId(solutionId);
+			if (result.success) {
 				setAvailableSolutionVariants(result.solutionVariants || []);
 			}
 		} catch (error) {
+			console.error("Error fetching solution variants:", error);
 			toast.error("Failed to load solution variants");
-			setAvailableSolutionVariants([]);
 		} finally {
 			setIsLoadingSolutionVariants(false);
 		}
 	};
 
 	const handleFormDataChange = (updates: Partial<CreateSolutionData>) => {
-		setFormData((prev) => ({ ...prev, ...updates }));
+		setFormData(prev => ({ ...prev, ...updates }));
 	};
 
 	const handleParametersChange = (parameters: Parameter[]) => {
-		setFormData((prev) => ({ ...prev, parameters }));
+		setFormData(prev => ({ ...prev, parameters }));
 	};
 
 	const handleCalculationsChange = (calculations: Calculation[]) => {
-		setFormData((prev) => ({ ...prev, calculations }));
+		setFormData(prev => ({ ...prev, calculations }));
 	};
 
 	const handleSaveAsDraft = async () => {
 		try {
 			setIsSubmitting(true);
 
-			// Validate form data
-			if (!formData.selectedIndustry || !formData.selectedTechnology) {
-				toast.error("Please fill in all required fields");
-				return;
-			}
-
-			// Check if user has selected a solution type (either default or custom)
-			const hasSelectedSolutionType =
-				formData.selectedSolutionId || isCreatingNewSolution;
-
-			if (!hasSelectedSolutionType) {
-				toast.error("Please select a solution type");
-				return;
-			}
-
-			// If creating custom solution type, require name and description
-			if (
-				isCreatingNewSolution &&
-				(!formData.solutionName || !formData.solutionDescription)
-			) {
-				toast.error(
-					"Please fill in solution name and description for custom solution type"
-				);
-				return;
-			}
-
-			// If creating a new variant, require name and description
-			if (isCreatingNewVariant) {
-				if (!formData.newVariantName || !formData.newVariantDescription) {
-					toast.error("Please fill in solution variant name and description");
-					return;
+			// Create solution first
+			let solutionId = formData.selectedSolutionId;
+			if (isCreatingNewSolution) {
+				const newSolution = await createSolution({
+					solution_name: formData.solutionName,
+					solution_description: formData.solutionDescription,
+					solution_icon: formData.solutionIcon,
+					applicable_industries: formData.selectedIndustry,
+					applicable_technologies: formData.selectedTechnology,
+					solution_variants: [],
+					parameters: formData.parameters,
+					calculations: formData.calculations,
+					status: "draft",
+					created_by: user?._id || "",
+					client_id: clientData.id,
+				});
+				if (newSolution.success) {
+					solutionId = newSolution.solution_id;
 				}
 			}
 
-			// Prepare data for clients_solutions collection
-			const clientSolutionData = {
-				client_id: clientData?.id || "",
-				solution_name: formData.solutionName || "Custom Solution",
-				solution_description:
-					formData.solutionDescription || "Custom solution description",
-				solution_icon: formData.solutionIcon || "Package",
-				industry_id: formData.selectedIndustry,
-				technology_id: formData.selectedTechnology,
-				selected_solution_id: formData.selectedSolutionId || undefined,
-				selected_solution_variant_id:
-					formData.selectedSolutionVariantId || undefined,
-				is_creating_new_solution: isCreatingNewSolution,
-				is_creating_new_variant: isCreatingNewVariant,
-				new_variant_name: formData.newVariantName || undefined,
-				new_variant_description: formData.newVariantDescription || undefined,
-				new_variant_icon: formData.newVariantIcon || undefined,
-				parameters: formData.parameters,
-				calculations: formData.calculations,
-				status: "draft" as const,
-				created_by: user?._id || "",
-			};
-
-			// Create solution in clients_solutions collection
-			const result = await createClientSolution(clientSolutionData);
-
-			if (result.error) {
-				setDraftStatus("error");
-				setDraftMessage(result.error);
-				setShowDraftDialog(true);
-				return;
+			// Create solution variant if needed
+			let variantId = formData.selectedSolutionVariantId;
+			if (isCreatingNewVariant) {
+				const newVariant = await createSolutionVariant({
+					name: formData.newVariantName,
+					description: formData.newVariantDescription,
+					icon: formData.newVariantIcon,
+					solution_id: solutionId,
+					created_by: user?._id || "",
+				});
+				if (newVariant.success) {
+					variantId = newVariant.solution_variant_id;
+				}
 			}
 
-			// Show success dialog
+			// Determine solution details based on what was selected/created
+			let finalSolutionName: string;
+			let finalSolutionDescription: string;
+			let finalSolutionIcon: string;
+
+			if (isCreatingNewSolution) {
+				// New solution created
+				finalSolutionName = formData.solutionName;
+				finalSolutionDescription = formData.solutionDescription;
+				finalSolutionIcon = formData.solutionIcon;
+			} else if (isCreatingNewVariant) {
+				// Existing solution with new variant
+				const selectedSolution = getSelectedSolutionType();
+				finalSolutionName = formData.newVariantName;
+				finalSolutionDescription = formData.newVariantDescription;
+				finalSolutionIcon = formData.newVariantIcon;
+			} else {
+				// Existing solution and variant
+				const selectedSolution = getSelectedSolutionType();
+				const selectedVariant = getSelectedSolutionVariant();
+				
+				if (selectedVariant) {
+					// Use variant information
+					finalSolutionName = selectedVariant.name;
+					finalSolutionDescription = selectedVariant.description || "";
+					finalSolutionIcon = selectedVariant.icon || "";
+				} else {
+					// Fallback to solution information
+					finalSolutionName = selectedSolution?.name || "Unknown Solution";
+					finalSolutionDescription = selectedSolution?.description || "";
+					finalSolutionIcon = selectedSolution?.icon || "";
+				}
+			}
+
+			// Create client solution
+			await createClientSolution({
+				client_id: clientData.id,
+				solution_name: finalSolutionName,
+				solution_description: finalSolutionDescription,
+				solution_icon: finalSolutionIcon,
+				industry_id: formData.selectedIndustry,
+				technology_id: formData.selectedTechnology,
+				selected_solution_id: solutionId,
+				selected_solution_variant_id: variantId || undefined,
+				is_creating_new_solution: isCreatingNewSolution,
+				is_creating_new_variant: isCreatingNewVariant,
+				new_variant_name: formData.newVariantName,
+				new_variant_description: formData.newVariantDescription,
+				new_variant_icon: formData.newVariantIcon,
+				parameters: formData.parameters,
+				calculations: formData.calculations,
+				status: "draft",
+				created_by: user?._id || "",
+			});
+
 			setDraftStatus("success");
 			setDraftMessage("Solution saved as draft successfully!");
-			setDraftSolutionName(formData.solutionName || "Custom Solution");
+			setDraftSolutionName(finalSolutionName);
 			setShowDraftDialog(true);
 
-			// Reset form and go back to step 1
-			setFormData({
-				selectedIndustry: "",
-				selectedTechnology: "",
-				selectedSolutionId: "",
-				selectedSolutionVariantId: "",
-				solutionName: "",
-				solutionDescription: "",
-				solutionIcon: "",
-				newVariantName: "",
-				newVariantDescription: "",
-				newVariantIcon: "",
-				parameters: [...globalParameters],
-				calculations: [...mockCalculations],
-			});
-			setCurrentStep(1);
 		} catch (error) {
+			console.error("Error saving draft:", error);
 			setDraftStatus("error");
-			setDraftMessage("Failed to save draft. Please try again.");
+			setDraftMessage("Failed to save solution as draft. Please try again.");
 			setShowDraftDialog(true);
 		} finally {
 			setIsSubmitting(false);
@@ -414,98 +427,106 @@ export function CreateSolutionMain() {
 		try {
 			setIsSubmitting(true);
 
-			// Validate form data
-			if (!formData.selectedIndustry || !formData.selectedTechnology) {
-				toast.error("Please fill in all required fields");
-				return;
-			}
-
-			// Check if user has selected a solution type (either default or custom)
-			const hasSelectedSolutionType =
-				formData.selectedSolutionId || isCreatingNewSolution;
-
-			if (!hasSelectedSolutionType) {
-				toast.error("Please select a solution type");
-				return;
-			}
-
-			// If creating custom solution type, require name and description
-			if (
-				isCreatingNewSolution &&
-				(!formData.solutionName || !formData.solutionDescription)
-			) {
-				toast.error(
-					"Please fill in solution name and description for custom solution type"
-				);
-				return;
-			}
-
-			// If creating a new variant, require name and description
-			if (isCreatingNewVariant) {
-				if (!formData.newVariantName || !formData.newVariantDescription) {
-					toast.error("Please fill in solution variant name and description");
-					return;
+			// Create solution first
+			let solutionId = formData.selectedSolutionId;
+			if (isCreatingNewSolution) {
+				const newSolution = await createSolution({
+					solution_name: formData.solutionName,
+					solution_description: formData.solutionDescription,
+					solution_icon: formData.solutionIcon,
+					applicable_industries: formData.selectedIndustry,
+					applicable_technologies: formData.selectedTechnology,
+					solution_variants: [],
+					parameters: formData.parameters,
+					calculations: formData.calculations,
+					status: "pending",
+					created_by: user?._id || "",
+					client_id: clientData.id,
+				});
+				if (newSolution.success) {
+					solutionId = newSolution.solution_id;
 				}
 			}
 
-			// Prepare data for clients_solutions collection
-			const clientSolutionData = {
-				client_id: clientData?.id || "",
-				solution_name: formData.solutionName || "Custom Solution",
-				solution_description:
-					formData.solutionDescription || "Custom solution description",
-				solution_icon: formData.solutionIcon || "Package",
-				industry_id: formData.selectedIndustry,
-				technology_id: formData.selectedTechnology,
-				selected_solution_id: formData.selectedSolutionId || undefined,
-				selected_solution_variant_id:
-					formData.selectedSolutionVariantId || undefined,
-				is_creating_new_solution: isCreatingNewSolution,
-				is_creating_new_variant: isCreatingNewVariant,
-				new_variant_name: formData.newVariantName || undefined,
-				new_variant_description: formData.newVariantDescription || undefined,
-				new_variant_icon: formData.newVariantIcon || undefined,
-				parameters: formData.parameters,
-				calculations: formData.calculations,
-				status: "pending" as const,
-				created_by: user?._id || "",
-			};
-
-			// Create solution in clients_solutions collection
-			const result = await createClientSolution(clientSolutionData);
-
-			if (result.error) {
-				setSubmissionStatus("error");
-				setSubmissionMessage(result.error);
-				setShowSubmissionDialog(true);
-				return;
+			// Create solution variant if needed
+			let variantId = formData.selectedSolutionVariantId;
+			if (isCreatingNewVariant) {
+				const newVariant = await createSolutionVariant({
+					name: formData.newVariantName,
+					description: formData.newVariantDescription,
+					icon: formData.newVariantIcon,
+					solution_id: solutionId,
+					created_by: user?._id || "",
+				});
+				if (newVariant.success) {
+					variantId = newVariant.solution_variant_id;
+				}
 			}
 
-			// Show success dialog
+			// Determine solution details based on what was selected/created
+			let finalSolutionName: string;
+			let finalSolutionDescription: string;
+			let finalSolutionIcon: string;
+
+			if (isCreatingNewSolution) {
+				// New solution created
+				finalSolutionName = formData.solutionName;
+				finalSolutionDescription = formData.solutionDescription;
+				finalSolutionIcon = formData.solutionIcon;
+			} else if (isCreatingNewVariant) {
+				// Existing solution with new variant
+				const selectedSolution = getSelectedSolutionType();
+				finalSolutionName = formData.newVariantName;
+				finalSolutionDescription = formData.newVariantDescription;
+				finalSolutionIcon = formData.newVariantIcon;
+			} else {
+				// Existing solution and variant
+				const selectedSolution = getSelectedSolutionType();
+				const selectedVariant = getSelectedSolutionVariant();
+				
+				if (selectedVariant) {
+					// Use variant information
+					finalSolutionName = selectedVariant.name;
+					finalSolutionDescription = selectedVariant.description || "";
+					finalSolutionIcon = selectedVariant.icon || "";
+				} else {
+					// Fallback to solution information
+					finalSolutionName = selectedSolution?.name || "Unknown Solution";
+					finalSolutionDescription = selectedSolution?.description || "";
+					finalSolutionIcon = selectedSolution?.icon || "";
+				}
+			}
+
+			// Create client solution
+			await createClientSolution({
+				client_id: clientData.id,
+				solution_name: finalSolutionName,
+				solution_description: finalSolutionDescription,
+				solution_icon: finalSolutionIcon,
+				industry_id: formData.selectedIndustry,
+				technology_id: formData.selectedTechnology,
+				selected_solution_id: solutionId,
+				selected_solution_variant_id: variantId || undefined,
+				is_creating_new_solution: isCreatingNewSolution,
+				is_creating_new_variant: isCreatingNewVariant,
+				new_variant_name: formData.newVariantName,
+				new_variant_description: formData.newVariantDescription,
+				new_variant_icon: formData.newVariantIcon,
+				parameters: formData.parameters,
+				calculations: formData.calculations,
+				status: "pending",
+				created_by: user?._id || "",
+			});
+
 			setSubmissionStatus("success");
 			setSubmissionMessage("Solution submitted for review successfully!");
-			setSubmittedSolutionName(formData.solutionName || "Custom Solution");
+			setSubmittedSolutionName(finalSolutionName);
 			setShowSubmissionDialog(true);
 
-			// Reset form and go back to step 1
-			setFormData({
-				selectedIndustry: "",
-				selectedTechnology: "",
-				selectedSolutionId: "",
-				selectedSolutionVariantId: "",
-				solutionName: "",
-				solutionDescription: "",
-				solutionIcon: "",
-				newVariantName: "",
-				newVariantDescription: "",
-				newVariantIcon: "",
-				parameters: [...globalParameters],
-				calculations: [...mockCalculations],
-			});
-			setCurrentStep(1);
 		} catch (error) {
+			console.error("Error submitting solution:", error);
 			setSubmissionStatus("error");
-			setSubmissionMessage("Failed to submit for review. Please try again.");
+			setSubmissionMessage("Failed to submit solution for review. Please try again.");
 			setShowSubmissionDialog(true);
 		} finally {
 			setIsSubmitting(false);
@@ -516,105 +537,100 @@ export function CreateSolutionMain() {
 		const industry = availableIndustries.find(
 			(i) => i.id === formData.selectedIndustry
 		);
-		return industry?.name || formData.selectedIndustry;
+		return industry?.name || "Not selected";
 	};
 
 	const getSelectedTechnologyName = () => {
 		const technology = availableTechnologies.find(
 			(t) => t.id === formData.selectedTechnology
 		);
-		return technology?.name || formData.selectedTechnology;
+		return technology?.name || "Not selected";
 	};
 
 	const getSelectedSolutionType = () => {
 		return availableSolutionTypes.find(
-			(st) => st.id === formData.selectedSolutionId
+			(s) => s.id === formData.selectedSolutionId
 		);
 	};
 
 	const getSelectedSolutionVariant = () => {
 		return availableSolutionVariants.find(
-			(sv) => sv.id === formData.selectedSolutionVariantId
+			(v) => v.id === formData.selectedSolutionVariantId
 		);
 	};
 
 	const getActualSolutionId = () => {
-		const selectedSolutionType = getSelectedSolutionType();
-		if (selectedSolutionType?.solutionId) {
-			return selectedSolutionType.solutionId;
+		if (isCreatingNewSolution) {
+			// This would be the ID of the newly created solution
+			// For now, we'll return the selected solution ID
+			return formData.selectedSolutionId;
 		}
-		return null;
+		return formData.selectedSolutionId;
 	};
-
-	if (isLoading) {
-		return <Loading />;
-	}
 
 	const getStepTitle = () => {
 		switch (currentStep) {
 			case 1:
-				return "Select Industry";
+				return "Select Industry, Technology & Solution";
 			case 2:
-				return "Select Technology";
+				return "Configure Parameters";
 			case 3:
-				return "Solution Details";
+				return "Configure Calculations";
 			case 4:
-				return "Parameters Configuration";
-			case 5:
-				return "Calculations Configuration";
-			case 6:
-				return "Review & Submit";
+				return "Review and Submit";
 			default:
-				return "";
+				return "Create Solution";
 		}
 	};
 
 	const getStepDescription = () => {
 		switch (currentStep) {
 			case 1:
-				return "Choose the industry that best fits your solution";
+				return "Choose your industry, technology, and solution type to get started";
 			case 2:
-				return "Select the technology category for your solution";
+				return "Configure the parameters that will be used in your solution calculations";
 			case 3:
-				return "Define the type, variant, and details of your solution";
+				return "Set up calculations and formulas for your solution";
 			case 4:
-				return "Configure system parameters and override values as needed";
-			case 5:
-				return "Set up calculation formulas and view results";
-			case 6:
-				return "Review your solution and choose to save as draft or submit for review";
+				return "Review your solution configuration and submit for approval";
 			default:
-				return "";
+				return "Follow the steps to create your solution";
 		}
 	};
 
 	const isNextDisabled = () => {
 		switch (currentStep) {
 			case 1:
-				return !formData.selectedIndustry;
-			case 2:
-				return !formData.selectedTechnology;
-			case 3:
-				// Check if user has selected a solution type (either existing or creating new)
-				const hasSelectedSolutionType =
-					formData.selectedSolutionId || isCreatingNewSolution;
+				// Check if industry, technology, and solution are selected
+				const hasIndustry = !!formData.selectedIndustry;
+				const hasTechnology = !!formData.selectedTechnology;
+				const hasSolution = formData.selectedSolutionId || isCreatingNewSolution;
+				const hasSolutionVariant = !!formData.selectedSolutionVariantId || isCreatingNewVariant;
 
 				// If creating new solution, require name and description
 				if (isCreatingNewSolution) {
-					return !formData.solutionName || !formData.solutionDescription;
+					return !hasIndustry || !hasTechnology || !formData.solutionName || !formData.solutionDescription || !hasSolutionVariant;
 				}
 
-				// If using existing solution type, just require the type to be selected
-				return !hasSelectedSolutionType;
+				// If using existing solution type, require solution variant as well
+				return !hasIndustry || !hasTechnology || !hasSolution || !hasSolutionVariant;
+			case 2:
+				return formData.parameters.length === 0;
+			case 3:
+				return formData.calculations.length === 0;
 			default:
 				return false;
 		}
 	};
 
+	if (isLoading) {
+		return <Loading />;
+	}
+
 	return (
-		<div className="mx-auto p-4 space-y-4">
+		<div className="mx-auto p-4 space-y-4 h-screen flex flex-col pb-8">
 			{/* Header */}
-			<div className="text-center space-y-1">
+			<div className="text-center space-y-1 flex-shrink-0">
 				<h1 className="text-2xl font-bold">Create New Solution</h1>
 				<p className="text-sm text-muted-foreground">
 					Follow the steps below to create a new solution for your organization
@@ -622,74 +638,59 @@ export function CreateSolutionMain() {
 			</div>
 
 			{/* Progress Steps */}
+			<div className="flex-shrink-0">
 			<CreateSolutionProgress currentStep={currentStep} />
+			</div>
 
 			{/* Step Content */}
-			<Card>
-				<CardHeader className="pb-4">
+			<Card className="flex flex-col min-h-0 max-h-[calc(100vh-200px)]">
+				<CardHeader className="pb-4 flex-shrink-0">
 					<CardTitle className="text-lg">{getStepTitle()}</CardTitle>
 					<CardDescription className="text-sm ">
 						{getStepDescription()}
 					</CardDescription>
 				</CardHeader>
-				<CardContent className="space-y-4">
-					{/* Step 1: Industry Selection */}
+				<CardContent className="flex-1 overflow-y-auto space-y-4">
+					{/* Step 1: Industry, Technology & Solution Selection */}
 					{currentStep === 1 && (
 						<CreateSolutionStep1
 							clientData={clientData}
 							availableIndustries={availableIndustries}
-							isLoadingIndustries={isLoadingIndustries}
-							selectedIndustry={formData.selectedIndustry}
-							onIndustrySelect={handleIndustrySelect}
-						/>
-					)}
-
-					{/* Step 2: Technology Selection */}
-					{currentStep === 2 && (
-						<CreateSolutionStep2
-							clientData={clientData}
 							availableTechnologies={availableTechnologies}
+							availableSolutionTypes={availableSolutionTypes}
+							availableSolutionVariants={availableSolutionVariants}
+							isLoadingIndustries={isLoadingIndustries}
 							isLoadingTechnologies={isLoadingTechnologies}
+							isLoadingSolutionTypes={isLoadingSolutionTypes}
+							isLoadingSolutionVariants={isLoadingSolutionVariants}
+							selectedIndustry={formData.selectedIndustry}
 							selectedTechnology={formData.selectedTechnology}
-							selectedIndustryId={formData.selectedIndustry}
+							selectedSolutionId={formData.selectedSolutionId}
+							selectedSolutionVariantId={formData.selectedSolutionVariantId}
+							onIndustrySelect={handleIndustrySelect}
 							onTechnologySelect={handleTechnologySelect}
-						/>
-					)}
-
-					{/* Step 3: Solution Type, Variant, and Details */}
-					{currentStep === 3 && (
-						<CreateSolutionStep3
+							onSolutionTypeSelect={handleSolutionTypeSelect}
+							onSolutionVariantSelect={handleSolutionVariantSelect}
+							onFormDataChange={handleFormDataChange}
+							onCreateNewSolution={handleCreateNewSolution}
+							onCreateNewVariant={handleCreateNewVariant}
+							onNoVariantSelect={handleNoVariantSelect}
+							onAddSolutionVariant={handleAddSolutionVariant}
 							formData={{
 								solutionName: formData.solutionName,
 								solutionDescription: formData.solutionDescription,
 								solutionIcon: formData.solutionIcon,
-								selectedSolutionId: formData.selectedSolutionId,
-								selectedSolutionVariantId: formData.selectedSolutionVariantId,
 								newVariantName: formData.newVariantName,
 								newVariantDescription: formData.newVariantDescription,
 								newVariantIcon: formData.newVariantIcon,
 							}}
-							availableSolutionTypes={availableSolutionTypes}
-							isLoadingSolutionTypes={isLoadingSolutionTypes}
-							availableSolutionVariants={availableSolutionVariants}
-							isLoadingSolutionVariants={isLoadingSolutionVariants}
 							isCreatingNewSolution={isCreatingNewSolution}
 							isCreatingNewVariant={isCreatingNewVariant}
-							onFormDataChange={handleFormDataChange}
-							onSolutionTypeSelect={handleSolutionTypeSelect}
-							onSolutionVariantSelect={handleSolutionVariantSelect}
-							onCreateNewSolution={handleCreateNewSolution}
-							onCreateNewVariant={handleCreateNewVariant}
-							onNoVariantSelect={handleNoVariantSelect}
-							getSelectedIndustryName={getSelectedIndustryName}
-							getSelectedTechnologyName={getSelectedTechnologyName}
-							getSelectedSolutionType={getSelectedSolutionType}
-							getSelectedSolutionVariant={getSelectedSolutionVariant}
 						/>
 					)}
 
-					{/* Step 4: Parameters Configuration */}
-					{currentStep === 4 && (
+					{/* Step 2: Parameters Configuration */}
+					{currentStep === 2 && (
 						<CreateSolutionParameters
 							parameters={formData.parameters}
 							onParametersChange={handleParametersChange}
@@ -698,8 +699,8 @@ export function CreateSolutionMain() {
 						/>
 					)}
 
-					{/* Step 5: Calculations Configuration */}
-					{currentStep === 5 && (
+					{/* Step 3: Calculations Configuration */}
+					{currentStep === 3 && (
 						<CalculationsConfiguration
 							calculations={formData.calculations}
 							onCalculationsChange={handleCalculationsChange}
@@ -707,8 +708,8 @@ export function CreateSolutionMain() {
 						/>
 					)}
 
-					{/* Step 6: Review and Submit */}
-					{currentStep === 6 && (
+					{/* Step 4: Review and Submit */}
+					{currentStep === 4 && (
 						<CreateSolutionStep6
 							formData={{
 								solutionName: formData.solutionName,
@@ -733,7 +734,7 @@ export function CreateSolutionMain() {
 					)}
 
 					{/* Navigation Buttons */}
-					<div className="flex justify-between pt-4">
+					<div className="flex justify-between pt-4 flex-shrink-0">
 						<Button
 							variant="outline"
 							onClick={handlePrevious}
@@ -745,7 +746,7 @@ export function CreateSolutionMain() {
 							Previous
 						</Button>
 
-						{currentStep < 6 ? (
+						{currentStep < 4 ? (
 							<Button
 								onClick={handleNext}
 								disabled={isNextDisabled()}
