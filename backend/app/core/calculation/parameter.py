@@ -12,6 +12,7 @@ class Parameter:
         self.unit = data.get('unit', '')
         self.value = data.get('value') # For static parameters only (GLOBAL/COMPANY)
         self.formula = data.get('formula') # For CALCULATION parameters only
+        self.dependencies = []
         
         # Runtime states
         self.ast = None
@@ -28,8 +29,6 @@ class Parameter:
             if not self.formula:
                 raise ValueError(f"{self.type} parameter {self.name} requires formula")
             self.dependencies = self.extract_dependencies()    
-        else: 
-            self.dependencies = []
         
     def extract_dependencies(self) -> List[str]:
         if not self.formula:
@@ -56,10 +55,13 @@ class Parameter:
         return self.result
     
     def evaluate_formula(self, context: dict[str, float])-> float:
-        ast_tree, _ = FormulaParser().parse_formula_to_ast(self.formula)
+        if not self.formula:
+            raise ValueError(f"No formula available for parameter {self.name}")
+            
+        self.ast, variables = FormulaParser().parse_formula_to_ast(self.formula)
 
         def evaluate_ast(node)-> float:
-            if isinstance(node, (int, float)):
+            if isinstance(node, float):
                 return node
             if isinstance(node, str):
                 if node in context:
@@ -67,20 +69,28 @@ class Parameter:
                 raise ValueError(f"Variable '{node}' not found in context.")
             if isinstance(node, dict):
                 op_type = node["type"]
-                left = evaluate_ast(node["left"]) if "left" in node else None
-                right = evaluate_ast(node["right"]) if "right" in node else None
                 if op_type == "Add":
+                    left = evaluate_ast(node["left"])
+                    right = evaluate_ast(node["right"])
                     return left + right
                 elif op_type == "Subtract":
+                    left = evaluate_ast(node["left"])
+                    right = evaluate_ast(node["right"])
                     return left - right
                 elif op_type == "Multiply":
+                    left = evaluate_ast(node["left"])
+                    right = evaluate_ast(node["right"])
                     return left * right
                 elif op_type == "Divide":
+                    left = evaluate_ast(node["left"])
+                    right = evaluate_ast(node["right"])
                     return left / right
                 elif op_type == "Power":
+                    left = evaluate_ast(node["left"])
+                    right = evaluate_ast(node["right"])
                     return left ** right
                 elif op_type.startswith("Unary"):
                     return -evaluate_ast(node["operand"])
             raise ValueError(f"Unsupported AST node structure: {node}")
 
-        return evaluate_ast(ast_tree)
+        return evaluate_ast(self.ast)
