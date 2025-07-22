@@ -1,4 +1,3 @@
-
 import ast
 from typing import Any, Dict, Set, Tuple, Union, Optional
 
@@ -7,23 +6,23 @@ class FormulaParser:
     def __init__(self):
         self.ops = {
             ast.Add: "Add",
-            ast.Sub: "Subtract", 
+            ast.Sub: "Subtract",
             ast.Mult: "Multiply",
             ast.Div: "Divide",
-            ast.Pow: "Power"
+            ast.Pow: "Power",
         }
-    
+
     def build_ast(self, node: ast.AST) -> Union[Dict[str, Any], str, int, float]:
         if isinstance(node, ast.BinOp):
             return {
                 "type": self.ops[type(node.op)],
                 "left": self.build_ast(node.left),
-                "right": self.build_ast(node.right)
+                "right": self.build_ast(node.right),
             }
         elif isinstance(node, ast.UnaryOp):
             return {
                 "type": f"Unary_{type(node.op).__name__}",
-                "operand": self.build_ast(node.operand)
+                "operand": self.build_ast(node.operand),
             }
         elif isinstance(node, ast.Constant) and isinstance(node.value, (float, int)):
             return node.value
@@ -35,8 +34,10 @@ class FormulaParser:
             return self.build_ast(node.left)
         else:
             raise ValueError(f"Unsupported node type: {type(node)}")
-    
-    def extract_variables(self, node: ast.AST, vars_set: Optional[Set[str]] = None) -> Set[str]:
+
+    def extract_variables(
+        self, node: ast.AST, vars_set: Optional[Set[str]] = None
+    ) -> Set[str]:
         if vars_set is None:
             vars_set = set()
 
@@ -59,16 +60,18 @@ class FormulaParser:
                 self.extract_variables(comparator, vars_set)
 
         return vars_set
-    
-    def parse_formula_to_ast(self, formula: str) -> Tuple[Union[Dict[str, Any], str, int, float], Set[str]]:
+
+    def parse_formula_to_ast(
+        self, formula: str
+    ) -> Tuple[Union[Dict[str, Any], str, int, float], Set[str]]:
         try:
             # Parse the formula string into a Python AST
-            expr_ast = ast.parse(formula, mode='eval')
+            expr_ast = ast.parse(formula, mode="eval")
             root_node = expr_ast.body
 
             # Convert to custom AST representation
             custom_ast = self.build_ast(root_node)
-            
+
             # Extract variable dependencies
             dependencies = self.extract_variables(root_node)
 
@@ -76,6 +79,9 @@ class FormulaParser:
         except Exception as e:
             raise ValueError(f"Error parsing formula: {e}")
 
-def parse_formula_to_ast(formula: str) -> Tuple[Union[Dict[str, Any], str, int, float], Set[str]]:
+
+def parse_formula_to_ast(
+    formula: str,
+) -> Tuple[Union[Dict[str, Any], str, int, float], Set[str]]:
     parser = FormulaParser()
     return parser.parse_formula_to_ast(formula)
