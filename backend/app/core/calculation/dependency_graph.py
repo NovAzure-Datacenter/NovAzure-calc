@@ -18,27 +18,27 @@ class DependencyGraph:
             else:
                 graph[param.name] = []
         return graph
-        
+
     def topological_sort(self) -> List[str]:
         in_degree = {node: 0 for node in self.graph}
         for node, deps in self.graph.items():
             for dep in deps:
                 in_degree[node] += 1
-        
+
         queue = deque([node for node, degree in in_degree.items() if degree == 0])
         sorted_result = []
-        
+
         while queue:
             node = queue.popleft()
             sorted_result.append(node)
-            
+
             for dependant in self.graph:
                 if node in self.graph[dependant]:
                     in_degree[dependant] -= 1
                     if in_degree[dependant] == 0:
                         queue.append(dependant)
-        
+
         if len(sorted_result) != len(self.graph):
             raise ValueError("Cycle detected in parameter dependencies")
-        
-        return sorted_result 
+
+        return sorted_result
