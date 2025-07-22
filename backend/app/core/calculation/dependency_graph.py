@@ -6,7 +6,7 @@ from app.core.calculation.parameter import Parameter
 
 
 class DependencyGraph:
-    def __init__(self, parameters: list[Parameter]):
+    def __init__(self, parameters: List[Parameter]):
         self.parameters = parameters
         self.graph = self.build_graph()
 
