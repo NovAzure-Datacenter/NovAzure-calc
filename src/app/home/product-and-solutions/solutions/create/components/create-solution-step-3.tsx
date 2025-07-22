@@ -10,7 +10,7 @@ import {
 	solutionTypes,
 	type SolutionType,
 	type SolutionVariant,
-} from "../../../mock-data";
+} from "../../mock-data";
 import {
 	Dialog,
 	DialogContent,

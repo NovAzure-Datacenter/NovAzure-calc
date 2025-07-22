@@ -17,17 +17,6 @@ export interface Parameter {
 	};
 }
 
-export interface LegacyParameter {
-	id: string;
-	level: string;
-	name: string;
-	defaultValue: number;
-	overrideValue: number | null;
-	units: string;
-	description: string;
-	category: "performance" | "cost" | "environmental" | "operational";
-}
-
 export interface Calculation {
 	id: string;
 	name: string;
@@ -36,7 +25,12 @@ export interface Calculation {
 	units: string;
 	description: string;
 	status: "valid" | "error" | "pending";
-	category: "financial" | "performance" | "efficiency" | "operational";
+	category: {
+		name: string;
+		color: string;
+	};
+	output: boolean;
+	level: number;
 }
 
 export interface Product {

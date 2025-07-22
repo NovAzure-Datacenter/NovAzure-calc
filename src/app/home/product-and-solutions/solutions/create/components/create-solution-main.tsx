@@ -31,7 +31,6 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import {
-	defaultCalculations,
 	solutionTypes,
 	type Calculation,
 	type SolutionType,
@@ -39,7 +38,7 @@ import {
 } from "../../mock-data";
 import { Parameter } from "../../../types";
 import { CreateSolutionParameters } from "./create-solution-parameters/create-solution-parameters";
-import { CalculationsConfiguration } from "./create-solution-calculations";
+import { CalculationsConfiguration, mockCalculations } from "./create-solution-calculations/create-solution-calculations";
 import { CreateSolutionProgress } from "./create-solution-progress";
 import { CreateSolutionStep1 } from "./create-solution-step-1";
 import { CreateSolutionStep2 } from "./create-solution-step-2";
@@ -114,7 +113,7 @@ export function CreateSolutionMain() {
 		newVariantDescription: "",
 		newVariantIcon: "",
 		parameters: [],
-		calculations: [...defaultCalculations],
+		calculations: [...mockCalculations],
 	});
 
 	// Custom categories state for parameters
@@ -399,7 +398,7 @@ export function CreateSolutionMain() {
 				newVariantDescription: "",
 				newVariantIcon: "",
 				parameters: [...globalParameters],
-				calculations: [...defaultCalculations],
+				calculations: [...mockCalculations],
 			});
 			setCurrentStep(1);
 		} catch (error) {
@@ -501,7 +500,7 @@ export function CreateSolutionMain() {
 				newVariantDescription: "",
 				newVariantIcon: "",
 				parameters: [...globalParameters],
-				calculations: [...defaultCalculations],
+				calculations: [...mockCalculations],
 			});
 			setCurrentStep(1);
 		} catch (error) {
