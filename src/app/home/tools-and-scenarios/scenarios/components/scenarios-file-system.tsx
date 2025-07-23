@@ -312,7 +312,7 @@ export function ScenariosFileSystem({
 	function handleCreateProject() {
 		// TODO: Implement project creation logic
 		// This could open a modal, navigate to a form, or trigger an API call
-		console.log("Create new project clicked");
+		//console.log("Create new project clicked");
 		toast.info("Project creation feature coming soon!");
 	}
 

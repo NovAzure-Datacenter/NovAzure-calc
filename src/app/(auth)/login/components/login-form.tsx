@@ -54,7 +54,7 @@ export function LoginForm({
 				});
 				router.push(callbackUrl);
 			} else {
-				console.log("Unexpected result:", result);
+				//console.log("Unexpected result:", result);
 				toast.error("Login Failed", {
 					description: "Authentication failed. Please try again.",
 				});

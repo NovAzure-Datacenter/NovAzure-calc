@@ -151,7 +151,7 @@ export default function CustomSidebar({
 			setIsClientLoading(true);
 			if (user?.client_id) {
 				const result = await getClientDetails(user.client_id);
-				console.log(user.client_id);
+				//console.log(user.client_id);
 				if (result.success && result.client) {
 					setClientDetails({
 						name: result.client.name,

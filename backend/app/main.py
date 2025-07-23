@@ -1,66 +1,39 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .core.config import settings
-from .database.connection import db_manager, get_db
-from .routes.calculations import router as calculations_router
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from .api.v1.calculate import router as calculation_router
 
-# Create the FastAPI app instance
 app = FastAPI(
-    title=settings.APP_TITLE,
-    version=settings.APP_VERSION,
-    description=settings.APP_DESCRIPTION,
+    title="Parameter Calculator API",
+    description="A calculation engine for parameter dependencies",
+    version="0.1.0",
 )
-
-# Configure CORS
-origins = [
-    settings.CLIENT_ORIGIN_URL,
-    "http://localhost:3000",
-    "http://localhost:3001",
-    "http://127.0.0.1:3000",
-    "http://127.0.0.1:3001",
-]
-# You can add more origins from a comma-separated string in your .env if needed
-# origins.extend(settings.ADDITIONAL_ORIGINS.split(','))
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Include routers
-app.include_router(calculations_router)
+app.include_router(calculation_router, prefix="/api/v1", tags=["calculations"])
 
 
-@app.on_event("startup")
-async def startup_event():
-    db_manager.connect()
+async def root():
+    return {"message": "Parameter Calculator API is running"}
 
 
-@app.on_event("shutdown")
-async def shutdown_event():
-    db_manager.disconnect()
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy"}
 
 
-@app.get("/collections", tags=["Database Test"])
-async def list_collections(db: AsyncIOMotorDatabase = Depends(get_db)):
-    """
-    A temporary endpoint to list all collections (tables) in the database
-    to verify the connection is working.
-    """
-    try:
-        collection_names = await db.list_collection_names()
-        if not collection_names:
-            return {"message": "Database is connected, but it has no collections yet."}
-        return {"collections": collection_names}
-    except Exception as e:
-        # This will catch authentication errors etc.
-        return {"error": f"An error occurred: {e}"}
+if __name__ == "__main__":
+    import uvicorn
 
-
-@app.get("/", tags=["Root"])
-async def read_root():
-    return {"message": f"Welcome to the {settings.APP_TITLE}!"}
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True,  # Enable auto-reload during development
+    )

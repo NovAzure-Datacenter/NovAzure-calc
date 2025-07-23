@@ -73,7 +73,7 @@ export async function getSolutionVariantsBySolutionId(solutionId: string) {
 			.find({ solution_id: new ObjectId(solutionId) })
 			.toArray();
 
-		console.log(`Found ${solutionVariants.length} variants for solution ${solutionId}`);
+		//console.log(`Found ${solutionVariants.length} variants for solution ${solutionId}`);
 
 		return {
 			success: true,

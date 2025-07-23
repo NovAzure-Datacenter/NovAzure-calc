@@ -51,7 +51,7 @@ export function useUser() {
 	const updateUser = async (userData: UserData | null) => {
 		// With NextAuth, user data is managed server-side
 		// This function is kept for compatibility but doesn't modify localStorage
-		console.log("User data updated:", userData);
+		//console.log("User data updated:", userData);
 	};
 
 	const logout = async () => {
