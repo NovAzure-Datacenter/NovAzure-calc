@@ -216,7 +216,7 @@ export default function LeadsList({
 		};
 	}, [openDropdown]);
 
-	console.log(leads);
+	//console.log(leads);
 	return (
 		<div className="h-[calc(100vh-200px)] overflow-y-auto">
 			<Card className="rounded-md border p-2">

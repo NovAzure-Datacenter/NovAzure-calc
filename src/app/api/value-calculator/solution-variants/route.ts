@@ -29,7 +29,7 @@ export async function GET(request: Request) {
     }
 
     const solutionName = solutionDoc.solution_name || '';
-    console.log('Solution name:', solutionName);
+    //console.log('Solution name:', solutionName);
 
     // Find solution variants directly by solution_id field
     const svCollection = await getSolutionVariantsCollection();

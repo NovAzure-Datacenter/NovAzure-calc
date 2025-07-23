@@ -112,20 +112,20 @@ export async function getProjectsByClientId(
 			.sort({ created_at: -1 }) // Sort by newest first
 			.toArray();
 
-		console.log(
-			"Projects:",
-			projects,
-			"clientId:",
-			clientId,
-			"clientId type:",
-			typeof clientId
-		);
-		console.log(
-			"First project client_id:",
-			projects[0]?.client_id,
-			"type:",
-			typeof projects[0]?.client_id
-		);
+		// //console.log(
+		// 	"Projects:",
+		// 	projects,
+		// 	"clientId:",
+		// 	clientId,
+		// 	"clientId type:",
+		// 	typeof clientId
+		// );
+		// //console.log(
+		// 	"First project client_id:",
+		// 	projects[0]?.client_id,
+		// 	"type:",
+		// 	typeof projects[0]?.client_id
+		// );
 		// Transform the data to match our interface
 		const transformedProjects: ClientProjectData[] = projects.map(
 			(project) => ({
@@ -286,19 +286,19 @@ export async function addScenarioToProject(
 	error?: string;
 }> {
 	try {
-		console.log(
-			"Adding scenario to project - Project ID:",
-			projectId,
-			"Scenario ID:",
-			scenarioId,
-			"Project ID type:",
-			typeof projectId
-		);
+		// //console.log(
+		// 	"Adding scenario to project - Project ID:",
+		// 	projectId,
+		// 	"Scenario ID:",
+		// 	scenarioId,
+		// 	"Project ID type:",
+		// 	typeof projectId
+		// );
 
 		// Get current user data to verify permissions
 		const userData = await getUserData(userId);
 		if (!userData) {
-			console.log("User not authenticated");
+			//console.log("User not authenticated");
 			return { success: false, error: "User not authenticated" };
 		}
 
@@ -306,7 +306,7 @@ export async function addScenarioToProject(
 
 		// Validate ObjectId format
 		if (!ObjectId.isValid(projectId)) {
-			console.log("Invalid ObjectId format for projectId:", projectId);
+			//console.log("Invalid ObjectId format for projectId:", projectId);
 			return { success: false, error: "Invalid project ID format" };
 		}
 
@@ -314,10 +314,10 @@ export async function addScenarioToProject(
 		const currentProject = await projectsCollection.findOne({
 			_id: new ObjectId(projectId),
 		});
-		console.log("Current project before update:", currentProject);
+		//console.log("Current project before update:", currentProject);
 
 		if (!currentProject) {
-			console.log("Project not found in database");
+			//console.log("Project not found in database");
 			return { success: false, error: "Project not found" };
 		}
 
@@ -332,15 +332,15 @@ export async function addScenarioToProject(
 			{ returnDocument: "after" }
 		);
 
-		console.log("MongoDB update result:", result);
+		//console.log("MongoDB update result:", result);
 
 		if (!result || !result.value) {
-			console.log("Project not found or access denied");
+			//console.log("Project not found or access denied");
 			return { success: false, error: "Project not found or access denied" };
 		}
 
 		const projectDoc = result.value;
-		console.log("Updated project document:", projectDoc);
+		//console.log("Updated project document:", projectDoc);
 
 		const updatedProject: ClientProjectData = {
 			id: projectDoc._id.toString(),
@@ -370,7 +370,7 @@ export async function addScenarioToProject(
 			priority: projectDoc.priority || "medium",
 		};
 
-		console.log("Transformed updated project:", updatedProject);
+		//console.log("Transformed updated project:", updatedProject);
 
 		return {
 			success: true,
