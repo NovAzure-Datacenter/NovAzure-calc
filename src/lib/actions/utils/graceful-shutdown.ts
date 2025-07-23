@@ -2,17 +2,17 @@ import { closeConnection } from "../../mongoDb/dbConnect";
 
 // Graceful shutdown handler for the application
 export async function gracefulShutdown(signal: string) {
-	console.log(`\nReceived ${signal}. Starting graceful shutdown...`);
+	//console.log(`\nReceived ${signal}. Starting graceful shutdown...`);
 	
 	try {
 		// Close MongoDB connection
 		await closeConnection();
-		console.log('MongoDB connection closed successfully.');
+		//console.log('MongoDB connection closed successfully.');
 		
 		// Add any other cleanup tasks here
 		// For example: close other database connections, file handles, etc.
 		
-		console.log('Graceful shutdown completed.');
+		//console.log('Graceful shutdown completed.');
 		process.exit(0);
 	} catch (error) {
 		console.error('Error during graceful shutdown:', error);

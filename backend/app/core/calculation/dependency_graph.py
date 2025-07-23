@@ -2,7 +2,7 @@
 from typing import Dict, List
 from collections import deque
 
-from app.core.calculation.parameter import Parameter
+from .parameter import Parameter
 
 
 class DependencyGraph:

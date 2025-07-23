@@ -40,6 +40,7 @@ function convertToParameter(doc: any): Parameter {
 			name: doc.category?.name || "Global",
 			color: doc.category?.color || "blue",
 		},
+		is_modifiable: doc.is_modifiable || false,
 	};
 }
 
@@ -56,6 +57,7 @@ function convertToMongoDoc(parameter: Omit<Parameter, "id">): any {
 		output: parameter.output,
 		level: parameter.level,
 		category: parameter.category,
+		is_modifiable: parameter.is_modifiable,
 	};
 }
 

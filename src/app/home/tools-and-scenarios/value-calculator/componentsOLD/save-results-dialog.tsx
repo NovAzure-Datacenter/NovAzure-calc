@@ -197,10 +197,10 @@ export function SaveResultsDialog({
 			return;
 		}
 
-		console.log("Saving to existing project:", selectedProject?.id);
-		console.log("Selected project details:", selectedProject);
-		console.log("Project ID type:", typeof selectedProject?.id);
-		console.log("Project ID length:", selectedProject?.id?.length);
+		//console.log("Saving to existing project:", selectedProject?.id);
+		//console.log("Selected project details:", selectedProject);
+		//console.log("Project ID type:", typeof selectedProject?.id);
+		//console.log("Project ID length:", selectedProject?.id?.length);
 
 		try {
 			if (isComparisonMode) {
@@ -222,7 +222,7 @@ export function SaveResultsDialog({
 		if (!user?._id || !calculationResult) return;
 
 		try {
-			console.log("Creating scenario for project - Project ID:", projectId, "User ID:", user._id);
+			//console.log("Creating scenario for project - Project ID:", projectId, "User ID:", user._id);
 
 			if (isComparisonMode) {
 				// Create two scenarios for comparison and link them together
@@ -238,7 +238,7 @@ export function SaveResultsDialog({
 					user_id: user._id,
 				};
 
-				console.log("Creating comparison scenarios - Scenario 1:", scenario1Data);
+				//console.log("Creating comparison scenarios - Scenario 1:", scenario1Data);
 
 				// Create first scenario
 				const scenario1Result = await createScenario(user._id, scenario1Data);
@@ -259,7 +259,7 @@ export function SaveResultsDialog({
 					user_id: user._id,
 				};
 
-				console.log("Creating second scenario with reference to first:", scenario2Data);
+				//console.log("Creating second scenario with reference to first:", scenario2Data);
 				const scenario2Result = await createScenario(user._id, scenario2Data);
 				if (!scenario2Result.success || !scenario2Result.scenario) {
 					throw new Error("Failed to create second scenario");
@@ -269,7 +269,7 @@ export function SaveResultsDialog({
 				// Note: This would require an update function for scenarios
 				// For now, we'll create the first scenario with the reference already included
 				// This is a simplified approach - in a real implementation, you'd want to update the first scenario
-				console.log("Both scenarios created successfully with cross-references");
+				//console.log("Both scenarios created successfully with cross-references");
 
 				// Add both scenarios to project
 				await Promise.all([
@@ -290,30 +290,30 @@ export function SaveResultsDialog({
 					user_id: user._id,
 				};
 
-				console.log("Scenario data to create:", scenarioData);
+				//console.log("Scenario data to create:", scenarioData);
 
 				const scenarioResult = await createScenario(user._id, scenarioData);
 				
 
 				if (scenarioResult.success && scenarioResult.scenario) {
-					console.log(
-						"Scenario created successfully, ID:",
-						scenarioResult.scenario.id
-					);
+					// //console.log(
+					// 	"Scenario created successfully, ID:",
+					// 	scenarioResult.scenario.id
+					// );
 
 					// Add scenario to project
-					console.log("Adding scenario to project - Project ID:", projectId, "Scenario ID:", scenarioResult.scenario.id);
+					//console.log("Adding scenario to project - Project ID:", projectId, "Scenario ID:", scenarioResult.scenario.id);
 					const addResult = await addScenarioToProject(
 						user._id,
 						projectId,
 						scenarioResult.scenario.id
 					);
-					console.log("Add scenario to project result:", addResult);
+					//console.log("Add scenario to project result:", addResult);
 
 					if (!addResult.success) {
 						console.error("Failed to add scenario to project:", addResult.error);
 						// Don't throw error here, just log it since the scenario was created successfully
-						console.log("Scenario was created but could not be added to project. This might be a temporary issue.");
+						//console.log("Scenario was created but could not be added to project. This might be a temporary issue.");
 						// Still consider this a success since the scenario was created
 						return;
 					}

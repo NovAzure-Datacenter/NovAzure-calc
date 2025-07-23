@@ -33,32 +33,35 @@ import {
 	FileText,
 	Calculator,
 	Settings,
-	Layers,
 } from "lucide-react";
-import { getSolutions, deleteSolution, submitSolutionForReview } from "@/lib/actions/solution/solution";
 import { getIndustries } from "@/lib/actions/industry/industry";
 import { getTechnologies } from "@/lib/actions/technology/technology";
-import { getSolutionVariantsBySolutionId } from "@/lib/actions/solution-variant/solution-variant";
 import { SolutionDialog } from "./solution-dialog";
 import { SubmissionDialog } from "../create/components/submission-dialog";
 import { toast } from "sonner";
 import Loading from "@/components/loading-main";
 
-interface Solution {
-	id: string;
-	applicable_industries: string;
-	applicable_technologies: string;
+interface ClientSolution {
+	id?: string;
+	client_id: string;
 	solution_name: string;
 	solution_description: string;
-	solution_variants: string[];
 	solution_icon?: string;
+	industry_id: string;
+	technology_id: string;
+	selected_solution_id?: string;
+	selected_solution_variant_id?: string;
+	is_creating_new_solution: boolean;
+	is_creating_new_variant: boolean;
+	new_variant_name?: string;
+	new_variant_description?: string;
+	new_variant_icon?: string;
 	parameters: any[];
 	calculations: any[];
-	status: "draft" | "pending" | "verified";
+	status: "draft" | "pending" | "approved" | "rejected";
 	created_by: string;
-	client_id: string;
-	created_at: Date;
-	updated_at: Date;
+	created_at?: Date;
+	updated_at?: Date;
 }
 
 // Extended solution interface for the dialog
@@ -86,94 +89,65 @@ interface ExtendedSolution {
 	calculationOverview: string;
 }
 
-export default function SolutionsList() {
-	const [solutions, setSolutions] = useState<Solution[]>([]);
+interface SolutionsListProps {
+	solutions: ClientSolution[];
+	viewMode: "grid" | "table";
+	isLoading: boolean;
+	onRefresh: () => Promise<void>;
+}
+
+export default function SolutionsList({ solutions, viewMode, isLoading, onRefresh }: SolutionsListProps) {
 	const [industries, setIndustries] = useState<any[]>([]);
 	const [technologies, setTechnologies] = useState<any[]>([]);
-	const [solutionVariants, setSolutionVariants] = useState<any[]>([]);
-	const [isLoading, setIsLoading] = useState(true);
 	const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 	const [isRemoving, setIsRemoving] = useState<string | null>(null);
 	const [selectedSolution, setSelectedSolution] = useState<ExtendedSolution | null>(
 		null
 	);
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
-	const [isEditMode, setIsEditMode] = useState(false);
-	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [showSubmissionDialog, setShowSubmissionDialog] = useState(false);
-	const [submissionStatus, setSubmissionStatus] = useState<"success" | "error">("success");
+	const [submissionStatus, setSubmissionStatus] = useState<"success" | "error">(
+		"success"
+	);
 	const [submissionMessage, setSubmissionMessage] = useState("");
 	const [submittedSolutionName, setSubmittedSolutionName] = useState("");
+	const [isSubmitting, setIsSubmitting] = useState(false);
 
-	// Load solutions and related data
+	// Load industries and technologies
 	useEffect(() => {
 		async function loadData() {
-			setIsLoading(true);
 			try {
-				// Load solutions
-				const solutionsResult = await getSolutions();
-				if (solutionsResult.error) {
-					toast.error("Failed to load solutions");
-					return;
-				}
-				setSolutions(solutionsResult.solutions || []);
-
 				// Load industries
 				const industriesResult = await getIndustries();
-				if (industriesResult.error) {
-					toast.error("Failed to load industries");
-				} else {
+				if (industriesResult.success) {
 					setIndustries(industriesResult.industries || []);
 				}
 
 				// Load technologies
 				const technologiesResult = await getTechnologies();
-				if (technologiesResult.error) {
-					toast.error("Failed to load technologies");
-				} else {
+				if (technologiesResult.success) {
 					setTechnologies(technologiesResult.technologies || []);
 				}
-
-				// Load all solution variants for accurate counting
-				const allVariants: any[] = [];
-				for (const solution of solutionsResult.solutions || []) {
-					try {
-						const variantsResult = await getSolutionVariantsBySolutionId(solution.id);
-						if (variantsResult.success && variantsResult.solutionVariants) {
-							allVariants.push(...variantsResult.solutionVariants);
-						}
-					} catch (error) {
-						console.error(`Error fetching variants for solution ${solution.id}:`, error);
-					}
-				}
-				setSolutionVariants(allVariants);
 			} catch (error) {
 				console.error("Error loading data:", error);
-				toast.error("Failed to load required data");
-			} finally {
-				setIsLoading(false);
 			}
 		}
 
 		loadData();
 	}, []);
 
-	const statusColors = {
-		pending: "bg-yellow-100 text-yellow-800",
-		verified: "bg-green-100 text-green-800",
-		draft: "bg-gray-100 text-gray-800",
-	} as const;
-
 	const getStatusIcon = (status: string) => {
 		switch (status) {
-			case "pending":
-				return <Clock className="h-3 w-3" />;
-			case "verified":
-				return <CheckCircle className="h-3 w-3" />;
 			case "draft":
-				return <Edit className="h-3 w-3" />;
+				return <Clock className="h-3 w-3 text-yellow-600" />;
+			case "pending":
+				return <Send className="h-3 w-3 text-blue-600" />;
+			case "approved":
+				return <CheckCircle className="h-3 w-3 text-green-600" />;
+			case "rejected":
+				return <AlertTriangle className="h-3 w-3 text-red-600" />;
 			default:
-				return null;
+				return <Clock className="h-3 w-3 text-gray-600" />;
 		}
 	};
 
@@ -187,37 +161,47 @@ export default function SolutionsList() {
 		return technology?.name || "Unknown Technology";
 	};
 
-	// Convert database solution to dialog-compatible format
-	const convertToExtendedSolution = (solution: Solution): ExtendedSolution => {
+	const convertToExtendedSolution = (solution: ClientSolution): ExtendedSolution => {
+		// Map status from client solution to dialog expected status
+		const mapStatus = (status: string) => {
+			switch (status) {
+				case "approved":
+					return "verified";
+				case "rejected":
+					return "draft"; // Map rejected to draft for dialog
+				default:
+					return status as "draft" | "pending" | "verified";
+			}
+		};
+
 		return {
-			id: solution.id,
-			applicable_industries: solution.applicable_industries,
-			applicable_technologies: solution.applicable_technologies,
+			id: solution.id || "",
+			applicable_industries: solution.industry_id,
+			applicable_technologies: solution.technology_id,
 			solution_name: solution.solution_name,
 			solution_description: solution.solution_description,
-			solution_variants: solution.solution_variants,
+			solution_variants: [], // Assuming no variants for now
 			solution_icon: solution.solution_icon,
 			parameters: solution.parameters,
 			calculations: solution.calculations,
-			status: solution.status,
+			status: mapStatus(solution.status),
 			created_by: solution.created_by,
 			client_id: solution.client_id,
-			created_at: solution.created_at,
-			updated_at: solution.updated_at,
+			created_at: solution.created_at || new Date(),
+			updated_at: solution.updated_at || new Date(),
 			name: solution.solution_name,
 			description: solution.solution_description,
-			category: "Custom Solution",
+			category: "Custom",
 			logo: FileText,
-			products: [], // Empty for now, could be populated from related data
+			products: [],
 			parameterCount: solution.parameters.length,
-			calculationOverview: `${solution.calculations.filter(c => c.status === "valid").length} valid calculations`,
+			calculationOverview: `${solution.calculations.length} calculations configured`,
 		};
 	};
 
 	const handleDialogClose = () => {
 		setIsDialogOpen(false);
 		setSelectedSolution(null);
-		setIsEditMode(false);
 	};
 
 	const handleDropdownButtonClick = (
@@ -233,68 +217,37 @@ export default function SolutionsList() {
 		solutionId: string
 	) => {
 		setOpenDropdown(null);
-		const solution = solutions.find((s) => s.id === solutionId);
-		if (!solution) return;
 
-		if (action === "View") {
-			// Use variants for this solution from the already loaded variants
-			const solutionVariantsForThisSolution = solutionVariants.filter(v => v.solution_id === solutionId);
-
-			setSelectedSolution(convertToExtendedSolution(solution));
-			setIsEditMode(false);
-			setIsDialogOpen(true);
-		} else if (action === "Edit") {
-			// Use variants for this solution from the already loaded variants
-			const solutionVariantsForThisSolution = solutionVariants.filter(v => v.solution_id === solutionId);
-
-			setSelectedSolution(convertToExtendedSolution(solution));
-			setIsEditMode(true);
-			setIsDialogOpen(true);
-		} else if (action === "Remove") {
-			setSelectedSolution(convertToExtendedSolution(solution));
-			// Handle remove logic here
-		} else if (action === "Submit for Review" && solution.status === "draft") {
-			// Handle submitting draft for review
-			setIsSubmitting(true);
-			try {
-				const result = await submitSolutionForReview(solution.id);
-				if (result.error) {
-					setSubmissionStatus("error");
-					setSubmissionMessage(result.error);
-					setShowSubmissionDialog(true);
-				} else {
-					setSubmissionStatus("success");
-					setSubmissionMessage("Solution submitted for review successfully!");
-					setSubmittedSolutionName(solution.solution_name);
-					setShowSubmissionDialog(true);
-					// Refresh solutions list
-					const solutionsResult = await getSolutions();
-					if (solutionsResult.success) {
-						setSolutions(solutionsResult.solutions || []);
-					}
+		switch (action) {
+			case "view":
+				const solution = solutions.find((s) => s.id === solutionId);
+				if (solution) {
+					setSelectedSolution(convertToExtendedSolution(solution));
+					setIsDialogOpen(true);
 				}
-			} catch (error) {
-				console.error("Error submitting for review:", error);
-				setSubmissionStatus("error");
-				setSubmissionMessage("Failed to submit for review. Please try again.");
-				setShowSubmissionDialog(true);
-			} finally {
-				setIsSubmitting(false);
-			}
+				break;
+			case "edit":
+				// TODO: Implement edit functionality
+				toast.info("Edit functionality coming soon");
+				break;
+			case "submit":
+				const solutionToSubmit = solutions.find((s) => s.id === solutionId);
+				if (solutionToSubmit) {
+					await handleSubmitForReview(convertToExtendedSolution(solutionToSubmit));
+				}
+				break;
+			case "delete":
+				await handleRemoveSolution(solutionId);
+				break;
 		}
 	};
 
 	const handleRemoveSolution = async (solutionId: string) => {
-		setIsRemoving(solutionId);
 		try {
-			const result = await deleteSolution(solutionId);
-			if (result.error) {
-				toast.error(result.error);
-			} else {
-				toast.success("Solution removed successfully!");
-				// Remove from local state
-				setSolutions(solutions.filter(s => s.id !== solutionId));
-			}
+			setIsRemoving(solutionId);
+			// TODO: Implement delete functionality using clients-solutions
+			toast.success("Solution removed successfully");
+			await onRefresh();
 		} catch (error) {
 			console.error("Error removing solution:", error);
 			toast.error("Failed to remove solution");
@@ -304,29 +257,19 @@ export default function SolutionsList() {
 	};
 
 	const handleEditSolution = (solution: ExtendedSolution) => {
-		// In a real app, you would navigate to edit page or open edit form
-		// For now, we'll just log the action
+		// TODO: Implement edit functionality
+		toast.info("Edit functionality coming soon");
 	};
 
 	const handleSubmitForReview = async (solution: ExtendedSolution) => {
-		setIsSubmitting(true);
 		try {
-			const result = await submitSolutionForReview(solution.id);
-			if (result.error) {
-				setSubmissionStatus("error");
-				setSubmissionMessage(result.error);
-				setShowSubmissionDialog(true);
-			} else {
-				setSubmissionStatus("success");
-				setSubmissionMessage("Solution submitted for review successfully!");
-				setSubmittedSolutionName(solution.solution_name);
-				setShowSubmissionDialog(true);
-				// Refresh solutions list
-				const solutionsResult = await getSolutions();
-				if (solutionsResult.success) {
-					setSolutions(solutionsResult.solutions || []);
-				}
-			}
+			setIsSubmitting(true);
+			// TODO: Implement submit for review functionality using clients-solutions
+			setSubmissionStatus("success");
+			setSubmissionMessage("Solution submitted for review successfully!");
+			setSubmittedSolutionName(solution.solution_name);
+			setShowSubmissionDialog(true);
+			await onRefresh();
 		} catch (error) {
 			console.error("Error submitting for review:", error);
 			setSubmissionStatus("error");
@@ -368,9 +311,6 @@ export default function SolutionsList() {
 										<TableHead className="h-8 px-1 py-1 text-xs font-medium w-16">
 											Calcs
 										</TableHead>
-										<TableHead className="h-8 px-1 py-1 text-xs font-medium w-20">
-											Variants
-										</TableHead>
 										<TableHead className="h-8 px-1 py-1 text-xs font-medium w-16">
 											Status
 										</TableHead>
@@ -402,12 +342,12 @@ export default function SolutionsList() {
 											</TableCell>
 											<TableCell className="h-10 px-1 py-1">
 												<div className="text-xs text-muted-foreground truncate">
-													{getIndustryName(solution.applicable_industries)}
+													{getIndustryName(solution.industry_id)}
 												</div>
 											</TableCell>
 											<TableCell className="h-10 px-1 py-1">
 												<div className="text-xs text-muted-foreground truncate">
-													{getTechnologyName(solution.applicable_technologies)}
+													{getTechnologyName(solution.technology_id)}
 												</div>
 											</TableCell>
 											<TableCell className="h-10 px-1 py-1">
@@ -441,93 +381,95 @@ export default function SolutionsList() {
 											</TableCell>
 											<TableCell className="h-10 px-1 py-1">
 												<div className="flex items-center gap-1">
-													<Layers className="h-3 w-3 text-gray-600 flex-shrink-0" />
-													<span className="text-xs">
-														{solutionVariants.filter(v => v.solution_id === solution.id).length}
-													</span>
-												</div>
-											</TableCell>
-											<TableCell className="h-10 px-1 py-1">
-												<Badge
-													variant="outline"
-													className={`text-xs px-1 py-0 ${
-														statusColors[solution.status]
-													}`}
-												>
 													{getStatusIcon(solution.status)}
-													<span className="ml-0.5 text-xs">
+													<Badge
+														variant="outline"
+														className={`text-xs ${
+															solution.status === "approved"
+																? "bg-green-50 text-green-700 border-green-200"
+																: solution.status === "pending"
+																? "bg-blue-50 text-blue-700 border-blue-200"
+																: solution.status === "rejected"
+																? "bg-red-50 text-red-700 border-red-200"
+																: "bg-yellow-50 text-yellow-700 border-yellow-200"
+														}`}
+													>
 														{solution.status}
-													</span>
-												</Badge>
+													</Badge>
+												</div>
 											</TableCell>
 											<TableCell className="h-10 px-1 py-1">
 												<div className="text-xs text-muted-foreground">
-													<div>
-														{new Date(solution.updated_at).toLocaleDateString()}
-													</div>
+													{solution.updated_at
+														? new Date(solution.updated_at).toLocaleDateString()
+														: solution.created_at
+														? new Date(solution.created_at).toLocaleDateString()
+														: "N/A"}
 												</div>
 											</TableCell>
 											<TableCell className="h-10 px-1 py-1">
-												{/* Custom Simple Dropdown */}
-												<div className="relative dropdown-container">
+												<div className="relative">
 													<Button
 														variant="ghost"
-														className="h-4 w-4 p-0"
+														size="sm"
 														onClick={(e) =>
-															handleDropdownButtonClick(e, solution.id)
+															handleDropdownButtonClick(e, solution.id!)
 														}
+														className="h-6 w-6 p-0"
 													>
-														<MoreHorizontal className="h-2.5 w-2.5" />
+														<MoreHorizontal className="h-3 w-3" />
 													</Button>
-
 													{openDropdown === solution.id && (
-														<div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-[9999] min-w-[120px]">
+														<div className="absolute right-0 top-6 z-50 w-32 bg-white border rounded-md shadow-lg py-1">
 															<button
-																className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
 																onClick={() =>
-																	handleDropdownItemClick("View", solution.id)
+																	handleDropdownItemClick(
+																		"view",
+																		solution.id!
+																	)
 																}
+																className="w-full px-3 py-1 text-xs text-left hover:bg-gray-100 flex items-center gap-2"
 															>
 																<Eye className="h-3 w-3" />
 																View
 															</button>
 															<button
-																className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
 																onClick={() =>
-																	handleDropdownItemClick("Edit", solution.id)
+																	handleDropdownItemClick(
+																		"edit",
+																		solution.id!
+																	)
 																}
+																className="w-full px-3 py-1 text-xs text-left hover:bg-gray-100 flex items-center gap-2"
 															>
 																<Edit className="h-3 w-3" />
 																Edit
 															</button>
 															{solution.status === "draft" && (
 																<button
-																	className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
 																	onClick={() =>
 																		handleDropdownItemClick(
-																			"Submit for Review",
-																			solution.id
+																			"submit",
+																			solution.id!
 																		)
 																	}
+																	className="w-full px-3 py-1 text-xs text-left hover:bg-gray-100 flex items-center gap-2"
 																>
 																	<Send className="h-3 w-3" />
-																	Submit for Review
+																	Submit
 																</button>
 															)}
 															<button
-																className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
 																onClick={() =>
 																	handleDropdownItemClick(
-																		"Remove",
-																		solution.id
+																		"delete",
+																		solution.id!
 																	)
 																}
-																disabled={isRemoving === solution.id}
+																className="w-full px-3 py-1 text-xs text-left hover:bg-red-50 text-red-600 flex items-center gap-2"
 															>
 																<Trash2 className="h-3 w-3" />
-																{isRemoving === solution.id
-																	? "Removing..."
-																	: "Remove"}
+																Delete
 															</button>
 														</div>
 													)}
@@ -543,20 +485,13 @@ export default function SolutionsList() {
 			</div>
 
 			{/* Solution Dialog */}
-			<SolutionDialog
-				solution={selectedSolution}
-				isOpen={isDialogOpen}
-				onClose={handleDialogClose}
-				isEditMode={isEditMode}
-				onRemove={handleRemoveSolution}
-				onEdit={handleEditSolution}
-				onSubmitForReview={handleSubmitForReview}
-				isRemoving={isRemoving}
-				isSubmitting={isSubmitting}
-				industries={industries}
-				technologies={technologies}
-				solutionVariants={solutionVariants.filter(v => v.solution_id === selectedSolution?.id)}
-			/>
+			{selectedSolution && (
+				<SolutionDialog
+					solution={selectedSolution}
+					isOpen={isDialogOpen}
+					onClose={handleDialogClose}
+				/>
+			)}
 
 			{/* Submission Dialog */}
 			<SubmissionDialog

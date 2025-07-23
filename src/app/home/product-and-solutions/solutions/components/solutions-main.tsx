@@ -2,33 +2,81 @@
 import { Button } from "@/components/ui/button";
 import { CardContent } from "@/components/ui/card";
 
-import { Grid3X3, RefreshCw, Search } from "lucide-react";
+import { Grid3X3, RefreshCw, Search, Plus } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { List } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useUser } from "@/hooks/useUser";
+import { getClientByUserId } from "@/lib/actions/clients/clients";
+import { getClientSolutions } from "@/lib/actions/clients-solutions/clients-solutions";
 import SolutionsList from "./solutions-list";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export function SolutionsMain() {
+	const { user } = useUser();
+	const router = useRouter();
 	const [searchQuery, setSearchQuery] = useState("");
 	const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
 	const [isLoading, setIsLoading] = useState(false);
+	const [clientData, setClientData] = useState<any>(null);
+	const [clientSolutions, setClientSolutions] = useState<any[]>([]);
+
+	// Load client data and solutions
+	useEffect(() => {
+		loadData();
+	}, [user]);
 
 	const handleRefresh = () => {
-		// Trigger a refresh of the data
 		loadData();
 	};
 
+	const handleCreateSolution = () => {
+		router.push("/home/product-and-solutions/solutions/create");
+	};
+
 	const loadData = async () => {
+		if (!user) return;
+
 		setIsLoading(true);
 		try {
-			// TODO: Implement data loading logic
+			// Load client data
+			const clientResult = await getClientByUserId(user._id);
+			if (clientResult.client) {
+				setClientData(clientResult.client);
+
+				// Load client solutions
+				const solutionsResult = await getClientSolutions(clientResult.client.id!);
+				if (solutionsResult.solutions) {
+					setClientSolutions(solutionsResult.solutions);
+				} else if (solutionsResult.error) {
+					console.error("Error loading solutions:", solutionsResult.error);
+					toast.error("Failed to load solutions");
+				} else {
+					setClientSolutions([]);
+				}
+			} else if (clientResult.error) {
+				console.error("Error loading client:", clientResult.error);
+				toast.error("Failed to load client data");
+			}
 		} catch (error) {
 			console.error("Error loading data:", error);
+			toast.error("Failed to load data");
 		} finally {
 			setIsLoading(false);
 		}
 	};
+
+	// Filter solutions based on search query
+	const filteredSolutions = clientSolutions.filter((solution) => {
+		const searchTerm = searchQuery.toLowerCase();
+		return (
+			solution.solution_name.toLowerCase().includes(searchTerm) ||
+			solution.solution_description.toLowerCase().includes(searchTerm) ||
+			solution.status.toLowerCase().includes(searchTerm)
+		);
+	});
 
 	return (
 		<div className="space-y-6">
@@ -46,6 +94,15 @@ export function SolutionsMain() {
 							/>
 						</div>
 						<div className="flex items-center gap-2">
+							<Button
+								onClick={handleCreateSolution}
+								size="sm"
+								className="text-xs"
+							>
+								<Plus className="h-4 w-4 " />
+								Create
+							</Button>
+
 							<Button
 								variant="outline"
 								size="sm"
@@ -75,7 +132,14 @@ export function SolutionsMain() {
 					</div>
 				</CardContent>
 			</Card>
-			<SolutionsList />
+			
+			{/* Solutions List */}
+			<SolutionsList 
+				solutions={filteredSolutions}
+				viewMode={viewMode}
+				isLoading={isLoading}
+				onRefresh={loadData}
+			/>
 		</div>
 	);
 }
