@@ -124,8 +124,14 @@ export function CreateSolutionMain() {
 			setIsLoading(true);
 
 				// Load client data
-				const client = await getClientByUserId(user._id);
-				setClientData(client);
+				const clientResult = await getClientByUserId(user._id);
+				if (clientResult.client) {
+					setClientData(clientResult.client);
+				} else if (clientResult.error) {
+					console.error("Error loading client:", clientResult.error);
+					toast.error("Failed to load client data");
+					return;
+				}
 
 				// Load industries
 				setIsLoadingIndustries(true);
@@ -387,7 +393,6 @@ export function CreateSolutionMain() {
 				}
 			}
 
-			// Create client solution
 			await createClientSolution({
 				client_id: clientData.id,
 				solution_name: finalSolutionName,
@@ -405,7 +410,7 @@ export function CreateSolutionMain() {
 				parameters: formData.parameters,
 				calculations: formData.calculations,
 				status: "draft",
-				created_by: user?._id || "",
+				created_by: user?._id || "", 
 			});
 
 			setDraftStatus("success");
@@ -497,7 +502,7 @@ export function CreateSolutionMain() {
 				}
 			}
 
-			// Create client solution
+
 			await createClientSolution({
 				client_id: clientData.id,
 				solution_name: finalSolutionName,
@@ -628,9 +633,9 @@ export function CreateSolutionMain() {
 	}
 
 	return (
-		<div className="mx-auto p-4 space-y-4 h-screen flex flex-col pb-8">
+		<div className="w-full h-screen flex flex-col pb-8 overflow-hidden">
 			{/* Header */}
-			<div className="text-center space-y-1 flex-shrink-0">
+			<div className="text-center space-y-1 flex-shrink-0 p-4">
 				<h1 className="text-2xl font-bold">Create New Solution</h1>
 				<p className="text-sm text-muted-foreground">
 					Follow the steps below to create a new solution for your organization
@@ -638,19 +643,19 @@ export function CreateSolutionMain() {
 			</div>
 
 			{/* Progress Steps */}
-			<div className="flex-shrink-0">
+			<div className="flex-shrink-0 px-4">
 			<CreateSolutionProgress currentStep={currentStep} />
 			</div>
 
 			{/* Step Content */}
-			<Card className="flex flex-col min-h-0 max-h-[calc(100vh-200px)]">
+			<Card className="flex flex-col min-h-0 max-h-[calc(100vh-200px)] overflow-hidden mx-4">
 				<CardHeader className="pb-4 flex-shrink-0">
 					<CardTitle className="text-lg">{getStepTitle()}</CardTitle>
 					<CardDescription className="text-sm ">
 						{getStepDescription()}
 					</CardDescription>
 				</CardHeader>
-				<CardContent className="flex-1 overflow-y-auto space-y-4">
+				<CardContent className="flex-1 overflow-y-auto space-y-4 overflow-x-hidden">
 					{/* Step 1: Industry, Technology & Solution Selection */}
 					{currentStep === 1 && (
 						<CreateSolutionStep1

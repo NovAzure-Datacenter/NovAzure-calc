@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Plus, ArrowRight, ArrowLeft, Check, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, ArrowRight, ArrowLeft, Check, ChevronDown, ChevronUp, Eye, Clock, User } from "lucide-react";
 import { stringToIconComponent } from "@/lib/icons/lucide-icons";
 import { iconOptions } from "@/lib/icons/lucide-icons";
 import {
@@ -23,6 +23,8 @@ import {
 	AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { getClientSolutions } from "@/lib/actions/clients-solutions/clients-solutions";
 
 interface CreateSolutionStep1Props {
 	clientData: any;
@@ -92,6 +94,8 @@ export function CreateSolutionStep1({
 	const [isVariantIconSelectorOpen, setIsVariantIconSelectorOpen] = useState(false);
 	const [openAccordion, setOpenAccordion] = useState<string | undefined>(undefined);
 	const [isCreatingNewVariantPending, setIsCreatingNewVariantPending] = useState(false);
+	const [existingSolutions, setExistingSolutions] = useState<any[]>([]);
+	const [isLoadingExistingSolutions, setIsLoadingExistingSolutions] = useState(false);
 
 	// Get client's selected industries and technologies
 	const clientSelectedIndustries = clientData?.selected_industries || [];
@@ -204,6 +208,47 @@ export function CreateSolutionStep1({
 		</div>
 	);
 
+	// Helper function to render existing solution card
+	const renderExistingSolutionCard = (solution: any) => (
+		<div
+			key={solution.id}
+			className="p-3 border rounded-md bg-muted/30 cursor-default transition-colors text-xs"
+		>
+			<div className="flex items-center justify-between mb-2">
+				<div className="flex items-center gap-2">
+					<Eye className="h-3 w-3 text-muted-foreground" />
+					<span className="font-medium text-xs">Existing Solution</span>
+				</div>
+				<Badge variant="outline" className="text-xs">
+					{solution.status}
+				</Badge>
+			</div>
+			<div className="space-y-1">
+				<div className="flex items-center gap-1">
+					{solution.solution_icon ? (
+						React.createElement(stringToIconComponent(solution.solution_icon), { className: "h-3 w-3" })
+					) : (
+						<div className="h-3 w-3 bg-muted rounded"></div>
+					)}
+					<span className="font-medium text-xs truncate">{solution.solution_name}</span>
+				</div>
+				<p className="text-xs text-muted-foreground line-clamp-2">
+					{solution.solution_description}
+				</p>
+				<div className="flex items-center gap-2 text-xs text-muted-foreground">
+					<div className="flex items-center gap-1">
+						<Clock className="h-3 w-3" />
+						<span>{new Date(solution.created_at).toLocaleDateString()}</span>
+					</div>
+					<div className="flex items-center gap-1">
+						<User className="h-3 w-3" />
+						<span>{solution.parameters?.length || 0} params</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	);
+
 	// Get selected items for display
 	const getSelectedIndustry = () => availableIndustries.find(i => i.id === selectedIndustry);
 	const getSelectedTechnology = () => availableTechnologies.find(t => t.id === selectedTechnology);
@@ -213,6 +258,38 @@ export function CreateSolutionStep1({
 	// Progressive filtering logic
 	const canSelectTechnology = !!selectedIndustry;
 	const canSelectSolution = !!selectedIndustry && !!selectedTechnology;
+
+	// Fetch existing solutions that match the current criteria
+	const fetchExistingSolutions = async () => {
+		if (!clientData?.id || !selectedIndustry || !selectedTechnology || !selectedSolutionId) {
+			setExistingSolutions([]);
+			return;
+		}
+
+		setIsLoadingExistingSolutions(true);
+		try {
+			const result = await getClientSolutions(clientData.id);
+			if (result.solutions) {
+				// Filter solutions that match the current criteria
+				const matchingSolutions = result.solutions.filter((solution: any) => 
+					solution.industry_id === selectedIndustry &&
+					solution.technology_id === selectedTechnology &&
+					solution.selected_solution_id === selectedSolutionId
+				);
+				setExistingSolutions(matchingSolutions);
+			}
+		} catch (error) {
+			console.error("Error fetching existing solutions:", error);
+			setExistingSolutions([]);
+		} finally {
+			setIsLoadingExistingSolutions(false);
+		}
+	};
+
+	// Fetch existing solutions when criteria change
+	useEffect(() => {
+		fetchExistingSolutions();
+	}, [selectedIndustry, selectedTechnology, selectedSolutionId, clientData?.id]);
 
 	const handleCreateNewVariant = () => {
 		setIsCreatingNewVariantPending(true);
@@ -787,6 +864,29 @@ export function CreateSolutionStep1({
 									Choose a variant for your selected solution category
 								</p>
 							</div>
+
+							{/* Existing Solutions Section */}
+							{existingSolutions.length > 0 && (
+								<div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+									<Label className="text-xs font-medium text-blue-700 mb-3 flex items-center gap-2">
+										<Eye className="h-3 w-3" />
+										Existing Solutions ({existingSolutions.length})
+									</Label>
+									<p className="text-xs text-blue-600 mb-3">
+										These solutions already exist for your selected criteria. You can view them for reference or create a new variant.
+									</p>
+									{isLoadingExistingSolutions ? (
+										<div className="flex items-center justify-center py-4">
+											<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+											<span className="ml-2 text-sm text-blue-600">Loading existing solutions...</span>
+										</div>
+									) : (
+										<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+											{existingSolutions.map(renderExistingSolutionCard)}
+										</div>
+									)}
+								</div>
+							)}
 
 							<div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
 								<Label className="text-xs font-medium text-muted-foreground mb-2">
