@@ -254,7 +254,7 @@ export function CreateSolutionParameters({
 
 		const newParameter: Parameter = {
 			id: `param-${Date.now()}`,
-			level: "L1",
+			level: "1",
 			name: newParameterData.name.trim(),
 			value: newParameterData.value,
 			test_value: newParameterData.test_value,

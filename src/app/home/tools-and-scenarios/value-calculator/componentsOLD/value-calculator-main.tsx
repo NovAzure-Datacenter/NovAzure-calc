@@ -406,7 +406,7 @@ const ValueCalculatorMain = forwardRef(function ValueCalculatorMain(
 		<div className="w-full">
 			<div className="space-y-6 max-w-7xl mx-auto">
 				{/* Progress Indicator */}
-				{!hideProgress && (
+				{/* {!hideProgress && (
 					<div className="relative">
 						<ValueCalculatorProgress
 							currentStep={getCurrentStep()}
@@ -427,10 +427,10 @@ const ValueCalculatorMain = forwardRef(function ValueCalculatorMain(
 							</Button>
 						)}
 					</div>
-				)}
+				)} */}
 
 				{/* Header Selectors */}
-				<HeaderSelectors
+				{/* <HeaderSelectors
 					selectedIndustry={selectedIndustry}
 					setSelectedIndustry={setSelectedIndustry}
 					selectedTechnology={selectedTechnology}
@@ -444,7 +444,7 @@ const ValueCalculatorMain = forwardRef(function ValueCalculatorMain(
 					disableTechnology={isSecondCalculator}
 					inheritedIndustry={inheritedIndustry}
 					inheritedTechnology={inheritedTechnology}
-				/>
+				/> */}
 
 				{/* Configuration Section */}
 				{areHeaderSelectorsComplete() ? (
