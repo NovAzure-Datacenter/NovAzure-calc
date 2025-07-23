@@ -28,7 +28,9 @@ class Parameter:
 
         if self.type == "CALCULATION":
             if not self.formula:
-                raise ValueError(f"{self.type} parameter '{self.name}' requires formula")
+                raise ValueError(
+                    f"{self.type} parameter '{self.name}' requires formula"
+                )
             self.dependencies = self.extract_dependencies()
 
     def extract_dependencies(self) -> List[str]:
