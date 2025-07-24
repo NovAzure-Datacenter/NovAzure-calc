@@ -20,7 +20,12 @@ import {
 } from "./calculation-color-utils";
 import { useState } from "react";
 
-const RESERVED_CATEGORY_NAMES = ["financial", "performance", "efficiency", "operational"];
+const RESERVED_CATEGORY_NAMES = [
+	"financial",
+	"performance",
+	"efficiency",
+	"operational",
+];
 const HIDDEN_CATEGORIES: string[] = [];
 
 function isReservedCategoryName(name: string): boolean {
@@ -47,6 +52,8 @@ export default function CalculationCategoryTabs({
 	handleCancelAddCalculation,
 	calculations,
 	customCategories,
+	setIsAddNewParameterDialogOpen,
+	setIsPreviewDialogOpen,
 }: {
 	activeTab: string;
 	setActiveTab: (tab: string) => void;
@@ -73,21 +80,33 @@ export default function CalculationCategoryTabs({
 	handleCancelAddCalculation: () => void;
 	calculations: Calculation[];
 	customCategories: CustomCalculationCategory[];
+	setIsAddNewParameterDialogOpen: (open: boolean) => void;
+	setIsPreviewDialogOpen: (open: boolean) => void;
 }) {
 	const categoryColors = getAvailableColors();
 	const [categoryNameError, setCategoryNameError] = useState<string>("");
 
 	// Wrapper functions to match the expected signatures
 	const getCategoryStyleWrapper = (categoryName: string) => {
-		return getCalculationCategoryStyle(categoryName, calculations, customCategories);
+		return getCalculationCategoryStyle(
+			categoryName,
+			calculations,
+			customCategories
+		);
 	};
 
 	const getActiveTabStyleWrapper = (categoryName: string) => {
-		return getCalculationActiveTabStyle(categoryName, calculations, customCategories);
+		return getCalculationActiveTabStyle(
+			categoryName,
+			calculations,
+			customCategories
+		);
 	};
 
 	// Filter categories to exclude hidden ones
-	const visibleCategories = allCategories.filter(category => !isHiddenCategory(category));
+	const visibleCategories = allCategories.filter(
+		(category) => !isHiddenCategory(category)
+	);
 
 	// Handle category name input change with validation
 	const handleCategoryNameChange = (name: string) => {
@@ -103,8 +122,13 @@ export default function CalculationCategoryTabs({
 
 		// Check for reserved names
 		if (isReservedCategoryName(name)) {
-			setCategoryNameError(`"${name}" is a reserved category name and cannot be used.`);
-		} else if (name.trim() && allCategories.some(cat => cat.toLowerCase() === name.toLowerCase())) {
+			setCategoryNameError(
+				`"${name}" is a reserved category name and cannot be used.`
+			);
+		} else if (
+			name.trim() &&
+			allCategories.some((cat) => cat.toLowerCase() === name.toLowerCase())
+		) {
 			setCategoryNameError(`A category named "${name}" already exists.`);
 		} else {
 			setCategoryNameError("");
@@ -114,12 +138,20 @@ export default function CalculationCategoryTabs({
 	// Handle add category with validation
 	const handleAddCategoryWithValidation = () => {
 		if (isReservedCategoryName(newCategoryData.name)) {
-			setCategoryNameError(`"${newCategoryData.name}" is a reserved category name and cannot be used.`);
+			setCategoryNameError(
+				`"${newCategoryData.name}" is a reserved category name and cannot be used.`
+			);
 			return;
 		}
 
-		if (allCategories.some(cat => cat.toLowerCase() === newCategoryData.name.toLowerCase())) {
-			setCategoryNameError(`A category named "${newCategoryData.name}" already exists.`);
+		if (
+			allCategories.some(
+				(cat) => cat.toLowerCase() === newCategoryData.name.toLowerCase()
+			)
+		) {
+			setCategoryNameError(
+				`A category named "${newCategoryData.name}" already exists.`
+			);
 			return;
 		}
 
@@ -154,7 +186,7 @@ export default function CalculationCategoryTabs({
 					>
 						All
 					</TabsTrigger>
-					
+
 					{/* Show visible categories */}
 					{visibleCategories.map((category) => {
 						const isCustomCategory = customCategories.some(
@@ -217,25 +249,48 @@ export default function CalculationCategoryTabs({
 								: `Calculations categorized under ${activeTab}`}
 						</p>
 					</div>
-					<Button
-						className="text-xs"
-						onClick={
-							isAddingCalculation ? handleCancelAddCalculation : handleAddCalculation
-						}
-						disabled={editingCalculation !== null}
-					>
-						{isAddingCalculation ? (
-							<>
-								<X className="h-3 w-3" />
-								Cancel
-							</>
-						) : (
-							<>
-								<Plus className="h-3 w-3" />
-								Add Calculation
-							</>
-						)}
-					</Button>
+					<div className="flex items-center gap-2">
+						<Button
+						
+							size="sm"
+							className="text-xs"
+							onClick={() => setIsAddNewParameterDialogOpen(true)}
+						>
+							<Plus className="h-3 w-3" />
+							Add Parameter
+						</Button>
+						<Button
+						 size="sm"
+							className="text-xs"
+							onClick={
+								isAddingCalculation
+									? handleCancelAddCalculation
+									: handleAddCalculation
+							}
+							disabled={editingCalculation !== null}
+						>
+							{isAddingCalculation ? (
+								<>
+									<X className="h-3 w-3" />
+									Cancel
+								</>
+							) : (
+								<>
+									<Plus className="h-3 w-3" />
+									Add Calculation
+								</>
+							)}
+						</Button>
+						<Button
+							variant="outline"
+							size="sm"
+							className="text-xs"
+							onClick={() => setIsPreviewDialogOpen(true)}
+						>
+							<Plus className="h-3 w-3" />
+							Preview
+						</Button>
+					</div>
 				</div>
 			</div>
 
@@ -250,7 +305,8 @@ export default function CalculationCategoryTabs({
 						<DialogDescription>
 							Create a new calculation category to organize your calculations.
 							<br />
-							<strong>Note:</strong> "Financial", "Performance", "Efficiency", and "Operational" are reserved names and cannot be used.
+							<strong>Note:</strong> "Financial", "Performance", "Efficiency",
+							and "Operational" are reserved names and cannot be used.
 						</DialogDescription>
 					</DialogHeader>
 					<div className="grid gap-4 py-4">
@@ -267,7 +323,9 @@ export default function CalculationCategoryTabs({
 									placeholder="Enter category name"
 								/>
 								{categoryNameError && (
-									<p className="text-sm text-red-500 mt-1">{categoryNameError}</p>
+									<p className="text-sm text-red-500 mt-1">
+										{categoryNameError}
+									</p>
 								)}
 							</div>
 						</div>
@@ -297,10 +355,7 @@ export default function CalculationCategoryTabs({
 						</div>
 					</div>
 					<DialogFooter>
-						<Button
-							variant="outline"
-							onClick={handleDialogClose}
-						>
+						<Button variant="outline" onClick={handleDialogClose}>
 							Cancel
 						</Button>
 						<Button
@@ -314,4 +369,4 @@ export default function CalculationCategoryTabs({
 			</Dialog>
 		</>
 	);
-} 
+}

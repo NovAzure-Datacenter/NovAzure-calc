@@ -97,7 +97,9 @@ export function CreateSolutionMain() {
 	);
 	const [draftMessage, setDraftMessage] = useState("");
 	const [draftSolutionName, setDraftSolutionName] = useState("");
-	const [customCategories, setCustomCategories] = useState<any[]>([]);
+	// Separate category states for parameters and calculations to keep them independent
+	const [customParameterCategories, setCustomParameterCategories] = useState<any[]>([]);
+	const [customCalculationCategories, setCustomCalculationCategories] = useState<any[]>([]);
 
 	// Form data state
 	const [formData, setFormData] = useState<CreateSolutionData>({
@@ -699,8 +701,14 @@ export function CreateSolutionMain() {
 						<CreateSolutionParameters
 							parameters={formData.parameters}
 							onParametersChange={handleParametersChange}
-							customCategories={customCategories}
-							setCustomCategories={setCustomCategories}
+							customCategories={customParameterCategories}
+							setCustomCategories={setCustomParameterCategories}
+							selectedIndustry={formData.selectedIndustry}
+							selectedTechnology={formData.selectedTechnology}
+							selectedSolutionId={formData.selectedSolutionId}
+							availableIndustries={availableIndustries}
+							availableTechnologies={availableTechnologies}
+							availableSolutionTypes={availableSolutionTypes}
 						/>
 					)}
 
@@ -710,6 +718,15 @@ export function CreateSolutionMain() {
 							calculations={formData.calculations}
 							onCalculationsChange={handleCalculationsChange}
 							parameters={formData.parameters}
+							onParametersChange={handleParametersChange}
+							selectedIndustry={formData.selectedIndustry}
+							selectedTechnology={formData.selectedTechnology}
+							selectedSolutionId={formData.selectedSolutionId}
+							availableIndustries={availableIndustries}
+							availableTechnologies={availableTechnologies}
+							availableSolutionTypes={availableSolutionTypes}
+							customCategories={customCalculationCategories}
+							setCustomCategories={setCustomCalculationCategories}
 						/>
 					)}
 

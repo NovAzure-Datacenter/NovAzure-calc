@@ -36,6 +36,10 @@ import CalculationCategoryTabs from "./calculation-category-tabs";
 import { CustomCalculationCategory } from "./calculation-color-utils";
 import { Calculation } from "@/app/home/product-and-solutions/types";
 import { TableContent } from "./table-content";
+import PreviewDialog from "../create-solution-parameters/preview-dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
 
 // Mock data for calculations
 const mockCalculations: Calculation[] = [
@@ -184,10 +188,104 @@ const mockCategories = [
 // Export mock data and conversion function for external use
 export { mockCalculations, mockCategories, convertMockToCalculation };
 
+// DropdownOptionsEditor component
+function DropdownOptionsEditor({
+	options,
+	onOptionsChange,
+	isEditing,
+}: {
+	options: Array<{ key: string; value: string }>;
+	onOptionsChange: (options: Array<{ key: string; value: string }>) => void;
+	isEditing: boolean;
+}) {
+	const addOption = () => {
+		onOptionsChange([...options, { key: "", value: "" }]);
+	};
+
+	const updateOption = (index: number, field: "key" | "value", value: string) => {
+		const newOptions = [...options];
+		newOptions[index] = { ...newOptions[index], [field]: value };
+		onOptionsChange(newOptions);
+	};
+
+	const removeOption = (index: number) => {
+		onOptionsChange(options.filter((_, i) => i !== index));
+	};
+
+	if (!isEditing) {
+		return (
+			<div className="text-xs text-muted-foreground">
+				{options.length > 0 ? (
+					<div className="space-y-1">
+						{options.map((option, index) => (
+							<div key={index} className="flex items-center gap-1">
+								<span className="font-medium">{option.key}:</span>
+								<span>{option.value}</span>
+							</div>
+						))}
+					</div>
+				) : (
+					<span>No options defined</span>
+				)}
+			</div>
+		);
+	}
+
+	return (
+		<div className="space-y-2">
+			{options.map((option, index) => (
+				<div key={index} className="flex items-center gap-1">
+					<Input
+						value={option.key}
+						onChange={(e) => updateOption(index, "key", e.target.value)}
+						className="h-6 text-xs w-20"
+						placeholder="Location"
+					/>
+					<span className="text-xs">:</span>
+					<Input
+						value={option.value}
+						onChange={(e) => updateOption(index, "value", e.target.value)}
+						className="h-6 text-xs w-24"
+						placeholder="UK, UAE, USA, Singapore"
+					/>
+					<Button
+						size="sm"
+						variant="ghost"
+						onClick={() => removeOption(index)}
+						className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
+					>
+						<X className="h-3 w-3" />
+					</Button>
+				</div>
+			))}
+			<Button
+				size="sm"
+				variant="outline"
+				onClick={addOption}
+				className="h-6 text-xs"
+			>
+				<Plus className="h-3 w-3 mr-1" />
+				Add Option
+			</Button>
+		</div>
+	);
+}
+
 interface CalculationsConfigurationProps {
 	calculations: Calculation[];
 	onCalculationsChange: (calculations: Calculation[]) => void;
-	parameters: any[]; 
+	parameters: any[];
+	onParametersChange?: (parameters: any[]) => void;
+	selectedIndustry?: string;
+	selectedTechnology?: string;
+	selectedSolutionId?: string;
+	availableIndustries?: any[];
+	availableTechnologies?: any[];
+	availableSolutionTypes?: any[];
+	customCategories?: Array<{ name: string; color: string }>; // Calculation-specific categories
+	setCustomCategories?: React.Dispatch<
+		React.SetStateAction<Array<{ name: string; color: string }>>
+	>;
 }
 
 // Function to convert mock calculations to Calculation format
@@ -199,6 +297,15 @@ export function CalculationsConfiguration({
 	calculations,
 	onCalculationsChange,
 	parameters,
+	onParametersChange,
+	selectedIndustry,
+	selectedTechnology,
+	selectedSolutionId,
+	availableIndustries,
+	availableTechnologies,
+	availableSolutionTypes,
+	customCategories = [],
+	setCustomCategories,
 }: CalculationsConfigurationProps) {
 	const [editingCalculation, setEditingCalculation] = useState<string | null>(
 		null
@@ -221,12 +328,32 @@ export function CalculationsConfiguration({
 
 	// State for category tabs and management
 	const [activeTab, setActiveTab] = useState("all");
-	const [customCategories, setCustomCategories] = useState<CustomCalculationCategory[]>([]);
 	const [isAddCategoryDialogOpen, setIsAddCategoryDialogOpen] = useState(false);
 	const [newCategoryData, setNewCategoryData] = useState({
 		name: "",
 		description: "",
 		color: "blue",
+	});
+	// State for add parameter form
+	const [isAddNewParameterDialogOpen, setIsAddNewParameterDialogOpen] = useState(false);
+	const [isPreviewDialogOpen, setIsPreviewDialogOpen] = useState(false);
+
+	// State for new parameter data
+	const [newParameterData, setNewParameterData] = useState({
+		name: "",
+		value: "",
+		test_value: "",
+		unit: "",
+		description: "",
+		information: "",
+		category: "",
+		provided_by: "user",
+		input_type: "simple",
+		output: false,
+		display_type: "simple" as "simple" | "dropdown" | "range",
+		dropdown_options: [] as Array<{ key: string; value: string }>,
+		range_min: "",
+		range_max: "",
 	});
 
 	// State for add calculation form
@@ -284,6 +411,13 @@ export function CalculationsConfiguration({
 		}
 	}, [calculations, onCalculationsChange, hasInitialized]); 
 
+	// Reset form when dialog opens
+	useEffect(() => {
+		if (isAddNewParameterDialogOpen) {
+			resetNewParameterData();
+		}
+	}, [isAddNewParameterDialogOpen]);
+
 	// Evaluate formula and return result
 	const evaluateFormula = (formula: string): number | string => {
 		try {
@@ -301,10 +435,20 @@ export function CalculationsConfiguration({
 				context[param.id.replace(/-/g, "_")] = value;
 			});
 
-			// Replace parameter names in formula with their values
+			// Add calculations to context (for formulas that reference other calculations)
+			calculations.forEach((calc) => {
+				// Only include calculations that have valid results
+				if (calc.result !== "Error" && typeof calc.result === "number") {
+					context[calc.name] = calc.result;
+					// Also add with spaces replaced by underscores for formula compatibility
+					context[calc.name.replace(/\s+/g, "_")] = calc.result;
+				}
+			});
+
+			// Replace parameter and calculation names in formula with their values
 			let evaluatedFormula = formula;
 			Object.entries(context).forEach(([key, value]) => {
-				const regex = new RegExp(`\\b${key}\\b`, "g");
+				const regex = new RegExp(`\\b${key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, "g");
 				evaluatedFormula = evaluatedFormula.replace(regex, value.toString());
 			});
 
@@ -327,15 +471,78 @@ export function CalculationsConfiguration({
 	useEffect(() => {
 		// Only update if we have calculations and they have formulas, and we've initialized
 		if (calculations.length > 0 && hasInitialized) {
-		const updatedCalculations = calculations.map((calc) => ({
-			...calc,
-			result: evaluateFormula(calc.formula),
-			status:
-				evaluateFormula(calc.formula) === "Error"
-					? ("error" as const)
-					: ("valid" as const),
-		}));
-		onCalculationsChange(updatedCalculations);
+			// Create a temporary context for evaluation to avoid infinite loops
+			const createEvaluationContext = () => {
+				const context: { [key: string]: number } = {};
+
+				// Add parameters to context
+				parameters.forEach((param) => {
+					const value =
+						param.overrideValue !== null
+							? param.overrideValue
+							: param.defaultValue;
+					context[param.id] = value;
+					context[param.id.replace(/-/g, "_")] = value;
+				});
+
+				// Add calculations to context (for formulas that reference other calculations)
+				calculations.forEach((calc) => {
+					// Only include calculations that have valid results
+					if (calc.result !== "Error" && typeof calc.result === "number") {
+						context[calc.name] = calc.result;
+						context[calc.name.replace(/\s+/g, "_")] = calc.result;
+					}
+				});
+
+				return context;
+			};
+
+			const context = createEvaluationContext();
+			
+			const updatedCalculations = calculations.map((calc) => {
+				try {
+					// Check for self-reference
+					const selfReference = calc.formula.includes(calc.name);
+					if (selfReference) {
+						return {
+							...calc,
+							result: "Error",
+							status: "error" as const,
+						};
+					}
+
+					// Replace parameter and calculation names in formula with their values
+					let evaluatedFormula = calc.formula;
+					Object.entries(context).forEach(([key, value]) => {
+						const regex = new RegExp(`\\b${key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, "g");
+						evaluatedFormula = evaluatedFormula.replace(regex, value.toString());
+					});
+
+					// Safe evaluation using Function constructor
+					const result = new Function(
+						...Object.keys(context),
+						`return ${evaluatedFormula}`
+					)(...Object.values(context));
+
+					const finalResult = typeof result === "number" && !isNaN(result) && isFinite(result)
+						? parseFloat(result.toFixed(2))
+						: "Error";
+
+					return {
+						...calc,
+						result: finalResult,
+						status: finalResult === "Error" ? ("error" as const) : ("valid" as const),
+					};
+				} catch (error) {
+					return {
+						...calc,
+						result: "Error",
+						status: "error" as const,
+					};
+				}
+			});
+			
+			onCalculationsChange(updatedCalculations);
 		}
 	}, [parameters, hasInitialized]);
 
@@ -403,7 +610,7 @@ export function CalculationsConfiguration({
 			name: newCategoryData.name,
 			color: newCategoryData.color,
 		};
-		setCustomCategories(prev => [...prev, newCategory]);
+		setCustomCategories?.(prev => [...prev, newCategory]);
 		setIsAddCategoryDialogOpen(false);
 		setNewCategoryData({
 			name: "",
@@ -413,7 +620,7 @@ export function CalculationsConfiguration({
 	};
 
 	const handleRemoveCategory = (categoryName: string) => {
-		setCustomCategories(prev => prev.filter(cat => cat.name !== categoryName));
+		setCustomCategories?.(prev => prev.filter(cat => cat.name !== categoryName));
 		// If the active tab is being removed, switch to "all"
 		if (activeTab === categoryName) {
 			setActiveTab("all");
@@ -502,6 +709,81 @@ export function CalculationsConfiguration({
 			(calc) => calc.id !== calculationId
 		);
 		onCalculationsChange(updatedCalculations);
+	};
+
+	// Handle new parameter dialog
+	const handleSaveNewParameter = () => {
+		// Validate required fields
+		if (!newParameterData.name.trim()) {
+			toast.error("Parameter name is required");
+			return;
+		}
+		
+		if (!newParameterData.unit.trim()) {
+			toast.error("Unit is required");
+			return;
+		}
+
+		if (newParameterData.provided_by === "company" && !newParameterData.value.trim()) {
+			toast.error("Value is required when provided by company");
+			return;
+		}
+
+		// Create new parameter
+		const newParameter = {
+			id: `param-${Date.now()}`,
+			name: newParameterData.name,
+			value: newParameterData.value,
+			test_value: newParameterData.test_value,
+			unit: newParameterData.unit,
+			description: newParameterData.description,
+			information: newParameterData.information,
+			category: {
+				name: newParameterData.category,
+				color: "gray", // Default color
+			},
+			provided_by: newParameterData.provided_by,
+			input_type: newParameterData.input_type,
+			output: newParameterData.output,
+			display_type: newParameterData.display_type,
+			dropdown_options: newParameterData.dropdown_options,
+			range_min: newParameterData.range_min,
+			range_max: newParameterData.range_max,
+		};
+
+		// Add to parameters list if onParametersChange is provided
+		if (onParametersChange) {
+			onParametersChange([newParameter, ...parameters]);
+			toast.success("Parameter added successfully!");
+		}
+
+		// Close dialog and reset form
+		setIsAddNewParameterDialogOpen(false);
+		resetNewParameterData();
+	};
+
+	const handleCancelNewParameter = () => {
+		setIsAddNewParameterDialogOpen(false);
+		resetNewParameterData();
+	};
+
+	const resetNewParameterData = () => {
+		setNewParameterData({
+			name: "",
+			value: "",
+			test_value: "",
+			unit: "",
+			description: "",
+			information: "",
+			category: "",
+			provided_by: "user",
+			input_type: "simple",
+			output: false,
+			display_type: "simple",
+			dropdown_options: [],
+			range_min: "",
+			range_max: "",
+		});
 	};
 
 	const insertIntoFormula = (text: string) => {
@@ -703,6 +985,58 @@ export function CalculationsConfiguration({
 		return acc;
 	}, {} as Record<string, (typeof parameters)[0][]>);
 
+	// Add calculations as available parameters for formula building
+	const groupedParametersWithCalculations = { ...groupedParameters };
+	
+	// Add calculations under a "Calculations" category
+	if (calculations.length > 0) {
+		groupedParametersWithCalculations["Calculations"] = calculations.map(calc => ({
+			id: calc.id,
+			name: calc.name,
+			description: calc.description,
+			value: calc.result,
+			test_value: calc.result,
+			unit: calc.units,
+			category: {
+				name: "Calculations",
+				color: "indigo"
+			},
+			provided_by: "calculation",
+			input_type: "calculation",
+			output: calc.output,
+			display_type: "simple",
+			dropdown_options: [],
+			range_min: "",
+			range_max: "",
+			level: calc.level || 1,
+			status: calc.status,
+			formula: calc.formula
+		}));
+	}
+
+	// Function to get all available categories including configuration categories
+	const getAllAvailableCategories = () => {
+		const configurationCategories = [
+			{ name: "High Level Configuration", color: "blue" },
+			{ name: "Low Level Configuration", color: "green" },
+			{ name: "Advanced Configuration", color: "purple" }
+		];
+		return [...configurationCategories, ...customCategories];
+	};
+
+	// Function to get category badge style
+	const getCategoryBadgeStyle = (categoryName: string) => {
+		const category = getAllAvailableCategories().find(cat => cat.name === categoryName);
+		if (category) {
+			return {
+				backgroundColor: `var(--${category.color}-50)`,
+				borderColor: `var(--${category.color}-200)`,
+				color: `var(--${category.color}-700)`,
+			};
+		}
+		return {};
+	};
+
 	const getAllCategories = (): string[] => {
 		const defaultCategories = ["financial", "performance", "efficiency", "operational"];
 		const customCategoryNames = customCategories.map(cat => cat.name);
@@ -747,6 +1081,8 @@ export function CalculationsConfiguration({
 				handleCancelAddCalculation={handleCancelAddCalculation}
 				calculations={calculations}
 				customCategories={customCategories}
+				setIsAddNewParameterDialogOpen={setIsAddNewParameterDialogOpen}
+				setIsPreviewDialogOpen={setIsPreviewDialogOpen}
 			/>
 
 			{/* Table Content */}
@@ -765,7 +1101,7 @@ export function CalculationsConfiguration({
 				getColorCodedFormula={getColorCodedFormula}
 				getCategoryColor={getCategoryColor}
 				getStatusColor={getStatusColor}
-				groupedParameters={groupedParameters}
+				groupedParameters={groupedParametersWithCalculations}
 				isAddingCalculation={isAddingCalculation}
 				newCalculationData={newCalculationData}
 				setNewCalculationData={setNewCalculationData}
@@ -776,6 +1112,377 @@ export function CalculationsConfiguration({
 				customCategories={customCategories}
 			/>
 
+			<PreviewDialog 
+				isOpen={isPreviewDialogOpen}
+				onOpenChange={setIsPreviewDialogOpen}
+				parameters={parameters}
+				selectedIndustry={selectedIndustry}
+				selectedTechnology={selectedTechnology}
+				selectedSolutionId={selectedSolutionId}
+				availableIndustries={availableIndustries}
+				availableTechnologies={availableTechnologies}
+				availableSolutionTypes={availableSolutionTypes}
+			/>
+
+			{/* Add Parameter Dialog */}
+			<Dialog
+				open={isAddNewParameterDialogOpen}
+				onOpenChange={setIsAddNewParameterDialogOpen}
+			>
+				<DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+					<DialogHeader>
+						<DialogTitle>Add New Parameter</DialogTitle>
+						<DialogDescription>
+							Create a new parameter for your calculations. Current parameters: {parameters.length}
+						</DialogDescription>
+					</DialogHeader>
+					<div className="grid gap-4 py-4">
+						{/* Parameter Name */}
+						<div className="grid grid-cols-4 items-center gap-4">
+							<Label htmlFor="parameter-name" className="text-right">
+								Name *
+							</Label>
+							<div className="col-span-3">
+								<Input
+									id="parameter-name"
+									value={newParameterData.name}
+									onChange={(e) =>
+										setNewParameterData((prev) => ({
+											...prev,
+											name: e.target.value,
+										}))
+									}
+									placeholder="Parameter name"
+								/>
+							</div>
+						</div>
+
+						{/* Category */}
+						<div className="grid grid-cols-4 items-center gap-4">
+							<Label htmlFor="parameter-category" className="text-right">
+								Category *
+							</Label>
+							<div className="col-span-3">
+								<Select
+									value={newParameterData.category}
+									onValueChange={(value) =>
+										setNewParameterData((prev) => ({
+											...prev,
+											category: value,
+										}))
+									}
+								>
+									<SelectTrigger>
+										<SelectValue placeholder="Select category" />
+									</SelectTrigger>
+									<SelectContent>
+										{getAllAvailableCategories().length > 0 ? (
+											getAllAvailableCategories().map((category) => (
+												<SelectItem
+													key={category.name}
+													value={category.name}
+												>
+													<div className="flex items-center gap-2">
+														<Badge
+															variant="outline"
+															className="text-xs"
+															style={getCategoryBadgeStyle(category.name)}
+														>
+															{category.name}
+														</Badge>
+													</div>
+												</SelectItem>
+											))
+										) : (
+											<div className="px-2 py-1.5 text-xs text-muted-foreground">
+												No categories available.
+											</div>
+										)}
+									</SelectContent>
+								</Select>
+							</div>
+						</div>
+
+						{/* Display Type */}
+						<div className="grid grid-cols-4 items-center gap-4">
+							<Label htmlFor="parameter-display-type" className="text-right">
+								Display Type
+							</Label>
+							<div className="col-span-3">
+								<Select
+									value={newParameterData.display_type}
+									onValueChange={(value) =>
+										setNewParameterData((prev) => ({
+											...prev,
+											display_type: value as "simple" | "dropdown" | "range",
+										}))
+									}
+								>
+									<SelectTrigger>
+										<SelectValue>
+											{newParameterData.display_type || "Select type"}
+										</SelectValue>
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="simple">Simple</SelectItem>
+										<SelectItem value="dropdown">Dropdown</SelectItem>
+										<SelectItem value="range">Range</SelectItem>
+									</SelectContent>
+								</Select>
+							</div>
+						</div>
+
+						{/* Value based on display type */}
+						<div className="grid grid-cols-4 items-center gap-4">
+							<Label htmlFor="parameter-value" className="text-right">
+								Value
+							</Label>
+							<div className="col-span-3">
+								{newParameterData.display_type === "dropdown" ? (
+									<DropdownOptionsEditor
+										options={newParameterData.dropdown_options}
+										onOptionsChange={(options) =>
+											setNewParameterData((prev) => ({
+												...prev,
+												dropdown_options: options,
+											}))
+										}
+										isEditing={true}
+									/>
+								) : newParameterData.display_type === "range" ? (
+									<div className="space-y-2">
+										<div className="flex items-center gap-2">
+											<Input
+												value={newParameterData.range_min}
+												onChange={(e) =>
+													setNewParameterData((prev) => ({
+														...prev,
+														range_min: e.target.value,
+													}))
+												}
+												placeholder="Min"
+												type="number"
+												step="any"
+											/>
+											<span className="text-xs text-muted-foreground">to</span>
+											<Input
+												value={newParameterData.range_max}
+												onChange={(e) =>
+													setNewParameterData((prev) => ({
+														...prev,
+														range_max: e.target.value,
+													}))
+												}
+												placeholder="Max"
+												type="number"
+												step="any"
+											/>
+										</div>
+									</div>
+								) : (
+									<Input
+										value={newParameterData.value}
+										onChange={(e) =>
+											setNewParameterData((prev) => ({
+												...prev,
+												value: e.target.value,
+											}))
+										}
+										placeholder={
+											newParameterData.provided_by === "company"
+												? "Value *"
+												: "Value (optional)"
+										}
+										type="number"
+									/>
+								)}
+							</div>
+						</div>
+
+						{/* Test Value */}
+						<div className="grid grid-cols-4 items-center gap-4">
+							<Label htmlFor="parameter-test-value" className="text-right">
+								Test Value
+							</Label>
+							<div className="col-span-3">
+								<Input
+									id="parameter-test-value"
+									value={newParameterData.test_value}
+									onChange={(e) =>
+										setNewParameterData((prev) => ({
+											...prev,
+											test_value: e.target.value,
+										}))
+									}
+									placeholder="Test Value"
+									type="number"
+								/>
+							</div>
+						</div>
+
+						{/* Unit */}
+						<div className="grid grid-cols-4 items-center gap-4">
+							<Label htmlFor="parameter-unit" className="text-right">
+								Unit *
+							</Label>
+							<div className="col-span-3">
+								<Input
+									id="parameter-unit"
+									value={newParameterData.unit}
+									onChange={(e) =>
+										setNewParameterData((prev) => ({
+											...prev,
+											unit: e.target.value,
+										}))
+									}
+									placeholder="Unit"
+								/>
+							</div>
+						</div>
+
+						{/* Description */}
+						<div className="grid grid-cols-4 items-center gap-4">
+							<Label htmlFor="parameter-description" className="text-right">
+								Description
+							</Label>
+							<div className="col-span-3">
+								<Input
+									id="parameter-description"
+									value={newParameterData.description}
+									onChange={(e) =>
+										setNewParameterData((prev) => ({
+											...prev,
+											description: e.target.value,
+										}))
+									}
+									placeholder="Description"
+								/>
+							</div>
+						</div>
+
+						{/* Information */}
+						<div className="grid grid-cols-4 items-center gap-4">
+							<Label htmlFor="parameter-information" className="text-right">
+								Information
+							</Label>
+							<div className="col-span-3">
+								<Input
+									id="parameter-information"
+									value={newParameterData.information}
+									onChange={(e) =>
+										setNewParameterData((prev) => ({
+											...prev,
+											information: e.target.value,
+										}))
+									}
+									placeholder="Information"
+								/>
+							</div>
+						</div>
+
+						{/* Provided By */}
+						<div className="grid grid-cols-4 items-center gap-4">
+							<Label htmlFor="parameter-provided-by" className="text-right">
+								Provided By
+							</Label>
+							<div className="col-span-3">
+								<Select
+									value={newParameterData.provided_by}
+									onValueChange={(value) =>
+										setNewParameterData((prev) => ({
+											...prev,
+											provided_by: value,
+										}))
+									}
+								>
+									<SelectTrigger>
+										<SelectValue>
+											{newParameterData.provided_by || "Select provider"}
+										</SelectValue>
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="user">User</SelectItem>
+										<SelectItem value="company">Company</SelectItem>
+									</SelectContent>
+								</Select>
+							</div>
+						</div>
+
+						{/* Input Type */}
+						<div className="grid grid-cols-4 items-center gap-4">
+							<Label htmlFor="parameter-input-type" className="text-right">
+								Input Type
+							</Label>
+							<div className="col-span-3">
+								<Select
+									value={newParameterData.input_type}
+									onValueChange={(value) =>
+										setNewParameterData((prev) => ({
+											...prev,
+											input_type: value,
+										}))
+									}
+								>
+									<SelectTrigger>
+										<SelectValue>
+											{newParameterData.input_type || "Select type"}
+										</SelectValue>
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="simple">Simple</SelectItem>
+										<SelectItem value="advanced">Advanced</SelectItem>
+									</SelectContent>
+								</Select>
+							</div>
+						</div>
+
+						{/* Output */}
+						<div className="grid grid-cols-4 items-center gap-4">
+							<Label htmlFor="parameter-output" className="text-right">
+								Output
+							</Label>
+							<div className="col-span-3">
+								<Select
+									value={newParameterData.output ? "true" : "false"}
+									onValueChange={(value) =>
+										setNewParameterData((prev) => ({
+											...prev,
+											output: value === "true",
+										}))
+									}
+								>
+									<SelectTrigger>
+										<SelectValue>
+											{newParameterData.output ? "True" : "False"}
+										</SelectValue>
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="true">True</SelectItem>
+										<SelectItem value="false">False</SelectItem>
+									</SelectContent>
+								</Select>
+							</div>
+						</div>
+					</div>
+					<DialogFooter>
+						<Button variant="outline" onClick={handleCancelNewParameter}>
+							Cancel
+						</Button>
+						<Button 
+							onClick={handleSaveNewParameter}
+							disabled={
+								!newParameterData.name.trim() ||
+								!newParameterData.unit.trim() ||
+								(newParameterData.provided_by === "company" &&
+									!newParameterData.value.trim())
+							}
+						>
+							Add Parameter
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+			
 			{/* Summary and Help */}
 			<div className="flex justify-between items-center pt-3 border-t">
 				<div className="text-sm text-muted-foreground">

@@ -7,10 +7,15 @@ export interface Parameter {
 	test_value: string;
 	unit: string;
 	description: string;
+	information: string;
 	provided_by: string;
 	input_type: string;
 	output: boolean;
 	level: string;
+	display_type: "simple" | "dropdown" | "range";
+	dropdown_options?: Array<{ key: string; value: string }>;
+	range_min?: string;
+	range_max?: string;
 	category: {
 		name: string;
 		color: string;

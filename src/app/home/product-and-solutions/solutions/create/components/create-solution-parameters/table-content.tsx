@@ -29,6 +29,89 @@ import {
 	getCategoryBadgeStyleForDropdown,
 } from "./color-utils";
 
+// DropdownOptionsEditor component
+function DropdownOptionsEditor({
+	options,
+	onOptionsChange,
+	isEditing,
+}: {
+	options: Array<{ key: string; value: string }>;
+	onOptionsChange: (options: Array<{ key: string; value: string }>) => void;
+	isEditing: boolean;
+}) {
+	const addOption = () => {
+		onOptionsChange([...options, { key: "", value: "" }]);
+	};
+
+	const updateOption = (index: number, field: "key" | "value", value: string) => {
+		const newOptions = [...options];
+		newOptions[index] = { ...newOptions[index], [field]: value };
+		onOptionsChange(newOptions);
+	};
+
+	const removeOption = (index: number) => {
+		onOptionsChange(options.filter((_, i) => i !== index));
+	};
+
+	if (!isEditing) {
+		return (
+			<div className="text-xs text-muted-foreground">
+				{options.length > 0 ? (
+					<div className="space-y-1">
+						{options.map((option, index) => (
+							<div key={index} className="flex items-center gap-1">
+								<span className="font-medium">{option.key}:</span>
+								<span>{option.value}</span>
+							</div>
+						))}
+					</div>
+				) : (
+					<span>No options defined</span>
+				)}
+			</div>
+		);
+	}
+
+	return (
+		<div className="space-y-2">
+			{options.map((option, index) => (
+				<div key={index} className="flex items-center gap-1">
+					<Input
+						value={option.key}
+						onChange={(e) => updateOption(index, "key", e.target.value)}
+						className="h-6 text-xs w-20"
+						placeholder="Location"
+					/>
+					<span className="text-xs">:</span>
+					<Input
+						value={option.value}
+						onChange={(e) => updateOption(index, "value", e.target.value)}
+						className="h-6 text-xs w-24"
+						placeholder="UK, UAE, USA, Singapore"
+					/>
+					<Button
+						size="sm"
+						variant="ghost"
+						onClick={() => removeOption(index)}
+						className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
+					>
+						<X className="h-3 w-3" />
+					</Button>
+				</div>
+			))}
+			<Button
+				size="sm"
+				variant="outline"
+				onClick={addOption}
+				className="h-6 text-xs"
+			>
+				<Plus className="h-3 w-3 mr-1" />
+				Add Option
+			</Button>
+		</div>
+	);
+}
+
 export default function TableContent({
 	filteredParameters,
 	editingParameter,
@@ -59,10 +142,15 @@ export default function TableContent({
 		test_value: string;
 		unit: string;
 		description: string;
+		information: string;
 		category: string;
 		provided_by: string;
 		input_type: string;
 		output: boolean;
+		display_type: "simple" | "dropdown" | "range";
+		dropdown_options: Array<{ key: string; value: string }>;
+		range_min: string;
+		range_max: string;
 	};
 	setEditData: React.Dispatch<
 		React.SetStateAction<{
@@ -71,10 +159,15 @@ export default function TableContent({
 			test_value: string;
 			unit: string;
 			description: string;
+			information: string;
 			category: string;
 			provided_by: string;
 			input_type: string;
 			output: boolean;
+			display_type: "simple" | "dropdown" | "range";
+			dropdown_options: Array<{ key: string; value: string }>;
+			range_min: string;
+			range_max: string;
 		}>
 	>;
 	handleEditParameter: (parameter: Parameter) => void;
@@ -90,10 +183,15 @@ export default function TableContent({
 		test_value: string;
 		unit: string;
 		description: string;
+		information: string;
 		category: string;
 		provided_by: string;
 		input_type: string;
 		output: boolean;
+		display_type: "simple" | "dropdown" | "range";
+		dropdown_options: Array<{ key: string; value: string }>;
+		range_min: string;
+		range_max: string;
 	};
 	setNewParameterData: React.Dispatch<
 		React.SetStateAction<{
@@ -102,10 +200,15 @@ export default function TableContent({
 			test_value: string;
 			unit: string;
 			description: string;
+			information: string;
 			category: string;
 			provided_by: string;
 			input_type: string;
 			output: boolean;
+			display_type: "simple" | "dropdown" | "range";
+			dropdown_options: Array<{ key: string; value: string }>;
+			range_min: string;
+			range_max: string;
 		}>
 	>;
 	handleSaveNewParameter: () => void;
@@ -150,6 +253,16 @@ export default function TableContent({
 		);
 	};
 
+	// Function to get all available categories including configuration categories
+	const getAllAvailableCategories = () => {
+		const configurationCategories = [
+			{ name: "High Level Configuration", color: "blue" },
+			{ name: "Low Level Configuration", color: "green" },
+			{ name: "Advanced Configuration", color: "purple" }
+		];
+		return [...configurationCategories, ...customCategories];
+	};
+
 	return (
 		<div className="border rounded-lg">
 			<div className="max-h-[55vh] overflow-y-auto ">
@@ -161,6 +274,25 @@ export default function TableContent({
 									Parameter Name
 								</TableHead>
 								<TableHead className="w-32 bg-background">Category</TableHead>
+								<TableHead className="w-32 bg-background">
+									<Tooltip>
+										<TooltipTrigger asChild>
+											<div className="flex items-center gap-1 cursor-help">
+												Display Type
+												<Info className="h-3 w-3 text-muted-foreground" />
+											</div>
+										</TooltipTrigger>
+										<TooltipContent>
+											<p className="text-sm">
+												How the value is displayed in the calculator
+											</p>
+											<p className="text-xs text-muted-foreground mt-1">
+												• <strong>Simple:</strong> Text input field
+												<br />• <strong>Dropdown:</strong> Select from predefined options
+											</p>
+										</TooltipContent>
+									</Tooltip>
+								</TableHead>
 								<TableHead className="w-32 bg-background">
 									<Tooltip>
 										<TooltipTrigger asChild>
@@ -193,6 +325,7 @@ export default function TableContent({
 								</TableHead>
 								<TableHead className="w-20 bg-background">Unit</TableHead>
 								<TableHead className="bg-background">Description</TableHead>
+								<TableHead className="bg-background">Information</TableHead>
 								<TableHead className="w-32 bg-background">
 									<Tooltip>
 										<TooltipTrigger asChild>
@@ -296,9 +429,9 @@ export default function TableContent({
 												<SelectValue placeholder="Select category" />
 											</SelectTrigger>
 											<SelectContent>
-												{/* Only show custom categories */}
-												{customCategories.length > 0 ? (
-													customCategories.map((category) => (
+												{/* Show configuration categories and custom categories */}
+												{getAllAvailableCategories().length > 0 ? (
+													getAllAvailableCategories().map((category) => (
 														<SelectItem
 															key={category.name}
 															value={category.name}
@@ -318,36 +451,103 @@ export default function TableContent({
 													))
 												) : (
 													<div className="px-2 py-1.5 text-xs text-muted-foreground">
-														No custom categories available. Create one first.
+														No categories available.
 													</div>
 												)}
 											</SelectContent>
 										</Select>
 									</TableCell>
 									<TableCell className="py-2">
-										<Input
-											value={newParameterData.value}
-											onChange={(e) =>
+										<Select
+											value={newParameterData.display_type}
+											onValueChange={(value) =>
 												setNewParameterData((prev) => ({
 													...prev,
-													value: e.target.value,
+													display_type: value as "simple" | "dropdown" | "range",
 												}))
 											}
-											className="h-7 text-xs"
-											placeholder={
-												newParameterData.provided_by === "company"
-													? "Value *"
-													: "Value (optional)"
-											}
-											type="number"
-											onKeyDown={(e) => {
-												if (e.key === "Enter") {
-													handleSaveNewParameter();
-												} else if (e.key === "Escape") {
-													handleCancelAddParameter();
+										>
+											<SelectTrigger className="h-7 text-xs">
+												<SelectValue>
+													{newParameterData.display_type || "Select type"}
+												</SelectValue>
+											</SelectTrigger>
+											<SelectContent>
+												<SelectItem value="simple">Simple</SelectItem>
+												<SelectItem value="dropdown">Dropdown</SelectItem>
+												<SelectItem value="range">Range</SelectItem>
+											</SelectContent>
+										</Select>
+									</TableCell>
+									<TableCell className="py-2">
+										{newParameterData.display_type === "dropdown" ? (
+											<DropdownOptionsEditor
+												options={newParameterData.dropdown_options}
+												onOptionsChange={(options) =>
+													setNewParameterData((prev) => ({
+														...prev,
+														dropdown_options: options,
+													}))
 												}
-											}}
-										/>
+												isEditing={true}
+											/>
+										) : newParameterData.display_type === "range" ? (
+											<div className="space-y-2">
+												<div className="flex items-center gap-2">
+													<Input
+														value={newParameterData.range_min}
+														onChange={(e) =>
+															setNewParameterData((prev) => ({
+																...prev,
+																range_min: e.target.value,
+															}))
+														}
+														className="h-7 text-xs"
+														placeholder="Min"
+														type="number"
+														step="any"
+													/>
+													<span className="text-xs text-muted-foreground">to</span>
+													<Input
+														value={newParameterData.range_max}
+														onChange={(e) =>
+															setNewParameterData((prev) => ({
+																...prev,
+																range_max: e.target.value,
+															}))
+														}
+														className="h-7 text-xs"
+														placeholder="Max"
+														type="number"
+														step="any"
+													/>
+												</div>
+											</div>
+										) : (
+											<Input
+												value={newParameterData.value}
+												onChange={(e) =>
+													setNewParameterData((prev) => ({
+														...prev,
+														value: e.target.value,
+													}))
+												}
+												className="h-7 text-xs"
+												placeholder={
+													newParameterData.provided_by === "company"
+														? "Value *"
+														: "Value (optional)"
+												}
+												type="number"
+												onKeyDown={(e) => {
+													if (e.key === "Enter") {
+														handleSaveNewParameter();
+													} else if (e.key === "Escape") {
+														handleCancelAddParameter();
+													}
+												}}
+											/>
+										)}
 									</TableCell>
 									<TableCell className="py-2">
 										<Input
@@ -401,6 +601,26 @@ export default function TableContent({
 											}
 											className="h-7 text-xs"
 											placeholder="Description"
+											onKeyDown={(e) => {
+												if (e.key === "Enter") {
+													handleSaveNewParameter();
+												} else if (e.key === "Escape") {
+													handleCancelAddParameter();
+												}
+											}}
+										/>
+									</TableCell>
+									<TableCell className="py-2">
+										<Input
+											value={newParameterData.information}
+											onChange={(e) =>
+												setNewParameterData((prev) => ({
+													...prev,
+													information: e.target.value,
+												}))
+											}
+											className="h-7 text-xs"
+											placeholder="Information"
 											onKeyDown={(e) => {
 												if (e.key === "Enter") {
 													handleSaveNewParameter();
@@ -473,6 +693,7 @@ export default function TableContent({
 											</SelectContent>
 										</Select>
 									</TableCell>
+								
 									<TableCell className="py-2">
 										<div className="flex items-center gap-1">
 											<Button
@@ -503,7 +724,7 @@ export default function TableContent({
 							)}
 							{filteredParameters.length === 0 && !isAddingParameter ? (
 								<TableRow>
-									<TableCell colSpan={10} className="text-center py-8">
+									<TableCell colSpan={12} className="text-center py-8">
 										<div className="flex flex-col items-center gap-2 text-muted-foreground">
 											<Info className="h-8 w-8" />
 											<p className="text-sm font-medium">No parameters found</p>
@@ -568,9 +789,9 @@ export default function TableContent({
 															<SelectValue placeholder="Select category" />
 														</SelectTrigger>
 														<SelectContent>
-															{/* Only show custom categories */}
-															{customCategories.length > 0 ? (
-																customCategories.map((category) => (
+															{/* Show configuration categories and custom categories */}
+															{getAllAvailableCategories().length > 0 ? (
+																getAllAvailableCategories().map((category) => (
 																	<SelectItem
 																		key={category.name}
 																		value={category.name}
@@ -590,8 +811,7 @@ export default function TableContent({
 																))
 															) : (
 																<div className="px-2 py-1.5 text-xs text-muted-foreground">
-																	No custom categories available. Create one
-																	first.
+																	No categories available.
 																</div>
 															)}
 														</SelectContent>
@@ -613,32 +833,135 @@ export default function TableContent({
 											</TableCell>
 											<TableCell className="py-2">
 												{isEditing ? (
-													<Input
-														value={editData.value}
-														onChange={(e) =>
+													<Select
+														value={editData.display_type}
+														onValueChange={(value) =>
 															setEditData((prev) => ({
 																...prev,
-																value: e.target.value,
+																display_type: value as "simple" | "dropdown" | "range",
 															}))
 														}
-														className="h-7 text-xs"
-														placeholder={
-															editData.provided_by === "company"
-																? "Value *"
-																: "Value (optional)"
-														}
-														type="number"
-														onKeyDown={(e) => {
-															if (e.key === "Enter") {
-																handleSaveParameter(parameter.id);
-															} else if (e.key === "Escape") {
-																handleCancelEdit();
+													>
+														<SelectTrigger className="h-7 text-xs">
+															<SelectValue>
+																{editData.display_type || "Select type"}
+															</SelectValue>
+														</SelectTrigger>
+														<SelectContent>
+															<SelectItem value="simple">Simple</SelectItem>
+															<SelectItem value="dropdown">Dropdown</SelectItem>
+															<SelectItem value="range">Range</SelectItem>
+														</SelectContent>
+													</Select>
+												) : (
+													<Badge variant="outline" className="text-xs">
+														{isReadOnly ? "—" : highlightSearchTerm(
+															parameter.display_type,
+															searchQuery
+														)}
+													</Badge>
+												)}
+											</TableCell>
+											<TableCell className="py-2">
+												{isEditing ? (
+													editData.display_type === "dropdown" ? (
+														<DropdownOptionsEditor
+															options={editData.dropdown_options}
+															onOptionsChange={(options) =>
+																setEditData((prev) => ({
+																	...prev,
+																	dropdown_options: options,
+																}))
 															}
-														}}
-													/>
+															isEditing={true}
+														/>
+														
+													) : editData.display_type === "range" ? (
+														<div className="space-y-2">
+															<div className="flex items-center gap-2">
+																<Input
+																	value={editData.range_min}
+																	onChange={(e) =>
+																		setEditData((prev) => ({
+																			...prev,
+																			range_min: e.target.value,
+																		}))
+																	}
+																	className="h-7 text-xs"
+																	placeholder="Min"
+																	type="number"
+																	step="any"
+																/>
+																<span className="text-xs text-muted-foreground">to</span>
+																<Input
+																	value={editData.range_max}
+																	onChange={(e) =>
+																		setEditData((prev) => ({
+																			...prev,
+																			range_max: e.target.value,
+																		}))
+																	}
+																	className="h-7 text-xs"
+																	placeholder="Max"
+																	type="number"
+																	step="any"
+																/>
+															</div>
+														</div>
+													) : (
+														<Input
+															value={editData.value}
+															onChange={(e) =>
+																setEditData((prev) => ({
+																	...prev,
+																	value: e.target.value,
+																}))
+															}
+															className="h-7 text-xs"
+															placeholder={
+																editData.provided_by === "company"
+																	? "Value *"
+																	: "Value (optional)"
+															}
+															type="number"
+															onKeyDown={(e) => {
+																if (e.key === "Enter") {
+																	handleSaveParameter(parameter.id);
+																} else if (e.key === "Escape") {
+																	handleCancelEdit();
+																}
+															}}
+														/>
+													)
 												) : (
 													<span className="text-xs text-muted-foreground">
-														{highlightSearchTerm(parameter.value, searchQuery)}
+														{parameter.display_type === "dropdown" ? (
+															parameter.dropdown_options && parameter.dropdown_options.length > 0 ? (
+																<div className="space-y-1">
+																	{parameter.dropdown_options.map((option, index) => (
+																		<div key={index} className="flex items-center gap-1">
+																			<span className="font-medium">{option.key}:</span>
+																			<span>{option.value}</span>
+																		</div>
+																	))}
+																</div>
+															) : (
+																<span>No options defined</span>
+															)
+														) : parameter.display_type === "range" ? (
+															<div className="space-y-1">
+																<div className="flex items-center gap-1">
+																	<span className="font-medium">Min:</span>
+																	<span>{parameter.range_min || "Not set"}</span>
+																</div>
+																<div className="flex items-center gap-1">
+																	<span className="font-medium">Max:</span>
+																	<span>{parameter.range_max || "Not set"}</span>
+																</div>
+															</div>
+														) : (
+															highlightSearchTerm(parameter.value, searchQuery)
+														)}
 													</span>
 												)}
 											</TableCell>
@@ -719,6 +1042,40 @@ export default function TableContent({
 															<TooltipContent className="max-w-xs">
 																<p className="text-sm">
 																	{parameter.description}
+																</p>
+															</TooltipContent>
+														</Tooltip>
+													</div>
+												)}
+											</TableCell>
+											<TableCell className="py-2">
+												{isEditing ? (
+													<Input
+														value={editData.information}
+														onChange={(e) =>
+															setEditData((prev) => ({
+																...prev,
+																information: e.target.value,
+															}))
+														}
+														className="h-7 text-xs"
+														placeholder="Information"
+													/>
+												) : (
+													<div className="flex items-center gap-2">
+														<span className="text-xs text-muted-foreground max-w-xs truncate">
+															{highlightSearchTerm(
+																parameter.information,
+																searchQuery
+															)}
+														</span>
+														<Tooltip>
+															<TooltipTrigger asChild>
+																<Info className="h-3 w-3 text-muted-foreground cursor-help" />
+															</TooltipTrigger>
+															<TooltipContent className="max-w-xs">
+																<p className="text-sm">
+																	{parameter.information}
 																</p>
 															</TooltipContent>
 														</Tooltip>
@@ -908,7 +1265,7 @@ export default function TableContent({
 							{!isAddingParameter && activeTab !== "Global" && (
 								<TableRow className="border-t-2">
 									<TableCell
-										colSpan={10}
+										colSpan={12}
 										className="text-center bg-muted/50 cursor-pointer py-2"
 										onClick={
 											isAddingParameter
