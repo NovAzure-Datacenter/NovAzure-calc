@@ -33,6 +33,7 @@ export default function ValueCalculatorCompare() {
 	const [isAdvancedExpanded, setIsAdvancedExpanded] = useState<boolean>(false);
 	const [advancedConfigA, setAdvancedConfigA] = useState<Record<string, string | boolean>>({});
 	const [advancedConfigB, setAdvancedConfigB] = useState<Record<string, string | boolean>>({});
+	const [comparisonMode, setComparisonMode] = useState<"single" | "compare" | null>(null);
 	
 	// Calculation state
 	const [hasCalculated, setHasCalculated] = useState<boolean>(false);
@@ -130,6 +131,8 @@ export default function ValueCalculatorCompare() {
 						setAdvancedConfigA={setAdvancedConfigA}
 						advancedConfigB={advancedConfigB}
 						setAdvancedConfigB={setAdvancedConfigB}
+						comparisonMode={comparisonMode}
+						setComparisonMode={setComparisonMode}
 					/>
 				</TabsContent>
 

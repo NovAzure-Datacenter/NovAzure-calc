@@ -333,6 +333,7 @@ export function CreateSolutionParameters({
 			dropdown_options: newParameterData.dropdown_options,
 			range_min: newParameterData.range_min,
 			range_max: newParameterData.range_max,
+			is_modifiable: true,
 		};
 
 		onParametersChange([newParameter, ...parameters]);

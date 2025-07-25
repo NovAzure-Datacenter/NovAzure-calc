@@ -67,5 +67,5 @@ export default function MockButton() {
       console.error(err);
     }
   };
-  return <Button onClick={runCalculation} />;
+  return <Button onClick={runCalculation}>Mock</Button>;
 }

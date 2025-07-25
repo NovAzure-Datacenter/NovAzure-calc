@@ -366,6 +366,79 @@ export async function getClientDetails(clientId: string) {
 	}
 }
 
+/**
+ * Get client data by client ID with full details including selected industries and technologies
+ */
+export async function getClientDataById(clientId: string): Promise<{
+	client?: ClientData;
+	error?: string;
+}> {
+	try {
+		console.log("🔍 getClientDataById called with clientId:", clientId);
+		
+		const clientsCollection = await getClientsCollection();
+		const client = await clientsCollection.findOne({ _id: new ObjectId(clientId) });
+		
+		if (!client) {
+			console.log("❌ Client not found for ID:", clientId);
+			return { error: "Client not found" };
+		}
+
+		console.log("✅ Client found:", {
+			id: client._id.toString(),
+			company_name: client.company_name,
+			selected_industries: client.selected_industries,
+			selected_technologies: client.selected_technologies
+		});
+
+		const transformedClient: ClientData = {
+			id: client._id.toString(),
+			logo: client.logo || "Building2",
+			company_name: client.company_name,
+			website: client.website,
+			main_contact_email: client.main_contact_email,
+			main_contact_first_name: client.main_contact_first_name,
+			main_contact_last_name: client.main_contact_last_name,
+			main_contact_phone: client.main_contact_phone,
+			tech_contact_first_name: client.tech_contact_first_name,
+			tech_contact_last_name: client.tech_contact_last_name,
+			tech_contact_email: client.tech_contact_email,
+			tech_contact_phone: client.tech_contact_phone,
+			company_industry: client.company_industry,
+			company_size: client.company_size,
+			street: client.street,
+			city: client.city,
+			state_province: client.state_province,
+			zipcode_postal_code: client.zipcode_postal_code,
+			country: client.country,
+			timezone: client.timezone,
+			client_status: client.client_status || "prospect",
+			additional_notes: client.additional_notes,
+			selected_industries: client.selected_industries || [],
+			selected_technologies: client.selected_technologies || [],
+			user_count: client.user_count || 0,
+			product_count: client.product_count || 0,
+			product_pending_count: client.product_pending_count || 0,
+			scenario_count: client.scenario_count || 0,
+			login_email: client.login_email,
+			created_at: client.created_at,
+			updated_at: client.updated_at,
+		};
+
+		console.log("✅ Transformed client data:", {
+			id: transformedClient.id,
+			company_name: transformedClient.company_name,
+			selected_industries: transformedClient.selected_industries,
+			selected_technologies: transformedClient.selected_technologies
+		});
+
+		return { client: transformedClient };
+	} catch (error) {
+		console.error("❌ Error fetching client data:", error);
+		return { error: "Failed to fetch client data" };
+	}
+}
+
 // Function to create a user account for a client's main contact
 async function createClientUser(
 	clientData: Omit<ClientData, "id" | "created_at" | "updated_at">,
