@@ -173,6 +173,7 @@ export default function GlobalParametersMain() {
 				input_type: "simple",
 				output: true,
 				level: "L1",
+				is_modifiable: true,
 			});
 
 			// Update local state
@@ -250,6 +251,7 @@ export default function GlobalParametersMain() {
 				input_type: "simple",
 				output: true,
 				level: "L1",
+				is_modifiable: true,
 			});
 
 			// Update local state

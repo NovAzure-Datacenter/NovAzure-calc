@@ -8,7 +8,7 @@ router = APIRouter()
 
 @router.post("/calculate", response_model=CalculationResponse)
 def calculate(request: CalculationRequest):
-    parameters = [Parameter(param.dict()) for param in request.parameters]
+    parameters = [Parameter(param.model_dump()) for param in request.parameters]
 
     calculator = Calculator(parameters=parameters, inputs=request.inputs)
     target = request.target
