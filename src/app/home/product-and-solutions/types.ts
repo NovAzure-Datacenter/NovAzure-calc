@@ -20,6 +20,7 @@ export interface Parameter {
 		name: string;
 		color: string;
 	};
+	is_modifiable: boolean;
 }
 
 export interface Calculation {

@@ -59,6 +59,7 @@ export default function GlobalParametersTableContent({
 		unit: string;
 		description: string;
 		category: string;
+		is_modifiable: boolean;
 	};
 	setEditData: React.Dispatch<
 		React.SetStateAction<{
@@ -68,6 +69,7 @@ export default function GlobalParametersTableContent({
 			unit: string;
 			description: string;
 			category: string;
+			is_modifiable: boolean;
 		}>
 	>;
 	handleEditParameter: (parameter: Parameter) => void;
@@ -84,6 +86,7 @@ export default function GlobalParametersTableContent({
 		unit: string;
 		description: string;
 		category: string;
+		is_modifiable: boolean;
 	};
 	setNewParameterData: React.Dispatch<
 		React.SetStateAction<{
@@ -93,6 +96,7 @@ export default function GlobalParametersTableContent({
 			unit: string;
 			description: string;
 			category: string;
+			is_modifiable: boolean;
 		}>
 	>;
 	handleSaveNewParameter: () => void;
@@ -178,6 +182,7 @@ export default function GlobalParametersTableContent({
 									</Tooltip>
 								</TableHead>
 								<TableHead className="w-20 bg-background">Unit</TableHead>
+								<TableHead className="w-20 bg-background">Modifiable</TableHead>
 								<TableHead className="bg-background">Description</TableHead>
 								<TableHead className="w-24 bg-background">Actions</TableHead>
 							</TableRow>
@@ -311,6 +316,17 @@ export default function GlobalParametersTableContent({
 										/>
 									</TableCell>
 									<TableCell className="py-2">
+										<input 
+											type="checkbox" 
+											checked={newParameterData.is_modifiable}
+											onChange={(e) => setNewParameterData(prev => ({
+												...prev,
+												is_modifiable: e.target.checked
+											}))}
+											className="h-4 w-4"
+										/>
+									</TableCell>
+									<TableCell className="py-2">
 										<Input
 											value={newParameterData.description}
 											onChange={(e) =>
@@ -359,7 +375,7 @@ export default function GlobalParametersTableContent({
 							)}
 							{filteredParameters.length === 0 && !isAddingParameter ? (
 								<TableRow>
-									<TableCell colSpan={7} className="text-center py-8">
+									<TableCell colSpan={8} className="text-center py-8">
 										<div className="flex flex-col items-center gap-2 text-muted-foreground">
 											<Info className="h-8 w-8" />
 											<p className="text-sm font-medium">No parameters found</p>
@@ -539,6 +555,31 @@ export default function GlobalParametersTableContent({
 											</TableCell>
 											<TableCell className="py-2">
 												{isEditing ? (
+													<div className="flex items-center justify-center">
+														<input 
+															type="checkbox" 
+															checked={editData.is_modifiable}
+															onChange={(e) => setEditData(prev => ({
+																...prev,
+																is_modifiable: e.target.checked
+															}))}
+															className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+														/>
+													</div>
+												) : (
+													<div className="flex items-center justify-center">
+														<span className={`text-xs px-2 py-1 rounded-full ${
+															parameter.is_modifiable 
+																? "bg-green-100 text-green-800" 
+																: "bg-gray-100 text-gray-600"
+														}`}>
+															{parameter.is_modifiable ? "Yes" : "No"}
+														</span>
+													</div>
+												)}
+											</TableCell>
+											<TableCell className="py-2">
+												{isEditing ? (
 													<Input
 														value={editData.description}
 														onChange={(e) =>
@@ -633,7 +674,7 @@ export default function GlobalParametersTableContent({
 							{!isAddingParameter && (
 								<TableRow className="border-t-2">
 									<TableCell
-										colSpan={7}
+										colSpan={8}
 										className="text-center bg-muted/50 cursor-pointer py-2"
 										onClick={
 											isAddingParameter

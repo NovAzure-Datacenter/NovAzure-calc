@@ -9,6 +9,9 @@ class DependencyGraph:
     def __init__(self, parameters: List[Parameter]):
         self.parameters = parameters
         self.graph = self.build_graph()
+        self.param_names = {p.name for p in parameters}
+
+        self.validate_graph()
 
     def build_graph(self) -> Dict[str, List[str]]:
         graph = {}
@@ -18,6 +21,14 @@ class DependencyGraph:
             else:
                 graph[param.name] = []
         return graph
+
+    def validate_graph(self):
+        for param_name, deps in self.graph.items():
+            for dep in deps:
+                if dep not in self.param_names:
+                    raise ValueError(
+                        f"Parameter {param_name} depends on undefined parameter '{dep}'"
+                    )
 
     def topological_sort(self) -> List[str]:
         in_degree = {node: 0 for node in self.graph}
