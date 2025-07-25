@@ -185,7 +185,10 @@ export function CreateSolutionMain() {
 
 	const handleNext = () => {
 		// If moving to step 2 or 3 and we have a selected solution variant, load existing data
-		if ((currentStep === 1 || currentStep === 2) && formData.selectedSolutionVariantId) {
+		// Only load if we haven't already loaded the data for this solution variant
+		if ((currentStep === 1 || currentStep === 2) && 
+			formData.selectedSolutionVariantId && 
+			!isExistingSolutionLoaded) {
 			loadExistingSolutionData(formData.selectedSolutionVariantId);
 		}
 		setCurrentStep(prev => prev + 1);
@@ -206,6 +209,9 @@ export function CreateSolutionMain() {
 		}));
 		setAvailableSolutionTypes([]);
 		setAvailableSolutionVariants([]);
+		// Reset loaded solution data when industry changes
+		setIsExistingSolutionLoaded(false);
+		setExistingSolutionId(null);
 	};
 
 	const handleTechnologySelect = (technologyId: string) => {
@@ -217,6 +223,9 @@ export function CreateSolutionMain() {
 			selectedSolutionVariantId: ""
 		}));
 		setAvailableSolutionVariants([]);
+		// Reset loaded solution data when technology changes
+		setIsExistingSolutionLoaded(false);
+		setExistingSolutionId(null);
 		
 		// Fetch solution types for the selected industry and technology
 		if (formData.selectedIndustry && technologyId) {
@@ -270,6 +279,9 @@ export function CreateSolutionMain() {
 
 		// Load existing solution data if this is an existing solution variant
 		if (variantId && !variantId.startsWith('new-variant-')) {
+			// Reset the loaded state so we can load data for the new variant
+			setIsExistingSolutionLoaded(false);
+			setExistingSolutionId(null);
 			loadExistingSolutionData(variantId);
 		}
 	};
@@ -302,6 +314,9 @@ export function CreateSolutionMain() {
 			newVariantDescription: "",
 			newVariantIcon: "",
 		}));
+		// Reset loaded solution data when no variant is selected
+		setIsExistingSolutionLoaded(false);
+		setExistingSolutionId(null);
 	};
 
 	const handleAddSolutionVariant = (newVariant: any) => {
@@ -472,6 +487,14 @@ export function CreateSolutionMain() {
 				}
 			}
 
+			// Load existing solution data if this is an existing solution variant
+			if (variantId && !variantId.startsWith('new-variant-')) {
+				// Reset the loaded state so we can load data for the new variant
+				setIsExistingSolutionLoaded(false);
+				setExistingSolutionId(null);
+				loadExistingSolutionData(variantId);
+			}
+
 			// Determine solution details based on what was selected/created
 			let finalSolutionName: string;
 			let finalSolutionDescription: string;
@@ -600,6 +623,14 @@ export function CreateSolutionMain() {
 				if (newVariant.success) {
 					variantId = newVariant.solution_variant_id;
 				}
+			}
+
+			// Load existing solution data if this is an existing solution variant
+			if (variantId && !variantId.startsWith('new-variant-')) {
+				// Reset the loaded state so we can load data for the new variant
+				setIsExistingSolutionLoaded(false);
+				setExistingSolutionId(null);
+				loadExistingSolutionData(variantId);
 			}
 
 			// Determine solution details based on what was selected/created
@@ -765,7 +796,7 @@ export function CreateSolutionMain() {
 		return <Loading />;
 	}
 
-	console.log(formData.selectedSolutionVariantId)
+
 
 	return (
 		<div className="w-full h-screen flex flex-col pb-8 overflow-hidden">

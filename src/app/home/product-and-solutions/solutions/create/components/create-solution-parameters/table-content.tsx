@@ -255,12 +255,38 @@ export default function TableContent({
 
 	// Function to get all available categories including configuration categories
 	const getAllAvailableCategories = () => {
+		// System-managed categories that users should not be able to select
+		const systemManagedCategories = ["Global", "Industry", "Technology", "Technologies"];
+		
+		// Configuration categories that should always be available
 		const configurationCategories = [
 			{ name: "High Level Configuration", color: "blue" },
 			{ name: "Low Level Configuration", color: "green" },
 			{ name: "Advanced Configuration", color: "purple" }
 		];
-		return [...configurationCategories, ...customCategories];
+		
+		// Get unique categories from existing parameters, excluding system-managed ones
+		const existingCategories = Array.from(
+			new Set(parameters.map((param) => param.category.name))
+		).filter(category => !systemManagedCategories.includes(category));
+		
+		// Convert existing categories to the expected format
+		const existingCategoryObjects = existingCategories.map(category => {
+			// Find the first parameter with this category to get its color
+			const paramWithCategory = parameters.find(param => param.category.name === category);
+			return {
+				name: category,
+				color: paramWithCategory?.category.color || "gray"
+			};
+		});
+		
+		// Filter out configuration categories that already exist in parameters to avoid duplicates
+		const existingCategoryNames = existingCategoryObjects.map(cat => cat.name);
+		const uniqueConfigurationCategories = configurationCategories.filter(
+			configCat => !existingCategoryNames.includes(configCat.name)
+		);
+		
+		return [...existingCategoryObjects, ...uniqueConfigurationCategories, ...customCategories];
 	};
 
 	return (

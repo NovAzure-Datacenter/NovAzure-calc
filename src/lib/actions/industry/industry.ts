@@ -6,6 +6,22 @@ import {
 } from "../../mongoDb/db";
 import { ObjectId } from "mongodb";
 
+// Cache for industries to avoid multiple database calls
+let industriesCache: any[] = [];
+let cacheTimestamp: number = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+// Helper function to check if cache is valid
+function isCacheValid(): boolean {
+	return Date.now() - cacheTimestamp < CACHE_DURATION;
+}
+
+// Helper function to invalidate cache
+function invalidateCache(): void {
+	industriesCache = [];
+	cacheTimestamp = 0;
+}
+
 export interface CreateIndustryData {
 	name: string;
 	description: string;
@@ -78,6 +94,9 @@ export async function createIndustry(data: CreateIndustryData) {
 			return { error: "Failed to create industry" };
 		}
 
+		// Invalidate cache to ensure fresh data
+		invalidateCache();
+
 		return {
 			success: true,
 			industryId: result.insertedId.toString(),
@@ -89,12 +108,39 @@ export async function createIndustry(data: CreateIndustryData) {
 	}
 }
 
-export async function getIndustries() {
+export async function getIndustries(clientId?: string) {
 	try {
+		// Return cached data if valid (for now, we'll use a simple cache key)
+		const cacheKey = clientId || "all";
+		if (isCacheValid() && industriesCache.length > 0) {
+			// If clientId is provided, filter the cached data
+			if (clientId) {
+				const filteredIndustries = industriesCache.filter(industry => 
+					industry.companies?.some((company: any) => company.name === clientId)
+				);
+				return {
+					success: true,
+					industries: filteredIndustries,
+				};
+			}
+			return {
+				success: true,
+				industries: industriesCache,
+			};
+		}
+
 		const industriesCollection = await getIndustriesCollection();
 		const technologiesCollection = await getTechnologiesCollection();
 
-		const industries = await industriesCollection.find({}).toArray();
+		// Build query based on clientId
+		let query = {};
+		if (clientId) {
+			query = {
+				"companies.name": clientId
+			};
+		}
+
+		const industries = await industriesCollection.find(query).toArray();
 
 		// Get all unique technology IDs from all industries
 		const allTechnologyIds = industries.reduce((ids: string[], industry) => {
@@ -115,43 +161,60 @@ export async function getIndustries() {
 			technologyMap.set(tech._id.toString(), tech);
 		});
 
+		const transformedIndustries = industries.map((industry) => ({
+			id: industry._id.toString(),
+			name: industry.name,
+			description: industry.description,
+			icon: industry.icon || "Building2",
+			technologies: (industry.technologies || [])
+				.map((techId: string) => {
+					const tech = technologyMap.get(techId);
+					return tech
+						? {
+								id: tech._id.toString(),
+								name: tech.name,
+								description: tech.description,
+								category: tech.category,
+								icon: tech.icon,
+								efficiency: tech.efficiency,
+								efficiencyUnit: tech.efficiencyUnit,
+								cost: tech.cost,
+								costUnit: tech.costUnit,
+								energySavings: tech.energySavings,
+								carbonReduction: tech.carbonReduction,
+								implementationTime: tech.implementationTime,
+								paybackPeriod: tech.paybackPeriod,
+								status: tech.status,
+								applicableIndustries: tech.applicableIndustries || [],
+						  }
+						: null;
+				})
+				.filter(Boolean), // Remove null entries
+			companies: industry.companies || [],
+			status: industry.status,
+			parameters: industry.parameters || [],
+			created_at: industry.created_at,
+			updated_at: industry.updated_at,
+		}));
+
+		// Update cache (store all industries for potential reuse)
+		industriesCache = transformedIndustries;
+		cacheTimestamp = Date.now();
+
+		// Return filtered data if clientId was provided
+		if (clientId) {
+			const filteredIndustries = transformedIndustries.filter(industry => 
+				industry.companies?.some((company: any) => company.name === clientId)
+			);
+			return {
+				success: true,
+				industries: filteredIndustries,
+			};
+		}
+
 		return {
 			success: true,
-			industries: industries.map((industry) => ({
-				id: industry._id.toString(),
-				name: industry.name,
-				description: industry.description,
-				icon: industry.icon || "Building2",
-				technologies: (industry.technologies || [])
-					.map((techId: string) => {
-						const tech = technologyMap.get(techId);
-						return tech
-							? {
-									id: tech._id.toString(),
-									name: tech.name,
-									description: tech.description,
-									category: tech.category,
-									icon: tech.icon,
-									efficiency: tech.efficiency,
-									efficiencyUnit: tech.efficiencyUnit,
-									cost: tech.cost,
-									costUnit: tech.costUnit,
-									energySavings: tech.energySavings,
-									carbonReduction: tech.carbonReduction,
-									implementationTime: tech.implementationTime,
-									paybackPeriod: tech.paybackPeriod,
-									status: tech.status,
-									applicableIndustries: tech.applicableIndustries || [],
-							  }
-							: null;
-					})
-					.filter(Boolean), // Remove null entries
-				companies: industry.companies || [],
-				status: industry.status,
-				parameters: industry.parameters || [],
-				created_at: industry.created_at,
-				updated_at: industry.updated_at,
-			})),
+			industries: transformedIndustries,
 		};
 	} catch (error) {
 		console.error("Error fetching industries:", error);
@@ -254,6 +317,9 @@ export async function updateIndustryStatus(
 			return { error: "Failed to update industry status" };
 		}
 
+		// Invalidate cache to ensure fresh data
+		invalidateCache();
+
 		return {
 			success: true,
 			message: "Industry status updated successfully",
@@ -279,6 +345,9 @@ export async function deleteIndustry(industryId: string) {
 		if (result.deletedCount === 0) {
 			return { error: "Industry not found" };
 		}
+
+		// Invalidate cache to ensure fresh data
+		invalidateCache();
 
 		return {
 			success: true,
@@ -322,6 +391,9 @@ export async function updateIndustry(
 			return { error: "Industry not found" };
 		}
 
+		// Invalidate cache to ensure fresh data
+		invalidateCache();
+
 		return {
 			success: true,
 			message: "Industry updated successfully",
@@ -362,6 +434,9 @@ export async function updateIndustryCompanies(
 
 		await Promise.all(updatePromises);
 
+		// Invalidate cache to ensure fresh data
+		invalidateCache();
+
 		return { success: true };
 	} catch (error) {
 		console.error("Error updating industry companies:", error);
@@ -398,6 +473,9 @@ export async function removeCompanyFromIndustries(
 		});
 
 		await Promise.all(updatePromises);
+
+		// Invalidate cache to ensure fresh data
+		invalidateCache();
 
 		return { success: true };
 	} catch (error) {
@@ -453,6 +531,9 @@ export async function cleanupIndustryCompanies(): Promise<{
 			}
 		}
 
+		// Invalidate cache to ensure fresh data
+		invalidateCache();
+
 		return {
 			success: true,
 			cleanedCount: totalCleaned,
@@ -462,4 +543,120 @@ export async function cleanupIndustryCompanies(): Promise<{
 		console.error("Error cleaning up industry companies:", error);
 		return { error: "Failed to clean up industry companies" };
 	}
+}
+
+/**
+ * Get industries filtered by selected industry IDs
+ */
+export async function getIndustriesBySelectedIds(selectedIndustryIds: string[]) {
+	try {
+		console.log("🔍 getIndustriesBySelectedIds called with IDs:", selectedIndustryIds);
+		
+		// Return cached data if valid
+		if (isCacheValid() && industriesCache.length > 0) {
+			console.log("📦 Using cached industries data");
+			const filteredIndustries = industriesCache.filter(industry => 
+				selectedIndustryIds.includes(industry.id)
+			);
+			console.log("✅ Filtered industries from cache:", filteredIndustries.length);
+			return {
+				success: true,
+				industries: filteredIndustries,
+			};
+		}
+
+		console.log("🔄 Cache invalid or empty, fetching from database");
+		const industriesCollection = await getIndustriesCollection();
+		const technologiesCollection = await getTechnologiesCollection();
+
+		// Build query based on selected industry IDs
+		const query = {
+			_id: { $in: selectedIndustryIds.map((id) => new ObjectId(id)) }
+		};
+		
+		console.log("🔍 Database query:", JSON.stringify(query, null, 2));
+
+		const industries = await industriesCollection.find(query).toArray();
+		console.log("📊 Found industries in database:", industries.length);
+
+		// Get all unique technology IDs from all industries
+		const allTechnologyIds = industries.reduce((ids: string[], industry) => {
+			if (industry.technologies && Array.isArray(industry.technologies)) {
+				ids.push(...industry.technologies);
+			}
+			return ids;
+		}, []);
+		
+		console.log("🔧 Technology IDs found in industries:", allTechnologyIds);
+
+		// Fetch all technologies by IDs
+		const technologies = await technologiesCollection
+			.find({ _id: { $in: allTechnologyIds.map((id) => new ObjectId(id)) } })
+			.toArray();
+			
+		console.log("📊 Found technologies in database:", technologies.length);
+
+		// Create a map of technology ID to technology data
+		const technologyMap = new Map();
+		technologies.forEach((tech) => {
+			technologyMap.set(tech._id.toString(), tech);
+		});
+
+		const transformedIndustries = industries.map((industry) => ({
+			id: industry._id.toString(),
+			name: industry.name,
+			description: industry.description,
+			icon: industry.icon || "Building2",
+			technologies: (industry.technologies || [])
+				.map((techId: string) => {
+					const tech = technologyMap.get(techId);
+					return tech
+						? {
+								id: tech._id.toString(),
+								name: tech.name,
+								description: tech.description,
+								category: tech.category,
+								icon: tech.icon,
+								efficiency: tech.efficiency,
+								efficiencyUnit: tech.efficiencyUnit,
+								cost: tech.cost,
+								costUnit: tech.costUnit,
+								energySavings: tech.energySavings,
+								carbonReduction: tech.carbonReduction,
+								implementationTime: tech.implementationTime,
+								paybackPeriod: tech.paybackPeriod,
+								status: tech.status,
+								applicableIndustries: tech.applicableIndustries || [],
+						  }
+						: null;
+				})
+				.filter(Boolean), // Remove null entries
+			companies: industry.companies || [],
+			status: industry.status,
+			parameters: industry.parameters || [],
+			created_at: industry.created_at,
+			updated_at: industry.updated_at,
+		}));
+
+		console.log("✅ Transformed industries:", transformedIndustries.map(i => ({ id: i.id, name: i.name })));
+
+		// Update cache (store all industries for potential reuse)
+		industriesCache = transformedIndustries;
+		cacheTimestamp = Date.now();
+
+		return {
+			success: true,
+			industries: transformedIndustries,
+		};
+	} catch (error) {
+		console.error("❌ Error fetching industries by selected IDs:", error);
+		return { error: "Failed to fetch industries" };
+	}
+}
+
+/**
+ * Force refresh cache (useful for testing or manual refresh)
+ */
+export async function refreshIndustriesCache(): Promise<void> {
+	invalidateCache();
 }
