@@ -29,7 +29,17 @@ class FormulaParser:
         elif isinstance(node, ast.Name):
             return node.id
         elif isinstance(node, ast.Call):
-            return self.build_ast(node.func)
+            if isinstance(node.func, ast.Name):
+                func_name = node.func.id
+            else:
+                func_name = self.build_ast(node.func)
+            
+            args = [self.build_ast(arg) for arg in node.args]
+            return {
+                "type": "Function",
+                "name": func_name,
+                "arguments": args,
+            }
         elif isinstance(node, ast.Compare):
             return self.build_ast(node.left)
         else:

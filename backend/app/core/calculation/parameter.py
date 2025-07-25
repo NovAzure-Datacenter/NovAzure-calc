@@ -1,5 +1,6 @@
 # Parameter model
 import re
+import math
 from typing import List
 from .parser import FormulaParser
 
@@ -63,6 +64,21 @@ class Parameter:
 
         self.ast, variables = FormulaParser().parse_formula_to_ast(self.formula)
 
+        # Mathematical functions dictionary
+        math_functions = {
+            "log": lambda x, base: math.log(x, base),  # Logarithm with custom base
+            "ln": lambda x: math.log(x),  # Natural logarithm (base e)
+            "sqrt": math.sqrt,
+            "sin": math.sin,
+            "cos": math.cos,
+            "tan": math.tan,
+            "abs": abs,
+            "round": round,
+            "floor": math.floor,
+            "ceil": math.ceil,
+            "exp": math.exp,
+        }
+
         def evaluate_ast(node) -> float:
             if isinstance(node, (float, int)):
                 return float(node)
@@ -94,6 +110,26 @@ class Parameter:
                     return left**right
                 elif op_type.startswith("Unary"):
                     return -evaluate_ast(node["operand"])
+                elif op_type == "Function":
+                    func_name = node["name"]
+                    arguments = node["arguments"]
+                    
+                    if func_name in math_functions:
+                        # Evaluate all arguments
+                        evaluated_args = [evaluate_ast(arg) for arg in arguments]
+                        
+                        # Handle special cases for functions with multiple arguments
+                        if func_name == "log":
+                            if len(evaluated_args) == 2:
+                                return math_functions[func_name](evaluated_args[0], evaluated_args[1])
+                            else:
+                                raise ValueError(f"Function '{func_name}' expects exactly 2 arguments: log(x, base)")
+                        elif len(evaluated_args) == 1:
+                            return math_functions[func_name](evaluated_args[0])
+                        else:
+                            raise ValueError(f"Function '{func_name}' called with wrong number of arguments")
+                    else:
+                        raise ValueError(f"Unknown function: {func_name}")
             raise ValueError(f"Unsupported AST node structure: {node}")
 
         return evaluate_ast(self.ast)
