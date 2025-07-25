@@ -160,6 +160,11 @@ export function getCategoryColorName(
 	parameters: Parameter[],
 	customCategories: CustomCategory[]
 ): string {
+	// Configuration categories should always be gray
+	if (categoryName === "High Level Configuration" || categoryName === "Low Level Configuration" || categoryName === "Advanced Configuration") {
+		return "gray";
+	}
+
 	const customCategory = customCategories.find(
 		(cat) => cat.name === categoryName
 	);

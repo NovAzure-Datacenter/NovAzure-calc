@@ -40,6 +40,7 @@ interface CreateSolutionStep6Props {
 	getSelectedTechnologyName: () => string;
 	getSelectedSolutionType: () => any;
 	getSelectedSolutionVariant: () => any;
+	isExistingSolutionLoaded?: boolean;
 }
 
 // Combined item type for unified table
@@ -74,6 +75,7 @@ export function CreateSolutionStep6({
 	getSelectedTechnologyName,
 	getSelectedSolutionType,
 	getSelectedSolutionVariant,
+	isExistingSolutionLoaded,
 }: CreateSolutionStep6Props) {
 	// Helper function to get category color
 	const getCategoryColor = (category: any, type: 'parameter' | 'calculation') => {
@@ -590,16 +592,31 @@ export function CreateSolutionStep6({
 									<Send className="h-4 w-4 text-green-600" />
 								</div>
 								<div className="min-w-0 flex-1">
-									<h3 className="font-semibold text-sm">Submit for Review</h3>
+									<h3 className="font-semibold text-sm">
+										{isExistingSolutionLoaded ? "Confirm Edits and Submit for Review" : "Submit for Review"}
+									</h3>
 									<p className="text-xs text-muted-foreground">
-										Submit your solution for approval
+										{isExistingSolutionLoaded 
+											? "Submit your edited solution for approval"
+											: "Submit your solution for approval"
+										}
 									</p>
 								</div>
 							</div>
 							<ul className="text-xs text-muted-foreground space-y-0.5 mb-3">
-								<li>• Solution will be reviewed by administrators</li>
-								<li>• You'll be notified of approval status</li>
-								<li>• Changes may be required before approval</li>
+								{isExistingSolutionLoaded ? (
+									<>
+										<li>• Your edits to the existing solution will be reviewed</li>
+										<li>• You'll be notified of approval status</li>
+										<li>• Changes may be required before approval</li>
+									</>
+								) : (
+									<>
+										<li>• Solution will be reviewed by administrators</li>
+										<li>• You'll be notified of approval status</li>
+										<li>• Changes may be required before approval</li>
+									</>
+								)}
 							</ul>
 							<Button
 								onClick={onSubmitForReview}
@@ -615,7 +632,7 @@ export function CreateSolutionStep6({
 								) : (
 									<>
 										<Send className="h-3 w-3 mr-2" />
-										Submit for Review
+										{isExistingSolutionLoaded ? "Confirm Edits and Submit for Review" : "Submit for Review"}
 									</>
 								)}
 							</Button>

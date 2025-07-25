@@ -42,14 +42,22 @@ import CategoryTabs from "./category-tabs";
 import Searchbar from "./search-bar";
 import TableContent from "./table-content";
 import { getLevelColor, getCategoryTailwindClasses } from "./color-utils";
+import PreviewDialog from "./preview-dialog";
 
 interface CreateSolutionParametersProps {
 	parameters: Parameter[];
 	onParametersChange: (parameters: Parameter[]) => void;
-	customCategories: Array<{ name: string; color: string }>;
+	customCategories: Array<{ name: string; color: string }>; // Parameter-specific categories
 	setCustomCategories: React.Dispatch<
 		React.SetStateAction<Array<{ name: string; color: string }>>
 	>;
+	selectedIndustry?: string;
+	selectedTechnology?: string;
+	selectedSolutionId?: string;
+	availableIndustries?: any[];
+	availableTechnologies?: any[];
+	availableSolutionTypes?: any[];
+	isLoadingParameters?: boolean;
 }
 
 export function CreateSolutionParameters({
@@ -57,6 +65,13 @@ export function CreateSolutionParameters({
 	onParametersChange,
 	customCategories,
 	setCustomCategories,
+	selectedIndustry,
+	selectedTechnology,
+	selectedSolutionId,
+	availableIndustries = [],
+	availableTechnologies = [],
+	availableSolutionTypes = [],
+	isLoadingParameters = false,
 }: CreateSolutionParametersProps) {
 	const [editingParameter, setEditingParameter] = useState<string | null>(null);
 	const [editData, setEditData] = useState<{
@@ -65,20 +80,30 @@ export function CreateSolutionParameters({
 		test_value: string;
 		unit: string;
 		description: string;
+		information: string;
 		category: string;
 		provided_by: string;
 		input_type: string;
 		output: boolean;
+		display_type: "simple" | "dropdown" | "range";
+		dropdown_options: Array<{ key: string; value: string }>;
+		range_min: string;
+		range_max: string;
 	}>({
 		name: "",
 		value: "",
 		test_value: "",
 		unit: "",
 		description: "",
+		information: "",
 		category: "",
 		provided_by: "user",
 		input_type: "simple",
 		output: false,
+		display_type: "simple",
+		dropdown_options: [],
+		range_min: "",
+		range_max: "",
 	});
 	const [activeTab, setActiveTab] = useState("all");
 	const [isAddCategoryDialogOpen, setIsAddCategoryDialogOpen] = useState(false);
@@ -101,24 +126,35 @@ export function CreateSolutionParameters({
 		test_value: string;
 		unit: string;
 		description: string;
+		information: string;
 		category: string;
 		provided_by: string;
 		input_type: string;
 		output: boolean;
+		display_type: "simple" | "dropdown" | "range";
+		dropdown_options: Array<{ key: string; value: string }>;
+		range_min: string;
+		range_max: string;
 	}>({
 		name: "",
 		value: "",
 		test_value: "",
 		unit: "",
 		description: "",
+		information: "",
 		category: "",
 		provided_by: "user",
 		input_type: "simple",
 		output: false,
+		display_type: "simple",
+		dropdown_options: [],
+		range_min: "",
+		range_max: "",
 	});
 
 	// Search state
 	const [searchQuery, setSearchQuery] = useState("");
+	const [isPreviewDialogOpen, setIsPreviewDialogOpen] = useState(false);
 
 	const handleEditParameter = (parameter: Parameter) => {
 		setEditingParameter(parameter.id);
@@ -128,10 +164,15 @@ export function CreateSolutionParameters({
 			test_value: parameter.test_value,
 			unit: parameter.unit,
 			description: parameter.description,
+			information: parameter.information,
 			category: parameter.category.name,
 			provided_by: parameter.provided_by,
 			input_type: parameter.input_type,
 			output: parameter.output,
+			display_type: parameter.display_type,
+			dropdown_options: parameter.dropdown_options || [],
+			range_min: parameter.range_min || "",
+			range_max: parameter.range_max || "",
 		});
 	};
 
@@ -169,6 +210,7 @@ export function CreateSolutionParameters({
 						test_value: editData.test_value,
 						unit: editData.unit,
 						description: editData.description,
+						information: editData.information,
 						category: {
 							name: editData.category,
 							color: currentParameter.category.color,
@@ -176,6 +218,10 @@ export function CreateSolutionParameters({
 						provided_by: editData.provided_by,
 						input_type: editData.input_type,
 						output: editData.output,
+						display_type: editData.display_type,
+						dropdown_options: editData.dropdown_options,
+						range_min: editData.range_min,
+						range_max: editData.range_max,
 				  }
 				: param
 		);
@@ -187,10 +233,15 @@ export function CreateSolutionParameters({
 			test_value: "",
 			unit: "",
 			description: "",
+			information: "",
 			category: "",
 			provided_by: "user",
 			input_type: "simple",
 			output: false,
+			display_type: "simple",
+			dropdown_options: [],
+			range_min: "",
+			range_max: "",
 		});
 	};
 
@@ -202,10 +253,15 @@ export function CreateSolutionParameters({
 			test_value: "",
 			unit: "",
 			description: "",
+			information: "",
 			category: "",
 			provided_by: "user",
 			input_type: "simple",
 			output: false,
+			display_type: "simple",
+			dropdown_options: [],
+			range_min: "",
+			range_max: "",
 		});
 	};
 
@@ -217,10 +273,15 @@ export function CreateSolutionParameters({
 			test_value: "",
 			unit: "",
 			description: "",
+			information: "",
 			category: activeTab === "all" || activeTab === "Global" ? "" : activeTab,
 			provided_by: "user",
 			input_type: "simple",
 			output: false,
+			display_type: "simple",
+			dropdown_options: [],
+			range_min: "",
+			range_max: "",
 		});
 	};
 
@@ -260,6 +321,7 @@ export function CreateSolutionParameters({
 			test_value: newParameterData.test_value,
 			unit: newParameterData.unit,
 			description: newParameterData.description,
+			information: newParameterData.information,
 			category: {
 				name: newParameterData.category,
 				color: categoryColor,
@@ -267,6 +329,10 @@ export function CreateSolutionParameters({
 			provided_by: newParameterData.provided_by,
 			input_type: newParameterData.input_type,
 			output: newParameterData.output,
+			display_type: newParameterData.display_type,
+			dropdown_options: newParameterData.dropdown_options,
+			range_min: newParameterData.range_min,
+			range_max: newParameterData.range_max,
 		};
 
 		onParametersChange([newParameter, ...parameters]);
@@ -277,10 +343,15 @@ export function CreateSolutionParameters({
 			test_value: "",
 			unit: "",
 			description: "",
+			information: "",
 			category: "",
 			provided_by: "user",
 			input_type: "simple",
 			output: false,
+			display_type: "simple",
+			dropdown_options: [],
+			range_min: "",
+			range_max: "",
 		});
 	};
 
@@ -297,10 +368,15 @@ export function CreateSolutionParameters({
 			test_value: "",
 			unit: "",
 			description: "",
+			information: "",
 			category: "",
 			provided_by: "user",
 			input_type: "simple",
 			output: false,
+			display_type: "simple",
+			dropdown_options: [],
+			range_min: "",
+			range_max: "",
 		});
 	};
 
@@ -445,6 +521,7 @@ export function CreateSolutionParameters({
 				editingParameter={editingParameter}
 				parameters={parameters}
 				customCategories={customCategories}
+				setIsPreviewDialogOpen={setIsPreviewDialogOpen}
 			/>
 
 			<ConfirmCategoryRemovalDialog
@@ -465,6 +542,18 @@ export function CreateSolutionParameters({
 
 			{activeTab !== "add-new-category" && (
 				<>
+					{/* Loading indicator for existing solution parameters */}
+					{isLoadingParameters && (
+						<div className="flex items-center justify-center py-8">
+							<div className="flex items-center gap-3">
+								<div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
+								<span className="text-sm text-muted-foreground">
+									Loading existing solution parameters...
+								</span>
+							</div>
+						</div>
+					)}
+
 					<Searchbar
 						searchQuery={searchQuery}
 						setSearchQuery={setSearchQuery}
@@ -494,6 +583,18 @@ export function CreateSolutionParameters({
 					/>
 				</>
 			)}
+
+			<PreviewDialog 
+				isOpen={isPreviewDialogOpen}
+				onOpenChange={setIsPreviewDialogOpen}
+				parameters={parameters}
+				selectedIndustry={selectedIndustry}
+				selectedTechnology={selectedTechnology}
+				selectedSolutionId={selectedSolutionId}
+				availableIndustries={availableIndustries}
+				availableTechnologies={availableTechnologies}
+				availableSolutionTypes={availableSolutionTypes}
+			/>
 		</div>
 	);
 }
