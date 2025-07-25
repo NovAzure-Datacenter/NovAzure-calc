@@ -21,14 +21,14 @@ import { useState } from "react";
 
 
 const RESERVED_CATEGORY_NAMES = ["industry", "technologies", "global", "technologies"];
-const HIDDEN_CATEGORIES = ["industry", "technology", "technologies"];
+const HIDDEN_CATEGORIES = ["industry", "technology", "technologies", "high level configuration", "low level configuration", "advanced configuration"];
 
 function isReservedCategoryName(name: string): boolean {
 	return RESERVED_CATEGORY_NAMES.includes(name.toLowerCase());
 }
 
 function isHiddenCategory(name: string): boolean {
-	return HIDDEN_CATEGORIES.includes(name.toLowerCase());
+	return HIDDEN_CATEGORIES.some(hidden => hidden.toLowerCase() === name.toLowerCase());
 }
 
 export default function CategoryTabs({
@@ -47,6 +47,7 @@ export default function CategoryTabs({
 	handleCancelAddParameter,
 	parameters,
 	customCategories,
+	setIsPreviewDialogOpen,
 }: {
 	activeTab: string;
 	setActiveTab: (tab: string) => void;
@@ -73,6 +74,7 @@ export default function CategoryTabs({
 	handleCancelAddParameter: () => void;
 	parameters: Parameter[];
 	customCategories: Array<{ name: string; color: string }>;
+	setIsPreviewDialogOpen: (open: boolean) => void;
 }) {
 	const categoryColors = getAvailableColors();
 	const [categoryNameError, setCategoryNameError] = useState<string>("");
@@ -166,9 +168,48 @@ export default function CategoryTabs({
 									: getCategoryStyleWrapper("Global")
 							}
 						>
-							Global
+							Global Parameters
 						</TabsTrigger>
 					)}
+
+					{/* High Level Configuration Tab */}
+					<TabsTrigger
+						value="High Level Configuration"
+						className="text-muted-foreground text-sm bg-background/80 hover:bg-background border-backdrop"
+						style={
+							activeTab === "High Level Configuration"
+								? getActiveTabStyleWrapper("High Level Configuration")
+								: getCategoryStyleWrapper("High Level Configuration")
+						}
+					>
+						High Level Configuration
+					</TabsTrigger>
+
+					{/* Low Level Configuration Tab */}
+					<TabsTrigger
+						value="Low Level Configuration"
+						className="text-muted-foreground text-sm bg-background/80 hover:bg-background border-backdrop"
+						style={
+							activeTab === "Low Level Configuration"
+								? getActiveTabStyleWrapper("Low Level Configuration")
+								: getCategoryStyleWrapper("Low Level Configuration")
+						}
+					>
+						Low Level Configuration
+					</TabsTrigger>
+
+					{/* Advanced Configuration Tab */}
+					<TabsTrigger
+						value="Advanced Configuration"
+						className="text-muted-foreground text-sm bg-background/80 hover:bg-background border-backdrop"
+						style={
+							activeTab === "Advanced Configuration"
+								? getActiveTabStyleWrapper("Advanced Configuration")
+								: getCategoryStyleWrapper("Advanced Configuration")
+						}
+					>
+						Advanced Configuration
+					</TabsTrigger>
 
 					{/* Show other visible categories */}
 					{visibleCategories
@@ -231,15 +272,23 @@ export default function CategoryTabs({
 						<p className="text-sm text-muted-foreground">
 							{activeTab === "all"
 								? "View and manage all parameters across all categories"
+								: activeTab === "High Level Configuration"
+								? "Parameters for high-level configuration settings"
+								: activeTab === "Low Level Configuration"
+								? "Parameters for low-level configuration settings"
+								: activeTab === "Advanced Configuration"
+								? "Parameters for advanced configuration settings"
 								: `Parameters categorized under ${activeTab}`}
 						</p>
 					</div>
+					<div className="flex items-center gap-2">
+
 					<Button
 						className="text-xs "
 						onClick={
 							isAddingParameter ? handleCancelAddParameter : handleAddParameter
 						}
-						disabled={editingParameter !== null || activeTab === "Global"}
+						disabled={editingParameter !== null || activeTab === "Global" || activeTab === "High Level Configuration" || activeTab === "Low Level Configuration" || activeTab === "Advanced Configuration"}
 					>
 						{isAddingParameter ? (
 							<>
@@ -253,6 +302,11 @@ export default function CategoryTabs({
 							</>
 						)}
 					</Button>
+					<Button variant="outline" size="sm" className="text-xs" onClick={() => setIsPreviewDialogOpen(true)}>
+						<Plus className="h-3 w-3" />
+						Preview 
+					</Button>
+					</div>
 				</div>
 			</div>
 

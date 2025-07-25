@@ -24,11 +24,13 @@ class Parameter:
 
     def validate(self):
         if self.type in ["COMPANY", "GLOBAL"] and self.value is None:
-            raise ValueError(f"{self.type} parameter {self.name} requires value")
+            raise ValueError(f"{self.type} parameter '{self.name}' requires value")
 
         if self.type == "CALCULATION":
             if not self.formula:
-                raise ValueError(f"{self.type} parameter {self.name} requires formula")
+                raise ValueError(
+                    f"{self.type} parameter '{self.name}' requires formula"
+                )
             self.dependencies = self.extract_dependencies()
 
     def extract_dependencies(self) -> List[str]:
@@ -62,8 +64,8 @@ class Parameter:
         self.ast, variables = FormulaParser().parse_formula_to_ast(self.formula)
 
         def evaluate_ast(node) -> float:
-            if isinstance(node, float):
-                return node
+            if isinstance(node, (float, int)):
+                return float(node)
             if isinstance(node, str):
                 if node in context:
                     return context[node]
