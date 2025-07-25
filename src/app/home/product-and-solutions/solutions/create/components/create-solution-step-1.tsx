@@ -6,7 +6,17 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Plus, ArrowRight, ArrowLeft, Check, ChevronDown, ChevronUp, Eye, Clock, User } from "lucide-react";
+import {
+	Plus,
+	ArrowRight,
+	ArrowLeft,
+	Check,
+	ChevronDown,
+	ChevronUp,
+	Eye,
+	Clock,
+	User,
+} from "lucide-react";
 import { stringToIconComponent } from "@/lib/icons/lucide-icons";
 import { iconOptions } from "@/lib/icons/lucide-icons";
 import {
@@ -91,11 +101,15 @@ export function CreateSolutionStep1({
 	isCreatingNewVariant,
 }: CreateSolutionStep1Props) {
 	const [isIconSelectorOpen, setIsIconSelectorOpen] = useState(false);
-	const [isVariantIconSelectorOpen, setIsVariantIconSelectorOpen] = useState(false);
-	const [openAccordion, setOpenAccordion] = useState<string | undefined>(undefined);
-	const [isCreatingNewVariantPending, setIsCreatingNewVariantPending] = useState(false);
+	const [isVariantIconSelectorOpen, setIsVariantIconSelectorOpen] =
+		useState(false);
+	const [openAccordion, setOpenAccordion] = useState<string | undefined>(
+		undefined
+	);
 	const [existingSolutions, setExistingSolutions] = useState<any[]>([]);
-	const [isLoadingExistingSolutions, setIsLoadingExistingSolutions] = useState(false);
+	const [isLoadingExistingSolutions, setIsLoadingExistingSolutions] =
+		useState(false);
+	const [isCreateVariantDialogOpen, setIsCreateVariantDialogOpen] = useState(false);
 
 	// Get client's selected industries and technologies
 	const clientSelectedIndustries = clientData?.selected_industries || [];
@@ -144,12 +158,12 @@ export function CreateSolutionStep1({
 				/>
 				<div className="flex items-center gap-2">
 					{showIcon && item.icon && stringToIconComponent(item.icon) && (
-							<div className="h-4 w-4">
+						<div className="h-4 w-4">
 							{React.createElement(stringToIconComponent(item.icon), {
 								className: "h-4 w-4",
 							})}
-							</div>
-						)}
+						</div>
+					)}
 					<span className="font-medium text-sm">{item.name}</span>
 				</div>
 			</div>
@@ -163,97 +177,47 @@ export function CreateSolutionStep1({
 	const renderSolutionCategoryCard = (solutionCategory: any) => (
 		<div
 			key={solutionCategory.id}
-			className={`p-2 border rounded-md cursor-pointer transition-colors text-xs ${
+			className={`p-3 border rounded-md cursor-pointer transition-colors ${
 				selectedSolutionId === solutionCategory.id
 					? "border-primary bg-primary/5"
 					: "border-border hover:border-primary/50"
 			}`}
 			onClick={() => onSolutionTypeSelect(solutionCategory.id)}
 		>
-			<div className="flex items-center gap-1">
-				{solutionCategory.icon ? (
-					React.createElement(
-						(typeof solutionCategory.icon as unknown) === 'string' 
-							? stringToIconComponent(solutionCategory.icon as string)
-							: solutionCategory.icon as any,
-						{ className: "h-3 w-3" }
-					)
-				) : (
-					<div className="h-3 w-3 bg-muted rounded"></div>
-				)}
-				<span className="font-medium truncate">{solutionCategory.name}</span>
-			</div>
-		</div>
-	);
-
-	// Helper function to render solution variant card
-	const renderSolutionVariantCard = (variant: any) => (
-		<div
-			key={variant.id}
-			className={`p-2 border rounded-md cursor-pointer transition-colors text-xs ${
-				selectedSolutionVariantId === variant.id
-					? "border-primary bg-primary/5"
-					: "border-border hover:border-primary/50"
-			}`}
-			onClick={() => onSolutionVariantSelect(variant.id)}
-		>
-			<div className="flex items-center gap-1">
-				{variant.icon ? (
-					React.createElement(stringToIconComponent(variant.icon), { className: "h-3 w-3" })
-				) : (
-					<div className="h-3 w-3 bg-muted rounded"></div>
-				)}
-				<span className="font-medium truncate">{variant.name}</span>
-			</div>
-		</div>
-	);
-
-	// Helper function to render existing solution card
-	const renderExistingSolutionCard = (solution: any) => (
-		<div
-			key={solution.id}
-			className="p-3 border rounded-md bg-muted/30 cursor-default transition-colors text-xs"
-		>
-			<div className="flex items-center justify-between mb-2">
+			<div className="flex items-center gap-2">
+				<Checkbox
+					checked={selectedSolutionId === solutionCategory.id}
+					onCheckedChange={() => onSolutionTypeSelect(solutionCategory.id)}
+				/>
 				<div className="flex items-center gap-2">
-					<Eye className="h-3 w-3 text-muted-foreground" />
-					<span className="font-medium text-xs">Existing Solution</span>
-				</div>
-				<Badge variant="outline" className="text-xs">
-					{solution.status}
-				</Badge>
-			</div>
-			<div className="space-y-1">
-				<div className="flex items-center gap-1">
-					{solution.solution_icon ? (
-						React.createElement(stringToIconComponent(solution.solution_icon), { className: "h-3 w-3" })
+					{solutionCategory.icon ? (
+						React.createElement(
+							(typeof solutionCategory.icon as unknown) === "string"
+								? stringToIconComponent(solutionCategory.icon as string)
+								: (solutionCategory.icon as any),
+							{ className: "h-4 w-4" }
+						)
 					) : (
-						<div className="h-3 w-3 bg-muted rounded"></div>
+						<div className="h-4 w-4 bg-muted rounded"></div>
 					)}
-					<span className="font-medium text-xs truncate">{solution.solution_name}</span>
-				</div>
-				<p className="text-xs text-muted-foreground line-clamp-2">
-					{solution.solution_description}
-				</p>
-				<div className="flex items-center gap-2 text-xs text-muted-foreground">
-					<div className="flex items-center gap-1">
-						<Clock className="h-3 w-3" />
-						<span>{new Date(solution.created_at).toLocaleDateString()}</span>
-					</div>
-					<div className="flex items-center gap-1">
-						<User className="h-3 w-3" />
-						<span>{solution.parameters?.length || 0} params</span>
-					</div>
+					<span className="font-medium text-sm">{solutionCategory.name}</span>
 				</div>
 			</div>
+			<p className="text-xs text-muted-foreground mt-1 ml-6">
+				{solutionCategory.description}
+			</p>
 		</div>
 	);
 
 	// Get selected items for display
-	const getSelectedIndustry = () => availableIndustries.find(i => i.id === selectedIndustry);
-	const getSelectedTechnology = () => availableTechnologies.find(t => t.id === selectedTechnology);
-	const getSelectedSolutionCategory = () => availableSolutionTypes.find(s => s.id === selectedSolutionId);
-	const getSelectedSolutionVariant = () => availableSolutionVariants.find(v => v.id === selectedSolutionVariantId);
+	const getSelectedIndustry = () =>
+		availableIndustries.find((i) => i.id === selectedIndustry);
+	const getSelectedTechnology = () =>
+		availableTechnologies.find((t) => t.id === selectedTechnology);
+	const getSelectedSolutionCategory = () =>
+		availableSolutionTypes.find((s) => s.id === selectedSolutionId);
+	const getSelectedSolutionVariant = () =>
+		availableSolutionVariants.find((v) => v.id === selectedSolutionVariantId);
 
 	// Progressive filtering logic
 	const canSelectTechnology = !!selectedIndustry;
@@ -261,7 +225,12 @@ export function CreateSolutionStep1({
 
 	// Fetch existing solutions that match the current criteria
 	const fetchExistingSolutions = async () => {
-		if (!clientData?.id || !selectedIndustry || !selectedTechnology || !selectedSolutionId) {
+		if (
+			!clientData?.id ||
+			!selectedIndustry ||
+			!selectedTechnology ||
+			!selectedSolutionId
+		) {
 			setExistingSolutions([]);
 			return;
 		}
@@ -271,10 +240,11 @@ export function CreateSolutionStep1({
 			const result = await getClientSolutions(clientData.id);
 			if (result.solutions) {
 				// Filter solutions that match the current criteria
-				const matchingSolutions = result.solutions.filter((solution: any) => 
-					solution.industry_id === selectedIndustry &&
-					solution.technology_id === selectedTechnology &&
-					solution.selected_solution_id === selectedSolutionId
+				const matchingSolutions = result.solutions.filter(
+					(solution: any) =>
+						solution.industry_id === selectedIndustry &&
+						solution.technology_id === selectedTechnology &&
+						solution.selected_solution_id === selectedSolutionId
 				);
 				setExistingSolutions(matchingSolutions);
 			}
@@ -289,16 +259,24 @@ export function CreateSolutionStep1({
 	// Fetch existing solutions when criteria change
 	useEffect(() => {
 		fetchExistingSolutions();
-	}, [selectedIndustry, selectedTechnology, selectedSolutionId, clientData?.id]);
+	}, [
+		selectedIndustry,
+		selectedTechnology,
+		selectedSolutionId,
+		clientData?.id,
+	]);
 
 	const handleCreateNewVariant = () => {
-		setIsCreatingNewVariantPending(true);
 		onFormDataChange({
 			newVariantName: "",
 			newVariantDescription: "",
 			newVariantIcon: "",
 		});
+		setIsCreateVariantDialogOpen(true);
 	};
+	
+
+
 
 	return (
 		<div className="w-full">
@@ -308,20 +286,26 @@ export function CreateSolutionStep1({
 				<div className="space-y-4">
 					{/* Industry Progress Indicator */}
 					<div className="flex items-center gap-2 mb-2">
-						<div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
-							selectedIndustry ? "bg-green-500 text-white" : "bg-muted text-muted-foreground"
-						}`}>
+						<div
+							className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
+								selectedIndustry
+									? "bg-green-500 text-white"
+									: "bg-muted text-muted-foreground"
+							}`}
+						>
 							{selectedIndustry ? <Check className="h-3 w-3" /> : "1"}
 						</div>
-						<span className={`text-sm ${selectedIndustry ? "font-medium" : ""}`}>
+						<span
+							className={`text-sm ${selectedIndustry ? "font-medium" : ""}`}
+						>
 							Industry Selection
 						</span>
 					</div>
 
 					<div>
-					
 						<p className="text-xs text-muted-foreground mb-3">
-							Choose the industry that best fits your solution, some additional global parameters will be provided to you based on this selection
+							Choose the industry that best fits your solution, some additional
+							global parameters will be provided to you based on this selection
 						</p>
 					</div>
 
@@ -333,7 +317,9 @@ export function CreateSolutionStep1({
 							</Label>
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-2">
 								{clientSelectedIndustries.map((industryId: string) => {
-									const industry = availableIndustries.find(i => i.id === industryId);
+									const industry = availableIndustries.find(
+										(i) => i.id === industryId
+									);
 									if (!industry) return null;
 									return renderSelectionCard(
 										industry,
@@ -351,23 +337,31 @@ export function CreateSolutionStep1({
 						<Label className="text-xs font-medium text-muted-foreground mb-2">
 							All Available Industries
 						</Label>
-			{isLoadingIndustries ? (
-				<div className="flex items-center justify-center py-6">
-					<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-					<span className="ml-2 text-sm">Loading industries...</span>
-				</div>
-			) : (
+						{isLoadingIndustries ? (
+							<div className="flex items-center justify-center py-6">
+								<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+								<span className="ml-2 text-sm">Loading industries...</span>
+							</div>
+						) : (
 							<div className="space-y-3">
 								{/* Selected Industry Card */}
 								{selectedIndustry && (
-									<div 
+									<div
 										className="p-3 border-2 border-primary rounded-md bg-primary/5 cursor-pointer hover:bg-primary/10 transition-colors"
-										onClick={() => setOpenAccordion(openAccordion === "industries" ? undefined : "industries")}
+										onClick={() =>
+											setOpenAccordion(
+												openAccordion === "industries"
+													? undefined
+													: "industries"
+											)
+										}
 									>
 										<div className="flex items-center justify-between">
 											<div className="flex items-center gap-2">
 												<Check className="h-4 w-4 text-primary" />
-												<span className="text-sm font-medium">Selected Industry</span>
+												<span className="text-sm font-medium">
+													Selected Industry
+												</span>
 											</div>
 											<div className="flex items-center gap-2">
 												<Button
@@ -386,23 +380,36 @@ export function CreateSolutionStep1({
 													size="sm"
 													onClick={(e) => {
 														e.stopPropagation();
-														setOpenAccordion(openAccordion === "industries" ? undefined : "industries");
+														setOpenAccordion(
+															openAccordion === "industries"
+																? undefined
+																: "industries"
+														);
 													}}
 													className="h-6 px-2 text-xs"
 												>
-													{openAccordion === "industries" ? "Hide" : "Show"} List
+													{openAccordion === "industries" ? "Hide" : "Show"}{" "}
+													List
 												</Button>
 											</div>
 										</div>
 										<div className="flex items-center gap-2 mt-2">
-											{getSelectedIndustry()?.icon && stringToIconComponent(getSelectedIndustry()?.icon) && (
-												<div className="h-4 w-4">
-													{React.createElement(stringToIconComponent(getSelectedIndustry()?.icon), {
-														className: "h-4 w-4",
-													})}
-												</div>
-											)}
-											<span className="font-medium text-sm">{getSelectedIndustry()?.name}</span>
+											{getSelectedIndustry()?.icon &&
+												stringToIconComponent(getSelectedIndustry()?.icon) && (
+													<div className="h-4 w-4">
+														{React.createElement(
+															stringToIconComponent(
+																getSelectedIndustry()?.icon
+															),
+															{
+																className: "h-4 w-4",
+															}
+														)}
+													</div>
+												)}
+											<span className="font-medium text-sm">
+												{getSelectedIndustry()?.name}
+											</span>
 										</div>
 										<p className="text-xs text-muted-foreground mt-1 ml-6">
 											{getSelectedIndustry()?.description}
@@ -411,14 +418,17 @@ export function CreateSolutionStep1({
 								)}
 
 								{/* Industries Accordion */}
-								<Accordion 
-									type="single" 
-									collapsible 
+								<Accordion
+									type="single"
+									collapsible
 									className="w-full"
 									value={openAccordion}
 									onValueChange={setOpenAccordion}
 								>
-									<AccordionItem value="industries" className="border rounded-md">
+									<AccordionItem
+										value="industries"
+										className="border rounded-md"
+									>
 										<AccordionTrigger className="px-4 py-3 hover:no-underline">
 											<div className="flex items-center justify-between w-full">
 												<div className="flex items-center gap-3">
@@ -427,23 +437,36 @@ export function CreateSolutionStep1({
 													</span>
 													{/* Preview of first few industries */}
 													<div className="flex items-center gap-1">
-														{otherIndustries.slice(0, 3).map((industry, index) => (
-															<div key={industry.id} className="flex items-center gap-1">
-																{industry.icon && stringToIconComponent(industry.icon) && (
-																	<div className="h-3 w-3">
-																		{React.createElement(stringToIconComponent(industry.icon), {
-																			className: "h-3 w-3 text-muted-foreground",
-																		})}
-																	</div>
-																)}
-																<span className="text-xs text-muted-foreground">
-																	{industry.name}
-																</span>
-																{index < Math.min(3, otherIndustries.length - 1) && (
-																	<span className="text-xs text-muted-foreground">,</span>
-																)}
-															</div>
-														))}
+														{otherIndustries
+															.slice(0, 3)
+															.map((industry, index) => (
+																<div
+																	key={industry.id}
+																	className="flex items-center gap-1"
+																>
+																	{industry.icon &&
+																		stringToIconComponent(industry.icon) && (
+																			<div className="h-3 w-3">
+																				{React.createElement(
+																					stringToIconComponent(industry.icon),
+																					{
+																						className:
+																							"h-3 w-3 text-muted-foreground",
+																					}
+																				)}
+																			</div>
+																		)}
+																	<span className="text-xs text-muted-foreground">
+																		{industry.name}
+																	</span>
+																	{index <
+																		Math.min(3, otherIndustries.length - 1) && (
+																		<span className="text-xs text-muted-foreground">
+																			,
+																		</span>
+																	)}
+																</div>
+															))}
 														{otherIndustries.length > 3 && (
 															<span className="text-xs text-muted-foreground">
 																... and {otherIndustries.length - 3} more
@@ -479,15 +502,39 @@ export function CreateSolutionStep1({
 				<Separator className="my-8" />
 
 				{/* Technology Section */}
-				<div className={`space-y-4 ${!canSelectTechnology ? 'opacity-50 pointer-events-none' : ''}`}>
+				<div
+					className={`space-y-4 ${
+						!canSelectTechnology ? "opacity-50 pointer-events-none" : ""
+					}`}
+				>
 					{/* Technology Progress Indicator */}
 					<div className="flex items-center gap-2 mb-2">
-						<div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
-							selectedTechnology ? "bg-green-500 text-white" : canSelectTechnology ? "bg-muted text-muted-foreground" : "bg-gray-200 text-gray-400"
-						}`}>
-							{selectedTechnology ? <Check className="h-3 w-3" /> : canSelectTechnology ? "2" : "2"}
+						<div
+							className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
+								selectedTechnology
+									? "bg-green-500 text-white"
+									: canSelectTechnology
+									? "bg-muted text-muted-foreground"
+									: "bg-gray-200 text-gray-400"
+							}`}
+						>
+							{selectedTechnology ? (
+								<Check className="h-3 w-3" />
+							) : canSelectTechnology ? (
+								"2"
+							) : (
+								"2"
+							)}
 						</div>
-						<span className={`text-sm ${selectedTechnology ? "font-medium" : canSelectTechnology ? "" : "text-muted-foreground"}`}>
+						<span
+							className={`text-sm ${
+								selectedTechnology
+									? "font-medium"
+									: canSelectTechnology
+									? ""
+									: "text-muted-foreground"
+							}`}
+						>
 							Technology Selection
 						</span>
 						{!canSelectTechnology && (
@@ -498,12 +545,12 @@ export function CreateSolutionStep1({
 					</div>
 
 					<div>
-				
 						<p className="text-xs text-muted-foreground mb-3">
-							{canSelectTechnology 
-								? `Choose the technology that applies to ${getSelectedIndustry()?.name || "your selected industry"}`
-								: "Please select an industry first to choose available technologies"
-							}
+							{canSelectTechnology
+								? `Choose the technology that applies to ${
+										getSelectedIndustry()?.name || "your selected industry"
+								  }`
+								: "Please select an industry first to choose available technologies"}
 						</p>
 					</div>
 
@@ -515,7 +562,9 @@ export function CreateSolutionStep1({
 							</Label>
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-2">
 								{clientSelectedTechnologies.map((technologyId: string) => {
-									const technology = technologiesForSelectedIndustry.find(t => t.id === technologyId);
+									const technology = technologiesForSelectedIndustry.find(
+										(t) => t.id === technologyId
+									);
 									if (!technology) return null;
 									return renderSelectionCard(
 										technology,
@@ -532,14 +581,15 @@ export function CreateSolutionStep1({
 					{canSelectTechnology && (
 						<div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
 							<Label className="text-xs font-medium text-muted-foreground mb-2">
-								Available Technologies for {getSelectedIndustry()?.name || "Selected Industry"}
+								Available Technologies for{" "}
+								{getSelectedIndustry()?.name || "Selected Industry"}
 							</Label>
 							{isLoadingTechnologies ? (
 								<div className="flex items-center justify-center py-6">
 									<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
 									<span className="ml-2 text-sm">Loading technologies...</span>
-							</div>
-						) : (
+								</div>
+							) : (
 								<div className="space-y-3">
 									{/* Selected Technology Card */}
 									{selectedTechnology && (
@@ -547,7 +597,9 @@ export function CreateSolutionStep1({
 											<div className="flex items-center justify-between">
 												<div className="flex items-center gap-2">
 													<Check className="h-4 w-4 text-primary" />
-													<span className="text-sm font-medium">Selected Technology</span>
+													<span className="text-sm font-medium">
+														Selected Technology
+													</span>
 												</div>
 												<Button
 													variant="ghost"
@@ -559,14 +611,24 @@ export function CreateSolutionStep1({
 												</Button>
 											</div>
 											<div className="flex items-center gap-2 mt-2">
-												{getSelectedTechnology()?.icon && stringToIconComponent(getSelectedTechnology()?.icon) && (
-													<div className="h-4 w-4">
-														{React.createElement(stringToIconComponent(getSelectedTechnology()?.icon), {
-															className: "h-4 w-4",
-														})}
-													</div>
-												)}
-												<span className="font-medium text-sm">{getSelectedTechnology()?.name}</span>
+												{getSelectedTechnology()?.icon &&
+													stringToIconComponent(
+														getSelectedTechnology()?.icon
+													) && (
+														<div className="h-4 w-4">
+															{React.createElement(
+																stringToIconComponent(
+																	getSelectedTechnology()?.icon
+																),
+																{
+																	className: "h-4 w-4",
+																}
+															)}
+														</div>
+													)}
+												<span className="font-medium text-sm">
+													{getSelectedTechnology()?.name}
+												</span>
 											</div>
 											<p className="text-xs text-muted-foreground mt-1 ml-6">
 												{getSelectedTechnology()?.description}
@@ -576,7 +638,10 @@ export function CreateSolutionStep1({
 
 									{/* Technologies Accordion */}
 									<Accordion type="single" collapsible className="w-full">
-										<AccordionItem value="technologies" className="border rounded-md">
+										<AccordionItem
+											value="technologies"
+											className="border rounded-md"
+										>
 											<AccordionTrigger className="px-4 py-3 hover:no-underline">
 												<div className="flex items-center justify-between w-full">
 													<div className="flex items-center gap-3">
@@ -585,23 +650,43 @@ export function CreateSolutionStep1({
 														</span>
 														{/* Preview of first few technologies */}
 														<div className="flex items-center gap-1">
-															{otherTechnologies.slice(0, 3).map((technology, index) => (
-																<div key={technology.id} className="flex items-center gap-1">
-																	{technology.icon && stringToIconComponent(technology.icon) && (
-																		<div className="h-3 w-3">
-																			{React.createElement(stringToIconComponent(technology.icon), {
-																				className: "h-3 w-3 text-muted-foreground",
-																			})}
-																		</div>
-																	)}
-																	<span className="text-xs text-muted-foreground">
-																		{technology.name}
-																	</span>
-																	{index < Math.min(3, otherTechnologies.length - 1) && (
-																		<span className="text-xs text-muted-foreground">,</span>
-																	)}
-																</div>
-															))}
+															{otherTechnologies
+																.slice(0, 3)
+																.map((technology, index) => (
+																	<div
+																		key={technology.id}
+																		className="flex items-center gap-1"
+																	>
+																		{technology.icon &&
+																			stringToIconComponent(
+																				technology.icon
+																			) && (
+																				<div className="h-3 w-3">
+																					{React.createElement(
+																						stringToIconComponent(
+																							technology.icon
+																						),
+																						{
+																							className:
+																								"h-3 w-3 text-muted-foreground",
+																						}
+																					)}
+																				</div>
+																			)}
+																		<span className="text-xs text-muted-foreground">
+																			{technology.name}
+																		</span>
+																		{index <
+																			Math.min(
+																				3,
+																				otherTechnologies.length - 1
+																			) && (
+																			<span className="text-xs text-muted-foreground">
+																				,
+																			</span>
+																		)}
+																	</div>
+																))}
 															{otherTechnologies.length > 3 && (
 																<span className="text-xs text-muted-foreground">
 																	... and {otherTechnologies.length - 3} more
@@ -638,15 +723,39 @@ export function CreateSolutionStep1({
 				<Separator className="my-8" />
 
 				{/* Solution Section */}
-				<div className={`space-y-4 ${!canSelectSolution ? 'opacity-50 pointer-events-none' : ''}`}>
+				<div
+					className={`space-y-4 ${
+						!canSelectSolution ? "opacity-50 pointer-events-none" : ""
+					}`}
+				>
 					{/* Solution Progress Indicator */}
 					<div className="flex items-center gap-2 mb-2">
-						<div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
-							(selectedSolutionId || isCreatingNewSolution) ? "bg-green-500 text-white" : canSelectSolution ? "bg-muted text-muted-foreground" : "bg-gray-200 text-gray-400"
-						}`}>
-							{(selectedSolutionId || isCreatingNewSolution) ? <Check className="h-3 w-3" /> : canSelectSolution ? "3" : "3"}
-							</div>
-						<span className={`text-sm ${(selectedSolutionId || isCreatingNewSolution) ? "font-medium" : canSelectSolution ? "" : "text-muted-foreground"}`}>
+						<div
+							className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
+								selectedSolutionId || isCreatingNewSolution
+									? "bg-green-500 text-white"
+									: canSelectSolution
+									? "bg-muted text-muted-foreground"
+									: "bg-gray-200 text-gray-400"
+							}`}
+						>
+							{selectedSolutionId || isCreatingNewSolution ? (
+								<Check className="h-3 w-3" />
+							) : canSelectSolution ? (
+								"3"
+							) : (
+								"3"
+							)}
+						</div>
+						<span
+							className={`text-sm ${
+								selectedSolutionId || isCreatingNewSolution
+									? "font-medium"
+									: canSelectSolution
+									? ""
+									: "text-muted-foreground"
+							}`}
+						>
 							Solution Selection
 						</span>
 						{!canSelectSolution && (
@@ -657,12 +766,14 @@ export function CreateSolutionStep1({
 					</div>
 
 					<div>
-						
 						<p className="text-xs text-muted-foreground mb-3">
-							{canSelectSolution 
-								? `Choose a solution for ${getSelectedTechnology()?.name || "your selected technology"} in ${getSelectedIndustry()?.name || "your selected industry"}`
-								: "Please select an industry and technology first to choose available solutions"
-							}
+							{canSelectSolution
+								? `Choose a solution for ${
+										getSelectedTechnology()?.name || "your selected technology"
+								  } in ${
+										getSelectedIndustry()?.name || "your selected industry"
+								  }`
+								: "Please select an industry and technology first to choose available solutions"}
 						</p>
 					</div>
 
@@ -670,10 +781,10 @@ export function CreateSolutionStep1({
 					{canSelectSolution && (
 						<div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
 							<Label className="text-xs font-medium text-muted-foreground mb-2">
-								Solution Category
+								Solution Categories for {getSelectedTechnology()?.name || "Selected Technology"}
 							</Label>
 							{isLoadingSolutionTypes ? (
-								<div className="flex items-center justify-center py-4">
+								<div className="flex items-center justify-center py-6">
 									<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
 									<span className="ml-2 text-sm">Loading solution categories...</span>
 								</div>
@@ -681,14 +792,22 @@ export function CreateSolutionStep1({
 								<div className="space-y-3">
 									{/* Selected Solution Category Card */}
 									{selectedSolutionId && (
-										<div 
+										<div
 											className="p-3 border-2 border-primary rounded-md bg-primary/5 cursor-pointer hover:bg-primary/10 transition-colors"
-											onClick={() => setOpenAccordion(openAccordion === "solutions" ? undefined : "solutions")}
+											onClick={() =>
+												setOpenAccordion(
+													openAccordion === "solutions"
+														? undefined
+														: "solutions"
+												)
+											}
 										>
 											<div className="flex items-center justify-between">
 												<div className="flex items-center gap-2">
 													<Check className="h-4 w-4 text-primary" />
-													<span className="text-sm font-medium">Selected Solution Category</span>
+													<span className="text-sm font-medium">
+														Selected Solution Category
+													</span>
 												</div>
 												<div className="flex items-center gap-2">
 													<Button
@@ -707,26 +826,36 @@ export function CreateSolutionStep1({
 														size="sm"
 														onClick={(e) => {
 															e.stopPropagation();
-															setOpenAccordion(openAccordion === "solutions" ? undefined : "solutions");
+															setOpenAccordion(
+																openAccordion === "solutions"
+																	? undefined
+																	: "solutions"
+															);
 														}}
 														className="h-6 px-2 text-xs"
 													>
-														{openAccordion === "solutions" ? "Hide" : "Show"} List
+														{openAccordion === "solutions" ? "Hide" : "Show"}{" "}
+														List
 													</Button>
 												</div>
 											</div>
 											<div className="flex items-center gap-2 mt-2">
 												{getSelectedSolutionCategory()?.icon ? (
 													React.createElement(
-														(typeof getSelectedSolutionCategory()?.icon as unknown) === 'string' 
-															? stringToIconComponent(getSelectedSolutionCategory()?.icon as string)
-															: getSelectedSolutionCategory()?.icon as any,
+														(typeof getSelectedSolutionCategory()
+															?.icon as unknown) === "string"
+															? stringToIconComponent(
+																	getSelectedSolutionCategory()?.icon as string
+															  )
+															: (getSelectedSolutionCategory()?.icon as any),
 														{ className: "h-4 w-4" }
 													)
 												) : (
 													<div className="h-4 w-4 bg-muted rounded"></div>
 												)}
-												<span className="font-medium text-sm">{getSelectedSolutionCategory()?.name}</span>
+												<span className="font-medium text-sm">
+													{getSelectedSolutionCategory()?.name}
+												</span>
 											</div>
 											<p className="text-xs text-muted-foreground mt-1 ml-6">
 												{getSelectedSolutionCategory()?.description}
@@ -735,45 +864,67 @@ export function CreateSolutionStep1({
 									)}
 
 									{/* Solution Categories Accordion */}
-									<Accordion 
-										type="single" 
-										collapsible 
+									<Accordion
+										type="single"
+										collapsible
 										className="w-full"
 										value={openAccordion}
 										onValueChange={setOpenAccordion}
 									>
-										<AccordionItem value="solutions" className="border rounded-md">
+										<AccordionItem
+											value="solutions"
+											className="border rounded-md"
+										>
 											<AccordionTrigger className="px-4 py-3 hover:no-underline">
 												<div className="flex items-center justify-between w-full">
 													<div className="flex items-center gap-3">
 														<span className="text-sm font-medium">
-															{availableSolutionTypes.length} Available Solution Categories
+															{availableSolutionTypes.length} Available Solution
+															Categories
 														</span>
 														{/* Preview of first few solution categories */}
 														<div className="flex items-center gap-1">
-															{availableSolutionTypes.slice(0, 3).map((solutionCategory, index) => (
-																<div key={solutionCategory.id} className="flex items-center gap-1">
-																	{solutionCategory.icon ? (
-																		React.createElement(
-																			(typeof solutionCategory.icon as unknown) === 'string' 
-																				? stringToIconComponent(solutionCategory.icon as string)
-																				: solutionCategory.icon as any,
-																			{ className: "h-3 w-3 text-muted-foreground" }
-																		)
-																	) : (
-																		<div className="h-3 w-3 bg-muted rounded"></div>
-																	)}
-																	<span className="text-xs text-muted-foreground">
-																		{solutionCategory.name}
-																	</span>
-																	{index < Math.min(3, availableSolutionTypes.length - 1) && (
-																		<span className="text-xs text-muted-foreground">,</span>
-																	)}
-																</div>
-															))}
+															{availableSolutionTypes
+																.slice(0, 3)
+																.map((solutionCategory, index) => (
+																	<div
+																		key={solutionCategory.id}
+																		className="flex items-center gap-1"
+																	>
+																		{solutionCategory.icon ? (
+																			React.createElement(
+																				(typeof solutionCategory.icon as unknown) ===
+																					"string"
+																					? stringToIconComponent(
+																							solutionCategory.icon as string
+																					  )
+																					: (solutionCategory.icon as any),
+																				{
+																					className:
+																						"h-3 w-3 text-muted-foreground",
+																				}
+																			)
+																		) : (
+																			<div className="h-3 w-3 bg-muted rounded"></div>
+																		)}
+																		<span className="text-xs text-muted-foreground">
+																			{solutionCategory.name}
+																		</span>
+																		{index <
+																			Math.min(
+																				3,
+																				availableSolutionTypes.length - 1
+																			) && (
+																			<span className="text-xs text-muted-foreground">
+																				,
+																			</span>
+																		)}
+																	</div>
+																))}
 															{availableSolutionTypes.length > 3 && (
 																<span className="text-xs text-muted-foreground">
-																	... and {availableSolutionTypes.length - 3} more
+																	... and {availableSolutionTypes.length - 3}{" "}
+																	more
 																</span>
 															)}
 														</div>
@@ -784,20 +935,33 @@ export function CreateSolutionStep1({
 												</div>
 											</AccordionTrigger>
 											<AccordionContent className="px-4 pb-4">
-												<div className="grid grid-cols-2 md:grid-cols-3 gap-1 max-h-60 overflow-y-auto">
-													{availableSolutionTypes.map(renderSolutionCategoryCard)}
+												<div className="grid grid-cols-1 gap-2 max-h-60 overflow-y-auto">
+													{availableSolutionTypes.map(
+														renderSolutionCategoryCard
+													)}
 													<div
-														className={`p-2 border rounded-md cursor-pointer transition-colors text-xs ${
+														className={`p-3 border rounded-md cursor-pointer transition-colors ${
 															isCreatingNewSolution
 																? "border-primary bg-primary/5"
 																: "border-border hover:border-primary/50"
 														}`}
 														onClick={onCreateNewSolution}
 													>
-														<div className="flex items-center gap-1">
-															<Plus className="h-3 w-3" />
-															<span className="font-medium truncate">Create New</span>
+														<div className="flex items-center gap-2">
+															<Checkbox
+																checked={isCreatingNewSolution}
+																onCheckedChange={onCreateNewSolution}
+															/>
+															<div className="flex items-center gap-2">
+																<Plus className="h-4 w-4" />
+																<span className="font-medium text-sm">
+																	Create New
+																</span>
+															</div>
 														</div>
+														<p className="text-xs text-muted-foreground mt-1 ml-6">
+															Create a new solution category
+														</p>
 													</div>
 												</div>
 											</AccordionContent>
@@ -808,187 +972,139 @@ export function CreateSolutionStep1({
 						</div>
 					)}
 
-					{/* New Solution Form */}
-					{isCreatingNewSolution && canSelectSolution && (
-						<div className="p-4 border rounded-md bg-muted/50 space-y-3">
-							<div>
-								<Label className="text-sm font-medium">Solution Icon</Label>
-								<div className="flex items-center gap-3 mt-1">
-									<div className="flex items-center justify-center w-10 h-10 border rounded-lg bg-gray-50">
-										{formData.solutionIcon ? (
-											React.createElement(stringToIconComponent(formData.solutionIcon), { className: "h-5 w-5 text-gray-600" })
-										) : (
-											<Plus className="h-5 w-5 text-gray-600" />
-										)}
-									</div>
-									<Button
-										variant="outline"
-										size="sm"
-										onClick={() => setIsIconSelectorOpen(true)}
-										className="text-xs"
-									>
-										{formData.solutionIcon ? "Change Icon" : "Select Icon"}
-									</Button>
-								</div>
-							</div>
-
-							<div>
-								<Label className="text-sm font-medium">Solution Name *</Label>
-								<Input
-									value={formData.solutionName}
-									onChange={(e) => onFormDataChange({ solutionName: e.target.value })}
-									placeholder="Enter solution name"
-									className="mt-1"
-								/>
-							</div>
-
-							<div>
-								<Label className="text-sm font-medium">Solution Description *</Label>
-								<Textarea
-									value={formData.solutionDescription}
-									onChange={(e) => onFormDataChange({ solutionDescription: e.target.value })}
-									placeholder="Describe your solution in detail"
-									className="mt-1"
-									rows={3}
-								/>
-							</div>
-						</div>
-					)}
-
 					{/* Solution Variant Selection */}
-					{(selectedSolutionId || isCreatingNewSolution) && canSelectSolution && (
-						<div className="space-y-4">
-							<div>
-								<Label className="text-sm font-medium">Solution Variant</Label>
-								<p className="text-xs text-muted-foreground mb-3">
-									Choose a variant for your selected solution category
-								</p>
-							</div>
-
-							{/* Existing Solutions Section */}
-							{existingSolutions.length > 0 && (
-								<div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-									<Label className="text-xs font-medium text-blue-700 mb-3 flex items-center gap-2">
-										<Eye className="h-3 w-3" />
-										Existing Solutions ({existingSolutions.length})
-									</Label>
-									<p className="text-xs text-blue-600 mb-3">
-										These solutions already exist for your selected criteria. You can view them for reference or create a new variant.
-									</p>
-									{isLoadingExistingSolutions ? (
-										<div className="flex items-center justify-center py-4">
-											<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-											<span className="ml-2 text-sm text-blue-600">Loading existing solutions...</span>
-										</div>
-									) : (
-										<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-											{existingSolutions.map(renderExistingSolutionCard)}
-										</div>
+					{(selectedSolutionId || isCreatingNewSolution) &&
+						canSelectSolution && (
+							<div className="space-y-4">
+								{/* Solution Variant Progress Indicator */}
+								<div className="flex items-center gap-2 mb-2">
+									<div
+										className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
+											selectedSolutionVariantId
+												? "bg-green-500 text-white"
+												: "bg-muted text-muted-foreground"
+										}`}
+									>
+										{selectedSolutionVariantId ? <Check className="h-3 w-3" /> : "4"}
+									</div>
+									<span
+										className={`text-sm ${selectedSolutionVariantId ? "font-medium" : ""}`}
+									>
+										Solution Variant Selection
+									</span>
+									{!selectedSolutionVariantId && (
+										<span className="text-xs text-muted-foreground ml-2">
+											(Select a solution variant to continue)
+										</span>
 									)}
 								</div>
-							)}
 
-							<div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-								<Label className="text-xs font-medium text-muted-foreground mb-2">
-									Solution Variants
-								</Label>
-								{isLoadingSolutionVariants ? (
-									<div className="flex items-center justify-center py-4">
-										<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-										<span className="ml-2 text-sm">Loading variants...</span>
-									</div>
-								) : (
-									<div className="space-y-3">
-										{/* Selected Solution Variant Card */}
-										{selectedSolutionVariantId && (
-											<div 
-												className="p-3 border-2 border-primary rounded-md bg-primary/5 cursor-pointer hover:bg-primary/10 transition-colors"
-												onClick={() => setOpenAccordion(openAccordion === "variants" ? undefined : "variants")}
-											>
-												<div className="flex items-center justify-between">
-													<div className="flex items-center gap-2">
-														<Check className="h-4 w-4 text-primary" />
-														<span className="text-sm font-medium">Selected Solution Variant</span>
-													</div>
-													<div className="flex items-center gap-2">
-														<Button
-															variant="ghost"
-															size="sm"
-															onClick={(e) => {
-																e.stopPropagation();
-																onSolutionVariantSelect("");
-															}}
-															className="h-6 px-2 text-xs"
-														>
-															Change
-														</Button>
-														<Button
-															variant="ghost"
-															size="sm"
-															onClick={(e) => {
-																e.stopPropagation();
-																setOpenAccordion(openAccordion === "variants" ? undefined : "variants");
-															}}
-															className="h-6 px-2 text-xs"
-														>
-															{openAccordion === "variants" ? "Hide" : "Show"} List
-														</Button>
-													</div>
-												</div>
-												<div className="flex items-center gap-2 mt-2">
-													{getSelectedSolutionVariant()?.icon ? (
-														React.createElement(stringToIconComponent(getSelectedSolutionVariant()?.icon), { className: "h-4 w-4" })
-													) : (
-														<div className="h-4 w-4 bg-muted rounded"></div>
-													)}
-													<span className="font-medium text-sm">{getSelectedSolutionVariant()?.name}</span>
-												</div>
-												<p className="text-xs text-muted-foreground mt-1 ml-6">
-													{getSelectedSolutionVariant()?.description}
-												</p>
+								{/* Selected Solution Variant Display */}
+								{selectedSolutionVariantId && (
+									<div className="p-3 border-2 border-primary rounded-md bg-primary/5">
+										<div className="flex items-center justify-between">
+											<div className="flex items-center gap-2">
+												<Check className="h-4 w-4 text-primary" />
+												<span className="text-sm font-medium">
+													Selected Solution Variant
+												</span>
 											</div>
-										)}
+											<Button
+												variant="ghost"
+												size="sm"
+												onClick={() => onSolutionVariantSelect("")}
+												className="h-6 px-2 text-xs"
+											>
+												Change
+											</Button>
+										</div>
+										<div className="flex items-center gap-2 mt-2">
+											{(() => {
+												const selectedVariant = existingSolutions.find(s => s.id === selectedSolutionVariantId);
+												return (
+													<>
+														{selectedVariant?.solution_icon ? (
+															React.createElement(
+																stringToIconComponent(selectedVariant.solution_icon),
+																{ className: "h-4 w-4" }
+															)
+														) : (
+															<div className="h-4 w-4 bg-muted rounded"></div>
+														)}
+														<span className="font-medium text-sm">
+															{selectedVariant?.solution_name || "New Variant"}
+														</span>
+													</>
+												);
+											})()}
+										</div>
+										<p className="text-xs text-muted-foreground mt-1 ml-6">
+											{(() => {
+												const selectedVariant = existingSolutions.find(s => s.id === selectedSolutionVariantId);
+												return selectedVariant?.solution_description || "Newly created variant";
+											})()}
+										</p>
+									</div>
+								)}
 
-										{/* Solution Variants Accordion */}
-										<Accordion 
-											type="single" 
-											collapsible 
-											className="w-full"
-											value={openAccordion}
-											onValueChange={setOpenAccordion}
-										>
-											<AccordionItem value="variants" className="border rounded-md">
+								{/* Existing Solutions Section */}
+								{existingSolutions.length > 0 && (
+									<div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+										<Accordion type="single" collapsible className="w-full">
+											<AccordionItem
+												value="existing-solutions"
+												className="border rounded-md"
+											>
 												<AccordionTrigger className="px-4 py-3 hover:no-underline">
 													<div className="flex items-center justify-between w-full">
 														<div className="flex items-center gap-3">
+															<Eye className="h-3 w-3 text-muted-foreground" />
 															<span className="text-sm font-medium">
-																{availableSolutionVariants.length + 1} Available Options
+																Existing Solutions ({existingSolutions.length})
 															</span>
-															{/* Preview of first few variants */}
+															{/* Preview of first few solutions */}
 															<div className="flex items-center gap-1">
-																{availableSolutionVariants.slice(0, 2).map((variant, index) => (
-																	<div key={variant.id} className="flex items-center gap-1">
-																		{variant.icon ? (
-																			React.createElement(stringToIconComponent(variant.icon), { className: "h-3 w-3 text-muted-foreground" })
+																<span className="text-xs text-muted-foreground">
+																	Create New Variant
+																</span>
+																<span className="text-xs text-muted-foreground">,</span>
+																{existingSolutions.slice(0, 1).map((solution, index) => (
+																	<div
+																		key={solution.id}
+																		className="flex items-center gap-1"
+																	>
+																		{solution.solution_icon ? (
+																			React.createElement(
+																				stringToIconComponent(
+																					solution.solution_icon
+																				),
+																				{
+																					className:
+																						"h-3 w-3 text-muted-foreground",
+																				}
+																			)
 																		) : (
 																			<div className="h-3 w-3 bg-muted rounded"></div>
 																		)}
 																		<span className="text-xs text-muted-foreground">
-																			{variant.name}
+																			{solution.solution_name}
 																		</span>
-																		{index < Math.min(2, availableSolutionVariants.length - 1) && (
-																			<span className="text-xs text-muted-foreground">,</span>
+																		{index <
+																			Math.min(
+																				1,
+																				existingSolutions.length - 1
+																			) && (
+																			<span className="text-xs text-muted-foreground">
+																				,
+																			</span>
 																		)}
 																	</div>
 																))}
-																{availableSolutionVariants.length > 2 && (
+																{existingSolutions.length > 1 && (
 																	<span className="text-xs text-muted-foreground">
-																		... and {availableSolutionVariants.length - 2} more
+																		... and {existingSolutions.length - 1} more
 																	</span>
 																)}
-																<span className="text-xs text-muted-foreground">
-																	, Create New
-																</span>
 															</div>
 														</div>
 														<span className="text-xs text-muted-foreground">
@@ -997,121 +1113,242 @@ export function CreateSolutionStep1({
 													</div>
 												</AccordionTrigger>
 												<AccordionContent className="px-4 pb-4">
-													<div className="grid grid-cols-2 md:grid-cols-3 gap-1 max-h-60 overflow-y-auto">
-														{!isCreatingNewSolution && availableSolutionVariants.map(renderSolutionVariantCard)}
-														<div
-															className={`p-2 border rounded-md cursor-pointer transition-colors text-xs ${
-																isCreatingNewVariantPending
-																	? "border-primary bg-primary/5"
-																	: "border-border hover:border-primary/50"
-															}`}
-															onClick={handleCreateNewVariant}
-														>
-															<div className="flex items-center gap-1">
-																<Plus className="h-3 w-3" />
-																<span className="font-medium truncate">Create New</span>
+													<div className="space-y-2">
+														<p className="text-xs text-muted-foreground mb-3">
+															These solutions already exist for your selected
+															criteria. You can view them for reference or
+															create a new variant.
+														</p>
+														{isLoadingExistingSolutions ? (
+															<div className="flex items-center justify-center py-4">
+																<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-muted-foreground"></div>
+																<span className="ml-2 text-sm text-muted-foreground">
+																	Loading existing solutions...
+																</span>
 															</div>
-														</div>
+														) : (
+															<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+																{/* Create New Variant Card */}
+																<div
+																	className={`p-3 border rounded-md cursor-pointer transition-colors ${
+																		selectedSolutionVariantId === "create-new"
+																			? "border-primary bg-primary/5"
+																			: "border-border hover:border-primary/50"
+																	}`}
+																	onClick={handleCreateNewVariant}
+																>
+																	<div className="flex items-center justify-between mb-2">
+																		<div className="flex items-center gap-2">
+																			<Checkbox
+																				checked={selectedSolutionVariantId === "create-new"}
+																				onCheckedChange={handleCreateNewVariant}
+																			/>
+																			<Plus className="h-3 w-3 text-muted-foreground" />
+																			<span className="font-medium text-xs">
+																				Create New Variant
+																			</span>
+																		</div>
+																		<Badge variant="outline" className="text-xs">
+																			New
+																		</Badge>
+																	</div>
+																	<div className="space-y-1">
+										
+																		<p className="text-xs text-muted-foreground line-clamp-2">
+																			Add a new variant to your selected solution category
+																		</p>
+									
+																	</div>
+																</div>
+																{existingSolutions.map((solution) => (
+																	<div
+																		key={solution.id}
+																		className={`p-3 border rounded-md cursor-pointer transition-colors text-xs ${
+																			selectedSolutionVariantId === solution.id
+																				? "border-primary bg-primary/5"
+																				: "bg-white hover:border-primary/50"
+																		}`}
+																		onClick={() => onSolutionVariantSelect(solution.id)}
+																	>
+																		<div className="flex items-center justify-between mb-2">
+																			<div className="flex items-center gap-2">
+																				<Checkbox
+																					checked={selectedSolutionVariantId === solution.id}
+																					onCheckedChange={() => onSolutionVariantSelect(solution.id)}
+																				/>
+																				<Eye className="h-3 w-3 text-muted-foreground" />
+																				<span className="font-medium text-xs">
+																					Existing Solution
+																				</span>
+																			</div>
+																			<Badge
+																				variant="outline"
+																				className="text-xs"
+																			>
+																				{solution.status}
+																			</Badge>
+																		</div>
+																		<div className="space-y-1">
+																			<div className="flex items-center gap-1">
+																				{solution.solution_icon ? (
+																					React.createElement(
+																						stringToIconComponent(
+																							solution.solution_icon
+																						),
+																						{
+																							className: "h-3 w-3",
+																						}
+																					)
+																				) : (
+																					<div className="h-3 w-3 bg-muted rounded"></div>
+																				)}
+																				<span className="font-medium text-xs truncate">
+																					{solution.solution_name}
+																				</span>
+																			</div>
+																			<p className="text-xs text-muted-foreground line-clamp-2">
+																				{solution.solution_description}
+																			</p>
+																			<div className="flex items-center gap-2 text-xs text-muted-foreground">
+																				<div className="flex items-center gap-1">
+																					<Clock className="h-3 w-3" />
+																					<span>
+																						{new Date(
+																							solution.created_at
+																						).toLocaleDateString()}
+																					</span>
+																				</div>
+																				<div className="flex items-center gap-1">
+																					<User className="h-3 w-3" />
+																					<span>
+																						{solution.parameters?.length || 0}{" "}
+																						params
+																					</span>
+																				</div>
+																			</div>
+																		</div>
+																	</div>
+																))}
+															</div>
+														)}
 													</div>
 												</AccordionContent>
 											</AccordionItem>
 										</Accordion>
 									</div>
 								)}
-							</div>
 
-							{/* New Variant Form */}
-							{isCreatingNewVariantPending && (
-								<div className="p-4 border rounded-md bg-muted/50 space-y-3">
-									<div>
-										<Label className="text-sm font-medium">Solution Variant Icon</Label>
-										<div className="flex items-center gap-3 mt-1">
-											<div className="flex items-center justify-center w-10 h-10 border rounded-lg bg-gray-50">
-												{formData.newVariantIcon ? (
-													React.createElement(stringToIconComponent(formData.newVariantIcon), { className: "h-5 w-5 text-gray-600" })
-												) : (
-													<Plus className="h-5 w-5 text-gray-600" />
-												)}
+								{/* New Variant Form */}
+								{isCreatingNewVariant && (
+									<div className="p-4 border rounded-md bg-muted/50 space-y-3">
+										<div>
+											<Label className="text-sm font-medium">
+												Solution Variant Icon
+											</Label>
+											<div className="flex items-center gap-3 mt-1">
+												<div className="flex items-center justify-center w-10 h-10 border rounded-lg bg-gray-50">
+													{formData.newVariantIcon ? (
+														React.createElement(
+															stringToIconComponent(formData.newVariantIcon),
+															{ className: "h-5 w-5 text-gray-600" }
+														)
+													) : (
+														<Plus className="h-5 w-5 text-gray-600" />
+													)}
+												</div>
+												<Button
+													variant="outline"
+													size="sm"
+													onClick={() => setIsVariantIconSelectorOpen(true)}
+													className="text-xs"
+												>
+													{formData.newVariantIcon ? "Change Icon" : "Select Icon"}
+												</Button>
 											</div>
+										</div>
+
+										<div>
+											<Label className="text-sm font-medium">
+												Solution Variant Name *
+											</Label>
+											<Input
+												value={formData.newVariantName}
+												onChange={(e) =>
+													onFormDataChange({ newVariantName: e.target.value })
+												}
+												placeholder="Enter solution variant name"
+												className="mt-1"
+											/>
+										</div>
+
+										<div>
+											<Label className="text-sm font-medium">
+												Solution Variant Description *
+											</Label>
+											<Textarea
+												value={formData.newVariantDescription}
+												onChange={(e) =>
+													onFormDataChange({
+														newVariantDescription: e.target.value,
+													})
+												}
+												placeholder="Describe your solution variant in detail"
+												className="mt-1"
+												rows={3}
+											/>
+										</div>
+
+										<div className="flex items-center gap-2 pt-2">
 											<Button
-												variant="outline"
-												size="sm"
-												onClick={() => setIsVariantIconSelectorOpen(true)}
+												onClick={() => {
+													// Create the variant locally and optimistically display it
+													const newVariant = {
+														id: `new-variant-${Date.now()}`,
+														name: formData.newVariantName,
+														description: formData.newVariantDescription,
+														icon: formData.newVariantIcon,
+													};
+
+													// Add to available variants list
+													onAddSolutionVariant(newVariant);
+
+													// Select the new variant
+													onSolutionVariantSelect(newVariant.id);
+
+													// Clear the form and exit pending state
+													// setIsCreatingNewVariant(false);
+													onFormDataChange({
+														newVariantName: "",
+														newVariantDescription: "",
+														newVariantIcon: "",
+													});
+												}}
+												disabled={
+													!formData.newVariantName ||
+													!formData.newVariantDescription
+												}
 												className="text-xs"
 											>
-												{formData.newVariantIcon ? "Change Icon" : "Select Icon"}
+												Create Variant
+											</Button>
+											<Button
+												variant="outline"
+												onClick={() => {
+													// setIsCreatingNewVariant(false);
+													onFormDataChange({
+														newVariantName: "",
+														newVariantDescription: "",
+														newVariantIcon: "",
+													});
+												}}
+												className="text-xs"
+											>
+												Cancel
 											</Button>
 										</div>
 									</div>
+								)}
 
-									<div>
-										<Label className="text-sm font-medium">Solution Variant Name *</Label>
-										<Input
-											value={formData.newVariantName}
-											onChange={(e) => onFormDataChange({ newVariantName: e.target.value })}
-											placeholder="Enter solution variant name"
-											className="mt-1"
-										/>
-									</div>
-
-									<div>
-										<Label className="text-sm font-medium">Solution Variant Description *</Label>
-										<Textarea
-											value={formData.newVariantDescription}
-											onChange={(e) => onFormDataChange({ newVariantDescription: e.target.value })}
-											placeholder="Describe your solution variant in detail"
-											className="mt-1"
-											rows={3}
-										/>
-									</div>
-
-									<div className="flex items-center gap-2 pt-2">
-										<Button
-											onClick={() => {
-												// Create the variant locally and optimistically display it
-												const newVariant = {
-													id: `new-variant-${Date.now()}`, // Temporary ID
-													name: formData.newVariantName,
-													description: formData.newVariantDescription,
-													icon: formData.newVariantIcon,
-												};
-												
-												// Add to available variants list
-												onAddSolutionVariant(newVariant);
-												
-												// Select the new variant
-												onSolutionVariantSelect(newVariant.id);
-												
-												// Clear the form and exit pending state
-												setIsCreatingNewVariantPending(false);
-												onFormDataChange({
-													newVariantName: "",
-													newVariantDescription: "",
-													newVariantIcon: "",
-												});
-											}}
-											disabled={!formData.newVariantName || !formData.newVariantDescription}
-											className="text-xs"
-										>
-											Create Variant
-										</Button>
-										<Button
-											variant="outline"
-											onClick={() => {
-												setIsCreatingNewVariantPending(false);
-												onFormDataChange({
-													newVariantName: "",
-													newVariantDescription: "",
-													newVariantIcon: "",
-												});
-											}}
-											className="text-xs"
-										>
-											Cancel
-										</Button>
-									</div>
-								</div>
-							)}
 							</div>
 						)}
 				</div>
@@ -1170,7 +1407,118 @@ export function CreateSolutionStep1({
 				</DialogContent>
 			</Dialog>
 
-			<Dialog open={isVariantIconSelectorOpen} onOpenChange={setIsVariantIconSelectorOpen}>
+			{/* Create New Variant Dialog */}
+			<Dialog open={isCreateVariantDialogOpen} onOpenChange={setIsCreateVariantDialogOpen}>
+				<DialogContent className="max-w-md">
+					<DialogHeader>
+						<DialogTitle>Create New Solution Variant</DialogTitle>
+						<DialogDescription>
+							Create a new variant for your selected solution category
+						</DialogDescription>
+					</DialogHeader>
+					<div className="space-y-4">
+						<div>
+							<Label className="text-sm font-medium">Solution Variant Icon</Label>
+							<div className="flex items-center gap-3 mt-1">
+								<div className="flex items-center justify-center w-10 h-10 border rounded-lg bg-gray-50">
+									{formData.newVariantIcon ? (
+										React.createElement(
+											stringToIconComponent(formData.newVariantIcon),
+											{ className: "h-5 w-5 text-gray-600" }
+										)
+									) : (
+										<Plus className="h-5 w-5 text-gray-600" />
+									)}
+								</div>
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() => setIsVariantIconSelectorOpen(true)}
+									className="text-xs"
+								>
+									{formData.newVariantIcon ? "Change Icon" : "Select Icon"}
+								</Button>
+							</div>
+						</div>
+
+						<div>
+							<Label className="text-sm font-medium">Solution Variant Name *</Label>
+							<Input
+								value={formData.newVariantName}
+								onChange={(e) =>
+									onFormDataChange({ newVariantName: e.target.value })
+								}
+								placeholder="Enter solution variant name"
+								className="mt-1"
+							/>
+						</div>
+
+						<div>
+							<Label className="text-sm font-medium">Solution Variant Description *</Label>
+							<Textarea
+								value={formData.newVariantDescription}
+								onChange={(e) =>
+									onFormDataChange({
+										newVariantDescription: e.target.value,
+									})
+								}
+								placeholder="Describe your solution variant in detail"
+								className="mt-1"
+								rows={3}
+							/>
+						</div>
+					</div>
+					<div className="flex justify-end gap-2 mt-6 pt-4 border-t">
+						<Button
+							onClick={() => setIsCreateVariantDialogOpen(false)}
+							variant="outline"
+							size="sm"
+						>
+							Cancel
+						</Button>
+						<Button
+							onClick={() => {
+								// Create the variant locally and optimistically display it
+								const newVariant = {
+									id: `new-variant-${Date.now()}`,
+									solution_name: formData.newVariantName,
+									solution_description: formData.newVariantDescription,
+									solution_icon: formData.newVariantIcon,
+									status: "New",
+									created_at: new Date().toISOString(),
+									parameters: [],
+								};
+
+								// Add to existing solutions list
+								setExistingSolutions(prev => [newVariant, ...prev]);
+
+								// Select the new variant
+								onSolutionVariantSelect(newVariant.id);
+
+								// Clear the form and close dialog
+								setIsCreateVariantDialogOpen(false);
+								onFormDataChange({
+									newVariantName: "",
+									newVariantDescription: "",
+									newVariantIcon: "",
+								});
+							}}
+							disabled={
+								!formData.newVariantName ||
+								!formData.newVariantDescription
+							}
+							size="sm"
+						>
+							Create Variant
+						</Button>
+					</div>
+				</DialogContent>
+			</Dialog>
+
+			<Dialog
+				open={isVariantIconSelectorOpen}
+				onOpenChange={setIsVariantIconSelectorOpen}
+			>
 				<DialogContent className="max-w-md">
 					<DialogHeader>
 						<DialogTitle>Select Solution Variant Icon</DialogTitle>
@@ -1218,4 +1566,4 @@ export function CreateSolutionStep1({
 			</Dialog>
 		</div>
 	);
-} 
+}
