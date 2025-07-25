@@ -46,6 +46,8 @@ import { SubmissionDialog } from "./submission-dialog";
 import { DraftDialog } from "./draft-dialog";
 import Loading from "@/components/loading-main";
 import { globalParameters } from "../../mock-data";
+import { getClientSolutions } from "@/lib/actions/clients-solutions/clients-solutions";
+import { updateClientSolution } from "@/lib/actions/clients-solutions/clients-solutions";
 
 interface CreateSolutionData {
 	selectedIndustry: string;
@@ -100,6 +102,18 @@ export function CreateSolutionMain() {
 	// Separate category states for parameters and calculations to keep them independent
 	const [customParameterCategories, setCustomParameterCategories] = useState<any[]>([]);
 	const [customCalculationCategories, setCustomCalculationCategories] = useState<any[]>([]);
+
+	// Loading state for parameters
+	const [isLoadingParameters, setIsLoadingParameters] = useState(false);
+
+	// Loading state for calculations
+	const [isLoadingCalculations, setIsLoadingCalculations] = useState(false);
+
+	// Track if an existing solution was loaded
+	const [isExistingSolutionLoaded, setIsExistingSolutionLoaded] = useState(false);
+
+	// Track the existing solution ID for updates
+	const [existingSolutionId, setExistingSolutionId] = useState<string | null>(null);
 
 	// Form data state
 	const [formData, setFormData] = useState<CreateSolutionData>({
@@ -170,6 +184,10 @@ export function CreateSolutionMain() {
 	}, [user]);
 
 	const handleNext = () => {
+		// If moving to step 2 or 3 and we have a selected solution variant, load existing data
+		if ((currentStep === 1 || currentStep === 2) && formData.selectedSolutionVariantId) {
+			loadExistingSolutionData(formData.selectedSolutionVariantId);
+		}
 		setCurrentStep(prev => prev + 1);
 	};
 
@@ -214,6 +232,8 @@ export function CreateSolutionMain() {
 		}));
 		setIsCreatingNewSolution(false);
 		setIsCreatingNewVariant(false);
+		setIsExistingSolutionLoaded(false);
+		setExistingSolutionId(null);
 		
 		// Reset new solution/variant data
 		setFormData(prev => ({
@@ -241,6 +261,17 @@ export function CreateSolutionMain() {
 			newVariantDescription: "",
 			newVariantIcon: "",
 		}));
+
+		// Reset existing solution loaded state for new variants
+		if (variantId.startsWith('new-variant-')) {
+			setIsExistingSolutionLoaded(false);
+			setExistingSolutionId(null);
+		}
+
+		// Load existing solution data if this is an existing solution variant
+		if (variantId && !variantId.startsWith('new-variant-')) {
+			loadExistingSolutionData(variantId);
+		}
 	};
 
 	const handleCreateNewSolution = () => {
@@ -251,11 +282,15 @@ export function CreateSolutionMain() {
 			selectedSolutionVariantId: ""
 		}));
 		setAvailableSolutionVariants([]);
+		setIsExistingSolutionLoaded(false);
+		setExistingSolutionId(null);
 	};
 
 	const handleCreateNewVariant = () => {
 		setIsCreatingNewVariant(true);
 		setFormData(prev => ({ ...prev, selectedSolutionVariantId: "" }));
+		setIsExistingSolutionLoaded(false);
+		setExistingSolutionId(null);
 	};
 
 	const handleNoVariantSelect = () => {
@@ -321,9 +356,85 @@ export function CreateSolutionMain() {
 		setFormData(prev => ({ ...prev, calculations }));
 	};
 
+	// Function to load existing solution data (parameters and calculations)
+	const loadExistingSolutionData = async (solutionVariantId: string) => {
+		try {
+			setIsLoadingParameters(true);
+			setIsLoadingCalculations(true);
+			console.log("Loading data for solution variant:", solutionVariantId);
+			
+			// Check if this is an existing solution variant (not a new one)
+			if (!solutionVariantId.startsWith('new-variant-')) {
+				// Get the existing solution data
+				const existingSolutions = await getClientSolutions(clientData.id);
+				console.log("Found existing solutions:", existingSolutions.solutions?.length || 0);
+				
+				if (existingSolutions.solutions) {
+					const existingSolution = existingSolutions.solutions.find(
+						solution => solution.id === solutionVariantId
+					);
+					
+					console.log("Found matching solution:", existingSolution);
+					
+					if (existingSolution) {
+						// Load parameters if they exist
+						if (existingSolution.parameters) {
+							setFormData(prev => ({
+								...prev,
+								parameters: existingSolution.parameters
+							}));
+						}
+
+						// Load calculations if they exist
+						if (existingSolution.calculations) {
+							setFormData(prev => ({
+								...prev,
+								calculations: existingSolution.calculations
+							}));
+						}
+						setIsExistingSolutionLoaded(true);
+						setExistingSolutionId(existingSolution.id || null); // Set the existing solution ID
+					} else {
+						// Solution not found
+						toast.warning("Existing solution not found. Starting with empty data.");
+					}
+				}
+			} else {
+				console.log("New variant selected, starting with empty data");
+			}
+		} catch (error) {
+			console.error("Error loading existing solution data:", error);
+			toast.error("Failed to load existing solution data");
+		} finally {
+			setIsLoadingParameters(false);
+			setIsLoadingCalculations(false);
+		}
+	};
+
 	const handleSaveAsDraft = async () => {
 		try {
 			setIsSubmitting(true);
+
+			// If we have an existing solution loaded, update it instead of creating a new one
+			if (isExistingSolutionLoaded && existingSolutionId) {
+				// Update the existing solution
+				const updateResult = await updateClientSolution(existingSolutionId, {
+					parameters: formData.parameters,
+					calculations: formData.calculations,
+					status: "draft",
+					updated_at: new Date(),
+				});
+
+				if (updateResult.success) {
+					setDraftStatus("success");
+					setDraftMessage("Solution updated and saved as draft successfully!");
+					setDraftSolutionName("Updated Solution");
+					setShowDraftDialog(true);
+				} else {
+					throw new Error(updateResult.error || "Failed to update solution");
+				}
+				return;
+			}
 
 			// Create solution first
 			let solutionId = formData.selectedSolutionId;
@@ -433,6 +544,27 @@ export function CreateSolutionMain() {
 	const handleSubmitForReview = async () => {
 		try {
 			setIsSubmitting(true);
+
+			// If we have an existing solution loaded, update it instead of creating a new one
+			if (isExistingSolutionLoaded && existingSolutionId) {
+				// Update the existing solution
+				const updateResult = await updateClientSolution(existingSolutionId, {
+					parameters: formData.parameters,
+					calculations: formData.calculations,
+					status: "pending",
+					updated_at: new Date(),
+				});
+
+				if (updateResult.success) {
+					setSubmissionStatus("success");
+					setSubmissionMessage("Solution updated and submitted for review successfully!");
+					setSubmittedSolutionName("Updated Solution");
+					setShowSubmissionDialog(true);
+				} else {
+					throw new Error(updateResult.error || "Failed to update solution");
+				}
+				return;
+			}
 
 			// Create solution first
 			let solutionId = formData.selectedSolutionId;
@@ -566,15 +698,6 @@ export function CreateSolutionMain() {
 		);
 	};
 
-	const getActualSolutionId = () => {
-		if (isCreatingNewSolution) {
-			// This would be the ID of the newly created solution
-			// For now, we'll return the selected solution ID
-			return formData.selectedSolutionId;
-		}
-		return formData.selectedSolutionId;
-	};
-
 	const getStepTitle = () => {
 		switch (currentStep) {
 			case 1:
@@ -622,8 +745,16 @@ export function CreateSolutionMain() {
 				// If using existing solution type, require solution variant as well
 				return !hasIndustry || !hasTechnology || !hasSolution || !hasSolutionVariant;
 			case 2:
+				// Allow proceeding even if parameters are being loaded
+				if (isLoadingParameters) {
+					return false;
+				}
 				return formData.parameters.length === 0;
 			case 3:
+				// Allow proceeding even if calculations are being loaded
+				if (isLoadingCalculations) {
+					return false;
+				}
 				return formData.calculations.length === 0;
 			default:
 				return false;
@@ -633,6 +764,8 @@ export function CreateSolutionMain() {
 	if (isLoading) {
 		return <Loading />;
 	}
+
+	console.log(formData.selectedSolutionVariantId)
 
 	return (
 		<div className="w-full h-screen flex flex-col pb-8 overflow-hidden">
@@ -709,6 +842,7 @@ export function CreateSolutionMain() {
 							availableIndustries={availableIndustries}
 							availableTechnologies={availableTechnologies}
 							availableSolutionTypes={availableSolutionTypes}
+							isLoadingParameters={isLoadingParameters}
 						/>
 					)}
 
@@ -727,6 +861,7 @@ export function CreateSolutionMain() {
 							availableSolutionTypes={availableSolutionTypes}
 							customCategories={customCalculationCategories}
 							setCustomCategories={setCustomCalculationCategories}
+							isLoadingCalculations={isLoadingCalculations}
 						/>
 					)}
 
@@ -752,6 +887,7 @@ export function CreateSolutionMain() {
 							getSelectedTechnologyName={getSelectedTechnologyName}
 							getSelectedSolutionType={getSelectedSolutionType}
 							getSelectedSolutionVariant={getSelectedSolutionVariant}
+							isExistingSolutionLoaded={isExistingSolutionLoaded}
 						/>
 					)}
 

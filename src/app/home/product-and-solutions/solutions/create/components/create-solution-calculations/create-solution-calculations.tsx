@@ -286,6 +286,7 @@ interface CalculationsConfigurationProps {
 	setCustomCategories?: React.Dispatch<
 		React.SetStateAction<Array<{ name: string; color: string }>>
 	>;
+	isLoadingCalculations?: boolean;
 }
 
 // Function to convert mock calculations to Calculation format
@@ -306,6 +307,7 @@ export function CalculationsConfiguration({
 	availableSolutionTypes,
 	customCategories = [],
 	setCustomCategories,
+	isLoadingCalculations = false,
 }: CalculationsConfigurationProps) {
 	const [editingCalculation, setEditingCalculation] = useState<string | null>(
 		null
@@ -1084,6 +1086,18 @@ export function CalculationsConfiguration({
 				setIsAddNewParameterDialogOpen={setIsAddNewParameterDialogOpen}
 				setIsPreviewDialogOpen={setIsPreviewDialogOpen}
 			/>
+
+			{/* Loading indicator for existing solution calculations */}
+			{isLoadingCalculations && (
+				<div className="flex items-center justify-center py-8">
+					<div className="flex items-center gap-3">
+						<div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
+						<span className="text-sm text-muted-foreground">
+							Loading existing solution calculations...
+						</span>
+					</div>
+				</div>
+			)}
 
 			{/* Table Content */}
 			<TableContent

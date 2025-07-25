@@ -57,6 +57,7 @@ interface CreateSolutionParametersProps {
 	availableIndustries?: any[];
 	availableTechnologies?: any[];
 	availableSolutionTypes?: any[];
+	isLoadingParameters?: boolean;
 }
 
 export function CreateSolutionParameters({
@@ -70,6 +71,7 @@ export function CreateSolutionParameters({
 	availableIndustries = [],
 	availableTechnologies = [],
 	availableSolutionTypes = [],
+	isLoadingParameters = false,
 }: CreateSolutionParametersProps) {
 	const [editingParameter, setEditingParameter] = useState<string | null>(null);
 	const [editData, setEditData] = useState<{
@@ -540,6 +542,18 @@ export function CreateSolutionParameters({
 
 			{activeTab !== "add-new-category" && (
 				<>
+					{/* Loading indicator for existing solution parameters */}
+					{isLoadingParameters && (
+						<div className="flex items-center justify-center py-8">
+							<div className="flex items-center gap-3">
+								<div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
+								<span className="text-sm text-muted-foreground">
+									Loading existing solution parameters...
+								</span>
+							</div>
+						</div>
+					)}
+
 					<Searchbar
 						searchQuery={searchQuery}
 						setSearchQuery={setSearchQuery}

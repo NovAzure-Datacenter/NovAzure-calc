@@ -43,7 +43,6 @@ export default function PreviewDialog({
 	availableTechnologies = [],
 	availableSolutionTypes = []
 }: PreviewDialogProps) {
-	console.log(parameters)
 	
 	// Filter parameters that are provided by user
 	const userParameters = parameters.filter(param => param.provided_by === "user");
