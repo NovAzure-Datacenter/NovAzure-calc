@@ -67,7 +67,7 @@ class Parameter:
         # Mathematical functions dictionary
         math_functions = {
             "log": self._log_function,  # Enhanced logarithm function
-            "ln": self._ln_function,  # Enhanced natural logarithm function
+            "ln": lambda x: self._log_function(x, math.e),  # Natural log using log with base e
             "sqrt": math.sqrt,
             "sin": self._sin_function,  # Enhanced sine function
             "cos": math.cos,
@@ -76,7 +76,7 @@ class Parameter:
             "round": round,
             "floor": math.floor,
             "ceil": math.ceil,
-            "exp": math.exp,
+            "exp": self._exp_function,  # Enhanced exponential function
         }
 
         def evaluate_ast(node) -> float:
@@ -138,6 +138,11 @@ class Parameter:
                                 return math_functions[func_name](evaluated_args[0], evaluated_args[1])
                             else:
                                 raise ValueError(f"Function '{func_name}' expects 1 or 2 arguments: sin(angle) or sin(angle, 'degrees')")
+                        elif func_name == "exp":
+                            if len(evaluated_args) == 3:
+                                return math_functions[func_name](evaluated_args[0], evaluated_args[1], evaluated_args[2])
+                            else:
+                                raise ValueError(f"Function '{func_name}' expects exactly 3 arguments: exp(growth_rate, time_period, time_unit)")
                         elif len(evaluated_args) == 1:
                             return math_functions[func_name](evaluated_args[0])
                         else:
@@ -150,46 +155,14 @@ class Parameter:
 
     def _log_function(self, x: float, base: float = 10) -> float:
         """
-        Enhanced logarithm function that handles base and provides error messages.
-        
-        Args:
-            x: The value to take the logarithm of
-            base: The base of the logarithm (default is 10)
-            
         Returns:
             The logarithm of x with the specified base
-            
-        Examples:
-            log(100) -> log(100) = 2
-            log(100, 2) -> log(100, 2) = 6.643856189774724
-            log(0) -> log(0) is undefined
-            log(-1) -> log(-1) is undefined
         """
         if x <= 0:
             raise ValueError(f"Logarithm of non-positive number ({x}) is undefined.")
         if base <= 0 or base == 1:
             raise ValueError(f"Base for logarithm must be positive and not 1. Got {base}")
         return math.log(x, base)
-
-    def _ln_function(self, x: float) -> float:
-        """
-        Enhanced natural logarithm function that provides error messages.
-        
-        Args:
-            x: The value to take the natural logarithm of
-            
-        Returns:
-            The natural logarithm of x
-            
-        Examples:
-            ln(1) -> ln(1) = 0
-            ln(e) -> ln(e) = 1
-            ln(0) -> ln(0) is undefined
-            ln(-1) -> ln(-1) is undefined
-        """
-        if x <= 0:
-            raise ValueError(f"Natural logarithm of non-positive number ({x}) is undefined.")
-        return math.log(x)
 
     def _sin_function(self, angle: float, unit: str = "radians") -> float:
         """
@@ -216,3 +189,55 @@ class Parameter:
             raise ValueError(f"Invalid unit '{unit}'. Use 'radians' or 'degrees'")
         
         return math.sin(angle_radians)
+
+    def _exp_function(self, x: float, time_period: float, time_unit: str) -> float:
+        """
+        Args:
+            x: The growth rate (as decimal, e.g., 0.05 for 5%)
+            time_period: The time period to grow over (must be specified)
+            time_unit: The unit of time ("years", "months", "weeks", "days")
+            
+        Returns:
+            e^(growth_rate * time_period) - the exponential growth factor
+            
+        Example:
+            exp(0.05, 1, "years") -> e^(0.05 * 1) = 1.051 (5% annual growth)
+        """
+        # All parameters must be explicitly defined - no assumptions
+        growth_rate = x
+        time_in_years = self._convert_time_to_years(time_period, time_unit)
+        exponent = growth_rate * time_in_years
+        
+        # Check for potential overflow
+        if exponent > 700:
+            raise ValueError(f"Exponential overflow: e^{exponent} is too large to calculate safely.")
+        
+        # Check for potential underflow
+        if exponent < -700:
+            return 0.0
+        
+        return math.exp(exponent)
+    
+    def _convert_time_to_years(self, time_period: float, time_unit: str) -> float:
+        """
+        Convert various time units to years for consistent exponential calculations.
+        
+        Args:
+            time_period: The time period value
+            time_unit: The unit of time
+            
+        Returns:
+            Time period converted to years
+        """
+        time_unit = time_unit.lower()
+        
+        if time_unit == "years":
+            return time_period
+        elif time_unit == "months":
+            return time_period / 12
+        elif time_unit == "weeks":
+            return time_period / 52
+        elif time_unit == "days":
+            return time_period / 365
+        else:
+            raise ValueError(f"Invalid time unit '{time_unit}'. Use: years, months, weeks, days")
