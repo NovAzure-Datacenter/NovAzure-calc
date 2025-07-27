@@ -167,18 +167,6 @@ class Parameter:
     def _sin_function(self, angle: float, unit: str = "radians") -> float:
         """
         Enhanced sine function that accepts both radians and degrees.
-        
-        Args:
-            angle: The angle value
-            unit: Either "radians" (default) or "degrees"
-            
-        Returns:
-            The sine of the angle
-            
-        Examples:
-            sin(3.14159) -> sin(π) ≈ 0
-            sin(90, "degrees") -> sin(90°) = 1
-            sin(180, "degrees") -> sin(180°) = 0
         """
         if unit.lower() == "degrees":
             # Convert degrees to radians
@@ -220,14 +208,7 @@ class Parameter:
     
     def _convert_time_to_years(self, time_period: float, time_unit: str) -> float:
         """
-        Convert various time units to years for consistent exponential calculations.
-        
-        Args:
-            time_period: The time period value
-            time_unit: The unit of time
-            
-        Returns:
-            Time period converted to years
+        Convert various time units to years for consistent exponential calculations.   
         """
         time_unit = time_unit.lower()
         
