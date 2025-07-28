@@ -13,8 +13,8 @@ class ParameterSchema(BaseModel):
 class CalculationRequest(BaseModel):
     parameters: List[ParameterSchema]
     inputs: Dict[str, float]
-    target: str
+    target: List[str]
 
 
 class CalculationResponse(BaseModel):
-    result: float
+    result: List[float]

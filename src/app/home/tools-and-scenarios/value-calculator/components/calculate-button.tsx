@@ -161,8 +161,8 @@ const validateAndCleanParameters = (parameters: any[]) => {
 
 			const requestBody = {
 				inputs,
-				parameters: validateAndCleanParameters(parameters),
-				target: "TCO",
+				parameters,
+				target: ["Cooling_Equipment_Capex"],
 			};
 
 			return requestBody;
