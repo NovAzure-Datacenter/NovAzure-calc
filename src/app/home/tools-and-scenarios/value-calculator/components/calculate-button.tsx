@@ -167,7 +167,7 @@ export default function CalculateButton({
 			return {
 				inputs,
 				parameters,
-				target: "TCO",
+				target: ["Cooling_Equipment_Capex"],
 			};
 		};
 

@@ -12,7 +12,7 @@ class Calculator:
         self.context = inputs.copy()
         self.param_map = {p.name: p for p in parameters}
 
-    def evaluate(self, target: str) -> Dict[str, float]:
+    def evaluate(self, targets: List[str]) -> Dict[str, List[float]]:
         graph = DependencyGraph(self.parameters)
         evaluation_order = graph.topological_sort()
 
@@ -27,7 +27,10 @@ class Calculator:
 
                 self.context[param_name] = param.result
 
-        if target not in self.context:
-            raise ValueError(f"Target '{target}' was not resolved.")
+        results = []
+        for target in targets:
+            if target not in self.context:
+                raise ValueError(f"Target '{target}' was not resolved.")
+            results.append(self.context[target])
 
-        return {"result": self.context[target]}
+        return {"result": results}
