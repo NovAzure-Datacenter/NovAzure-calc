@@ -148,7 +148,9 @@ class TestCalculator:
         parameters = [Parameter(param) for param in parameter_dicts]
         calculator = Calculator(parameters, {"valid": 5.0})
 
-        with pytest.raises(ValueError, match="Target 'missing_target' was not resolved"):
+        with pytest.raises(
+            ValueError, match="Target 'missing_target' was not resolved"
+        ):
             calculator.evaluate(["missing_target"])
 
         # Test invalid parameter definition
