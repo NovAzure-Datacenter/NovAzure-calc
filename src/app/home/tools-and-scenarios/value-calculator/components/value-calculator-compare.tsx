@@ -388,6 +388,8 @@ export default function ValueCalculatorCompare() {
 								selectedSolution={selectedSolution}
 								solutionVariantA={solutionVariantA}
 								solutionVariantB={solutionVariantB}
+								fetchedSolutionA={fetchedSolutionA}
+								fetchedSolutionB={fetchedSolutionB}
 							/>
 						</CardContent>
 					</Card>

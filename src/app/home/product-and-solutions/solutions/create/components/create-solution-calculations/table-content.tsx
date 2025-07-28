@@ -45,6 +45,7 @@ interface TableContentProps {
 		description: string;
 		category: string;
 		output: boolean;
+		display_result: boolean;
 	};
 	setEditData: React.Dispatch<
 		React.SetStateAction<{
@@ -54,6 +55,7 @@ interface TableContentProps {
 			description: string;
 			category: string;
 			output: boolean;
+			display_result: boolean;
 		}>
 	>;
 	handleEditCalculation: (calculation: Calculation) => void;
@@ -76,6 +78,7 @@ interface TableContentProps {
 		units: string;
 		category: string;
 		output: boolean;
+		display_result: boolean;
 	};
 	setNewCalculationData: React.Dispatch<
 		React.SetStateAction<{
@@ -85,6 +88,7 @@ interface TableContentProps {
 			units: string;
 			category: string;
 			output: boolean;
+			display_result: boolean;
 		}>
 	>;
 	handleSaveNewCalculation: () => void;
@@ -221,6 +225,25 @@ export function TableContent({
 									</Tooltip>
 								</TableHead>
 								<TableHead className="w-16 bg-background">Unit</TableHead>
+								<TableHead className="w-32 bg-background">
+									<Tooltip>
+										<TooltipTrigger asChild>
+											<div className="flex items-center gap-1 cursor-help">
+												Is display Result
+												<Info className="h-3 w-3 text-muted-foreground" />
+											</div>
+										</TooltipTrigger>
+										<TooltipContent>
+											<p className="text-sm">
+												Whether this calculation result is displayed in the results view
+											</p>
+											<p className="text-xs text-muted-foreground mt-1">
+												• <strong>Yes:</strong> Result is shown in calculation results
+												<br />• <strong>No:</strong> Result is hidden from display
+											</p>
+										</TooltipContent>
+									</Tooltip>
+								</TableHead>
 								<TableHead className="w-20 bg-background">
 									<Tooltip>
 										<TooltipTrigger asChild>
@@ -255,7 +278,7 @@ export function TableContent({
 									{/* If formula is expanded, only render level and formula columns */}
 									{isAddFormulaExpanded ? (
 										/* Formula - Expanded mode (spans all remaining columns) */
-										<TableCell colSpan={8} className="p-0">
+										<TableCell colSpan={9} className="p-0">
 											<div className="p-4 bg-blue-50 border-2 border-blue-200 rounded-md">
 												<div className="flex items-center justify-between mb-4">
 													<h4 className="text-sm font-medium text-blue-900">
@@ -543,6 +566,29 @@ export function TableContent({
 													placeholder="Units"
 												/>
 											</TableCell>
+											{/* Is display Result */}
+											<TableCell>
+												<div className="flex items-center space-x-2">
+													<input
+														type="checkbox"
+														id="new-calculation-display-result"
+														checked={newCalculationData.display_result !== undefined ? newCalculationData.display_result : false}
+														onChange={(e) =>
+															setNewCalculationData((prev) => ({
+																...prev,
+																display_result: e.target.checked,
+															}))
+														}
+														className="h-4 w-4"
+													/>
+													<label
+														htmlFor="new-calculation-display-result"
+														className="text-sm"
+													>
+														{newCalculationData.display_result !== undefined ? newCalculationData.display_result : false ? "Yes" : "No"}
+													</label>
+												</div>
+											</TableCell>
 											{/* Output */}
 											<TableCell>
 												<div className="flex items-center space-x-2">
@@ -606,7 +652,7 @@ export function TableContent({
 
 											
 											{/* Formula - Expanded mode (spans all remaining columns) */}
-											<TableCell colSpan={9} className="p-0">
+											<TableCell colSpan={10} className="p-0">
 												<div className="p-4 bg-blue-50 border-2 border-blue-200 rounded-md">
 													<div className="flex items-center justify-between mb-4">
 														<h4 className="text-sm font-medium text-blue-900">
@@ -954,6 +1000,40 @@ export function TableContent({
 											)}
 										</TableCell>
 										
+										{/* Is display Result */}
+										<TableCell>
+											{isEditing ? (
+												<div className="flex items-center space-x-2">
+													<input
+														type="checkbox"
+														id={`display-result-${calculation.id}`}
+														checked={editData.display_result !== undefined ? editData.display_result : (calculation.display_result !== undefined ? calculation.display_result : false)}
+														onChange={(e) =>
+															setEditData((prev) => ({
+																...prev,
+																display_result: e.target.checked,
+															}))
+														}
+														className="h-4 w-4"
+													/>
+													<label htmlFor={`display-result-${calculation.id}`} className="text-sm">
+														{editData.display_result !== undefined ? editData.display_result : (calculation.display_result !== undefined ? calculation.display_result : false) ? "Yes" : "No"}
+													</label>
+												</div>
+											) : (
+												<Badge
+													variant="outline"
+													className={`text-xs ${
+														(calculation.display_result !== undefined ? calculation.display_result : false)
+															? "bg-green-50 text-green-700 border-green-200"
+															: "bg-gray-50 text-gray-700 border-gray-200"
+													}`}
+												>
+													{(calculation.display_result !== undefined ? calculation.display_result : false) ? "Yes" : "No"}
+												</Badge>
+											)}
+										</TableCell>
+										
 										{/* Output */}
 										<TableCell>
 											{isEditing ? (
@@ -1036,7 +1116,7 @@ export function TableContent({
 							{!isAddingCalculation && (
 								<TableRow className="border-t-2">
 									<TableCell
-										colSpan={9}
+										colSpan={10}
 										className="text-center bg-muted/50 cursor-pointer py-2"
 										onClick={
 											isAddingCalculation
@@ -1069,6 +1149,7 @@ interface FormulaEditorProps {
 		description: string;
 		category: string;
 		output: boolean;
+		display_result: boolean;
 	};
 	setEditData: React.Dispatch<
 		React.SetStateAction<{
@@ -1078,6 +1159,7 @@ interface FormulaEditorProps {
 			description: string;
 			category: string;
 			output: boolean;
+			display_result: boolean;
 		}>
 	>;
 	resetFormula: () => void;

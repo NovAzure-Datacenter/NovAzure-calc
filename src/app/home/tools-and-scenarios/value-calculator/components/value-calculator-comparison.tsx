@@ -10,6 +10,10 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { comparisonData } from "./mock-data";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend, Line, LineChart, PieChart, Pie, Cell, Area, AreaChart } from "recharts";
+import { useState, useEffect } from "react";
+import { getIndustriesBySelectedIds } from "@/lib/actions/industry/industry";
+import { getTechnologiesBySelectedIds } from "@/lib/actions/technology/technology";
+import { getSolutionTypesByIndustryAndTechnology } from "@/lib/actions/solution/solution";
 
 // Prepare data for charts
 const chartData = comparisonData.map(item => ({
@@ -42,6 +46,8 @@ export default function ValueCalculatorComparison({
     selectedSolution,
     solutionVariantA,
     solutionVariantB,
+    fetchedSolutionA,
+    fetchedSolutionB,
 }: {
     hasCalculated: boolean;
     selectedIndustry: string;
@@ -49,7 +55,114 @@ export default function ValueCalculatorComparison({
     selectedSolution: string;
     solutionVariantA: string;
     solutionVariantB: string;
+    fetchedSolutionA?: any | null;
+    fetchedSolutionB?: any | null;
 }) {
+    // State for resolved names
+    const [industryName, setIndustryName] = useState<string>("");
+    const [technologyName, setTechnologyName] = useState<string>("");
+    const [solutionName, setSolutionName] = useState<string>("");
+    const [isLoadingNames, setIsLoadingNames] = useState<boolean>(false);
+
+    // Function to resolve industry ID to name
+    const resolveIndustryName = async (industryId: string) => {
+        if (!industryId) {
+            setIndustryName("");
+            return;
+        }
+
+        setIsLoadingNames(true);
+        try {
+            const result = await getIndustriesBySelectedIds([industryId]);
+            if (result.success && result.industries && result.industries.length > 0) {
+                setIndustryName(result.industries[0].name);
+            } else {
+                setIndustryName(industryId);
+            }
+        } catch (error) {
+            setIndustryName(industryId);
+        } finally {
+            setIsLoadingNames(false);
+        }
+    };
+
+    // Function to resolve technology ID to name
+    const resolveTechnologyName = async (technologyId: string) => {
+        if (!technologyId) {
+            setTechnologyName("");
+            return;
+        }
+
+        setIsLoadingNames(true);
+        try {
+            const result = await getTechnologiesBySelectedIds([technologyId]);
+            if (result.success && result.technologies && result.technologies.length > 0) {
+                setTechnologyName(result.technologies[0].name);
+            } else {
+                setTechnologyName(technologyId);
+            }
+        } catch (error) {
+            setTechnologyName(technologyId);
+        } finally {
+            setIsLoadingNames(false);
+        }
+    };
+
+    // Function to resolve solution ID to name
+    const resolveSolutionName = async (solutionId: string) => {
+        if (!solutionId) {
+            setSolutionName("");
+            return;
+        }
+
+        // Handle custom solution IDs (they start with "custom_")
+        if (solutionId.startsWith("custom_")) {
+            // For custom solutions, try to get the name from fetched solution data
+            if (fetchedSolutionA && fetchedSolutionA.id === solutionId.replace("custom_", "")) {
+                setSolutionName(fetchedSolutionA.solution_name || "Custom Solution");
+                return;
+            }
+            if (fetchedSolutionB && fetchedSolutionB.id === solutionId.replace("custom_", "")) {
+                setSolutionName(fetchedSolutionB.solution_name || "Custom Solution");
+                return;
+            }
+            setSolutionName("Custom Solution");
+            return;
+        }
+
+        setIsLoadingNames(true);
+        try {
+            const result = await getSolutionTypesByIndustryAndTechnology(selectedIndustry, selectedTechnology);
+            if (result.success && result.solutionTypes) {
+                const solution = result.solutionTypes.find((s: any) => s.id === solutionId);
+                if (solution) {
+                    setSolutionName(solution.name);
+                } else {
+                    setSolutionName(solutionId);
+                }
+            } else {
+                setSolutionName(solutionId);
+            }
+        } catch (error) {
+            setSolutionName(solutionId);
+        } finally {
+            setIsLoadingNames(false);
+        }
+    };
+
+    // Effect to resolve names when IDs change
+    useEffect(() => {
+        if (selectedIndustry) {
+            resolveIndustryName(selectedIndustry);
+        }
+        if (selectedTechnology) {
+            resolveTechnologyName(selectedTechnology);
+        }
+        if (selectedSolution) {
+            resolveSolutionName(selectedSolution);
+        }
+    }, [selectedIndustry, selectedTechnology, selectedSolution]);
+
     const getDifferenceColor = (difference: string) => {
         const value = parseFloat(difference.replace(/[^0-9.-]/g, ''));
         if (value < 0) return "text-green-600"; // Negative difference is good (cost savings)
@@ -87,55 +200,87 @@ export default function ValueCalculatorComparison({
                 <div className="bg-muted/30 rounded-lg p-4">
                     <h3 className="text-sm font-medium mb-4 text-muted-foreground">Configuration Summary</h3>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {/* Air Cooling (Variant A) Configuration */}
+                        {/* Variant A Configuration */}
                         <div className="space-y-4">
                             <div className="flex items-center gap-2 mb-3">
                                 <div className="w-3 h-3 bg-gray-600 rounded-full"></div>
-                                <h4 className="text-sm font-medium text-gray-900">Air Cooling (Variant A)</h4>
+                                <h4 className="text-sm font-medium text-gray-900">
+                                    {fetchedSolutionA?.solution_name || "Variant A"}
+                                </h4>
                             </div>
                             <div className="space-y-3 text-sm">
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Industry:</span>
-                                    <span className="font-medium">{selectedIndustry || "Not selected"}</span>
+                                    <span className="font-medium">
+                                        {isLoadingNames ? "Loading..." : (industryName || "Not selected")}
+                                    </span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Technology:</span>
-                                    <span className="font-medium">{selectedTechnology || "Not selected"}</span>
+                                    <span className="font-medium">
+                                        {isLoadingNames ? "Loading..." : (technologyName || "Not selected")}
+                                    </span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Solution:</span>
-                                    <span className="font-medium">{selectedSolution || "Not selected"}</span>
+                                    <span className="font-medium">
+                                        {isLoadingNames ? "Loading..." : (solutionName || "Not selected")}
+                                    </span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Variant:</span>
-                                    <span className="font-medium">{solutionVariantA || "Not selected"}</span>
+                                    <span className="font-medium">{fetchedSolutionA?.solution_name || solutionVariantA || "Not selected"}</span>
                                 </div>
+                                {fetchedSolutionA?.solution_description && (
+                                    <div className="pt-2 border-t">
+                                        <div className="text-muted-foreground mb-1">Description:</div>
+                                        <div className="text-sm text-gray-700">
+                                            {fetchedSolutionA.solution_description}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
-                        {/* Liquid Cooling (Variant B) Configuration */}
+                        {/* Variant B Configuration */}
                         <div className="space-y-4">
                             <div className="flex items-center gap-2 mb-3">
                                 <div className="w-3 h-3 bg-black rounded-full"></div>
-                                <h4 className="text-sm font-medium text-gray-900">Liquid Cooling (Variant B)</h4>
+                                <h4 className="text-sm font-medium text-gray-900">
+                                    {fetchedSolutionB?.solution_name || "Variant B"}
+                                </h4>
                             </div>
                             <div className="space-y-3 text-sm">
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Industry:</span>
-                                    <span className="font-medium">{selectedIndustry || "Not selected"}</span>
+                                    <span className="font-medium">
+                                        {isLoadingNames ? "Loading..." : (industryName || "Not selected")}
+                                    </span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Technology:</span>
-                                    <span className="font-medium">{selectedTechnology || "Not selected"}</span>
+                                    <span className="font-medium">
+                                        {isLoadingNames ? "Loading..." : (technologyName || "Not selected")}
+                                    </span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Solution:</span>
-                                    <span className="font-medium">{selectedSolution || "Not selected"}</span>
+                                    <span className="font-medium">
+                                        {isLoadingNames ? "Loading..." : (solutionName || "Not selected")}
+                                    </span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Variant:</span>
-                                    <span className="font-medium">{solutionVariantB || "Not selected"}</span>
+                                    <span className="font-medium">{fetchedSolutionB?.solution_name || solutionVariantB || "Not selected"}</span>
                                 </div>
+                                {fetchedSolutionB?.solution_description && (
+                                    <div className="pt-2 border-t">
+                                        <div className="text-muted-foreground mb-1">Description:</div>
+                                        <div className="text-sm text-gray-700">
+                                            {fetchedSolutionB.solution_description}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -150,12 +295,12 @@ export default function ValueCalculatorComparison({
                                     <TableHead className="w-48 bg-background font-medium">Metric</TableHead>
                                     <TableHead className="w-32 bg-background font-medium text-center">
                                         <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
-                                            Air Cooling
+                                            {fetchedSolutionA?.solution_name || "Variant A"}
                                         </Badge>
                                     </TableHead>
                                     <TableHead className="w-32 bg-background font-medium text-center">
                                         <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
-                                            Liquid Cooling
+                                            {fetchedSolutionB?.solution_name || "Variant B"}
                                         </Badge>
                                     </TableHead>
                                     <TableHead className="w-32 bg-background font-medium text-center">Difference</TableHead>
@@ -212,8 +357,8 @@ export default function ValueCalculatorComparison({
                                     />
                                     <Tooltip content={<CustomTooltip />} />
                                     <Legend />
-                                    <Bar dataKey="airCooling" fill="#374151" name="Air Cooling" />
-                                    <Bar dataKey="liquidCooling" fill="#111827" name="Liquid Cooling" />
+                                    <Bar dataKey="airCooling" fill="#374151" name={fetchedSolutionA?.solution_name || "Variant A"} />
+                                    <Bar dataKey="liquidCooling" fill="#111827" name={fetchedSolutionB?.solution_name || "Variant B"} />
                                 </BarChart>
                             </ResponsiveContainer>
                         </CardContent>
@@ -239,7 +384,7 @@ export default function ValueCalculatorComparison({
                                         dataKey="airCooling" 
                                         stroke="#374151" 
                                         strokeWidth={2}
-                                        name="Air Cooling"
+                                        name={fetchedSolutionA?.solution_name || "Variant A"}
                                         dot={{ fill: '#374151', strokeWidth: 2, r: 4 }}
                                     />
                                     <Line 
@@ -247,7 +392,7 @@ export default function ValueCalculatorComparison({
                                         dataKey="liquidCooling" 
                                         stroke="#111827" 
                                         strokeWidth={2}
-                                        name="Liquid Cooling"
+                                        name={fetchedSolutionB?.solution_name || "Variant B"}
                                         dot={{ fill: '#111827', strokeWidth: 2, r: 4 }}
                                     />
                                 </LineChart>
@@ -281,7 +426,7 @@ export default function ValueCalculatorComparison({
                                         stroke="#374151" 
                                         fill="#374151" 
                                         fillOpacity={0.6}
-                                        name="Air Cooling Cumulative"
+                                        name={`${fetchedSolutionA?.solution_name || "Variant A"} Cumulative`}
                                     />
                                     <Area 
                                         type="monotone" 
@@ -290,7 +435,7 @@ export default function ValueCalculatorComparison({
                                         stroke="#111827" 
                                         fill="#111827" 
                                         fillOpacity={0.6}
-                                        name="Liquid Cooling Cumulative"
+                                        name={`${fetchedSolutionB?.solution_name || "Variant B"} Cumulative`}
                                     />
                                 </AreaChart>
                             </ResponsiveContainer>
@@ -301,7 +446,7 @@ export default function ValueCalculatorComparison({
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <Card>
                             <CardHeader>
-                                <CardTitle className="text-base">Air Cooling Cost Distribution</CardTitle>
+                                <CardTitle className="text-base">{fetchedSolutionA?.solution_name || "Variant A"} Cost Distribution</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <ResponsiveContainer width="100%" height={250}>
@@ -326,7 +471,7 @@ export default function ValueCalculatorComparison({
 
                         <Card>
                             <CardHeader>
-                                <CardTitle className="text-base">Liquid Cooling Cost Distribution</CardTitle>
+                                <CardTitle className="text-base">{fetchedSolutionB?.solution_name || "Variant B"} Cost Distribution</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <ResponsiveContainer width="100%" height={250}>
@@ -354,7 +499,7 @@ export default function ValueCalculatorComparison({
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <Card className="bg-gray-50 border-gray-200">
                             <CardHeader className="pb-2">
-                                <CardTitle className="text-sm text-gray-900">Air Cooling (Variant A)</CardTitle>
+                                <CardTitle className="text-sm text-gray-900">{fetchedSolutionA?.solution_name || "Variant A"}</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="space-y-2">
@@ -376,7 +521,7 @@ export default function ValueCalculatorComparison({
 
                         <Card className="bg-gray-50 border-gray-200">
                             <CardHeader className="pb-2">
-                                <CardTitle className="text-sm text-gray-900">Liquid Cooling (Variant B)</CardTitle>
+                                <CardTitle className="text-sm text-gray-900">{fetchedSolutionB?.solution_name || "Variant B"}</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="space-y-2">

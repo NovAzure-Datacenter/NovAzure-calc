@@ -36,6 +36,7 @@ export interface Calculation {
 		color: string;
 	};
 	output: boolean;
+	display_result: boolean;
 	level: number;
 }
 

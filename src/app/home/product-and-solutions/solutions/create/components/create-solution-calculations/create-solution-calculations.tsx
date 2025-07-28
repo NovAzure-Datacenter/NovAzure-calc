@@ -51,6 +51,7 @@ const mockCalculations: Calculation[] = [
 		result: "2,450 kWh",
 		units: "kWh",
 		output: true,
+		display_result: false,
 		level: 1,
 		status: "valid",
 		category: {
@@ -66,6 +67,7 @@ const mockCalculations: Calculation[] = [
 		result: "$0.12",
 		units: "$/kWh",
 		output: true,
+		display_result: false,
 		level: 2,
 		status: "valid",
 		category: {
@@ -81,6 +83,7 @@ const mockCalculations: Calculation[] = [
 		result: "85.5%",
 		units: "%",
 		output: false,
+		display_result: false,
 		level: 1,
 		status: "valid",
 		category: {
@@ -96,6 +99,7 @@ const mockCalculations: Calculation[] = [
 		result: "1.2 tCO2",
 		units: "tCO2",
 		output: true,
+		display_result: false,
 		level: 3,
 		status: "valid",
 		category: {
@@ -111,6 +115,7 @@ const mockCalculations: Calculation[] = [
 		result: "23.4%",
 		units: "%",
 		output: true,
+		display_result: false,
 		level: 2,
 		status: "valid",
 		category: {
@@ -126,6 +131,7 @@ const mockCalculations: Calculation[] = [
 		result: "$15,750",
 		units: "$",
 		output: false,
+		display_result: false,
 		level: 1,
 		status: "valid",
 		category: {
@@ -141,6 +147,7 @@ const mockCalculations: Calculation[] = [
 		result: "500 kW",
 		units: "kW",
 		output: true,
+		display_result: false,
 		level: 2,
 		status: "valid",
 		category: {
@@ -156,6 +163,7 @@ const mockCalculations: Calculation[] = [
 		result: "98.7%",
 		units: "%",
 		output: true,
+		display_result: false,
 		level: 1,
 		status: "valid",
 		category: {
@@ -282,7 +290,7 @@ interface CalculationsConfigurationProps {
 	availableIndustries?: any[];
 	availableTechnologies?: any[];
 	availableSolutionTypes?: any[];
-	customCategories?: Array<{ name: string; color: string }>; // Calculation-specific categories
+	customCategories?: Array<{ name: string; color: string }>;
 	setCustomCategories?: React.Dispatch<
 		React.SetStateAction<Array<{ name: string; color: string }>>
 	>;
@@ -319,6 +327,7 @@ export function CalculationsConfiguration({
 		description: string;
 		category: string;
 		output: boolean;
+		display_result: boolean;
 	}>({
 		name: "",
 		formula: "",
@@ -326,6 +335,7 @@ export function CalculationsConfiguration({
 		description: "",
 		category: "financial",
 		output: false,
+		display_result: false,
 	});
 
 	// State for category tabs and management
@@ -367,6 +377,7 @@ export function CalculationsConfiguration({
 		units: "",
 		category: "financial",
 		output: false,
+		display_result: false,
 	});
 	const [hasInitialized, setHasInitialized] = useState(false);
 
@@ -381,13 +392,13 @@ export function CalculationsConfiguration({
 		}
 		
 		const needsMigration = calculations.some(calc => 
-			typeof calc.category === 'string' || !calc.category
+			typeof calc.category === 'string' || !calc.category || calc.display_result === undefined
 		);
 		
 		if (needsMigration) {
 			const migratedCalculations = calculations.map(calc => {
-				// If category is already in new format, return as is
-				if (calc.category && typeof calc.category === 'object' && calc.category.name) {
+				// If category is already in new format and display_result exists, return as is
+				if (calc.category && typeof calc.category === 'object' && calc.category.name && calc.display_result !== undefined) {
 					return calc;
 				}
 				
@@ -402,6 +413,7 @@ export function CalculationsConfiguration({
 				
 				return {
 					...calc,
+					display_result: calc.display_result !== undefined ? calc.display_result : false,
 					category: {
 						name: oldCategory,
 						color: defaultColors[oldCategory.toLowerCase()] || "gray"
@@ -557,6 +569,7 @@ export function CalculationsConfiguration({
 			description: calculation.description,
 			category: typeof calculation.category === 'string' ? calculation.category : calculation.category?.name || "financial",
 			output: calculation.output,
+			display_result: calculation.display_result !== undefined ? calculation.display_result : false,
 		});
 	};
 
@@ -574,6 +587,7 @@ export function CalculationsConfiguration({
 							color: getCategoryColor(editData.category),
 						},
 						output: editData.output,
+						display_result: editData.display_result,
 						result: evaluateFormula(editData.formula),
 						status:
 							evaluateFormula(editData.formula) === "Error"
@@ -591,6 +605,7 @@ export function CalculationsConfiguration({
 			description: "",
 			category: "financial",
 			output: false,
+			display_result: false,
 		});
 	};
 
@@ -603,6 +618,7 @@ export function CalculationsConfiguration({
 			description: "",
 			category: "financial",
 			output: false,
+			display_result: false,
 		});
 	};
 
@@ -640,6 +656,7 @@ export function CalculationsConfiguration({
 			units: "",
 			category: defaultCategory,
 			output: false,
+			display_result: false,
 		});
 		setIsAddingCalculation(true);
 	};
@@ -679,6 +696,7 @@ export function CalculationsConfiguration({
 				color: categoryColor,
 			},
 			output: newCalculationData.output,
+			display_result: newCalculationData.display_result !== undefined ? newCalculationData.display_result : false,
 			level: 1,
 		};
 
@@ -691,6 +709,7 @@ export function CalculationsConfiguration({
 			units: "",
 			category: "financial",
 			output: false,
+			display_result: false,
 		});
 	};
 
@@ -703,6 +722,7 @@ export function CalculationsConfiguration({
 			units: "",
 			category: "financial",
 			output: false,
+			display_result: false,
 		});
 	};
 
