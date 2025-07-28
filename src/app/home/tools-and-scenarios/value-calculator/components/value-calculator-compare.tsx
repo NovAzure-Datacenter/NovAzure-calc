@@ -58,9 +58,12 @@ export default function ValueCalculatorCompare() {
 	const [fetchedSolutionB, setFetchedSolutionB] = useState<ClientSolution | null>(null);
 	const [isLoadingSolutionB, setIsLoadingSolutionB] = useState(false);
 	const [parameterValues, setParameterValues] = useState<Record<string, any>>({});
+
+
 	
 	// Calculation state
 	const [hasCalculated, setHasCalculated] = useState<boolean>(false);
+	const [resultData, setResultData] = useState<any>(null);
 
 	// Data fetching functions
 	const fetchClientSolutions = async (industryId: string, technologyId: string) => {
@@ -266,6 +269,11 @@ export default function ValueCalculatorCompare() {
 		// Add calculation logic here
 	};
 
+
+	useEffect(() => {
+		console.log(resultData)
+	}, [resultData]);
+
 	return (
 		<TooltipProvider>
 			<Tabs defaultValue="configuration" className="w-full">
@@ -372,6 +380,7 @@ export default function ValueCalculatorCompare() {
 						isLoadingSolutionB={isLoadingSolutionB}
 						parameterValues={parameterValues}
 						setParameterValues={setParameterValues}
+						setResultData={setResultData}
 					/>
 				</TabsContent>
 
@@ -390,6 +399,8 @@ export default function ValueCalculatorCompare() {
 								solutionVariantB={solutionVariantB}
 								fetchedSolutionA={fetchedSolutionA}
 								fetchedSolutionB={fetchedSolutionB}
+								resultData={resultData}
+								comparisonMode={comparisonMode}
 							/>
 						</CardContent>
 					</Card>

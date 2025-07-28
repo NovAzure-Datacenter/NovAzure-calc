@@ -1,11 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { ClientSolution } from "@/lib/actions/clients-solutions/clients-solutions";
+import { SetStateAction } from "react";
+import { Dispatch } from "react";
 
 interface CalculateButtonProps {
 	fetchedSolutionA: ClientSolution | null;
 	parameterValues: Record<string, any>;
 	onCalculate?: () => void;
 	disabled?: boolean;
+	setResultData: Dispatch<SetStateAction<any>>;
 }
 
 export default function CalculateButton({
@@ -13,6 +16,7 @@ export default function CalculateButton({
 	parameterValues,
 	onCalculate,
 	disabled = false,
+	setResultData,
 }: CalculateButtonProps) {
 
 	const cleanParameterName = (name: string): string => {
@@ -164,10 +168,15 @@ export default function CalculateButton({
 				});
 			}
 
+			
+			const targetList = fetchedSolutionA.calculations
+				.filter((item: any) => item.display_result === true)
+				.map((item: any) => cleanParameterName(item.name));
+			
 			return {
 				inputs,
 				parameters,
-				target: ["Cooling_Equipment_Capex"],
+				target: targetList,
 			};
 		};
 
@@ -192,7 +201,19 @@ export default function CalculateButton({
 			}
 
 			const data = await response.json();
-			console.log(data);
+			
+			const resultArray = data.result || data;
+			const dataArray = Array.isArray(resultArray) ? resultArray : [resultArray];
+			
+			const cleanData = dataArray.reduce((acc: Record<string, any>, value: any, index: number) => {
+				if (index < requestBody.target.length) {
+					acc[requestBody.target[index]] = value;
+				}
+				return acc;
+			}, {});
+
+			
+			setResultData(cleanData);
 
 		} catch (err) {
 			console.error("Error:", err);

@@ -92,6 +92,7 @@ interface ValueCalculatorConfigurationProps {
 	isLoadingSolutionB: boolean;
 	parameterValues: Record<string, any>;
 	setParameterValues: Dispatch<SetStateAction<Record<string, any>>>;
+	setResultData: Dispatch<SetStateAction<any>>;
 }
 
 export default function ValueCalculatorConfiguration({
@@ -148,6 +149,8 @@ export default function ValueCalculatorConfiguration({
 	isLoadingSolutionB,
 	parameterValues,
 	setParameterValues,
+	setResultData,
+
 }: ValueCalculatorConfigurationProps) {
 	const availableTechnologies = selectedIndustry
 		? technologies.filter((tech) =>
@@ -732,7 +735,7 @@ export default function ValueCalculatorConfiguration({
 						parameterValues={parameterValues}
 						onCalculate={onCalculate}
 						disabled={!fetchedSolutionA}
-						
+						setResultData={setResultData}
 					/>
 					<MockButton />
 				</div>

@@ -124,6 +124,21 @@ export function CreateSolutionMain() {
 		null
 	);
 
+	// Helper function to create copies of global parameters with correct ID convention
+	const createGlobalParameterCopies = (globalParams: any[], existingParameters: any[] = []) => {
+		// Create a set of existing parameter names for quick lookup
+		const existingParamNames = new Set(existingParameters.map(param => param.name));
+		
+		// Only create copies for global parameters that don't exist by name
+		return globalParams
+			.filter(globalParam => !existingParamNames.has(globalParam.name))
+			.map((globalParam) => ({
+				...globalParam,
+				id: `param-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+				provided_by: "company",
+			}));
+	};
+
 	// Form data state
 	const [formData, setFormData] = useState<CreateSolutionData>({
 		selectedIndustry: "",
@@ -176,9 +191,10 @@ export function CreateSolutionMain() {
 
 				// Load global parameters
 				const globalParams = await getAllGlobalParameters();
+				const globalParamCopies = createGlobalParameterCopies(globalParams, formData.parameters);
 				setFormData((prev) => ({
 					...prev,
-					parameters: globalParams,
+					parameters: globalParamCopies,
 				}));
 			} catch (error) {
 				console.error("Error loading data:", error);
@@ -415,26 +431,31 @@ export function CreateSolutionMain() {
 								existingSolution.parameters.map((param) => [param.id, param])
 							);
 
-							// Merge global parameters with existing parameters
-							// Global parameters that don't exist in the solution will be added
-							// Existing parameters will override global parameters with the same ID
+							// Create copies of global parameters that don't exist in the solution
+							// with the correct ID convention and provided_by value
+							const globalParamCopies = createGlobalParameterCopies(
+								globalParams.filter((globalParam) => !existingParamsMap.has(globalParam.id)),
+								existingSolution.parameters
+							);
+
+							// Merge global parameter copies with existing parameters
 							const mergedParameters = [
-								...globalParams.filter(
-									(globalParam) => !existingParamsMap.has(globalParam.id)
-								),
+								...globalParamCopies,
 								...existingSolution.parameters,
 							];
 
+							console.log('mergedParameters', mergedParameters);
 							setFormData((prev) => ({
 								...prev,
 								parameters: mergedParameters,
 							}));
 						} else {
-							// If no existing parameters, just use global parameters
+							// If no existing parameters, create copies of global parameters
 							const globalParams = await getAllGlobalParameters();
+							const globalParamCopies = createGlobalParameterCopies(globalParams, []);
 							setFormData((prev) => ({
 								...prev,
-								parameters: globalParams,
+								parameters: globalParamCopies,
 							}));
 						}
 
@@ -448,11 +469,12 @@ export function CreateSolutionMain() {
 						setIsExistingSolutionLoaded(true);
 						setExistingSolutionId(existingSolution.id || null);
 					} else {
-						// Solution not found, use global parameters
+						// Solution not found, create copies of global parameters
 						const globalParams = await getAllGlobalParameters();
+						const globalParamCopies = createGlobalParameterCopies(globalParams, []);
 						setFormData((prev) => ({
 							...prev,
-							parameters: globalParams,
+							parameters: globalParamCopies,
 						}));
 						toast.warning(
 							"Existing solution not found. Starting with global parameters."
@@ -461,11 +483,12 @@ export function CreateSolutionMain() {
 				}
 			} else {
 				console.log("New variant selected, starting with global parameters");
-				// For new variants, ensure we have global parameters
+				// For new variants, create copies of global parameters
 				const globalParams = await getAllGlobalParameters();
+				const globalParamCopies = createGlobalParameterCopies(globalParams, []);
 				setFormData((prev) => ({
 					...prev,
-					parameters: globalParams,
+					parameters: globalParamCopies,
 				}));
 			}
 		} catch (error) {
