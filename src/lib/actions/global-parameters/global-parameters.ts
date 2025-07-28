@@ -41,6 +41,11 @@ function convertToParameter(doc: any): Parameter {
 			color: doc.category?.color || "blue",
 		},
 		is_modifiable: doc.is_modifiable || false,
+		display_type: doc.display_type || "simple",
+		dropdown_options: doc.dropdown_options || [],
+		range_min: doc.range_min || "",
+		range_max: doc.range_max || "",
+		information: doc.information || "",
 	};
 }
 
