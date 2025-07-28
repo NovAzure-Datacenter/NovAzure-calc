@@ -1,12 +1,12 @@
 # Calculator
-from typing import Dict, List
+from typing import Dict, List, Union
 
 from .dependency_graph import DependencyGraph
 from .parameter import Parameter
 
 
 class Calculator:
-    def __init__(self, parameters: List[Parameter], inputs: Dict[str, float]):
+    def __init__(self, parameters: List[Parameter], inputs: Dict[str, Union[float, str]]):
         self.parameters = parameters
         self.inputs = inputs
         self.context = inputs.copy()

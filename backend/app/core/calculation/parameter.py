@@ -38,7 +38,8 @@ class Parameter:
         if not self.formula:
             return []
 
-        variables = set(VARIABLES_REGEX.findall(self.formula))
+        # Use the parser's extract_variables method which correctly handles functions
+        _, variables = FormulaParser().parse_formula_to_ast(self.formula)
         return list(variables)
 
     def resolve_value(self, context: dict[str, float]):
@@ -70,7 +71,7 @@ class Parameter:
             "ln": lambda x: self._log_function(x, math.e),  # Natural log using log with base e
             "sqrt": math.sqrt,
             "sin": self._sin_function,  # Enhanced sine function
-            "cos": math.cos,
+            "cos": self._cos_function,  # Enhanced cosine function
             "tan": math.tan,
             "abs": abs,
             "round": round,
@@ -83,6 +84,11 @@ class Parameter:
             if isinstance(node, (float, int)):
                 return float(node)
             if isinstance(node, str):
+                # Check if this is a string literal (marked with __LITERAL__ prefix)
+                if node.startswith("__LITERAL__"):
+                    # Extract the actual string value
+                    return node[11:]  # Remove "__LITERAL__" prefix
+                # Otherwise, treat as variable name
                 if node in context:
                     return context[node]
                 raise ValueError(f"Variable '{node}' not found in context.")
@@ -138,6 +144,13 @@ class Parameter:
                                 return math_functions[func_name](evaluated_args[0], evaluated_args[1])
                             else:
                                 raise ValueError(f"Function '{func_name}' expects 1 or 2 arguments: sin(angle) or sin(angle, 'degrees')")
+                        elif func_name == "cos":
+                            if len(evaluated_args) == 1:
+                                return math_functions[func_name](evaluated_args[0])
+                            elif len(evaluated_args) == 2:
+                                return math_functions[func_name](evaluated_args[0], evaluated_args[1])
+                            else:
+                                raise ValueError(f"Function '{func_name}' expects 1 or 2 arguments: cos(angle) or cos(angle, 'degrees')")
                         elif func_name == "exp":
                             if len(evaluated_args) == 3:
                                 return math_functions[func_name](evaluated_args[0], evaluated_args[1], evaluated_args[2])
@@ -152,7 +165,6 @@ class Parameter:
             raise ValueError(f"Unsupported AST node structure: {node}")
 
         return evaluate_ast(self.ast)
-
     def _log_function(self, x: float, base: float = 10) -> float:
         """
         Returns:
@@ -177,6 +189,20 @@ class Parameter:
             raise ValueError(f"Invalid unit '{unit}'. Use 'radians' or 'degrees'")
         
         return math.sin(angle_radians)
+
+    def _cos_function(self, angle: float, unit: str = "radians") -> float:
+        """
+        Enhanced cosine function that accepts both radians and degrees.
+        """
+        if unit.lower() == "degrees":
+            # Convert degrees to radians
+            angle_radians = math.radians(angle)
+        elif unit.lower() == "radians":
+            angle_radians = angle
+        else:
+            raise ValueError(f"Invalid unit '{unit}'. Use 'radians' or 'degrees'")
+        
+        return math.cos(angle_radians)
 
     def _exp_function(self, x: float, time_period: float, time_unit: str) -> float:
         """
@@ -222,3 +248,4 @@ class Parameter:
             return time_period / 365
         else:
             raise ValueError(f"Invalid time unit '{time_unit}'. Use: years, months, weeks, days")
+

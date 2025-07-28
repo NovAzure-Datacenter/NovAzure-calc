@@ -10,9 +10,11 @@ class ParameterSchema(BaseModel):
     formula: Optional[str] = None
 
 
+from typing import Union
+
 class CalculationRequest(BaseModel):
     parameters: List[ParameterSchema]
-    inputs: Dict[str, float]
+    inputs: Dict[str, Union[float, str]]
     target: str
 
 

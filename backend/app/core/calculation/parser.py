@@ -26,13 +26,22 @@ class FormulaParser:
             }
         elif isinstance(node, ast.Constant) and isinstance(node.value, (float, int)):
             return node.value
+        elif isinstance(node, ast.Constant) and isinstance(node.value, str):
+            # Mark string literals with a special prefix to distinguish from variables
+            return f"__LITERAL__{node.value}"
         elif isinstance(node, ast.Name):
             return node.id
         elif isinstance(node, ast.Call):
             if isinstance(node.func, ast.Name):
                 func_name = node.func.id
             else:
-                func_name = self.build_ast(node.func)
+                # For complex function expressions, ensure we get a string
+                func_result = self.build_ast(node.func)
+                if isinstance(func_result, str):
+                    func_name = func_result
+                else:
+                    # Fallback: use a generic name
+                    func_name = "unknown_function"
             
             args = [self.build_ast(arg) for arg in node.args]
             return {
@@ -58,9 +67,11 @@ class FormulaParser:
             self.extract_variables(node.operand, vars_set)
         elif isinstance(node, ast.Name):
             vars_set.add(node.id)
+        elif isinstance(node, ast.Constant):
+            # Don't add string/number literals as variables
+            pass
         elif isinstance(node, ast.Call):
-            # Extract function name and arguments
-            self.extract_variables(node.func, vars_set)
+            # Extract variables from function arguments, but not the function name
             for arg in node.args:
                 self.extract_variables(arg, vars_set)
         elif isinstance(node, ast.Compare):
