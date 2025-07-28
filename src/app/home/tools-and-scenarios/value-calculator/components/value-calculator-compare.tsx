@@ -8,13 +8,21 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { useState, Dispatch, SetStateAction } from "react";
+import { useState, Dispatch, SetStateAction, useEffect } from "react";
 import { Building2, Cpu, Package, ChevronDown, ChevronUp } from "lucide-react";
 import ValueCalculatorConfiguration from "./value-calculator-configuration";
 import ValueCalculatorComparison from "./value-calculator-comparison";
 import ValueCalculatorOutputs from "./value-calculator-outputs";
+import { useUser } from "@/hooks/useUser";
+import { getClientSolutions, getClientSolution, ClientSolution } from "@/lib/actions/clients-solutions/clients-solutions";
+import { getIndustriesBySelectedIds } from "@/lib/actions/industry/industry";
+import { getTechnologiesBySelectedIds } from "@/lib/actions/technology/technology";
+import { getSolutionTypesByIndustryAndTechnology } from "@/lib/actions/solution/solution";
+import { getClientDataById } from "@/lib/actions/clients/clients";
 
 export default function ValueCalculatorCompare() {
+	const { user } = useUser();
+
 	// Configuration state - moved from child component to persist across tabs
 	const [selectedIndustry, setSelectedIndustry] = useState<string>("");
 	const [selectedTechnology, setSelectedTechnology] = useState<string>("");
@@ -35,8 +43,223 @@ export default function ValueCalculatorCompare() {
 	const [advancedConfigB, setAdvancedConfigB] = useState<Record<string, string | boolean>>({});
 	const [comparisonMode, setComparisonMode] = useState<"single" | "compare" | null>(null);
 	
+	// Data fetching state
+	const [clientSolutions, setClientSolutions] = useState<ClientSolution[]>([]);
+	const [isLoadingSolutions, setIsLoadingSolutions] = useState(false);
+	const [solutionTypes, setSolutionTypes] = useState<any[]>([]);
+	const [isLoadingSolutionTypes, setIsLoadingSolutionTypes] = useState(false);
+	const [industries, setIndustries] = useState<any[]>([]);
+	const [technologies, setTechnologies] = useState<any[]>([]);
+	const [isLoadingIndustries, setIsLoadingIndustries] = useState(false);
+	const [isLoadingTechnologies, setIsLoadingTechnologies] = useState(false);
+	const [clientData, setClientData] = useState<any>(null);
+	const [fetchedSolutionA, setFetchedSolutionA] = useState<ClientSolution | null>(null);
+	const [isLoadingSolutionA, setIsLoadingSolutionA] = useState(false);
+	const [fetchedSolutionB, setFetchedSolutionB] = useState<ClientSolution | null>(null);
+	const [isLoadingSolutionB, setIsLoadingSolutionB] = useState(false);
+	const [parameterValues, setParameterValues] = useState<Record<string, any>>({});
+	
 	// Calculation state
 	const [hasCalculated, setHasCalculated] = useState<boolean>(false);
+
+	// Data fetching functions
+	const fetchClientSolutions = async (industryId: string, technologyId: string) => {
+		if (!industryId || !technologyId || !user?.client_id) {
+			setClientSolutions([]);
+			return;
+		}
+
+		setIsLoadingSolutions(true);
+		try {
+			const result = await getClientSolutions(user.client_id);
+
+			if (result.solutions) {
+				const filteredSolutions = result.solutions.filter((solution) => {
+					const matchesIndustry = solution.industry_id === industryId;
+					const matchesTechnology = solution.technology_id === technologyId;
+					return matchesIndustry && matchesTechnology;
+				});
+
+				setClientSolutions(filteredSolutions);
+			} else {
+				setClientSolutions([]);
+			}
+		} catch (error) {
+			setClientSolutions([]);
+		} finally {
+			setIsLoadingSolutions(false);
+		}
+	};
+
+	const fetchSolutionTypes = async (industryId: string, technologyId: string) => {
+		if (!industryId || !technologyId) {
+			setSolutionTypes([]);
+			return;
+		}
+
+		setIsLoadingSolutionTypes(true);
+		try {
+			const result = await getSolutionTypesByIndustryAndTechnology(
+				industryId,
+				technologyId
+			);
+
+			if (result.success && result.solutionTypes) {
+				setSolutionTypes(result.solutionTypes);
+			} else {
+				setSolutionTypes([]);
+			}
+		} catch (error) {
+			setSolutionTypes([]);
+		} finally {
+			setIsLoadingSolutionTypes(false);
+		}
+	};
+
+	const fetchSolutionVariantA = async (solutionId: string) => {
+		if (!solutionId) {
+			setFetchedSolutionA(null);
+			return;
+		}
+
+		setIsLoadingSolutionA(true);
+		try {
+			const result = await getClientSolution(solutionId);
+
+			if (result.solution) {
+				setFetchedSolutionA(result.solution);
+			} else {
+				setFetchedSolutionA(null);
+			}
+		} catch (error) {
+			setFetchedSolutionA(null);
+		} finally {
+			setIsLoadingSolutionA(false);
+		}
+	};
+
+	const fetchSolutionVariantB = async (solutionId: string) => {
+		if (!solutionId) {
+			setFetchedSolutionB(null);
+			return;
+		}
+
+		setIsLoadingSolutionB(true);
+		try {
+			const result = await getClientSolution(solutionId);
+
+			if (result.solution) {
+				setFetchedSolutionB(result.solution);
+			} else {
+				setFetchedSolutionB(null);
+			}
+		} catch (error) {
+			setFetchedSolutionB(null);
+		} finally {
+			setIsLoadingSolutionB(false);
+		}
+	};
+
+	// Load initial client data
+	useEffect(() => {
+		const loadClientDataAndSelections = async () => {
+			if (!user?.client_id) {
+				return;
+			}
+
+			try {
+				setIsLoadingIndustries(true);
+				setIsLoadingTechnologies(true);
+
+				const clientResult = await getClientDataById(user.client_id);
+
+				if (clientResult.client) {
+					setClientData(clientResult.client);
+
+					if (
+						clientResult.client.selected_industries &&
+						clientResult.client.selected_industries.length > 0
+					) {
+						const industriesResult = await getIndustriesBySelectedIds(
+							clientResult.client.selected_industries
+						);
+
+						if (industriesResult.success && industriesResult.industries) {
+							setIndustries(industriesResult.industries);
+						} else {
+							setIndustries([]);
+						}
+					} else {
+						setIndustries([]);
+					}
+
+					if (
+						clientResult.client.selected_technologies &&
+						clientResult.client.selected_technologies.length > 0
+					) {
+						const technologiesResult = await getTechnologiesBySelectedIds(
+							clientResult.client.selected_technologies
+						);
+
+						if (technologiesResult.success && technologiesResult.technologies) {
+							setTechnologies(technologiesResult.technologies);
+						} else {
+							setTechnologies([]);
+						}
+					} else {
+						setTechnologies([]);
+					}
+				} else {
+					setIndustries([]);
+					setTechnologies([]);
+				}
+			} catch (error) {
+				setIndustries([]);
+				setTechnologies([]);
+			} finally {
+				setIsLoadingIndustries(false);
+				setIsLoadingTechnologies(false);
+			}
+		};
+
+		loadClientDataAndSelections();
+	}, [user?.client_id]);
+
+	// Fetch client solutions when industry/technology changes
+	useEffect(() => {
+		if (selectedIndustry && selectedTechnology && user?.client_id) {
+			fetchClientSolutions(selectedIndustry, selectedTechnology);
+		} else {
+			setClientSolutions([]);
+		}
+	}, [selectedIndustry, selectedTechnology, user?.client_id]);
+
+	// Fetch solution types when industry/technology changes
+	useEffect(() => {
+		if (selectedIndustry && selectedTechnology) {
+			fetchSolutionTypes(selectedIndustry, selectedTechnology);
+		} else {
+			setSolutionTypes([]);
+		}
+	}, [selectedIndustry, selectedTechnology]);
+
+	// Fetch solution variant A when it changes
+	useEffect(() => {
+		if (solutionVariantA) {
+			fetchSolutionVariantA(solutionVariantA);
+		} else {
+			setFetchedSolutionA(null);
+		}
+	}, [solutionVariantA]);
+
+	// Fetch solution variant B when it changes
+	useEffect(() => {
+		if (solutionVariantB) {
+			fetchSolutionVariantB(solutionVariantB);
+		} else {
+			setFetchedSolutionB(null);
+		}
+	}, [solutionVariantB]);
 
 	const handleCalculate = () => {
 		setHasCalculated(true);
@@ -61,7 +284,7 @@ export default function ValueCalculatorCompare() {
 									disabled={!hasCalculated}
 									className="text-muted-foreground text-sm  hover:bg-background border-backdrop data-[state=active]:!bg-primary data-[state=active]:!text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed w-full"
 								>
-									Comparison
+									{comparisonMode === "compare" ? "Comparison" : "Results"}
 								</TabsTrigger>
 								{!hasCalculated && (
 									<div className="absolute inset-0 bg-transparent" />
@@ -133,6 +356,22 @@ export default function ValueCalculatorCompare() {
 						setAdvancedConfigB={setAdvancedConfigB}
 						comparisonMode={comparisonMode}
 						setComparisonMode={setComparisonMode}
+						// Pass all data fetching state and functions
+						clientSolutions={clientSolutions}
+						isLoadingSolutions={isLoadingSolutions}
+						solutionTypes={solutionTypes}
+						isLoadingSolutionTypes={isLoadingSolutionTypes}
+						industries={industries}
+						technologies={technologies}
+						isLoadingIndustries={isLoadingIndustries}
+						isLoadingTechnologies={isLoadingTechnologies}
+						clientData={clientData}
+						fetchedSolutionA={fetchedSolutionA}
+						isLoadingSolutionA={isLoadingSolutionA}
+						fetchedSolutionB={fetchedSolutionB}
+						isLoadingSolutionB={isLoadingSolutionB}
+						parameterValues={parameterValues}
+						setParameterValues={setParameterValues}
 					/>
 				</TabsContent>
 

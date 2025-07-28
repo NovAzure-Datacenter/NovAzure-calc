@@ -38,7 +38,10 @@ import {
 } from "../../mock-data";
 import { Parameter } from "../../../types";
 import { CreateSolutionParameters } from "./create-solution-parameters/create-solution-parameters";
-import { CalculationsConfiguration, mockCalculations } from "./create-solution-calculations/create-solution-calculations";
+import {
+	CalculationsConfiguration,
+	mockCalculations,
+} from "./create-solution-calculations/create-solution-calculations";
 import { CreateSolutionProgress } from "./create-solution-progress";
 import { CreateSolutionStep1 } from "./create-solution-step-1";
 import { CreateSolutionStep6 } from "./create-solution-step-6";
@@ -100,8 +103,11 @@ export function CreateSolutionMain() {
 	const [draftMessage, setDraftMessage] = useState("");
 	const [draftSolutionName, setDraftSolutionName] = useState("");
 	// Separate category states for parameters and calculations to keep them independent
-	const [customParameterCategories, setCustomParameterCategories] = useState<any[]>([]);
-	const [customCalculationCategories, setCustomCalculationCategories] = useState<any[]>([]);
+	const [customParameterCategories, setCustomParameterCategories] = useState<
+		any[]
+	>([]);
+	const [customCalculationCategories, setCustomCalculationCategories] =
+		useState<any[]>([]);
 
 	// Loading state for parameters
 	const [isLoadingParameters, setIsLoadingParameters] = useState(false);
@@ -110,10 +116,13 @@ export function CreateSolutionMain() {
 	const [isLoadingCalculations, setIsLoadingCalculations] = useState(false);
 
 	// Track if an existing solution was loaded
-	const [isExistingSolutionLoaded, setIsExistingSolutionLoaded] = useState(false);
+	const [isExistingSolutionLoaded, setIsExistingSolutionLoaded] =
+		useState(false);
 
 	// Track the existing solution ID for updates
-	const [existingSolutionId, setExistingSolutionId] = useState<string | null>(null);
+	const [existingSolutionId, setExistingSolutionId] = useState<string | null>(
+		null
+	);
 
 	// Form data state
 	const [formData, setFormData] = useState<CreateSolutionData>({
@@ -137,7 +146,7 @@ export function CreateSolutionMain() {
 			if (!user) return;
 
 			try {
-			setIsLoading(true);
+				setIsLoading(true);
 
 				// Load client data
 				const clientResult = await getClientByUserId(user._id);
@@ -167,11 +176,10 @@ export function CreateSolutionMain() {
 
 				// Load global parameters
 				const globalParams = await getAllGlobalParameters();
-				setFormData(prev => ({
+				setFormData((prev) => ({
 					...prev,
 					parameters: globalParams,
 				}));
-
 			} catch (error) {
 				console.error("Error loading data:", error);
 				toast.error("Failed to load initial data");
@@ -186,26 +194,28 @@ export function CreateSolutionMain() {
 	const handleNext = () => {
 		// If moving to step 2 or 3 and we have a selected solution variant, load existing data
 		// Only load if we haven't already loaded the data for this solution variant
-		if ((currentStep === 1 || currentStep === 2) && 
-			formData.selectedSolutionVariantId && 
-			!isExistingSolutionLoaded) {
+		if (
+			(currentStep === 1 || currentStep === 2) &&
+			formData.selectedSolutionVariantId &&
+			!isExistingSolutionLoaded
+		) {
 			loadExistingSolutionData(formData.selectedSolutionVariantId);
 		}
-		setCurrentStep(prev => prev + 1);
+		setCurrentStep((prev) => prev + 1);
 	};
 
 	const handlePrevious = () => {
-		setCurrentStep(prev => prev - 1);
+		setCurrentStep((prev) => prev - 1);
 	};
 
 	const handleIndustrySelect = (industryId: string) => {
-		setFormData(prev => ({ ...prev, selectedIndustry: industryId }));
+		setFormData((prev) => ({ ...prev, selectedIndustry: industryId }));
 		// Reset technology and solution when industry changes
-		setFormData(prev => ({ 
-			...prev, 
+		setFormData((prev) => ({
+			...prev,
 			selectedTechnology: "",
 			selectedSolutionId: "",
-			selectedSolutionVariantId: ""
+			selectedSolutionVariantId: "",
 		}));
 		setAvailableSolutionTypes([]);
 		setAvailableSolutionVariants([]);
@@ -215,18 +225,18 @@ export function CreateSolutionMain() {
 	};
 
 	const handleTechnologySelect = (technologyId: string) => {
-		setFormData(prev => ({ ...prev, selectedTechnology: technologyId }));
+		setFormData((prev) => ({ ...prev, selectedTechnology: technologyId }));
 		// Reset solution when technology changes
-		setFormData(prev => ({ 
-			...prev, 
+		setFormData((prev) => ({
+			...prev,
 			selectedSolutionId: "",
-			selectedSolutionVariantId: ""
+			selectedSolutionVariantId: "",
 		}));
 		setAvailableSolutionVariants([]);
 		// Reset loaded solution data when technology changes
 		setIsExistingSolutionLoaded(false);
 		setExistingSolutionId(null);
-		
+
 		// Fetch solution types for the selected industry and technology
 		if (formData.selectedIndustry && technologyId) {
 			fetchSolutionTypes(formData.selectedIndustry, technologyId);
@@ -234,18 +244,18 @@ export function CreateSolutionMain() {
 	};
 
 	const handleSolutionTypeSelect = (solutionTypeId: string) => {
-		setFormData(prev => ({ 
+		setFormData((prev) => ({
 			...prev,
 			selectedSolutionId: solutionTypeId,
-			selectedSolutionVariantId: ""
+			selectedSolutionVariantId: "",
 		}));
 		setIsCreatingNewSolution(false);
 		setIsCreatingNewVariant(false);
 		setIsExistingSolutionLoaded(false);
 		setExistingSolutionId(null);
-		
+
 		// Reset new solution/variant data
-		setFormData(prev => ({
+		setFormData((prev) => ({
 			...prev,
 			solutionName: "",
 			solutionDescription: "",
@@ -262,9 +272,9 @@ export function CreateSolutionMain() {
 	};
 
 	const handleSolutionVariantSelect = (variantId: string) => {
-		setFormData(prev => ({ ...prev, selectedSolutionVariantId: variantId }));
+		setFormData((prev) => ({ ...prev, selectedSolutionVariantId: variantId }));
 		setIsCreatingNewVariant(false);
-		setFormData(prev => ({
+		setFormData((prev) => ({
 			...prev,
 			newVariantName: "",
 			newVariantDescription: "",
@@ -272,13 +282,13 @@ export function CreateSolutionMain() {
 		}));
 
 		// Reset existing solution loaded state for new variants
-		if (variantId.startsWith('new-variant-')) {
+		if (variantId.startsWith("new-variant-")) {
 			setIsExistingSolutionLoaded(false);
 			setExistingSolutionId(null);
 		}
 
 		// Load existing solution data if this is an existing solution variant
-		if (variantId && !variantId.startsWith('new-variant-')) {
+		if (variantId && !variantId.startsWith("new-variant-")) {
 			// Reset the loaded state so we can load data for the new variant
 			setIsExistingSolutionLoaded(false);
 			setExistingSolutionId(null);
@@ -288,10 +298,10 @@ export function CreateSolutionMain() {
 
 	const handleCreateNewSolution = () => {
 		setIsCreatingNewSolution(true);
-		setFormData(prev => ({ 
+		setFormData((prev) => ({
 			...prev,
 			selectedSolutionId: "",
-			selectedSolutionVariantId: ""
+			selectedSolutionVariantId: "",
 		}));
 		setAvailableSolutionVariants([]);
 		setIsExistingSolutionLoaded(false);
@@ -300,15 +310,15 @@ export function CreateSolutionMain() {
 
 	const handleCreateNewVariant = () => {
 		setIsCreatingNewVariant(true);
-		setFormData(prev => ({ ...prev, selectedSolutionVariantId: "" }));
+		setFormData((prev) => ({ ...prev, selectedSolutionVariantId: "" }));
 		setIsExistingSolutionLoaded(false);
 		setExistingSolutionId(null);
 	};
 
 	const handleNoVariantSelect = () => {
-		setFormData(prev => ({ ...prev, selectedSolutionVariantId: "" }));
+		setFormData((prev) => ({ ...prev, selectedSolutionVariantId: "" }));
 		setIsCreatingNewVariant(false);
-		setFormData(prev => ({
+		setFormData((prev) => ({
 			...prev,
 			newVariantName: "",
 			newVariantDescription: "",
@@ -320,7 +330,7 @@ export function CreateSolutionMain() {
 	};
 
 	const handleAddSolutionVariant = (newVariant: any) => {
-		setAvailableSolutionVariants(prev => [...prev, newVariant]);
+		setAvailableSolutionVariants((prev) => [...prev, newVariant]);
 	};
 
 	const fetchSolutionTypes = async (
@@ -346,7 +356,7 @@ export function CreateSolutionMain() {
 
 	const fetchSolutionVariants = async (solutionId: string) => {
 		try {
-		setIsLoadingSolutionVariants(true);
+			setIsLoadingSolutionVariants(true);
 			const result = await getSolutionVariantsBySolutionId(solutionId);
 			if (result.success) {
 				setAvailableSolutionVariants(result.solutionVariants || []);
@@ -360,15 +370,15 @@ export function CreateSolutionMain() {
 	};
 
 	const handleFormDataChange = (updates: Partial<CreateSolutionData>) => {
-		setFormData(prev => ({ ...prev, ...updates }));
+		setFormData((prev) => ({ ...prev, ...updates }));
 	};
 
 	const handleParametersChange = (parameters: Parameter[]) => {
-		setFormData(prev => ({ ...prev, parameters }));
+		setFormData((prev) => ({ ...prev, parameters }));
 	};
 
 	const handleCalculationsChange = (calculations: Calculation[]) => {
-		setFormData(prev => ({ ...prev, calculations }));
+		setFormData((prev) => ({ ...prev, calculations }));
 	};
 
 	// Function to load existing solution data (parameters and calculations)
@@ -377,45 +387,86 @@ export function CreateSolutionMain() {
 			setIsLoadingParameters(true);
 			setIsLoadingCalculations(true);
 			console.log("Loading data for solution variant:", solutionVariantId);
-			
+
 			// Check if this is an existing solution variant (not a new one)
-			if (!solutionVariantId.startsWith('new-variant-')) {
+			if (!solutionVariantId.startsWith("new-variant-")) {
 				// Get the existing solution data
 				const existingSolutions = await getClientSolutions(clientData.id);
-				console.log("Found existing solutions:", existingSolutions.solutions?.length || 0);
-				
+				console.log(
+					"Found existing solutions:",
+					existingSolutions.solutions?.length || 0
+				);
+
 				if (existingSolutions.solutions) {
 					const existingSolution = existingSolutions.solutions.find(
-						solution => solution.id === solutionVariantId
+						(solution) => solution.id === solutionVariantId
 					);
-					
+
 					console.log("Found matching solution:", existingSolution);
-					
+
 					if (existingSolution) {
-						// Load parameters if they exist
+						// Merge existing parameters with global parameters
 						if (existingSolution.parameters) {
-							setFormData(prev => ({
+							// Get current global parameters
+							const globalParams = await getAllGlobalParameters();
+
+							// Create a map of existing parameters by ID for quick lookup
+							const existingParamsMap = new Map(
+								existingSolution.parameters.map((param) => [param.id, param])
+							);
+
+							// Merge global parameters with existing parameters
+							// Global parameters that don't exist in the solution will be added
+							// Existing parameters will override global parameters with the same ID
+							const mergedParameters = [
+								...globalParams.filter(
+									(globalParam) => !existingParamsMap.has(globalParam.id)
+								),
+								...existingSolution.parameters,
+							];
+
+							setFormData((prev) => ({
 								...prev,
-								parameters: existingSolution.parameters
+								parameters: mergedParameters,
+							}));
+						} else {
+							// If no existing parameters, just use global parameters
+							const globalParams = await getAllGlobalParameters();
+							setFormData((prev) => ({
+								...prev,
+								parameters: globalParams,
 							}));
 						}
 
 						// Load calculations if they exist
 						if (existingSolution.calculations) {
-							setFormData(prev => ({
+							setFormData((prev) => ({
 								...prev,
-								calculations: existingSolution.calculations
+								calculations: existingSolution.calculations,
 							}));
 						}
 						setIsExistingSolutionLoaded(true);
-						setExistingSolutionId(existingSolution.id || null); // Set the existing solution ID
+						setExistingSolutionId(existingSolution.id || null);
 					} else {
-						// Solution not found
-						toast.warning("Existing solution not found. Starting with empty data.");
+						// Solution not found, use global parameters
+						const globalParams = await getAllGlobalParameters();
+						setFormData((prev) => ({
+							...prev,
+							parameters: globalParams,
+						}));
+						toast.warning(
+							"Existing solution not found. Starting with global parameters."
+						);
 					}
 				}
 			} else {
-				console.log("New variant selected, starting with empty data");
+				console.log("New variant selected, starting with global parameters");
+				// For new variants, ensure we have global parameters
+				const globalParams = await getAllGlobalParameters();
+				setFormData((prev) => ({
+					...prev,
+					parameters: globalParams,
+				}));
 			}
 		} catch (error) {
 			console.error("Error loading existing solution data:", error);
@@ -488,7 +539,7 @@ export function CreateSolutionMain() {
 			}
 
 			// Load existing solution data if this is an existing solution variant
-			if (variantId && !variantId.startsWith('new-variant-')) {
+			if (variantId && !variantId.startsWith("new-variant-")) {
 				// Reset the loaded state so we can load data for the new variant
 				setIsExistingSolutionLoaded(false);
 				setExistingSolutionId(null);
@@ -515,7 +566,7 @@ export function CreateSolutionMain() {
 				// Existing solution and variant
 				const selectedSolution = getSelectedSolutionType();
 				const selectedVariant = getSelectedSolutionVariant();
-				
+
 				if (selectedVariant) {
 					// Use variant information
 					finalSolutionName = selectedVariant.name;
@@ -546,14 +597,13 @@ export function CreateSolutionMain() {
 				parameters: formData.parameters,
 				calculations: formData.calculations,
 				status: "draft",
-				created_by: user?._id || "", 
+				created_by: user?._id || "",
 			});
 
 			setDraftStatus("success");
 			setDraftMessage("Solution saved as draft successfully!");
 			setDraftSolutionName(finalSolutionName);
 			setShowDraftDialog(true);
-
 		} catch (error) {
 			console.error("Error saving draft:", error);
 			setDraftStatus("error");
@@ -580,7 +630,9 @@ export function CreateSolutionMain() {
 
 				if (updateResult.success) {
 					setSubmissionStatus("success");
-					setSubmissionMessage("Solution updated and submitted for review successfully!");
+					setSubmissionMessage(
+						"Solution updated and submitted for review successfully!"
+					);
 					setSubmittedSolutionName("Updated Solution");
 					setShowSubmissionDialog(true);
 				} else {
@@ -626,7 +678,7 @@ export function CreateSolutionMain() {
 			}
 
 			// Load existing solution data if this is an existing solution variant
-			if (variantId && !variantId.startsWith('new-variant-')) {
+			if (variantId && !variantId.startsWith("new-variant-")) {
 				// Reset the loaded state so we can load data for the new variant
 				setIsExistingSolutionLoaded(false);
 				setExistingSolutionId(null);
@@ -653,7 +705,7 @@ export function CreateSolutionMain() {
 				// Existing solution and variant
 				const selectedSolution = getSelectedSolutionType();
 				const selectedVariant = getSelectedSolutionVariant();
-				
+
 				if (selectedVariant) {
 					// Use variant information
 					finalSolutionName = selectedVariant.name;
@@ -666,7 +718,6 @@ export function CreateSolutionMain() {
 					finalSolutionIcon = selectedSolution?.icon || "";
 				}
 			}
-
 
 			await createClientSolution({
 				client_id: clientData.id,
@@ -692,11 +743,12 @@ export function CreateSolutionMain() {
 			setSubmissionMessage("Solution submitted for review successfully!");
 			setSubmittedSolutionName(finalSolutionName);
 			setShowSubmissionDialog(true);
-
 		} catch (error) {
 			console.error("Error submitting solution:", error);
 			setSubmissionStatus("error");
-			setSubmissionMessage("Failed to submit solution for review. Please try again.");
+			setSubmissionMessage(
+				"Failed to submit solution for review. Please try again."
+			);
 			setShowSubmissionDialog(true);
 		} finally {
 			setIsSubmitting(false);
@@ -765,16 +817,26 @@ export function CreateSolutionMain() {
 				// Check if industry, technology, and solution are selected
 				const hasIndustry = !!formData.selectedIndustry;
 				const hasTechnology = !!formData.selectedTechnology;
-				const hasSolution = formData.selectedSolutionId || isCreatingNewSolution;
-				const hasSolutionVariant = !!formData.selectedSolutionVariantId || isCreatingNewVariant;
+				const hasSolution =
+					formData.selectedSolutionId || isCreatingNewSolution;
+				const hasSolutionVariant =
+					!!formData.selectedSolutionVariantId || isCreatingNewVariant;
 
 				// If creating new solution, require name and description
 				if (isCreatingNewSolution) {
-					return !hasIndustry || !hasTechnology || !formData.solutionName || !formData.solutionDescription || !hasSolutionVariant;
+					return (
+						!hasIndustry ||
+						!hasTechnology ||
+						!formData.solutionName ||
+						!formData.solutionDescription ||
+						!hasSolutionVariant
+					);
 				}
 
 				// If using existing solution type, require solution variant as well
-				return !hasIndustry || !hasTechnology || !hasSolution || !hasSolutionVariant;
+				return (
+					!hasIndustry || !hasTechnology || !hasSolution || !hasSolutionVariant
+				);
 			case 2:
 				// Allow proceeding even if parameters are being loaded
 				if (isLoadingParameters) {
@@ -796,8 +858,6 @@ export function CreateSolutionMain() {
 		return <Loading />;
 	}
 
-
-
 	return (
 		<div className="w-full h-screen flex flex-col pb-8 overflow-hidden">
 			{/* Header */}
@@ -810,7 +870,7 @@ export function CreateSolutionMain() {
 
 			{/* Progress Steps */}
 			<div className="flex-shrink-0 px-4">
-			<CreateSolutionProgress currentStep={currentStep} />
+				<CreateSolutionProgress currentStep={currentStep} />
 			</div>
 
 			{/* Step Content */}
