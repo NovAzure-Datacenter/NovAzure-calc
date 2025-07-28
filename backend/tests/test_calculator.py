@@ -16,8 +16,8 @@ class TestCalculator:
         inputs = {"base": 100, "rate": 0.2}
         calculator = Calculator(parameters, inputs)
 
-        result = calculator.evaluate("result")
-        assert result["result"] == 20.0
+        result = calculator.evaluate(["result"])
+        assert result["result"] == [20.0]
 
     def test_parameter_types(self):
         """Tests if all parameter types will work together"""
@@ -37,8 +37,8 @@ class TestCalculator:
         inputs = {"user_amount": 1000.0}
         calculator = Calculator(parameters, inputs)
 
-        result = calculator.evaluate("result")
-        assert result["result"] == 75.0
+        result = calculator.evaluate(["result"])
+        assert result["result"] == [75.0]
 
     def test_dependency_chain(self):
         """Nested calculations and more complex formulas"""
@@ -77,8 +77,25 @@ class TestCalculator:
         inputs = {"level1_1": 2, "level1_2": 10.0}
         calculator = Calculator(parameters, inputs)
 
-        result = calculator.evaluate("result")
-        assert result["result"] == -6.0
+        result = calculator.evaluate(["result"])
+        assert result["result"] == [-6.0]
+
+    def test_multiple_targets(self):
+        """Test calculating multiple targets at once"""
+        parameter_dicts = [
+            {"name": "x", "type": "INPUT"},
+            {"name": "y", "type": "INPUT"},
+            {"name": "sum", "type": "CALCULATION", "formula": "x + y"},
+            {"name": "product", "type": "CALCULATION", "formula": "x * y"},
+            {"name": "ratio", "type": "CALCULATION", "formula": "x / y"},
+        ]
+
+        parameters = [Parameter(param) for param in parameter_dicts]
+        inputs = {"x": 12.0, "y": 4.0}
+        calculator = Calculator(parameters, inputs)
+
+        result = calculator.evaluate(["sum", "product", "ratio"])
+        assert result["result"] == [16.0, 48.0, 3.0]
 
     def test_error_handling(self):
         # Test undefined Parameter dependency
@@ -95,7 +112,7 @@ class TestCalculator:
             ValueError,
             match="Parameter result depends on undefined parameter 'missing'",
         ):
-            calculator.evaluate("result")
+            calculator.evaluate(["result"])
 
         # Test missing dependency
         parameter_dicts = [
@@ -109,7 +126,7 @@ class TestCalculator:
             ValueError,
             match="Parameter result depends on undefined parameter 'missing'",
         ):
-            calculator.evaluate("result")
+            calculator.evaluate(["result"])
 
         # Test cyclic dependency
         parameter_dicts = [
@@ -121,7 +138,20 @@ class TestCalculator:
         calculator = Calculator(parameters, {})
 
         with pytest.raises(ValueError, match="Cycle detected"):
-            calculator.evaluate("result")
+            calculator.evaluate(["a"])
+
+        # Test missing target
+        parameter_dicts = [
+            {"name": "valid", "type": "INPUT"},
+        ]
+
+        parameters = [Parameter(param) for param in parameter_dicts]
+        calculator = Calculator(parameters, {"valid": 5.0})
+
+        with pytest.raises(
+            ValueError, match="Target 'missing_target' was not resolved"
+        ):
+            calculator.evaluate(["missing_target"])
 
         # Test invalid parameter definition
         with pytest.raises(

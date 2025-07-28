@@ -11,6 +11,6 @@ def calculate(request: CalculationRequest):
     parameters = [Parameter(param.model_dump()) for param in request.parameters]
 
     calculator = Calculator(parameters=parameters, inputs=request.inputs)
-    target = request.target
-    result = calculator.evaluate(target)
+    targets = request.target
+    result = calculator.evaluate(targets)
     return result
