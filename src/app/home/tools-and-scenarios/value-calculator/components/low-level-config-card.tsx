@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { ChevronUp, ChevronDown } from "lucide-react";
 import { useState, useEffect } from "react";
 
+
 export default function LowLevelConfigCard({
 	comparisonMode,
 	solutionVariantA,
