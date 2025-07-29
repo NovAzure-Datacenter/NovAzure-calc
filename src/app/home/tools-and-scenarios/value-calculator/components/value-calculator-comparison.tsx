@@ -260,6 +260,24 @@ export default function ValueCalculatorComparison({
         return "text-gray-600";
     };
 
+    // Helper function to format currency values with reduced decimal places
+    const formatCurrency = (value: number) => {
+        if (value >= 1000000) {
+            return `$${(value / 1000000).toFixed(1)}M`;
+        } else if (value >= 1000) {
+            return `$${(value / 1000).toFixed(1)}K`;
+        } else {
+            return `$${value.toFixed(0)}`;
+        }
+    };
+
+    // Helper function to format percentage values
+    const formatPercentage = (percentChange: string) => {
+        const value = parseFloat(percentChange.replace(/[^0-9.-]/g, ''));
+        if (Math.abs(value) < 0.1) return "0.0%";
+        return value.toFixed(1) + "%";
+    };
+
 
     console.log("Data: ", resultData);
 
@@ -407,14 +425,22 @@ export default function ValueCalculatorComparison({
                 {/* Comparison Table */}
                 {comparisonMode === "single" ? (
                     // Single mode - show results for one solution
-                    <div className="border rounded-md">
+                    <div className="border rounded-lg shadow-sm">
+                        <div className="bg-muted/50 px-6 py-4 border-b">
+                            <h3 className="text-lg font-semibold text-gray-900">Results Summary</h3>
+                            <p className="text-sm text-muted-foreground mt-1">
+                                Financial metrics for {fetchedSolutionA?.solution_name || "Selected Solution"}
+                            </p>
+                        </div>
                         <div className="max-h-[60vh] overflow-y-auto">
                             <Table>
                                 <TableHeader className="sticky top-0 bg-background z-10">
-                                    <TableRow>
-                                        <TableHead className="w-48 bg-background font-medium">Metric</TableHead>
-                                        <TableHead className="w-32 bg-background font-medium text-center">
-                                            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                                    <TableRow className="border-b-2 border-gray-200">
+                                        <TableHead className="w-48 bg-background font-semibold text-gray-900 py-4">
+                                            Metric
+                                        </TableHead>
+                                        <TableHead className="w-32 bg-background font-semibold text-center text-gray-900 py-4">
+                                            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 font-medium">
                                                 {fetchedSolutionA?.solution_name || "Selected Solution"}
                                             </Badge>
                                         </TableHead>
@@ -422,12 +448,17 @@ export default function ValueCalculatorComparison({
                                 </TableHeader>
                                 <TableBody>
                                     {comparisonRows.map((row, index) => (
-                                        <TableRow key={index} className="hover:bg-muted/50 transition-colors">
-                                            <TableCell className="font-medium">
+                                        <TableRow 
+                                            key={index} 
+                                            className={`hover:bg-muted/50 transition-colors ${
+                                                index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'
+                                            }`}
+                                        >
+                                            <TableCell className="font-medium text-gray-900 py-3">
                                                 {row.metric}
                                             </TableCell>
-                                            <TableCell className="text-center font-mono">
-                                                ${row.variantA}
+                                            <TableCell className="text-center font-mono text-gray-900 py-3">
+                                                {formatCurrency(row.variantA)}
                                             </TableCell>
                                         </TableRow>
                                     ))}
@@ -437,43 +468,60 @@ export default function ValueCalculatorComparison({
                     </div>
                 ) : comparisonMode === "compare" ? (
                     // Compare mode - show results for both solutions
-                    <div className="border rounded-md">
+                    <div className="border rounded-lg shadow-sm">
+                        <div className="bg-muted/50 px-6 py-4 border-b">
+                            <h3 className="text-lg font-semibold text-gray-900">Comparison Results</h3>
+                            <p className="text-sm text-muted-foreground mt-1">
+                                Side-by-side comparison of financial metrics
+                            </p>
+                        </div>
                         <div className="max-h-[60vh] overflow-y-auto">
                             <Table>
                                 <TableHeader className="sticky top-0 bg-background z-10">
-                                    <TableRow>
-                                        <TableHead className="w-48 bg-background font-medium">Metric</TableHead>
-                                        <TableHead className="w-32 bg-background font-medium text-center">
-                                            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                                    <TableRow className="border-b-2 border-gray-200">
+                                        <TableHead className="w-48 bg-background font-semibold text-gray-900 py-4">
+                                            Metric
+                                        </TableHead>
+                                        <TableHead className="w-32 bg-background font-semibold text-center text-gray-900 py-4">
+                                            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 font-medium">
                                                 {fetchedSolutionA?.solution_name || "Solution A"}
                                             </Badge>
                                         </TableHead>
-                                        <TableHead className="w-32 bg-background font-medium text-center">
-                                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                                        <TableHead className="w-32 bg-background font-semibold text-center text-gray-900 py-4">
+                                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 font-medium">
                                                 {fetchedSolutionB?.solution_name || "Solution B"}
                                             </Badge>
                                         </TableHead>
-                                        <TableHead className="w-32 bg-background font-medium text-center">Difference</TableHead>
-                                        <TableHead className="w-24 bg-background font-medium text-center">% Change</TableHead>
+                                        <TableHead className="w-32 bg-background font-semibold text-center text-gray-900 py-4">
+                                            Difference
+                                        </TableHead>
+                                        <TableHead className="w-24 bg-background font-semibold text-center text-gray-900 py-4">
+                                            % Change
+                                        </TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {comparisonRows.map((row, index) => (
-                                        <TableRow key={index} className="hover:bg-muted/50 transition-colors">
-                                            <TableCell className="font-medium">
+                                        <TableRow 
+                                            key={index} 
+                                            className={`hover:bg-muted/50 transition-colors ${
+                                                index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'
+                                            }`}
+                                        >
+                                            <TableCell className="font-medium text-gray-900 py-3">
                                                 {row.metric}
                                             </TableCell>
-                                            <TableCell className="text-center font-mono">
-                                                ${row.variantA}
+                                            <TableCell className="text-center font-mono text-gray-900 py-3">
+                                                {formatCurrency(row.variantA)}
                                             </TableCell>
-                                            <TableCell className="text-center font-mono">
-                                                ${row.variantB}
+                                            <TableCell className="text-center font-mono text-gray-900 py-3">
+                                                {formatCurrency(row.variantB)}
                                             </TableCell>
-                                            <TableCell className={`text-center font-mono ${getDifferenceColor(row.difference)}`}>
-                                                {row.difference < 0 ? `$${row.difference.toLocaleString()}` : `+$${row.difference.toLocaleString()}`}
+                                            <TableCell className={`text-center font-mono font-semibold py-3 ${getDifferenceColor(row.difference)}`}>
+                                                {row.difference < 0 ? `-${formatCurrency(Math.abs(row.difference))}` : `+${formatCurrency(row.difference)}`}
                                             </TableCell>
-                                            <TableCell className={`text-center font-mono ${getPercentChangeColor(row.percentChange)}`}>
-                                                {row.percentChange}
+                                            <TableCell className={`text-center font-mono font-semibold py-3 ${getPercentChangeColor(row.percentChange)}`}>
+                                                {formatPercentage(row.percentChange)}
                                             </TableCell>
                                         </TableRow>
                                     ))}

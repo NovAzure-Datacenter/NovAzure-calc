@@ -61,6 +61,30 @@ export default function AdvancedLevelConfigCard({
         return value;
     };
 
+    // Helper function to convert percentage input back to decimal for storage
+    const convertPercentageToDecimal = (value: string, unit: string) => {
+        if (unit === "%") {
+            const numValue = parseFloat(value);
+            if (!isNaN(numValue)) {
+                // Round to 4 decimal places to avoid floating point precision issues
+                return (numValue / 100).toFixed(4);
+            }
+        }
+        return value;
+    };
+
+    // Helper function to convert decimal to percentage for display
+    const convertDecimalToPercentage = (value: string, unit: string) => {
+        if (unit === "%") {
+            const numValue = parseFloat(value);
+            if (!isNaN(numValue)) {
+                // Round to avoid floating point precision issues
+                return Math.round(numValue * 100).toString();
+            }
+        }
+        return value;
+    };
+
     // Helper function to get advanced config parameters from a solution
     const getSolutionAdvancedConfig = (solution: any) => {
         if (!solution?.parameters) return [];
@@ -222,10 +246,17 @@ export default function AdvancedLevelConfigCard({
                             <Input
                                 type="number"
                                 placeholder={`Enter ${config.name}`}
-                                value={(configValue as string) || ""}
-                                onChange={(e) =>
-                                    handleChange(config.id, e.target.value)
+                                value={
+                                    config.unit === "%" 
+                                        ? convertDecimalToPercentage((configValue as string) || "", config.unit)
+                                        : (configValue as string) || ""
                                 }
+                                onChange={(e) => {
+                                    const convertedValue = config.unit === "%" 
+                                        ? convertPercentageToDecimal(e.target.value, config.unit)
+                                        : e.target.value;
+                                    handleChange(config.id, convertedValue);
+                                }}
                                 step="0.1"
                             />
                         </div>
