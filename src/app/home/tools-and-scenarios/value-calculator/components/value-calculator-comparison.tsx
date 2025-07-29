@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { comparisonData } from "./mock-data";
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend, Line, LineChart, PieChart, Pie, Cell, Area, AreaChart } from "recharts";
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend, Line, LineChart, PieChart, Pie, Cell, Area, AreaChart, CartesianGrid } from "recharts";
 import { useState, useEffect } from "react";
 import { getIndustriesBySelectedIds } from "@/lib/actions/industry/industry";
 import { getTechnologiesBySelectedIds } from "@/lib/actions/technology/technology";
@@ -22,6 +22,161 @@ interface ComparisonRow {
     variantB: number;
     difference: number;
     percentChange: string;
+}
+
+// Interface for graph data
+interface GraphData {
+    name: string;
+    solutionA: number;
+    solutionB: number;
+}
+
+// ComparisonGraph component
+function ComparisonGraph({ 
+    resultData, 
+    solutionAName, 
+    solutionBName 
+}: { 
+    resultData: any; 
+    solutionAName: string; 
+    solutionBName: string; 
+}) {
+    // Transform resultData into chart format
+    const transformDataForChart = (): GraphData[] => {
+        if (!resultData || !resultData.solutionA || !resultData.solutionB) {
+            return [];
+        }
+
+        const solutionAData = resultData.solutionA;
+        const solutionBData = resultData.solutionB;
+        
+        // Get all unique keys from both solutions
+        const allKeys = new Set([
+            ...Object.keys(solutionAData),
+            ...Object.keys(solutionBData)
+        ]);
+
+        const chartData = Array.from(allKeys).map(key => {
+            const valueA = solutionAData[key] || 0;
+            const valueB = solutionBData[key] || 0;
+            
+            // Format the key name for display
+            const formattedName = key
+                .replace(/_/g, ' ')
+                .replace(/\b\w/g, l => l.toUpperCase())
+                .replace(/\b\w+/g, word => {
+                    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+                });
+
+            return {
+                name: formattedName,
+                solutionA: typeof valueA === 'number' ? valueA : parseFloat(String(valueA)) || 0,
+                solutionB: typeof valueB === 'number' ? valueB : parseFloat(String(valueB)) || 0,
+                originalKey: key, // Keep original key for sorting
+            };
+        });
+
+        // Sort by the difference between solutions (most significant differences first)
+        return chartData
+            .sort((a, b) => {
+                const diffA = Math.abs(a.solutionB - a.solutionA);
+                const diffB = Math.abs(b.solutionB - b.solutionA);
+                return diffB - diffA;
+            })
+            .slice(0, 8) // Show top 8 metrics to avoid overcrowding
+            .map(({ originalKey, ...rest }) => rest); // Remove originalKey from final data
+    };
+
+    const chartData = transformDataForChart();
+
+    // Helper function to format currency values for tooltip
+    const formatCurrency = (value: number) => {
+        if (value >= 1000000) {
+            return `$${(value / 1000000).toFixed(1)}M`;
+        } else if (value >= 1000) {
+            return `$${(value / 1000).toFixed(1)}K`;
+        } else {
+            return `$${value.toFixed(0)}`;
+        }
+    };
+
+    // Custom tooltip component
+    const CustomTooltip = ({ active, payload, label }: any) => {
+        if (active && payload && payload.length) {
+            return (
+                <div className="bg-white p-3 border rounded-lg shadow-lg">
+                    <p className="font-medium text-gray-900">{label}</p>
+                    {payload.map((entry: any, index: number) => (
+                        <p key={index} className="text-sm" style={{ color: entry.color }}>
+                            {entry.name}: {formatCurrency(entry.value)}
+                        </p>
+                    ))}
+                </div>
+            );
+        }
+        return null;
+    };
+
+    if (chartData.length === 0) {
+        return (
+            <div className="text-center py-8 text-muted-foreground">
+                <p>No data available for visualization</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-4">
+            {/* Summary of key differences */}
+           
+
+            <ResponsiveContainer width="100%" height={400}>
+                <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis 
+                        dataKey="name" 
+                        height={60}
+                        tick={{ fontSize: 11, fill: '#6b7280' }}
+                        axisLine={{ stroke: '#e5e7eb' }}
+                    />
+                    <YAxis 
+                        tickFormatter={(value) => {
+                            if (value >= 1000000) {
+                                return `$${(value / 1000000).toFixed(0)}M`;
+                            } else if (value >= 1000) {
+                                return `$${(value / 1000).toFixed(0)}K`;
+                            } else {
+                                return `$${value}`;
+                            }
+                        }}
+                        tick={{ fontSize: 11, fill: '#6b7280' }}
+                        axisLine={{ stroke: '#e5e7eb' }}
+                    />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Legend 
+                        wrapperStyle={{ paddingTop: '10px' }}
+                        formatter={(value) => <span style={{ color: '#374151', fontSize: '12px' }}>{value}</span>}
+                    />
+                    <Bar 
+                        dataKey="solutionA" 
+                        fill="#3B82F6" 
+                        name={solutionAName}
+                        radius={[4, 4, 0, 0]}
+                        stroke="#2563EB"
+                        strokeWidth={1}
+                    />
+                    <Bar 
+                        dataKey="solutionB" 
+                        fill="#10B981" 
+                        name={solutionBName}
+                        radius={[4, 4, 0, 0]}
+                        stroke="#059669"
+                        strokeWidth={1}
+                    />
+                </BarChart>
+            </ResponsiveContainer>
+        </div>
+    );
 }
 
 
@@ -354,12 +509,12 @@ export default function ValueCalculatorComparison({
                                                 {isLoadingNames ? "Loading..." : (technologyName || "Not selected")}
                                             </span>
                                         </div>
-                                        <div className="flex justify-between">
+                                        {/* <div className="flex justify-between">
                                             <span className="text-muted-foreground">Solution:</span>
                                             <span className="font-medium">
                                                 {isLoadingNames ? "Loading..." : (solutionName || "Not selected")}
                                             </span>
-                                        </div>
+                                        </div> */}
                                  
                                         {fetchedSolutionA?.solution_description && (
                                             <div className="pt-2 border-t">
@@ -393,12 +548,12 @@ export default function ValueCalculatorComparison({
                                                 {isLoadingNames ? "Loading..." : (technologyName || "Not selected")}
                                             </span>
                                         </div>
-                                        <div className="flex justify-between">
+                                        {/* <div className="flex justify-between">
                                             <span className="text-muted-foreground">Solution:</span>
                                             <span className="font-medium">
                                                 {isLoadingNames ? "Loading..." : (solutionName || "Not selected")}
                                             </span>
-                                        </div>
+                                        </div> */}
                                
                                         {fetchedSolutionB?.solution_description && (
                                             <div className="pt-2 border-t">
@@ -531,6 +686,24 @@ export default function ValueCalculatorComparison({
                     </div>
                 ) : null}
 
+                {/* Comparison Graph - Only show in compare mode */}
+                {comparisonMode === "compare" && resultData && (
+                    <div className="border rounded-lg shadow-sm">
+                        <div className="bg-muted/50 px-6 py-4 border-b">
+                            <h3 className="text-lg font-semibold text-gray-900">Visual Comparison</h3>
+                            <p className="text-sm text-muted-foreground mt-1">
+                                Graphical representation of key metrics comparison
+                            </p>
+                        </div>
+                        <div className="p-6">
+                            <ComparisonGraph 
+                                resultData={resultData}
+                                solutionAName={fetchedSolutionA?.solution_name || "Solution A"}
+                                solutionBName={fetchedSolutionB?.solution_name || "Solution B"}
+                            />
+                        </div>
+                    </div>
+                )}
             
             </div>
         ) : (

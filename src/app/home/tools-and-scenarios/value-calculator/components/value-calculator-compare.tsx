@@ -9,7 +9,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useState, Dispatch, SetStateAction, useEffect } from "react";
-import { Building2, Cpu, Package, ChevronDown, ChevronUp } from "lucide-react";
 import ValueCalculatorConfiguration from "./value-calculator-configuration";
 import ValueCalculatorComparison from "./value-calculator-comparison";
 import ValueCalculatorOutputs from "./value-calculator-outputs";
@@ -64,6 +63,7 @@ export default function ValueCalculatorCompare() {
 	// Calculation state
 	const [hasCalculated, setHasCalculated] = useState<boolean>(false);
 	const [resultData, setResultData] = useState<any>(null);
+	const [currentTab, setCurrentTab] = useState<string>("configuration");
 
 	// Data fetching functions
 	const fetchClientSolutions = async (industryId: string, technologyId: string) => {
@@ -266,6 +266,7 @@ export default function ValueCalculatorCompare() {
 
 	const handleCalculate = () => {
 		setHasCalculated(true);
+		setCurrentTab("comparison");
 		// Add calculation logic here
 	};
 
@@ -274,7 +275,7 @@ export default function ValueCalculatorCompare() {
 
 	return (
 		<TooltipProvider>
-			<Tabs defaultValue="configuration" className="w-full">
+			<Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
 				<TabsList className="grid w-full grid-cols-3">
 					<TabsTrigger 
 						value="configuration"
