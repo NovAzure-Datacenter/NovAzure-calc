@@ -29,6 +29,95 @@ import {
 	getCategoryBadgeStyleForDropdown,
 } from "@/app/home/product-and-solutions/solutions/create/components/create-solution-parameters/color-utils";
 
+// CountryOptionsEditor component for managing country-based values
+function CountryOptionsEditor({
+	options,
+	onOptionsChange,
+	isEditing,
+}: {
+	options: Array<{ key: string; value: string }>;
+	onOptionsChange: (options: Array<{ key: string; value: string }>) => void;
+	isEditing: boolean;
+}) {
+	const addOption = () => {
+		onOptionsChange([...options, { key: "", value: "" }]);
+	};
+
+	const updateOption = (
+		index: number,
+		field: "key" | "value",
+		value: string
+	) => {
+		const newOptions = [...options];
+		newOptions[index] = { ...newOptions[index], [field]: value };
+		onOptionsChange(newOptions);
+	};
+
+	const removeOption = (index: number) => {
+		onOptionsChange(options.filter((_, i) => i !== index));
+	};
+
+	if (!isEditing) {
+		return (
+			<div className="text-xs text-muted-foreground">
+				{options.length > 0 ? (
+					<div className="space-y-1">
+						{options.map((option, index) => (
+							<div key={index} className="flex items-center gap-1">
+								<span className="font-medium">{option.key}:</span>
+								<span>{option.value}</span>
+							</div>
+						))}
+					</div>
+				) : (
+					<span>No country values defined</span>
+				)}
+			</div>
+		);
+	}
+
+	return (
+		<div className="space-y-2">
+			{options.map((option, index) => (
+				<div key={index} className="flex items-center gap-1">
+					<Input
+						value={option.key}
+						onChange={(e) => updateOption(index, "key", e.target.value)}
+						className="h-6 text-xs w-20"
+						placeholder="Country"
+					/>
+					<span className="text-xs">:</span>
+					<Input
+						value={option.value}
+						onChange={(e) => updateOption(index, "value", e.target.value)}
+						className="h-6 text-xs w-24"
+						placeholder="Value"
+						type="number"
+						step="any"
+					/>
+					<Button
+						size="sm"
+						variant="ghost"
+						onClick={() => removeOption(index)}
+						className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
+					>
+						<X className="h-3 w-3" />
+					</Button>
+				</div>
+			))}
+			<Button
+				size="sm"
+				variant="outline"
+				onClick={addOption}
+				className="h-6 text-xs"
+			>
+				<Plus className="h-3 w-3 mr-1" />
+				Add Country Value
+			</Button>
+		</div>
+	);
+}
+
 export default function GlobalParametersTableContent({
 	filteredParameters,
 	editingParameter,
@@ -60,6 +149,10 @@ export default function GlobalParametersTableContent({
 		description: string;
 		category: string;
 		is_modifiable: boolean;
+		display_type: "simple" | "dropdown" | "range" | "filter";
+		dropdown_options: Array<{ key: string; value: string }>;
+		range_min: string;
+		range_max: string;
 	};
 	setEditData: React.Dispatch<
 		React.SetStateAction<{
@@ -70,6 +163,10 @@ export default function GlobalParametersTableContent({
 			description: string;
 			category: string;
 			is_modifiable: boolean;
+			display_type: "simple" | "dropdown" | "range" | "filter";
+			dropdown_options: Array<{ key: string; value: string }>;
+			range_min: string;
+			range_max: string;
 		}>
 	>;
 	handleEditParameter: (parameter: Parameter) => void;
@@ -87,6 +184,10 @@ export default function GlobalParametersTableContent({
 		description: string;
 		category: string;
 		is_modifiable: boolean;
+		display_type: "simple" | "dropdown" | "range" | "filter";
+		dropdown_options: Array<{ key: string; value: string }>;
+		range_min: string;
+		range_max: string;
 	};
 	setNewParameterData: React.Dispatch<
 		React.SetStateAction<{
@@ -97,6 +198,10 @@ export default function GlobalParametersTableContent({
 			description: string;
 			category: string;
 			is_modifiable: boolean;
+			display_type: "simple" | "dropdown" | "range" | "filter";
+			dropdown_options: Array<{ key: string; value: string }>;
+			range_min: string;
+			range_max: string;
 		}>
 	>;
 	handleSaveNewParameter: () => void;
@@ -151,6 +256,28 @@ export default function GlobalParametersTableContent({
 									Parameter Name
 								</TableHead>
 								<TableHead className="w-32 bg-background">Category</TableHead>
+								<TableHead className="w-32 bg-background">
+									<Tooltip>
+										<TooltipTrigger asChild>
+											<div className="flex items-center gap-1 cursor-help">
+												Display Type
+												<Info className="h-3 w-3 text-muted-foreground" />
+											</div>
+										</TooltipTrigger>
+										<TooltipContent>
+											<p className="text-sm">
+												How the value is displayed in the calculator
+											</p>
+											<p className="text-xs text-muted-foreground mt-1">
+												• <strong>Simple:</strong> Single value
+												<br />• <strong>Dropdown:</strong> Select from
+												predefined options
+												<br />• <strong>Range:</strong> Min/Max number range
+												<br />• <strong>Filter:</strong> Multiple filter options
+											</p>
+										</TooltipContent>
+									</Tooltip>
+								</TableHead>
 								<TableHead className="w-32 bg-background">
 									<Tooltip>
 										<TooltipTrigger asChild>
@@ -254,25 +381,110 @@ export default function GlobalParametersTableContent({
 										</Select>
 									</TableCell>
 									<TableCell className="py-2">
-										<Input
-											value={newParameterData.value}
-											onChange={(e) =>
+										<Select
+											value={newParameterData.display_type}
+											onValueChange={(value) =>
 												setNewParameterData((prev) => ({
 													...prev,
-													value: e.target.value,
+													display_type: value as
+														| "simple"
+														| "dropdown"
+														| "range"
+														| "filter",
 												}))
 											}
-											className="h-7 text-xs"
-											placeholder="Value *"
-											type="number"
-											onKeyDown={(e) => {
-												if (e.key === "Enter") {
-													handleSaveNewParameter();
-												} else if (e.key === "Escape") {
-													handleCancelAddParameter();
+										>
+											<SelectTrigger className="h-7 text-xs">
+												<SelectValue>
+													{newParameterData.display_type || "Select type"}
+												</SelectValue>
+											</SelectTrigger>
+											<SelectContent>
+												<SelectItem value="simple">Simple</SelectItem>
+												<SelectItem value="dropdown">Dropdown</SelectItem>
+												<SelectItem value="range">Range</SelectItem>
+												<SelectItem value="filter">Filter</SelectItem>
+											</SelectContent>
+										</Select>
+									</TableCell>
+									<TableCell className="py-2">
+										{newParameterData.display_type === "dropdown" ? (
+											<CountryOptionsEditor
+												options={newParameterData.dropdown_options}
+												onOptionsChange={(options) =>
+													setNewParameterData((prev) => ({
+														...prev,
+														dropdown_options: options,
+													}))
 												}
-											}}
-										/>
+												isEditing={true}
+											/>
+										) : newParameterData.display_type === "range" ? (
+											<div className="space-y-2">
+												<div className="flex items-center gap-2">
+													<Input
+														value={newParameterData.range_min}
+														onChange={(e) =>
+															setNewParameterData((prev) => ({
+																...prev,
+																range_min: e.target.value,
+															}))
+														}
+														className="h-7 text-xs"
+														placeholder="Min"
+														type="number"
+														step="any"
+													/>
+													<span className="text-xs text-muted-foreground">
+														to
+													</span>
+													<Input
+														value={newParameterData.range_max}
+														onChange={(e) =>
+															setNewParameterData((prev) => ({
+																...prev,
+																range_max: e.target.value,
+															}))
+														}
+														className="h-7 text-xs"
+														placeholder="Max"
+														type="number"
+														step="any"
+													/>
+												</div>
+											</div>
+										) : newParameterData.display_type === "filter" ? (
+											<CountryOptionsEditor
+												options={newParameterData.dropdown_options}
+												onOptionsChange={(options) =>
+													setNewParameterData((prev) => ({
+														...prev,
+														dropdown_options: options,
+													}))
+												}
+												isEditing={true}
+											/>
+										) : (
+											<Input
+												value={newParameterData.value}
+												onChange={(e) =>
+													setNewParameterData((prev) => ({
+														...prev,
+														value: e.target.value,
+													}))
+												}
+												className="h-7 text-xs"
+												placeholder="Value *"
+												type="number"
+												onKeyDown={(e) => {
+													if (e.key === "Enter") {
+														handleSaveNewParameter();
+													} else if (e.key === "Escape") {
+														handleCancelAddParameter();
+													}
+												}}
+											/>
+										)}
 									</TableCell>
 									<TableCell className="py-2">
 										<Input
@@ -316,13 +528,15 @@ export default function GlobalParametersTableContent({
 										/>
 									</TableCell>
 									<TableCell className="py-2">
-										<input 
-											type="checkbox" 
+										<input
+											type="checkbox"
 											checked={newParameterData.is_modifiable}
-											onChange={(e) => setNewParameterData(prev => ({
-												...prev,
-												is_modifiable: e.target.checked
-											}))}
+											onChange={(e) =>
+												setNewParameterData((prev) => ({
+													...prev,
+													is_modifiable: e.target.checked,
+												}))
+											}
 											className="h-4 w-4"
 										/>
 									</TableCell>
@@ -356,7 +570,15 @@ export default function GlobalParametersTableContent({
 												disabled={
 													!newParameterData.name.trim() ||
 													!newParameterData.unit.trim() ||
-													!newParameterData.value.trim()
+													(newParameterData.display_type === "simple" &&
+														!newParameterData.value.trim()) ||
+													(newParameterData.display_type === "range" &&
+														(!newParameterData.range_min.trim() ||
+															!newParameterData.range_max.trim())) ||
+													(newParameterData.display_type === "dropdown" &&
+														newParameterData.dropdown_options.length === 0) ||
+													(newParameterData.display_type === "filter" &&
+														newParameterData.dropdown_options.length === 0)
 												}
 											>
 												<Save className="h-3 w-3" />
@@ -479,28 +701,178 @@ export default function GlobalParametersTableContent({
 											</TableCell>
 											<TableCell className="py-2">
 												{isEditing ? (
-													<Input
-														value={editData.value}
-														onChange={(e) =>
+													<Select
+														value={editData.display_type}
+														onValueChange={(value) =>
 															setEditData((prev) => ({
 																...prev,
-																value: e.target.value,
+																display_type: value as
+																	| "simple"
+																	| "dropdown"
+																	| "range"
+																	| "filter",
 															}))
 														}
-														className="h-7 text-xs"
-														placeholder="Value *"
-														type="number"
-														onKeyDown={(e) => {
-															if (e.key === "Enter") {
-																handleSaveParameter(parameter.id);
-															} else if (e.key === "Escape") {
-																handleCancelEdit();
+													>
+														<SelectTrigger className="h-7 text-xs">
+															<SelectValue>
+																{editData.display_type || "Select type"}
+															</SelectValue>
+														</SelectTrigger>
+														<SelectContent>
+															<SelectItem value="simple">Simple</SelectItem>
+															<SelectItem value="dropdown">Dropdown</SelectItem>
+															<SelectItem value="range">Range</SelectItem>
+															<SelectItem value="filter">Filter</SelectItem>
+														</SelectContent>
+													</Select>
+												) : (
+													<Badge variant="outline" className="text-xs">
+														{highlightSearchTerm(
+															parameter.display_type,
+															searchQuery
+														)}
+													</Badge>
+												)}
+											</TableCell>
+											<TableCell className="py-2">
+												{isEditing ? (
+													editData.display_type === "dropdown" ? (
+														<CountryOptionsEditor
+															options={editData.dropdown_options}
+															onOptionsChange={(options) =>
+																setEditData((prev) => ({
+																	...prev,
+																	dropdown_options: options,
+																}))
 															}
-														}}
-													/>
+															isEditing={true}
+														/>
+													) : editData.display_type === "range" ? (
+														<div className="space-y-2">
+															<div className="flex items-center gap-2">
+																<Input
+																	value={editData.range_min}
+																	onChange={(e) =>
+																		setEditData((prev) => ({
+																			...prev,
+																			range_min: e.target.value,
+																		}))
+																	}
+																	className="h-7 text-xs"
+																	placeholder="Min"
+																	type="number"
+																	step="any"
+																/>
+																<span className="text-xs text-muted-foreground">
+																	to
+																</span>
+																<Input
+																	value={editData.range_max}
+																	onChange={(e) =>
+																		setEditData((prev) => ({
+																			...prev,
+																			range_max: e.target.value,
+																		}))
+																	}
+																	className="h-7 text-xs"
+																	placeholder="Max"
+																	type="number"
+																	step="any"
+																/>
+															</div>
+														</div>
+													) : editData.display_type === "filter" ? (
+														<CountryOptionsEditor
+															options={editData.dropdown_options}
+															onOptionsChange={(options) =>
+																setEditData((prev) => ({
+																	...prev,
+																	dropdown_options: options,
+																}))
+															}
+															isEditing={true}
+														/>
+													) : (
+														<Input
+															value={editData.value}
+															onChange={(e) =>
+																setEditData((prev) => ({
+																	...prev,
+																	value: e.target.value,
+																}))
+															}
+															className="h-7 text-xs"
+															placeholder="Value *"
+															type="number"
+															onKeyDown={(e) => {
+																if (e.key === "Enter") {
+																	handleSaveParameter(parameter.id);
+																} else if (e.key === "Escape") {
+																	handleCancelEdit();
+																}
+															}}
+														/>
+													)
 												) : (
 													<span className="text-xs text-muted-foreground">
-														{highlightSearchTerm(parameter.value, searchQuery)}
+														{parameter.display_type === "dropdown" ? (
+															parameter.dropdown_options &&
+															parameter.dropdown_options.length > 0 ? (
+																<div className="space-y-1">
+																	{parameter.dropdown_options.map(
+																		(option, index) => (
+																			<div
+																				key={index}
+																				className="flex items-center gap-1"
+																			>
+																				<span className="font-medium">
+																					{option.key}:
+																				</span>
+																				<span>{option.value}</span>
+																			</div>
+																		)
+																	)}
+																</div>
+															) : (
+																<span>No country values defined</span>
+															)
+														) : parameter.display_type === "range" ? (
+															<div className="space-y-1">
+																<div className="flex items-center gap-1">
+																	<span className="font-medium">Min:</span>
+																	<span>
+																		{parameter.range_min || "Not set"}
+																	</span>
+																</div>
+																<div className="flex items-center gap-1">
+																	<span className="font-medium">Max:</span>
+																	<span>
+																		{parameter.range_max || "Not set"}
+																	</span>
+																</div>
+															</div>
+														) : parameter.display_type === "filter" ? (
+															parameter.dropdown_options &&
+															parameter.dropdown_options.length > 0 ? (
+																<div className="space-y-1">
+																	{parameter.dropdown_options.map(
+																		(option, index) => (
+																			<div
+																				key={index}
+																				className="flex items-center gap-1"
+																			>
+																				<span>{option.value}</span>
+																			</div>
+																		)
+																	)}
+																</div>
+															) : (
+																<span>No filter options defined</span>
+															)
+														) : (
+															highlightSearchTerm(parameter.value, searchQuery)
+														)}
 													</span>
 												)}
 											</TableCell>
@@ -556,23 +928,27 @@ export default function GlobalParametersTableContent({
 											<TableCell className="py-2">
 												{isEditing ? (
 													<div className="flex items-center justify-center">
-														<input 
-															type="checkbox" 
+														<input
+															type="checkbox"
 															checked={editData.is_modifiable}
-															onChange={(e) => setEditData(prev => ({
-																...prev,
-																is_modifiable: e.target.checked
-															}))}
+															onChange={(e) =>
+																setEditData((prev) => ({
+																	...prev,
+																	is_modifiable: e.target.checked,
+																}))
+															}
 															className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
 														/>
 													</div>
 												) : (
 													<div className="flex items-center justify-center">
-														<span className={`text-xs px-2 py-1 rounded-full ${
-															parameter.is_modifiable 
-																? "bg-green-100 text-green-800" 
-																: "bg-gray-100 text-gray-600"
-														}`}>
+														<span
+															className={`text-xs px-2 py-1 rounded-full ${
+																parameter.is_modifiable
+																	? "bg-green-100 text-green-800"
+																	: "bg-gray-100 text-gray-600"
+															}`}
+														>
 															{parameter.is_modifiable ? "Yes" : "No"}
 														</span>
 													</div>
@@ -650,7 +1026,15 @@ export default function GlobalParametersTableContent({
 																disabled={
 																	!editData.name.trim() ||
 																	!editData.unit.trim() ||
-																	!editData.value.trim()
+																	(editData.display_type === "simple" &&
+																		!editData.value.trim()) ||
+																	(editData.display_type === "range" &&
+																		(!editData.range_min.trim() ||
+																			!editData.range_max.trim())) ||
+																	(editData.display_type === "dropdown" &&
+																		editData.dropdown_options.length === 0) ||
+																	(editData.display_type === "filter" &&
+																		editData.dropdown_options.length === 0)
 																}
 															>
 																<Save className="h-3 w-3" />
@@ -695,4 +1079,4 @@ export default function GlobalParametersTableContent({
 			</div>
 		</div>
 	);
-} 
+}

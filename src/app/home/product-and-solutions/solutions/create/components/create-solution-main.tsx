@@ -136,6 +136,8 @@ export function CreateSolutionMain() {
 				...globalParam,
 				id: `param-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
 				provided_by: "company",
+				// Preserve the is_modifiable field from the original global parameter
+				is_modifiable: globalParam.is_modifiable || false,
 			}));
 	};
 

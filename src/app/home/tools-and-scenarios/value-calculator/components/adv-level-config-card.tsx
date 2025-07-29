@@ -50,6 +50,17 @@ export default function AdvancedLevelConfigCard({
     isAdvancedExpanded: boolean;
     setIsAdvancedExpanded: (isAdvancedExpanded: boolean) => void;
 }) {
+    // Helper function to format range values as percentages
+    const formatRangeValue = (value: string, unit: string) => {
+        if (unit === "%") {
+            const numValue = parseFloat(value);
+            if (!isNaN(numValue)) {
+                return Math.round(numValue * 100).toString();
+            }
+        }
+        return value;
+    };
+
     // Helper function to get advanced config parameters from a solution
     const getSolutionAdvancedConfig = (solution: any) => {
         if (!solution?.parameters) return [];
@@ -148,84 +159,49 @@ export default function AdvancedLevelConfigCard({
                                 </SelectContent>
                             </Select>
                         </div>
-                    ) : config.display_type === "range" ? (
+                    ) : config.display_type === "filter" ? (
                         <div className="space-y-2">
                             <Label className="text-xs text-muted-foreground">
-                                {config.description ||
-                                    `Enter ${config.name}`}
+                                Select {config.name}:
                             </Label>
-                            <Input
-                                type="number"
-                                placeholder={`Enter value between ${
-                                    config.range_min || "0"
-                                } and ${config.range_max || "∞"}`}
-                                min={config.range_min}
-                                max={config.range_max}
-                                step="any"
+                            <Select
                                 value={(configValue as string) || ""}
-                                onChange={(e) =>
-                                    handleChange(config.id, e.target.value)
+                                onValueChange={(value) =>
+                                    handleChange(config.id, value)
                                 }
-                                onKeyDown={(e) => {
-                                    const min = parseFloat(config.range_min);
-                                    const max = parseFloat(config.range_max);
-
-                                    // Allow: backspace, delete, tab, escape, enter, and navigation keys
-                                    if (
-                                        [
-                                            8, 9, 27, 13, 46, 37, 38, 39, 40,
-                                        ].includes(e.keyCode)
-                                    ) {
-                                        return;
-                                    }
-
-                                    // Allow decimal point
-                                    if (
-                                        e.key === "." &&
-                                        !e.currentTarget.value.includes(".")
-                                    ) {
-                                        return;
-                                    }
-
-                                    // Allow numbers
-                                    if (/[0-9]/.test(e.key)) {
-                                        const currentValue = e.currentTarget.value;
-                                        const newValue = currentValue + e.key;
-
-                                        // Check if the new value would be within range
-                                        const numValue = parseFloat(newValue);
-                                        if (
-                                            !isNaN(numValue) &&
-                                            numValue >= min &&
-                                            numValue <= max
-                                        ) {
-                                            return;
-                                        }
-                                    }
-
-                                    // Prevent all other inputs
-                                    e.preventDefault();
-                                }}
-                                onBlur={(e) => {
-                                    const value = parseFloat(e.target.value);
-                                    const min = parseFloat(config.range_min);
-                                    const max = parseFloat(config.range_max);
-
-                                    // Ensure value is within range on blur
-                                    if (isNaN(value) || value < min) {
-                                        e.target.value = min.toString();
-                                    } else if (value > max) {
-                                        e.target.value = max.toString();
-                                    }
-                                }}
+                            >
+                                <SelectTrigger className="w-full">
+                                    <SelectValue
+                                        placeholder={`Select ${config.name}`}
+                                    />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {config.dropdown_options &&
+                                        config.dropdown_options.map(
+                                            (option: any, index: number) => (
+                                                <SelectItem
+                                                    key={index}
+                                                    value={option.value}
+                                                >
+                                                    {option.value}
+                                                </SelectItem>
+                                            )
+                                        )}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    ) : config.type === "checkbox" ? (
+                        <div className="flex items-center space-x-2">
+                            <Checkbox
+                                id={configId}
+                                checked={configValue || false}
+                                onCheckedChange={(checked) =>
+                                    handleChange(config.id, checked)
+                                }
                             />
-                            {config.range_min && config.range_max && (
-                                <div className="text-xs text-muted-foreground">
-                                    Range: {config.range_min} -{" "}
-                                    {config.range_max}{" "}
-                                    {config.unit && `(${config.unit})`}
-                                </div>
-                            )}
+                            <Label htmlFor={configId} className="text-sm">
+                                {config.name}
+                            </Label>
                         </div>
                     ) : (
                         <div className="space-y-2">

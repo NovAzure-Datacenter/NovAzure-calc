@@ -270,9 +270,7 @@ export default function ValueCalculatorCompare() {
 	};
 
 
-	useEffect(() => {
-		console.log(resultData)
-	}, [resultData]);
+
 
 	return (
 		<TooltipProvider>
