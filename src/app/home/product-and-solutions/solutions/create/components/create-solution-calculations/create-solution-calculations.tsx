@@ -196,6 +196,81 @@ const mockCategories = [
 // Export mock data and conversion function for external use
 export { mockCalculations, mockCategories, convertMockToCalculation };
 
+// FilterOptionsEditor component
+function FilterOptionsEditor({
+	options,
+	onOptionsChange,
+	isEditing,
+}: {
+	options: string[];
+	onOptionsChange: (options: string[]) => void;
+	isEditing: boolean;
+}) {
+	const addOption = () => {
+		onOptionsChange([...options, ""]);
+	};
+
+	const updateOption = (index: number, value: string) => {
+		const newOptions = [...options];
+		newOptions[index] = value;
+		onOptionsChange(newOptions);
+	};
+
+	const removeOption = (index: number) => {
+		onOptionsChange(options.filter((_, i) => i !== index));
+	};
+
+	if (!isEditing) {
+		return (
+			<div className="text-xs text-muted-foreground">
+				{options.length > 0 ? (
+					<div className="space-y-1">
+						{options.map((option, index) => (
+							<div key={index} className="flex items-center gap-1">
+								<span>{option}</span>
+							</div>
+						))}
+					</div>
+				) : (
+					<span>No filter options defined</span>
+				)}
+			</div>
+		);
+	}
+
+	return (
+		<div className="space-y-2">
+			{options.map((option, index) => (
+				<div key={index} className="flex items-center gap-1">
+					<Input
+						value={option}
+						onChange={(e) => updateOption(index, e.target.value)}
+						className="h-6 text-xs w-24"
+						placeholder="UK, USA, UAE"
+					/>
+					<Button
+						size="sm"
+						variant="ghost"
+						onClick={() => removeOption(index)}
+						className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
+					>
+						<X className="h-3 w-3" />
+					</Button>
+				</div>
+			))}
+			<Button
+				size="sm"
+				variant="outline"
+				onClick={addOption}
+				className="h-6 text-xs"
+			>
+				<Plus className="h-3 w-3 mr-1" />
+				Add Filter Option
+			</Button>
+		</div>
+	);
+}
+
 // DropdownOptionsEditor component
 function DropdownOptionsEditor({
 	options,
@@ -362,7 +437,7 @@ export function CalculationsConfiguration({
 		provided_by: "user",
 		input_type: "simple",
 		output: false,
-		display_type: "simple" as "simple" | "dropdown" | "range",
+		display_type: "simple" as "simple" | "dropdown" | "range" | "filter",
 		dropdown_options: [] as Array<{ key: string; value: string }>,
 		range_min: "",
 		range_max: "",
@@ -746,9 +821,18 @@ export function CalculationsConfiguration({
 			return;
 		}
 
-		if (newParameterData.provided_by === "company" && !newParameterData.value.trim()) {
-			toast.error("Value is required when provided by company");
-			return;
+		// Conditional validation based on provided_by and display_type
+		if (newParameterData.provided_by === "company") {
+			if (newParameterData.display_type === "simple" && !newParameterData.value.trim()) {
+				toast.error("Value is required when provided by company");
+				return;
+			} else if (newParameterData.display_type === "range" && (!newParameterData.range_min.trim() || !newParameterData.range_max.trim())) {
+				toast.error("Range min and max values are required when provided by company");
+				return;
+			} else if ((newParameterData.display_type === "dropdown" || newParameterData.display_type === "filter") && newParameterData.dropdown_options.length === 0) {
+				toast.error("Options are required when provided by company");
+				return;
+			}
 		}
 
 		// Create new parameter
@@ -1248,7 +1332,7 @@ export function CalculationsConfiguration({
 									onValueChange={(value) =>
 										setNewParameterData((prev) => ({
 											...prev,
-											display_type: value as "simple" | "dropdown" | "range",
+											display_type: value as "simple" | "dropdown" | "range" | "filter",
 										}))
 									}
 								>
@@ -1261,6 +1345,7 @@ export function CalculationsConfiguration({
 										<SelectItem value="simple">Simple</SelectItem>
 										<SelectItem value="dropdown">Dropdown</SelectItem>
 										<SelectItem value="range">Range</SelectItem>
+										<SelectItem value="filter">Filter</SelectItem>
 									</SelectContent>
 								</Select>
 							</div>
@@ -1313,6 +1398,17 @@ export function CalculationsConfiguration({
 											/>
 										</div>
 									</div>
+								) : newParameterData.display_type === "filter" ? (
+									<FilterOptionsEditor
+										options={newParameterData.dropdown_options.map(opt => opt.value)}
+										onOptionsChange={(options) =>
+											setNewParameterData((prev) => ({
+												...prev,
+												dropdown_options: options.map(opt => ({ key: "", value: opt })),
+											}))
+										}
+										isEditing={true}
+									/>
 								) : (
 									<Input
 										value={newParameterData.value}
@@ -1508,7 +1604,10 @@ export function CalculationsConfiguration({
 								!newParameterData.name.trim() ||
 								!newParameterData.unit.trim() ||
 								(newParameterData.provided_by === "company" &&
-									!newParameterData.value.trim())
+									((newParameterData.display_type === "simple" && !newParameterData.value.trim()) ||
+									 (newParameterData.display_type === "range" && (!newParameterData.range_min.trim() || !newParameterData.range_max.trim())) ||
+									 (newParameterData.display_type === "dropdown" && newParameterData.dropdown_options.length === 0) ||
+									 (newParameterData.display_type === "filter" && newParameterData.dropdown_options.length === 0)))
 							}
 						>
 							Add Parameter

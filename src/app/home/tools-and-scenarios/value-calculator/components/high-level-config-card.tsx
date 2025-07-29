@@ -28,6 +28,17 @@ export default function HighLevelConfigCard({
 	parameterValues: any;
 	handleParameterValueChange: (parameterId: string, value: any) => void;
 }) {
+	// Helper function to format range values as percentages
+	const formatRangeValue = (value: string, unit: string) => {
+		if (unit === "%") {
+			const numValue = parseFloat(value);
+			if (!isNaN(numValue)) {
+				return Math.round(numValue * 100).toString();
+			}
+		}
+		return value;
+	};
+
 	// Helper function to get parameters from a solution
 	const getSolutionParameters = (solution: any) => {
 		if (!solution?.parameters) return [];
@@ -123,6 +134,37 @@ export default function HighLevelConfigCard({
 								</SelectContent>
 							</Select>
 						</div>
+					) : parameter.display_type === "filter" ? (
+						<div className="space-y-2">
+							<Label className="text-xs text-muted-foreground">
+								Select {parameter.name}:
+							</Label>
+							<Select
+								value={parameterValues[paramId] || ""}
+								onValueChange={(value) =>
+									handleParameterValueChange(paramId, value)
+								}
+							>
+								<SelectTrigger className="w-full">
+									<SelectValue
+										placeholder={`Select ${parameter.name}`}
+									/>
+								</SelectTrigger>
+								<SelectContent>
+									{parameter.dropdown_options &&
+										parameter.dropdown_options.map(
+											(option: any, index: number) => (
+												<SelectItem
+													key={index}
+													value={option.value}
+												>
+													{option.value}
+												</SelectItem>
+											)
+										)}
+								</SelectContent>
+							</Select>
+						</div>
 					) : parameter.display_type === "range" ? (
 						<div className="space-y-2">
 							<Label className="text-xs text-muted-foreground">
@@ -132,18 +174,18 @@ export default function HighLevelConfigCard({
 							<Input
 								type="number"
 								placeholder={`Enter value between ${
-									parameter.range_min || "0"
-								} and ${parameter.range_max || "∞"}`}
-								min={parameter.range_min}
-								max={parameter.range_max}
-								step="any"
+									formatRangeValue(parameter.range_min || "0", parameter.unit)
+								} and ${formatRangeValue(parameter.range_max || "∞", parameter.unit)}`}
+								min={parameter.unit === "%" ? formatRangeValue(parameter.range_min || "0", parameter.unit) : parameter.range_min}
+								max={parameter.unit === "%" ? formatRangeValue(parameter.range_max || "∞", parameter.unit) : parameter.range_max}
+								step={parameter.unit === "%" ? "1" : "any"}
 								value={parameterValues[paramId] || ""}
 								onChange={(e) =>
 									handleParameterValueChange(paramId, e.target.value)
 								}
 								onKeyDown={(e) => {
-									const min = parseFloat(parameter.range_min);
-									const max = parseFloat(parameter.range_max);
+									const min = parameter.unit === "%" ? parseFloat(formatRangeValue(parameter.range_min, parameter.unit)) : parseFloat(parameter.range_min);
+									const max = parameter.unit === "%" ? parseFloat(formatRangeValue(parameter.range_max, parameter.unit)) : parseFloat(parameter.range_max);
 
 									// Allow: backspace, delete, tab, escape, enter, and navigation keys
 									if (
@@ -154,10 +196,11 @@ export default function HighLevelConfigCard({
 										return;
 									}
 
-									// Allow decimal point
+									// Allow decimal point only for non-percentage values
 									if (
 										e.key === "." &&
-										!e.currentTarget.value.includes(".")
+										!e.currentTarget.value.includes(".") &&
+										parameter.unit !== "%"
 									) {
 										return;
 									}
@@ -183,8 +226,8 @@ export default function HighLevelConfigCard({
 								}}
 								onBlur={(e) => {
 									const value = parseFloat(e.target.value);
-									const min = parseFloat(parameter.range_min);
-									const max = parseFloat(parameter.range_max);
+									const min = parameter.unit === "%" ? parseFloat(formatRangeValue(parameter.range_min, parameter.unit)) : parseFloat(parameter.range_min);
+									const max = parameter.unit === "%" ? parseFloat(formatRangeValue(parameter.range_max, parameter.unit)) : parseFloat(parameter.range_max);
 
 									// Ensure value is within range on blur
 									if (isNaN(value) || value < min) {
@@ -196,8 +239,8 @@ export default function HighLevelConfigCard({
 							/>
 							{parameter.range_min && parameter.range_max && (
 								<div className="text-xs text-muted-foreground">
-									Range: {parameter.range_min} -{" "}
-									{parameter.range_max}{" "}
+									Range: {formatRangeValue(parameter.range_min, parameter.unit)} -{" "}
+									{formatRangeValue(parameter.range_max, parameter.unit)}{" "}
 									{parameter.unit && `(${parameter.unit})`}
 								</div>
 							)}

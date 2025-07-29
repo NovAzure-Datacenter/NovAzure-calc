@@ -57,12 +57,17 @@ function convertToMongoDoc(parameter: Omit<Parameter, "id">): any {
 		test_value: parameter.test_value,
 		unit: parameter.unit,
 		description: parameter.description,
+		information: parameter.information,
 		provided_by: parameter.provided_by,
 		input_type: parameter.input_type,
 		output: parameter.output,
 		level: parameter.level,
 		category: parameter.category,
 		is_modifiable: parameter.is_modifiable,
+		display_type: parameter.display_type,
+		dropdown_options: parameter.dropdown_options,
+		range_min: parameter.range_min,
+		range_max: parameter.range_max,
 	};
 }
 

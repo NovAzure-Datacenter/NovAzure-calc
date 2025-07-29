@@ -29,6 +29,81 @@ import {
 	getCategoryBadgeStyleForDropdown,
 } from "./color-utils";
 
+// FilterOptionsEditor component
+function FilterOptionsEditor({
+	options,
+	onOptionsChange,
+	isEditing,
+}: {
+	options: string[];
+	onOptionsChange: (options: string[]) => void;
+	isEditing: boolean;
+}) {
+	const addOption = () => {
+		onOptionsChange([...options, ""]);
+	};
+
+	const updateOption = (index: number, value: string) => {
+		const newOptions = [...options];
+		newOptions[index] = value;
+		onOptionsChange(newOptions);
+	};
+
+	const removeOption = (index: number) => {
+		onOptionsChange(options.filter((_, i) => i !== index));
+	};
+
+	if (!isEditing) {
+		return (
+			<div className="text-xs text-muted-foreground">
+				{options.length > 0 ? (
+					<div className="space-y-1">
+						{options.map((option, index) => (
+							<div key={index} className="flex items-center gap-1">
+								<span>{option}</span>
+							</div>
+						))}
+					</div>
+				) : (
+					<span>No filter options defined</span>
+				)}
+			</div>
+		);
+	}
+
+	return (
+		<div className="space-y-2">
+			{options.map((option, index) => (
+				<div key={index} className="flex items-center gap-1">
+					<Input
+						value={option}
+						onChange={(e) => updateOption(index, e.target.value)}
+						className="h-6 text-xs w-24"
+						placeholder="UK, USA, UAE"
+					/>
+					<Button
+						size="sm"
+						variant="ghost"
+						onClick={() => removeOption(index)}
+						className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
+					>
+						<X className="h-3 w-3" />
+					</Button>
+				</div>
+			))}
+			<Button
+				size="sm"
+				variant="outline"
+				onClick={addOption}
+				className="h-6 text-xs"
+			>
+				<Plus className="h-3 w-3 mr-1" />
+				Add Filter Option
+			</Button>
+		</div>
+	);
+}
+
 // DropdownOptionsEditor component
 function DropdownOptionsEditor({
 	options,
@@ -147,7 +222,7 @@ export default function TableContent({
 		provided_by: string;
 		input_type: string;
 		output: boolean;
-		display_type: "simple" | "dropdown" | "range";
+		display_type: "simple" | "dropdown" | "range" | "filter";
 		dropdown_options: Array<{ key: string; value: string }>;
 		range_min: string;
 		range_max: string;
@@ -164,7 +239,7 @@ export default function TableContent({
 			provided_by: string;
 			input_type: string;
 			output: boolean;
-			display_type: "simple" | "dropdown" | "range";
+			display_type: "simple" | "dropdown" | "range" | "filter";
 			dropdown_options: Array<{ key: string; value: string }>;
 			range_min: string;
 			range_max: string;
@@ -188,7 +263,7 @@ export default function TableContent({
 		provided_by: string;
 		input_type: string;
 		output: boolean;
-		display_type: "simple" | "dropdown" | "range";
+		display_type: "simple" | "dropdown" | "range" | "filter"	;
 		dropdown_options: Array<{ key: string; value: string }>;
 		range_min: string;
 		range_max: string;
@@ -205,7 +280,7 @@ export default function TableContent({
 			provided_by: string;
 			input_type: string;
 			output: boolean;
-			display_type: "simple" | "dropdown" | "range";
+			display_type: "simple" | "dropdown" | "range" | "filter";
 			dropdown_options: Array<{ key: string; value: string }>;
 			range_min: string;
 			range_max: string;
@@ -315,6 +390,8 @@ export default function TableContent({
 											<p className="text-xs text-muted-foreground mt-1">
 												• <strong>Simple:</strong> Text input field
 												<br />• <strong>Dropdown:</strong> Select from predefined options
+												<br />• <strong>Range:</strong> Min/Max number range
+												<br />• <strong>Filter:</strong> Multiple filter options
 											</p>
 										</TooltipContent>
 									</Tooltip>
@@ -489,7 +566,7 @@ export default function TableContent({
 											onValueChange={(value) =>
 												setNewParameterData((prev) => ({
 													...prev,
-													display_type: value as "simple" | "dropdown" | "range",
+													display_type: value as "simple" | "dropdown" | "range" | "filter",
 												}))
 											}
 										>
@@ -502,6 +579,7 @@ export default function TableContent({
 												<SelectItem value="simple">Simple</SelectItem>
 												<SelectItem value="dropdown">Dropdown</SelectItem>
 												<SelectItem value="range">Range</SelectItem>
+												<SelectItem value="filter">Filter</SelectItem>
 											</SelectContent>
 										</Select>
 									</TableCell>
@@ -549,6 +627,17 @@ export default function TableContent({
 													/>
 												</div>
 											</div>
+										) : newParameterData.display_type === "filter" ? (
+											<FilterOptionsEditor
+												options={newParameterData.dropdown_options.map(opt => opt.value)}
+												onOptionsChange={(options) =>
+													setNewParameterData((prev) => ({
+														...prev,
+														dropdown_options: options.map(opt => ({ key: "", value: opt })),
+													}))
+												}
+												isEditing={true}
+											/>
 										) : (
 											<Input
 												value={newParameterData.value}
@@ -731,7 +820,10 @@ export default function TableContent({
 													!newParameterData.name.trim() ||
 													!newParameterData.unit.trim() ||
 													(newParameterData.provided_by === "company" &&
-														!newParameterData.value.trim())
+														((newParameterData.display_type === "simple" && !newParameterData.value.trim()) ||
+														 (newParameterData.display_type === "range" && (!newParameterData.range_min.trim() || !newParameterData.range_max.trim())) ||
+														 (newParameterData.display_type === "dropdown" && newParameterData.dropdown_options.length === 0) ||
+														 (newParameterData.display_type === "filter" && newParameterData.dropdown_options.length === 0)))
 												}
 											>
 												<Save className="h-3 w-3" />
@@ -764,7 +856,8 @@ export default function TableContent({
 									const isGlobal = parameter.category.name === "Global";
 									const isIndustry = parameter.category.name === "Industry";
 									const isTechnology = parameter.category.name === "Technology" || parameter.category.name === "Technologies";
-									const isReadOnly = isGlobal || isIndustry || isTechnology;
+									// Check if parameter is modifiable - allow editing if is_modifiable is true, regardless of category
+									const isReadOnly = !parameter.is_modifiable;
 
 									return (
 										<TableRow
@@ -864,7 +957,7 @@ export default function TableContent({
 														onValueChange={(value) =>
 															setEditData((prev) => ({
 																...prev,
-																display_type: value as "simple" | "dropdown" | "range",
+																display_type: value as "simple" | "dropdown" | "range" | "filter",
 															}))
 														}
 													>
@@ -877,6 +970,7 @@ export default function TableContent({
 															<SelectItem value="simple">Simple</SelectItem>
 															<SelectItem value="dropdown">Dropdown</SelectItem>
 															<SelectItem value="range">Range</SelectItem>
+															<SelectItem value="filter">Filter</SelectItem>
 														</SelectContent>
 													</Select>
 												) : (
@@ -934,6 +1028,17 @@ export default function TableContent({
 																/>
 															</div>
 														</div>
+													) : editData.display_type === "filter" ? (
+														<FilterOptionsEditor
+															options={editData.dropdown_options.map(opt => opt.value)}
+															onOptionsChange={(options) =>
+																setEditData((prev) => ({
+																	...prev,
+																	dropdown_options: options.map(opt => ({ key: "", value: opt })),
+																}))
+															}
+															isEditing={true}
+														/>
 													) : (
 														<Input
 															value={editData.value}
@@ -985,6 +1090,18 @@ export default function TableContent({
 																	<span>{parameter.range_max || "Not set"}</span>
 																</div>
 															</div>
+														) : parameter.display_type === "filter" ? (
+															parameter.dropdown_options && parameter.dropdown_options.length > 0 ? (
+																<div className="space-y-1">
+																	{parameter.dropdown_options.map((option, index) => (
+																		<div key={index} className="flex items-center gap-1">
+																			<span>{option.value}</span>
+																		</div>
+																	))}
+																</div>
+															) : (
+																<span>No filter options defined</span>
+															)
 														) : (
 															highlightSearchTerm(parameter.value, searchQuery)
 														)}
@@ -1216,11 +1333,11 @@ export default function TableContent({
 																	</TooltipTrigger>
 																	<TooltipContent>
 																		<p className="text-sm">
-																			{isGlobal 
-																				? "Global parameter - read only"
-																				: isIndustry 
-																				? "Industry parameter - read only"
-																				: "Technology parameter - read only"
+																			{parameter.provided_by === "global" 
+																				? "Global parameter - not modifiable"
+																				: parameter.provided_by === "company"
+																				? "Company parameter - not modifiable"
+																				: "Parameter - not modifiable"
 																			}
 																		</p>
 																	</TooltipContent>
@@ -1267,7 +1384,10 @@ export default function TableContent({
 																	!editData.name.trim() ||
 																	!editData.unit.trim() ||
 																	(editData.provided_by === "company" &&
-																		!editData.value.trim())
+																		((editData.display_type === "simple" && !editData.value.trim()) ||
+																		 (editData.display_type === "range" && (!editData.range_min.trim() || !editData.range_max.trim())) ||
+																		 (editData.display_type === "dropdown" && editData.dropdown_options.length === 0) ||
+																		 (editData.display_type === "filter" && editData.dropdown_options.length === 0)))
 																}
 															>
 																<Save className="h-3 w-3" />

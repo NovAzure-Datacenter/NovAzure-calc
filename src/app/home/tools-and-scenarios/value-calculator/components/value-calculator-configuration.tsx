@@ -732,9 +732,11 @@ export default function ValueCalculatorConfiguration({
 				<div className="flex justify-center gap-4">
 					<CalculateButton
 						fetchedSolutionA={fetchedSolutionA}
+						fetchedSolutionB={fetchedSolutionB}
 						parameterValues={parameterValues}
+						comparisonMode={comparisonMode}
 						onCalculate={onCalculate}
-						disabled={!fetchedSolutionA}
+						disabled={!fetchedSolutionA || (comparisonMode === "compare" && !fetchedSolutionB)}
 						setResultData={setResultData}
 					/>
 					<MockButton />
