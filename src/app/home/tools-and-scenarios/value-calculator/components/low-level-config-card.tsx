@@ -26,6 +26,17 @@ export default function LowLevelConfigCard({
 }) {
     const [isLowLevelExpanded, setIsLowLevelExpanded] = useState(false);
 
+    // Helper function to format range values as percentages
+    const formatRangeValue = (value: string, unit: string) => {
+        if (unit === "%") {
+            const numValue = parseFloat(value);
+            if (!isNaN(numValue)) {
+                return Math.round(numValue * 100).toString();
+            }
+        }
+        return value;
+    };
+
     // Helper function to get parameters from a solution
     const getSolutionParameters = (solution: any) => {
         if (!solution?.parameters) return [];
@@ -161,18 +172,18 @@ export default function LowLevelConfigCard({
 																			<Input
 																				type="number"
 																				placeholder={`Enter value between ${
-																					parameter.range_min || "0"
-																				} and ${parameter.range_max || "∞"}`}
-																				min={parameter.range_min}
-																				max={parameter.range_max}
-																				step="any"
+																					formatRangeValue(parameter.range_min || "0", parameter.unit)
+																				} and ${formatRangeValue(parameter.range_max || "∞", parameter.unit)}`}
+																				min={parameter.unit === "%" ? formatRangeValue(parameter.range_min || "0", parameter.unit) : parameter.range_min}
+																				max={parameter.unit === "%" ? formatRangeValue(parameter.range_max || "∞", parameter.unit) : parameter.range_max}
+																				step={parameter.unit === "%" ? "1" : "any"}
                                 value={parameterValues[paramId] || ""}
 																				onChange={(e) =>
                                     handleParameterValueChange(paramId, e.target.value)
 																				}
 																				onKeyDown={(e) => {
-                                    const min = parseFloat(parameter.range_min);
-                                    const max = parseFloat(parameter.range_max);
+                                    const min = parameter.unit === "%" ? parseFloat(formatRangeValue(parameter.range_min, parameter.unit)) : parseFloat(parameter.range_min);
+                                    const max = parameter.unit === "%" ? parseFloat(formatRangeValue(parameter.range_max, parameter.unit)) : parseFloat(parameter.range_max);
 
 																					// Allow: backspace, delete, tab, escape, enter, and navigation keys
 																					if (
@@ -183,10 +194,11 @@ export default function LowLevelConfigCard({
 																						return;
 																					}
 
-																					// Allow decimal point
+																					// Allow decimal point only for non-percentage values
 																					if (
 																						e.key === "." &&
-																						!e.currentTarget.value.includes(".")
+																						!e.currentTarget.value.includes(".") &&
+																						parameter.unit !== "%"
 																					) {
 																						return;
 																					}
@@ -212,8 +224,8 @@ export default function LowLevelConfigCard({
 																				}}
 																				onBlur={(e) => {
                                     const value = parseFloat(e.target.value);
-                                    const min = parseFloat(parameter.range_min);
-                                    const max = parseFloat(parameter.range_max);
+                                    const min = parameter.unit === "%" ? parseFloat(formatRangeValue(parameter.range_min, parameter.unit)) : parseFloat(parameter.range_min);
+                                    const max = parameter.unit === "%" ? parseFloat(formatRangeValue(parameter.range_max, parameter.unit)) : parseFloat(parameter.range_max);
 
 																					// Ensure value is within range on blur
 																					if (isNaN(value) || value < min) {
@@ -225,8 +237,8 @@ export default function LowLevelConfigCard({
 																			/>
                             {parameter.range_min && parameter.range_max && (
 																					<div className="text-xs text-muted-foreground">
-																						Range: {parameter.range_min} -{" "}
-																						{parameter.range_max}{" "}
+																						Range: {formatRangeValue(parameter.range_min, parameter.unit)} -{" "}
+																						{formatRangeValue(parameter.range_max, parameter.unit)}{" "}
                                     {parameter.unit && `(${parameter.unit})`}
 																					</div>
 																				)}

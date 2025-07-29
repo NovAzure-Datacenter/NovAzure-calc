@@ -50,6 +50,17 @@ export default function AdvancedLevelConfigCard({
     isAdvancedExpanded: boolean;
     setIsAdvancedExpanded: (isAdvancedExpanded: boolean) => void;
 }) {
+    // Helper function to format range values as percentages
+    const formatRangeValue = (value: string, unit: string) => {
+        if (unit === "%") {
+            const numValue = parseFloat(value);
+            if (!isNaN(numValue)) {
+                return Math.round(numValue * 100).toString();
+            }
+        }
+        return value;
+    };
+
     // Helper function to get advanced config parameters from a solution
     const getSolutionAdvancedConfig = (solution: any) => {
         if (!solution?.parameters) return [];
