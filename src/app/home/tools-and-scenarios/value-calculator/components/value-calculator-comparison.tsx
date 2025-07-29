@@ -261,7 +261,7 @@ export default function ValueCalculatorComparison({
     };
 
 
-    // console.log("Data: ", resultData);
+    console.log("Data: ", resultData);
 
 
     return (

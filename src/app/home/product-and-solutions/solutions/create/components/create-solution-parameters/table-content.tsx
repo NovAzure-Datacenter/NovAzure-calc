@@ -856,8 +856,10 @@ export default function TableContent({
 									const isGlobal = parameter.category.name === "Global";
 									const isIndustry = parameter.category.name === "Industry";
 									const isTechnology = parameter.category.name === "Technology" || parameter.category.name === "Technologies";
-									// Check if parameter is modifiable - allow editing if is_modifiable is true, regardless of category
-									const isReadOnly = !parameter.is_modifiable;
+									// Only global parameters are read-only
+									const isReadOnly = parameter.provided_by === "global";
+									// Only show NovAzure tag for global parameters
+									const shouldShowNovAzureTag = parameter.provided_by === "global";
 
 									return (
 										<TableRow
@@ -1253,8 +1255,8 @@ export default function TableContent({
 														</Select>
 													)
 												) : (
-													<Badge variant="outline" className={`${isReadOnly ? "bg-blue-50 border-blue-200" : ""}`}>
-														{isReadOnly ? (
+													<Badge variant="outline" className={`${shouldShowNovAzureTag ? "bg-blue-50 border-blue-200" : ""}`}>
+														{shouldShowNovAzureTag ? (
 															<span className=" text-blue-800 px-2 py-1 rounded text-xs">
 																NovAzure
 															</span>

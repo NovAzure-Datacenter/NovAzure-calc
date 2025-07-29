@@ -8,6 +8,8 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { ChevronUp, ChevronDown } from "lucide-react";
+import { useState, useEffect } from "react";
 
 export default function HighLevelConfigCard({
 	comparisonMode,
@@ -28,6 +30,8 @@ export default function HighLevelConfigCard({
 	parameterValues: any;
 	handleParameterValueChange: (parameterId: string, value: any) => void;
 }) {
+	const [isHighLevelExpanded, setIsHighLevelExpanded] = useState(false);
+
 	// Helper function to format range values as percentages
 	const formatRangeValue = (value: string, unit: string) => {
 		if (unit === "%") {
@@ -52,6 +56,16 @@ export default function HighLevelConfigCard({
 	// Get parameters for both solutions
 	const solutionAParameters = getSolutionParameters(fetchedSolutionA);
 	const solutionBParameters = getSolutionParameters(fetchedSolutionB);
+
+	// Determine if card should be expanded by default
+	const hasContent = solutionAParameters.length > 0 || solutionBParameters.length > 0;
+
+	// Set expansion state based on content
+	useEffect(() => {
+		if (hasContent && !isHighLevelExpanded) {
+			setIsHighLevelExpanded(true);
+		}
+	}, [hasContent, isHighLevelExpanded]);
 
 	// Find shared parameters (parameters with the same name)
 	const getSharedParameters = () => {
@@ -275,100 +289,122 @@ export default function HighLevelConfigCard({
 					solutionVariantA &&
 					solutionVariantB &&
 					clientSolutions.length > 0)) && (
-				<Card className="w-full">
+				<Card
+					className="w-full cursor-pointer"
+					onClick={(e) => {
+						// Prevent card click when clicking on input elements
+						const target = e.target as HTMLElement;
+						if (target instanceof HTMLInputElement || 
+							target instanceof HTMLSelectElement ||
+							target.closest('button') ||
+							target.closest('[role="combobox"]')) {
+							return;
+						}
+						setIsHighLevelExpanded(!isHighLevelExpanded);
+					}}
+				>
 					<CardHeader>
-						<CardTitle className="text-lg">High Level Configuration</CardTitle>
+						<div className="flex justify-between items-center">
+							<CardTitle className="text-lg">High Level Configuration</CardTitle>
+							{isHighLevelExpanded ? (
+								<ChevronUp className="h-5 w-5" />
+							) : (
+								<ChevronDown className="h-5 w-5" />
+							)}
+						</div>
 					</CardHeader>
-					<CardContent className="space-y-6">
-						{comparisonMode === "single" ? (
-							// Single mode - show all parameters from solution A
-							<div className="space-y-4">
-								{solutionAParameters.length === 0 ? (
-									<div className="text-center py-8 text-muted-foreground">
-										<p>No high level parameters to display</p>
-									</div>
-								) : (
-									<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-										{solutionAParameters.map((parameter: any) =>
-											renderParameterInput(parameter)
-										)}
-									</div>
-								)}
-							</div>
-						) : (
-							// Compare mode - show shared and unique parameters
-							<div className="space-y-8">
-								{/* Shared Parameters Section */}
-								{sharedParameters.length > 0 && (
-									<div className="space-y-4">
-										<h4 className="text-sm font-medium text-gray-700 border-b pb-2">
-											Shared Parameters
-										</h4>
+					{isHighLevelExpanded && (
+						<CardContent className="space-y-6">
+							{comparisonMode === "single" ? (
+								// Single mode - show all parameters from solution A
+								<div className="space-y-4">
+									{solutionAParameters.length === 0 ? (
+										<div className="text-center py-8 text-muted-foreground">
+											<p>No high level parameters to display</p>
+										</div>
+									) : (
 										<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-											{sharedParameters.map((sharedParam: any) =>
-												renderParameterInput(sharedParam)
+											{solutionAParameters.map((parameter: any) =>
+												renderParameterInput(parameter)
 											)}
 										</div>
-									</div>
-								)}
-
-								{/* Unique Parameters Section */}
-								{(uniqueParamsA.length > 0 || uniqueParamsB.length > 0) && (
-									<div className="space-y-4">
-										<h4 className="text-sm font-medium text-gray-700 border-b pb-2">
-											Solution-Specific Parameters
-										</h4>
-										<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-											{/* Solution A Unique Parameters */}
-											<div className="space-y-4">
-												<h5 className="text-sm font-medium text-blue-600 flex items-center gap-2">
-													<div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-													Solution A Unique
-												</h5>
-												<div className="space-y-4">
-													{uniqueParamsA.length > 0 ? (
-														uniqueParamsA.map((parameter: any) =>
-															renderParameterInput(parameter, "A")
-														)
-													) : (
-														<div className="text-center py-8 text-muted-foreground">
-															<p className="text-sm">No unique parameters</p>
-														</div>
-													)}
-												</div>
+									)}
+								</div>
+							) : (
+								// Compare mode - show shared and unique parameters
+								<div className="space-y-8">
+									{/* Shared Parameters Section */}
+									{sharedParameters.length > 0 && (
+										<div className="space-y-4">
+											<h4 className="text-sm font-medium text-gray-700 border-b pb-2">
+												Shared Parameters
+											</h4>
+											<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+												{sharedParameters.map((sharedParam: any) =>
+													renderParameterInput(sharedParam)
+												)}
 											</div>
+										</div>
+									)}
 
-											{/* Solution B Unique Parameters */}
-											<div className="space-y-4">
-												<h5 className="text-sm font-medium text-green-600 flex items-center gap-2">
-													<div className="w-2 h-2 bg-green-500 rounded-full"></div>
-													Solution B Unique
-												</h5>
+									{/* Unique Parameters Section */}
+									{(uniqueParamsA.length > 0 || uniqueParamsB.length > 0) && (
+										<div className="space-y-4">
+											<h4 className="text-sm font-medium text-gray-700 border-b pb-2">
+												Solution-Specific Parameters
+											</h4>
+											<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+												{/* Solution A Unique Parameters */}
 												<div className="space-y-4">
-													{uniqueParamsB.length > 0 ? (
-														uniqueParamsB.map((parameter: any) =>
-															renderParameterInput(parameter, "B")
-														)
-													) : (
-														<div className="text-center py-8 text-muted-foreground">
-															<p className="text-sm">No unique parameters</p>
-														</div>
-													)}
+													<h5 className="text-sm font-medium text-blue-600 flex items-center gap-2">
+														<div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+														Solution A Unique
+													</h5>
+													<div className="space-y-4">
+														{uniqueParamsA.length > 0 ? (
+															uniqueParamsA.map((parameter: any) =>
+																renderParameterInput(parameter, "A")
+															)
+														) : (
+															<div className="text-center py-8 text-muted-foreground">
+																<p className="text-sm">No unique parameters</p>
+															</div>
+														)}
+													</div>
+												</div>
+
+												{/* Solution B Unique Parameters */}
+												<div className="space-y-4">
+													<h5 className="text-sm font-medium text-green-600 flex items-center gap-2">
+														<div className="w-2 h-2 bg-green-500 rounded-full"></div>
+														Solution B Unique
+													</h5>
+													<div className="space-y-4">
+														{uniqueParamsB.length > 0 ? (
+															uniqueParamsB.map((parameter: any) =>
+																renderParameterInput(parameter, "B")
+															)
+														) : (
+															<div className="text-center py-8 text-muted-foreground">
+																<p className="text-sm">No unique parameters</p>
+															</div>
+														)}
+													</div>
 												</div>
 											</div>
 										</div>
-									</div>
-								)}
+									)}
 
-								{/* No parameters message */}
-								{solutionAParameters.length === 0 && solutionBParameters.length === 0 && (
-									<div className="text-center py-8 text-muted-foreground">
-										<p>No high level parameters to display</p>
-									</div>
-								)}
-							</div>
-						)}
-					</CardContent>
+									{/* No parameters message */}
+									{solutionAParameters.length === 0 && solutionBParameters.length === 0 && (
+										<div className="text-center py-8 text-muted-foreground">
+											<p>No high level parameters to display</p>
+										</div>
+									)}
+								</div>
+							)}
+						</CardContent>
+					)}
 				</Card>
 			)}
 		</>
