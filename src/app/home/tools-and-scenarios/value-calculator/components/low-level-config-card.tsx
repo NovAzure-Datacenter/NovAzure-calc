@@ -3,7 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { ChevronUp, ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function LowLevelConfigCard({
     comparisonMode,
@@ -50,6 +50,16 @@ export default function LowLevelConfigCard({
     // Get parameters for both solutions
     const solutionAParameters = getSolutionParameters(fetchedSolutionA);
     const solutionBParameters = getSolutionParameters(fetchedSolutionB);
+
+    // Determine if card should be expanded by default
+    const hasContent = solutionAParameters.length > 0 || solutionBParameters.length > 0;
+
+    // Set expansion state based on content
+    useEffect(() => {
+        if (hasContent && !isLowLevelExpanded) {
+            setIsLowLevelExpanded(true);
+        }
+    }, [hasContent, isLowLevelExpanded]);
 
     // Find shared parameters (parameters with the same name)
     const getSharedParameters = () => {
@@ -276,7 +286,17 @@ export default function LowLevelConfigCard({
                     clientSolutions.length > 0)) && (
                 <Card
                     className="w-full cursor-pointer"
-                    onClick={() => setIsLowLevelExpanded(!isLowLevelExpanded)}
+                    onClick={(e) => {
+                        // Prevent card click when clicking on input elements
+                        const target = e.target as HTMLElement;
+                        if (target instanceof HTMLInputElement || 
+                            target instanceof HTMLSelectElement ||
+                            target.closest('button') ||
+                            target.closest('[role="combobox"]')) {
+                            return;
+                        }
+                        setIsLowLevelExpanded(!isLowLevelExpanded);
+                    }}
                 >
                     <CardHeader>
                         <div className="flex justify-between items-center">

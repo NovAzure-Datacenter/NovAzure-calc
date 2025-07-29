@@ -11,7 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Building2, Cpu, Package, ChevronDown, ChevronUp } from "lucide-react";
-import { useState, Dispatch, SetStateAction } from "react";
+import { useState, Dispatch, SetStateAction, useEffect } from "react";
+import React from "react";
 import {
 	mockLowLevelConfig,
 	mockAdvancedConfig,
@@ -152,6 +153,49 @@ export default function ValueCalculatorConfiguration({
 	setResultData,
 
 }: ValueCalculatorConfigurationProps) {
+	// Helper function to get parameters from a solution
+	const getSolutionParameters = (solution: any, category: string) => {
+		if (!solution?.parameters) return [];
+		return solution.parameters.filter(
+			(param: any) =>
+				param.provided_by === "user" &&
+				param.category?.name === category
+		);
+	};
+
+	// Determine if cards should be expanded by default based on content
+	const hasHighLevelContent = () => {
+		const solutionAParams = getSolutionParameters(fetchedSolutionA, "High Level Configuration");
+		const solutionBParams = getSolutionParameters(fetchedSolutionB, "High Level Configuration");
+		return solutionAParams.length > 0 || solutionBParams.length > 0;
+	};
+
+	const hasLowLevelContent = () => {
+		const solutionAParams = getSolutionParameters(fetchedSolutionA, "Low Level Configuration");
+		const solutionBParams = getSolutionParameters(fetchedSolutionB, "Low Level Configuration");
+		return solutionAParams.length > 0 || solutionBParams.length > 0;
+	};
+
+	const hasAdvancedContent = () => {
+		const solutionAParams = getSolutionParameters(fetchedSolutionA, "Advanced Level Configuration");
+		const solutionBParams = getSolutionParameters(fetchedSolutionB, "Advanced Level Configuration");
+		return solutionAParams.length > 0 || solutionBParams.length > 0;
+	};
+
+	// Set expansion state based on content
+	useEffect(() => {
+		if (hasHighLevelContent()) {
+			// High level card should always be visible when there's content
+			// (it doesn't have expand/collapse functionality)
+		}
+		if (hasLowLevelContent() && !isLowLevelExpanded) {
+			setIsLowLevelExpanded(true);
+		}
+		if (hasAdvancedContent() && !isAdvancedExpanded) {
+			setIsAdvancedExpanded(true);
+		}
+	}, [fetchedSolutionA, fetchedSolutionB, isLowLevelExpanded, isAdvancedExpanded, setIsLowLevelExpanded, setIsAdvancedExpanded]);
+
 	const availableTechnologies = selectedIndustry
 		? technologies.filter((tech) =>
 				industries

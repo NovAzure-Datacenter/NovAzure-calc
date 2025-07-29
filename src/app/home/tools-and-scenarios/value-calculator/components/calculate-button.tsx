@@ -213,7 +213,7 @@ export default function CalculateButton({
 					const rawValue = parameterValues[param.id];
 					value = rawValue !== null && rawValue !== undefined ? rawValue : null;
 					// Don't add filter parameters to inputs - they're only for filtering
-					console.log(`Filter parameter "${param.name}" value: ${value} (not added to inputs)`);
+				
 				} else {
 					const rawValue = parameterValues[param.id];
 					value =
@@ -226,31 +226,31 @@ export default function CalculateButton({
 					// Only add non-filter parameters to inputs
 					if (param.display_type !== "filter") {
 						inputs[cleanName] = value;
-						console.log(`Added input "${cleanName}": ${value}`);
+					
 					}
 				}
 			} else if (param.provided_by === "company") {
 				let numValue = null;
-				
+
 				// If parameter has dropdown options, try filter-based resolution first
 				if (param.dropdown_options && param.dropdown_options.length > 0) {
-					console.log(`Company parameter "${param.name}" attempting filter-based resolution`);
+					
 					numValue = resolveFilterBasedParameter(param, solution.parameters);
-					console.log(`Company parameter "${param.name}" resolved to: ${numValue}`);
+					
 				}
-				
+
 				// If no filter resolution or it failed, try direct value
 				if (numValue === null && param.value !== undefined) {
 					const directValue = parseFloat(param.value);
 					if (!isNaN(directValue)) {
 						numValue = directValue;
-						console.log(`Company parameter "${param.name}" using direct value: ${numValue}`);
+					
 					}
 				}
-				
+
 				if (numValue !== null && !isNaN(numValue)) {
 					inputs[cleanName] = numValue;
-					console.log(`Added company input "${cleanName}": ${numValue}`);
+					
 				} else {
 					console.log(`Company parameter "${param.name}" has no valid value`);
 				}
@@ -271,38 +271,48 @@ export default function CalculateButton({
 				// Set value for company parameters
 				if (param.provided_by === "company") {
 					let paramValue = null;
-					
+
 					// If parameter has dropdown options, try filter-based resolution first
 					if (param.dropdown_options && param.dropdown_options.length > 0) {
-						console.log(`Company parameter object "${param.name}" attempting filter-based resolution`);
-						paramValue = resolveFilterBasedParameter(param, solution.parameters);
-						console.log(`Company parameter object "${param.name}" resolved to: ${paramValue}`);
+						
+						paramValue = resolveFilterBasedParameter(
+							param,
+							solution.parameters
+						);
+						
 					}
-					
+
 					// If no filter resolution or it failed, try direct value
 					if (paramValue === null && param.value !== undefined) {
 						const directValue = parseFloat(param.value);
 						if (!isNaN(directValue)) {
 							paramValue = directValue;
-							console.log(`Company parameter object "${param.name}" using direct value: ${paramValue}`);
+						
 						}
 					}
-					
+
 					if (paramValue !== null && !isNaN(paramValue)) {
 						paramObject.value = paramValue;
-						console.log(`Set company parameter object "${param.name}" value to: ${paramValue}`);
+						
 					} else {
-						console.log(`Company parameter object "${param.name}" has no valid value`);
+						console.log(
+							`Company parameter object "${param.name}" has no valid value`
+						);
 					}
 				}
 
 				if (param.formula) {
-					paramObject.formula = cleanFormula(param.formula, parameterNameMapping);
+					paramObject.formula = cleanFormula(
+						param.formula,
+						parameterNameMapping
+					);
 				}
 
 				parameters.push(paramObject);
 			} else {
-				console.log(`Filter parameter "${param.name}" excluded from parameters array`);
+				console.log(
+					`Filter parameter "${param.name}" excluded from parameters array`
+				);
 			}
 		});
 
@@ -386,11 +396,6 @@ export default function CalculateButton({
 	};
 
 	const handleCalculate = async () => {
-		console.log("Calculate button clicked");
-		console.log("Comparison mode:", comparisonMode);
-		console.log("Solution A:", fetchedSolutionA?.solution_name);
-		console.log("Solution B:", fetchedSolutionB?.solution_name);
-
 		if (comparisonMode === "single") {
 			// Single mode - calculate only solution A
 			if (!fetchedSolutionA) {
@@ -398,9 +403,7 @@ export default function CalculateButton({
 				return;
 			}
 
-			console.log("Calculating single solution...");
 			const resultA = await calculateSolution(fetchedSolutionA);
-			console.log("Single calculation result:", resultA);
 
 			if (resultA) {
 				setResultData({
@@ -414,14 +417,11 @@ export default function CalculateButton({
 				return;
 			}
 
-			console.log("Calculating both solutions...");
 			// Calculate both solutions in parallel
 			const [resultA, resultB] = await Promise.all([
 				calculateSolution(fetchedSolutionA),
 				calculateSolution(fetchedSolutionB),
 			]);
-
-			console.log("Comparison calculation results:", { resultA, resultB });
 
 			// Set results in a format that can be used by comparison component
 			setResultData({
@@ -434,6 +434,8 @@ export default function CalculateButton({
 			onCalculate();
 		}
 	};
+
+
 
 	return (
 		<Button className="px-8 py-2" onClick={handleCalculate} disabled={disabled}>
