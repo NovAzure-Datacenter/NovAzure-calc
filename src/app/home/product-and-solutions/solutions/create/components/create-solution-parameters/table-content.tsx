@@ -856,7 +856,8 @@ export default function TableContent({
 									const isGlobal = parameter.category.name === "Global";
 									const isIndustry = parameter.category.name === "Industry";
 									const isTechnology = parameter.category.name === "Technology" || parameter.category.name === "Technologies";
-									const isReadOnly = isGlobal || isIndustry || isTechnology;
+									// Check if parameter is modifiable - allow editing if is_modifiable is true, regardless of category
+									const isReadOnly = !parameter.is_modifiable;
 
 									return (
 										<TableRow
@@ -1332,11 +1333,11 @@ export default function TableContent({
 																	</TooltipTrigger>
 																	<TooltipContent>
 																		<p className="text-sm">
-																			{isGlobal 
-																				? "Global parameter - read only"
-																				: isIndustry 
-																				? "Industry parameter - read only"
-																				: "Technology parameter - read only"
+																			{parameter.provided_by === "global" 
+																				? "Global parameter - not modifiable"
+																				: parameter.provided_by === "company"
+																				? "Company parameter - not modifiable"
+																				: "Parameter - not modifiable"
 																			}
 																		</p>
 																	</TooltipContent>

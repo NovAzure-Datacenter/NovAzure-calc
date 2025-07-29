@@ -45,6 +45,11 @@ export default function GlobalParametersMain() {
 		unit: "",
 		description: "",
 		category: "",
+		is_modifiable: true,
+		display_type: "simple" as "simple" | "dropdown" | "range" | "filter",
+		dropdown_options: [] as Array<{ key: string; value: string }>,
+		range_min: "",
+		range_max: "",
 	});
 
 	// New parameter data state
@@ -55,6 +60,11 @@ export default function GlobalParametersMain() {
 		unit: "",
 		description: "",
 		category: "",
+		is_modifiable: true,
+		display_type: "simple" as "simple" | "dropdown" | "range" | "filter",
+		dropdown_options: [] as Array<{ key: string; value: string }>,
+		range_min: "",
+		range_max: "",
 	});
 
 	// Custom categories for each tab
@@ -157,6 +167,11 @@ export default function GlobalParametersMain() {
 			unit: parameter.unit,
 			description: parameter.description,
 			category: parameter.category.name,
+			is_modifiable: parameter.is_modifiable,
+			display_type: parameter.display_type,
+			dropdown_options: parameter.dropdown_options || [],
+			range_min: parameter.range_min || "",
+			range_max: parameter.range_max || "",
 		});
 	};
 
@@ -168,12 +183,17 @@ export default function GlobalParametersMain() {
 				test_value: editData.test_value,
 				unit: editData.unit,
 				description: editData.description,
+				information: "",
 				category: { name: editData.category, color: "blue" },
 				provided_by: "global",
 				input_type: "simple",
 				output: true,
 				level: "L1",
-				is_modifiable: true,
+				is_modifiable: editData.is_modifiable,
+				display_type: editData.display_type,
+				dropdown_options: editData.dropdown_options,
+				range_min: editData.range_min,
+				range_max: editData.range_max,
 			});
 
 			// Update local state
@@ -191,6 +211,11 @@ export default function GlobalParametersMain() {
 				unit: "",
 				description: "",
 				category: "",
+				is_modifiable: true,
+				display_type: "simple",
+				dropdown_options: [],
+				range_min: "",
+				range_max: "",
 			});
 
 			toast.success("Parameter updated successfully");
@@ -209,6 +234,11 @@ export default function GlobalParametersMain() {
 			unit: "",
 			description: "",
 			category: "",
+			is_modifiable: true,
+			display_type: "simple",
+			dropdown_options: [],
+			range_min: "",
+			range_max: "",
 		});
 	};
 
@@ -235,6 +265,11 @@ export default function GlobalParametersMain() {
 			unit: "",
 			description: "",
 			category: activeTab === "All" ? "Global" : activeTab,
+			is_modifiable: true,
+			display_type: "simple",
+			dropdown_options: [],
+			range_min: "",
+			range_max: "",
 		});
 	};
 
@@ -246,12 +281,17 @@ export default function GlobalParametersMain() {
 				test_value: newParameterData.test_value,
 				unit: newParameterData.unit,
 				description: newParameterData.description,
+				information: "",
 				category: { name: newParameterData.category, color: "blue" },
 				provided_by: "global",
 				input_type: "simple",
 				output: true,
 				level: "L1",
-				is_modifiable: true,
+				is_modifiable: newParameterData.is_modifiable,
+				display_type: newParameterData.display_type,
+				dropdown_options: newParameterData.dropdown_options,
+				range_min: newParameterData.range_min,
+				range_max: newParameterData.range_max,
 			});
 
 			// Update local state
@@ -265,6 +305,11 @@ export default function GlobalParametersMain() {
 				unit: "",
 				description: "",
 				category: "",
+				is_modifiable: true,
+				display_type: "simple",
+				dropdown_options: [],
+				range_min: "",
+				range_max: "",
 			});
 
 			toast.success("Parameter added successfully");
@@ -283,6 +328,11 @@ export default function GlobalParametersMain() {
 			unit: "",
 			description: "",
 			category: "",
+			is_modifiable: true,
+			display_type: "simple",
+			dropdown_options: [],
+			range_min: "",
+			range_max: "",
 		});
 	};
 
