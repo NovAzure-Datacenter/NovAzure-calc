@@ -24,29 +24,6 @@ interface ComparisonRow {
     percentChange: string;
 }
 
-// Prepare data for charts
-const chartData = comparisonData.map(item => ({
-	name: item.metric,
-	airCooling: parseFloat(item.airCooling.replace(/,/g, '')),
-	liquidCooling: parseFloat(item.liquidCooling.replace(/,/g, '')),
-	difference: parseFloat(item.difference.replace(/,/g, '')),
-	percentChange: parseFloat(item.percentChange.replace('%', '')),
-}));
-
-const pieData = [
-	{ name: 'Air Cooling Capex', value: 7865088, color: '#374151' },
-	{ name: 'Air Cooling Opex', value: 13987457, color: '#6b7280' },
-	{ name: 'Liquid Cooling Capex', value: 6732070, color: '#111827' },
-	{ name: 'Liquid Cooling Opex', value: 16415481, color: '#4b5563' },
-];
-
-const yearlyData = [
-	{ year: 'Year 1', airCooling: 822497, liquidCooling: 984365 },
-	{ year: 'Year 2', airCooling: 822497, liquidCooling: 984365 },
-	{ year: 'Year 3', airCooling: 822497, liquidCooling: 984365 },
-	{ year: 'Year 4', airCooling: 822497, liquidCooling: 984365 },
-	{ year: 'Year 5', airCooling: 822497, liquidCooling: 984365 },
-];
 
 export default function ValueCalculatorComparison({
     hasCalculated,
@@ -254,8 +231,8 @@ export default function ValueCalculatorComparison({
                 const numericValueB = typeof valueB === 'number' ? valueB : parseFloat(String(valueB)) || 0;
                 const difference = numericValueB - numericValueA;
                 const percentChange = numericValueA !== 0 ? ((difference / numericValueA) * 100).toFixed(1) + '%' : '0.0%';
-                
-                comparisonRows.push({
+            
+            comparisonRows.push({
                     metric: formattedMetric,
                     variantA: numericValueA,
                     variantB: numericValueB,

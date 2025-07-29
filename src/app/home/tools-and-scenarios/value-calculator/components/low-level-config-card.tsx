@@ -121,6 +121,37 @@ export default function LowLevelConfigCard({
 																				</SelectContent>
 																			</Select>
 																		</div>
+																	) : parameter.display_type === "filter" ? (
+																		<div className="space-y-2">
+																			<Label className="text-xs text-muted-foreground">
+																				Select {parameter.name}:
+																			</Label>
+																			<Select
+                                value={parameterValues[paramId] || ""}
+																				onValueChange={(value) =>
+                                    handleParameterValueChange(paramId, value)
+																				}
+																			>
+																				<SelectTrigger className="w-full">
+																					<SelectValue
+																						placeholder={`Select ${parameter.name}`}
+																					/>
+																				</SelectTrigger>
+																				<SelectContent>
+																					{parameter.dropdown_options &&
+																						parameter.dropdown_options.map(
+																							(option: any, index: number) => (
+																								<SelectItem
+																									key={index}
+																									value={option.value}
+																								>
+																									{option.value}
+																								</SelectItem>
+																							)
+																						)}
+																				</SelectContent>
+																			</Select>
+																		</div>
 																	) : parameter.display_type === "range" ? (
 																		<div className="space-y-2">
 																			<Label className="text-xs text-muted-foreground">

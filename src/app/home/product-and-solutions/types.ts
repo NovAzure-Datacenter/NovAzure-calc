@@ -12,7 +12,7 @@ export interface Parameter {
 	input_type: string;
 	output: boolean;
 	level: string;
-	display_type: "simple" | "dropdown" | "range";
+	display_type: "simple" | "dropdown" | "range" | "filter";
 	dropdown_options?: Array<{ key: string; value: string }>;
 	range_min?: string;
 	range_max?: string;

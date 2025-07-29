@@ -85,7 +85,7 @@ export function CreateSolutionParameters({
 		provided_by: string;
 		input_type: string;
 		output: boolean;
-		display_type: "simple" | "dropdown" | "range";
+		display_type: "simple" | "dropdown" | "range" | "filter";
 		dropdown_options: Array<{ key: string; value: string }>;
 		range_min: string;
 		range_max: string;
@@ -131,7 +131,7 @@ export function CreateSolutionParameters({
 		provided_by: string;
 		input_type: string;
 		output: boolean;
-		display_type: "simple" | "dropdown" | "range";
+		display_type: "simple" | "dropdown" | "range" | "filter";
 		dropdown_options: Array<{ key: string; value: string }>;
 		range_min: string;
 		range_max: string;
@@ -187,9 +187,19 @@ export function CreateSolutionParameters({
 
 		// Conditional validation based on provided_by
 		if (editData.provided_by === "company") {
-			// For company parameters, value is mandatory
-			if (isNaN(numericValue) || !editData.value.trim()) {
-				return;
+			// For company parameters, validate based on display type
+			if (editData.display_type === "simple") {
+				if (isNaN(numericValue) || !editData.value.trim()) {
+					return;
+				}
+			} else if (editData.display_type === "range") {
+				if (!editData.range_min.trim() || !editData.range_max.trim()) {
+					return;
+				}
+			} else if (editData.display_type === "dropdown" || editData.display_type === "filter") {
+				if (editData.dropdown_options.length === 0) {
+					return;
+				}
 			}
 		} else {
 			// For user parameters, value is optional but if provided, must be valid
@@ -296,9 +306,19 @@ export function CreateSolutionParameters({
 
 		// Conditional validation based on provided_by
 		if (newParameterData.provided_by === "company") {
-			// For company parameters, value is mandatory
-			if (isNaN(numericValue) || !newParameterData.value.trim()) {
-				return;
+			// For company parameters, validate based on display type
+			if (newParameterData.display_type === "simple") {
+				if (isNaN(numericValue) || !newParameterData.value.trim()) {
+					return;
+				}
+			} else if (newParameterData.display_type === "range") {
+				if (!newParameterData.range_min.trim() || !newParameterData.range_max.trim()) {
+					return;
+				}
+			} else if (newParameterData.display_type === "dropdown" || newParameterData.display_type === "filter") {
+				if (newParameterData.dropdown_options.length === 0) {
+					return;
+				}
 			}
 		} else {
 			// For user parameters, value is optional but if provided, must be valid
