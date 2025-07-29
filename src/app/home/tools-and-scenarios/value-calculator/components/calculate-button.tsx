@@ -5,7 +5,9 @@ import { Dispatch } from "react";
 
 interface CalculateButtonProps {
 	fetchedSolutionA: ClientSolution | null;
+	fetchedSolutionB?: ClientSolution | null;
 	parameterValues: Record<string, any>;
+	comparisonMode?: "single" | "compare" | null;
 	onCalculate?: () => void;
 	disabled?: boolean;
 	setResultData: Dispatch<SetStateAction<any>>;
@@ -13,7 +15,9 @@ interface CalculateButtonProps {
 
 export default function CalculateButton({
 	fetchedSolutionA,
+	fetchedSolutionB,
 	parameterValues,
+	comparisonMode = "single",
 	onCalculate,
 	disabled = false,
 	setResultData,
@@ -45,36 +49,48 @@ export default function CalculateButton({
 		return cleanedFormula;
 	};
 
-	const handleCalculate = async () => {
-		const prepareRequestBody = () => {
-			if (!fetchedSolutionA?.parameters) {
-				return null;
-			}
-			
-			const inputs: Record<string, any> = {};
-			const parameters: any[] = [];
-			const parameterNameMapping = new Map<string, string>();
+	const prepareRequestBody = (solution: ClientSolution) => {
+		if (!solution?.parameters) {
+			return null;
+		}
+		
+		const inputs: Record<string, any> = {};
+		const parameters: any[] = [];
+		const parameterNameMapping = new Map<string, string>();
 
-			fetchedSolutionA.parameters.forEach((param: any) => {
-				const cleanName = cleanParameterName(param.name);
-				parameterNameMapping.set(param.name, cleanName);
+		solution.parameters.forEach((param: any) => {
+			const cleanName = cleanParameterName(param.name);
+			parameterNameMapping.set(param.name, cleanName);
+		});
+		
+		if (solution.calculations && Array.isArray(solution.calculations)) {
+			solution.calculations.forEach((calc: any) => {
+				const cleanName = cleanParameterName(calc.name);
+				parameterNameMapping.set(calc.name, cleanName);
 			});
-			
-			if (fetchedSolutionA.calculations && Array.isArray(fetchedSolutionA.calculations)) {
-				fetchedSolutionA.calculations.forEach((calc: any) => {
-					const cleanName = cleanParameterName(calc.name);
-					parameterNameMapping.set(calc.name, cleanName);
+		}
+		
+		const extractParameterNamesFromFormula = (formula: string): string[] => {
+			const matches = formula.match(/[a-zA-Z_][a-zA-Z0-9_\s]+/g) || [];
+			return matches.map(match => match.trim()).filter(match => match.length > 0);
+		};
+		
+		solution.parameters.forEach((param: any) => {
+			if (param.formula) {
+				const extractedNames = extractParameterNamesFromFormula(param.formula);
+				extractedNames.forEach(name => {
+					if (!parameterNameMapping.has(name)) {
+						const cleanName = cleanParameterName(name);
+						parameterNameMapping.set(name, cleanName);
+					}
 				});
 			}
-			
-			const extractParameterNamesFromFormula = (formula: string): string[] => {
-				const matches = formula.match(/[a-zA-Z_][a-zA-Z0-9_\s]+/g) || [];
-				return matches.map(match => match.trim()).filter(match => match.length > 0);
-			};
-			
-			fetchedSolutionA.parameters.forEach((param: any) => {
-				if (param.formula) {
-					const extractedNames = extractParameterNamesFromFormula(param.formula);
+		});
+		
+		if (solution.calculations && Array.isArray(solution.calculations)) {
+			solution.calculations.forEach((calc: any) => {
+				if (calc.formula) {
+					const extractedNames = extractParameterNamesFromFormula(calc.formula);
 					extractedNames.forEach(name => {
 						if (!parameterNameMapping.has(name)) {
 							const cleanName = cleanParameterName(name);
@@ -83,107 +99,95 @@ export default function CalculateButton({
 					});
 				}
 			});
+		}
+
+		solution.parameters.forEach((param: any) => {
+			const cleanName = cleanParameterName(param.name);
 			
-			if (fetchedSolutionA.calculations && Array.isArray(fetchedSolutionA.calculations)) {
-				fetchedSolutionA.calculations.forEach((calc: any) => {
-					if (calc.formula) {
-						const extractedNames = extractParameterNamesFromFormula(calc.formula);
-						extractedNames.forEach(name => {
-							if (!parameterNameMapping.has(name)) {
-								const cleanName = cleanParameterName(name);
-								parameterNameMapping.set(name, cleanName);
-							}
-						});
+			if (param.provided_by === "user") {
+				let value = null;
+				
+				if (param.display_type === "dropdown") {
+					const selectedKey = parameterValues[param.id];
+					if (selectedKey && param.dropdown_options) {
+						const selectedOption = param.dropdown_options.find(
+							(option: any) => option.key === selectedKey
+						);
+						value = selectedOption ? parseFloat(selectedOption.value) : null;
 					}
-				});
+				} else {
+					const rawValue = parameterValues[param.id];
+					value = rawValue !== null && rawValue !== undefined ? parseFloat(rawValue) : null;
+				}
+				
+				if (value !== null && !isNaN(value)) {
+					inputs[cleanName] = value;
+				}
 			}
-
-			fetchedSolutionA.parameters.forEach((param: any) => {
-				const cleanName = cleanParameterName(param.name);
-				
-				if (param.provided_by === "user") {
-					let value = null;
-					
-					if (param.display_type === "dropdown") {
-						const selectedKey = parameterValues[param.id];
-						if (selectedKey && param.dropdown_options) {
-							const selectedOption = param.dropdown_options.find(
-								(option: any) => option.key === selectedKey
-							);
-							value = selectedOption ? parseFloat(selectedOption.value) : null;
-						}
-					} else {
-						const rawValue = parameterValues[param.id];
-						value = rawValue !== null && rawValue !== undefined ? parseFloat(rawValue) : null;
-					}
-					
-					if (value !== null && !isNaN(value)) {
-						inputs[cleanName] = value;
-					}
+			
+			else if (param.provided_by === "company" && param.value !== undefined) {
+				const numValue = parseFloat(param.value);
+				if (!isNaN(numValue)) {
+					inputs[cleanName] = numValue;
 				}
-				
-				else if (param.provided_by === "company" && param.value !== undefined) {
-					const numValue = parseFloat(param.value);
-					if (!isNaN(numValue)) {
-						inputs[cleanName] = numValue;
-					}
-				}
-				
-				const paramObject: any = {
-					name: cleanName,
-					type: param.provided_by === "user" ? "USER" 
-						: param.provided_by === "company" ? "COMPANY" 
-						: "CALCULATION"
-				};
-				
-				if (param.provided_by === "company" && param.value !== undefined) {
-					paramObject.value = parseFloat(param.value);
-				}
-				
-				if (param.formula) {
-					paramObject.formula = cleanFormula(param.formula, parameterNameMapping);
-				}
-				
-				parameters.push(paramObject);
-			});
-
-			if (fetchedSolutionA.calculations && Array.isArray(fetchedSolutionA.calculations)) {
-				fetchedSolutionA.calculations.forEach((calc: any) => {
-					if (calc.formula) {
-						const cleanName = cleanParameterName(calc.name);
-						
-						const calcObject: any = {
-							name: cleanName,
-							type: "CALCULATION",
-							formula: cleanFormula(calc.formula, parameterNameMapping),
-							...(calc.units && { unit: calc.units }),
-							...(calc.description && { description: calc.description }),
-							...(calc.output && { output: calc.output }),
-							...(calc.level && { level: calc.level }),
-							...(calc.category && { category: calc.category }),
-						};
-						
-						parameters.push(calcObject);
-					}
-				});
 			}
-
 			
-			const targetList = fetchedSolutionA.calculations
-				.filter((item: any) => item.display_result === true)
-				.map((item: any) => cleanParameterName(item.name));
-			
-			return {
-				inputs,
-				parameters,
-				target: targetList,
+			const paramObject: any = {
+				name: cleanName,
+				type: param.provided_by === "user" ? "USER" 
+					: param.provided_by === "company" ? "COMPANY" 
+					: "CALCULATION"
 			};
-		};
+			
+			if (param.provided_by === "company" && param.value !== undefined) {
+				paramObject.value = parseFloat(param.value);
+			}
+			
+			if (param.formula) {
+				paramObject.formula = cleanFormula(param.formula, parameterNameMapping);
+			}
+			
+			parameters.push(paramObject);
+		});
 
-		const requestBody = prepareRequestBody();
+		if (solution.calculations && Array.isArray(solution.calculations)) {
+			solution.calculations.forEach((calc: any) => {
+				if (calc.formula) {
+					const cleanName = cleanParameterName(calc.name);
+					
+					const calcObject: any = {
+						name: cleanName,
+						type: "CALCULATION",
+						formula: cleanFormula(calc.formula, parameterNameMapping),
+						...(calc.units && { unit: calc.units }),
+						...(calc.description && { description: calc.description }),
+						...(calc.output && { output: calc.output }),
+						...(calc.level && { level: calc.level }),
+						...(calc.category && { category: calc.category }),
+					};
+					
+					parameters.push(calcObject);
+				}
+			});
+		}
+
+		
+		const targetList = solution.calculations
+			.filter((item: any) => item.display_result === true)
+			.map((item: any) => cleanParameterName(item.name));
+		
+		return {
+			inputs,
+			parameters,
+			target: targetList,
+		};
+	};
+
+	const calculateSolution = async (solution: ClientSolution) => {
+		const requestBody = prepareRequestBody(solution);
 
 		if (!requestBody) {
-			return;
+			return null;
 		}
 
 		try {
@@ -212,11 +216,56 @@ export default function CalculateButton({
 				return acc;
 			}, {});
 
-			
-			setResultData(cleanData);
-
+			return cleanData;
 		} catch (err) {
-			console.error("Error:", err);
+			console.error("Error calculating solution:", err);
+			return null;
+		}
+	};
+
+	const handleCalculate = async () => {
+		console.log("Calculate button clicked");
+		console.log("Comparison mode:", comparisonMode);
+		console.log("Solution A:", fetchedSolutionA?.solution_name);
+		console.log("Solution B:", fetchedSolutionB?.solution_name);
+
+		if (comparisonMode === "single") {
+			// Single mode - calculate only solution A
+			if (!fetchedSolutionA) {
+				console.error("No solution A provided for single mode");
+				return;
+			}
+
+			console.log("Calculating single solution...");
+			const resultA = await calculateSolution(fetchedSolutionA);
+			console.log("Single calculation result:", resultA);
+			
+			if (resultA) {
+				setResultData({
+					solutionA: resultA
+				});
+			}
+		} else if (comparisonMode === "compare") {
+			// Compare mode - calculate both solutions
+			if (!fetchedSolutionA || !fetchedSolutionB) {
+				console.error("Both solutions required for comparison mode");
+				return;
+			}
+
+			console.log("Calculating both solutions...");
+			// Calculate both solutions in parallel
+			const [resultA, resultB] = await Promise.all([
+				calculateSolution(fetchedSolutionA),
+				calculateSolution(fetchedSolutionB)
+			]);
+
+			console.log("Comparison calculation results:", { resultA, resultB });
+
+			// Set results in a format that can be used by comparison component
+			setResultData({
+				solutionA: resultA,
+				solutionB: resultB
+			});
 		}
 
 		if (onCalculate) {

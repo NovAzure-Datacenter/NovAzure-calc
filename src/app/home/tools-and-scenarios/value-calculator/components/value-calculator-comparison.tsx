@@ -15,6 +15,15 @@ import { getIndustriesBySelectedIds } from "@/lib/actions/industry/industry";
 import { getTechnologiesBySelectedIds } from "@/lib/actions/technology/technology";
 import { getSolutionTypesByIndustryAndTechnology } from "@/lib/actions/solution/solution";
 
+// Interface for comparison row data
+interface ComparisonRow {
+    metric: string;
+    variantA: number;
+    variantB: number;
+    difference: number;
+    percentChange: string;
+}
+
 // Prepare data for charts
 const chartData = comparisonData.map(item => ({
 	name: item.metric,
@@ -169,29 +178,90 @@ export default function ValueCalculatorComparison({
 
     useEffect(() => {
         console.log("Result Data:", resultData);
-    }, [resultData]);
+        console.log("Comparison Mode:", comparisonMode);
+    }, [resultData, comparisonMode]);
 
     // Transform resultData into comparison format
-    const transformResultData = () => {
+    const transformResultData = (): ComparisonRow[] => {
         if (!resultData || typeof resultData !== 'object') {
             return [];
         }
 
-        const comparisonRows = [];
-        const keys = Object.keys(resultData);
+        const comparisonRows: ComparisonRow[] = [];
         
-        // For now, we'll create a simple comparison with the first calculation
-        // In a real scenario, you might have separate resultData for variant A and B
-        if (keys.length > 0) {
-            const firstKey = keys[0];
-            const value = resultData[firstKey];
+        if (comparisonMode === "single") {
+            // Single mode - use solutionA data directly
+            const singleData = resultData.solutionA || resultData;
+            if (!singleData || typeof singleData !== 'object') {
+                return [];
+            }
+
+            const keys = Object.keys(singleData);
             
-            comparisonRows.push({
-                metric: firstKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-                variantA: value,
-                variantB: value * 0.9, // Mock comparison - in real scenario you'd have separate data
-                difference: value * 0.9 - value,
-                percentChange: ((value * 0.9 - value) / value * 100).toFixed(1) + '%'
+            // Transform each key-value pair into a table row
+            keys.forEach(key => {
+                const value = singleData[key];
+                
+                // Format the key name for display
+                const formattedMetric = key
+                    .replace(/_/g, ' ')
+                    .replace(/\b\w/g, l => l.toUpperCase())
+                    .replace(/\b\w+/g, word => {
+                        // Capitalize first letter of each word
+                        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+                    });
+                
+                const numericValue = typeof value === 'number' ? value : parseFloat(String(value)) || 0;
+                
+                comparisonRows.push({
+                    metric: formattedMetric,
+                    variantA: numericValue,
+                    variantB: numericValue, // Same value for single mode
+                    difference: 0,
+                    percentChange: "0.0%"
+                });
+            });
+        } else if (comparisonMode === "compare") {
+            // Compare mode - use both solutionA and solutionB data
+            const solutionAData = resultData.solutionA;
+            const solutionBData = resultData.solutionB;
+            
+            if (!solutionAData || !solutionBData) {
+                return [];
+            }
+
+            // Get all unique keys from both solutions
+            const allKeys = new Set([
+                ...Object.keys(solutionAData),
+                ...Object.keys(solutionBData)
+            ]);
+
+            // Transform each key-value pair into a table row
+            allKeys.forEach(key => {
+                const valueA = solutionAData[key];
+                const valueB = solutionBData[key];
+                
+                // Format the key name for display
+                const formattedMetric = key
+                    .replace(/_/g, ' ')
+                    .replace(/\b\w/g, l => l.toUpperCase())
+                    .replace(/\b\w+/g, word => {
+                        // Capitalize first letter of each word
+                        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+                    });
+                
+                const numericValueA = typeof valueA === 'number' ? valueA : parseFloat(String(valueA)) || 0;
+                const numericValueB = typeof valueB === 'number' ? valueB : parseFloat(String(valueB)) || 0;
+                const difference = numericValueB - numericValueA;
+                const percentChange = numericValueA !== 0 ? ((difference / numericValueA) * 100).toFixed(1) + '%' : '0.0%';
+                
+                comparisonRows.push({
+                    metric: formattedMetric,
+                    variantA: numericValueA,
+                    variantB: numericValueB,
+                    difference: difference,
+                    percentChange: percentChange
+                });
             });
         }
 
@@ -213,22 +283,8 @@ export default function ValueCalculatorComparison({
         return "text-gray-600";
     };
 
-    const CustomTooltip = ({ active, payload, label }: any) => {
-        if (active && payload && payload.length) {
-            return (
-                <div className="bg-background border rounded-lg p-3 shadow-lg">
-                    <p className="font-medium">{label}</p>
-                    {payload.map((entry: any, index: number) => (
-                        <p key={index} style={{ color: entry.color }}>
-                            {entry.name}: ${entry.value.toLocaleString()}
-                        </p>
-                    ))}
-                </div>
-            );
-        }
-        return null;
-    };
 
+    // console.log("Data: ", resultData);
 
 
     return (
@@ -450,256 +506,7 @@ export default function ValueCalculatorComparison({
                     </div>
                 ) : null}
 
-                {/* Charts and Graphs */}
-                <div className="space-y-6">
-                    <h3 className="text-lg font-semibold">Visual Analysis</h3>
-                    
-                    {/* Bar Chart - Capex vs Opex Comparison */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-base">
-                                {comparisonMode === "single" ? "Capex vs Opex Analysis" : "Capex vs Opex Comparison"}
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <ResponsiveContainer width="100%" height={300}>
-                                <BarChart data={chartData.slice(0, 4)}>
-                                    <XAxis 
-                                        dataKey="name" 
-                                        angle={-45}
-                                        textAnchor="end"
-                                        height={80}
-                                        fontSize={12}
-                                    />
-                                    <YAxis 
-                                        tickFormatter={(value) => `$${(value / 1000000).toFixed(1)}M`}
-                                        fontSize={12}
-                                    />
-                                    <Tooltip content={<CustomTooltip />} />
-                                    <Legend />
-                                    <Bar dataKey="airCooling" fill="#374151" name={fetchedSolutionA?.solution_name || "Solution A"} />
-                                    {comparisonMode === "compare" && (
-                                        <Bar dataKey="liquidCooling" fill="#111827" name={fetchedSolutionB?.solution_name || "Solution B"} />
-                                    )}
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </CardContent>
-                    </Card>
-
-                    {/* Line Chart - Annual Opex Over Time */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-base">
-                                {comparisonMode === "single" ? "Annual Operating Expenses" : "Annual Operating Expenses Over Time"}
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <ResponsiveContainer width="100%" height={300}>
-                                <LineChart data={yearlyData}>
-                                    <XAxis dataKey="year" fontSize={12} />
-                                    <YAxis 
-                                        tickFormatter={(value) => `$${(value / 1000).toFixed(0)}K`}
-                                        fontSize={12}
-                                    />
-                                    <Tooltip content={<CustomTooltip />} />
-                                    <Legend />
-                                    <Line 
-                                        type="monotone" 
-                                        dataKey="airCooling" 
-                                        stroke="#374151" 
-                                        strokeWidth={2}
-                                        name={fetchedSolutionA?.solution_name || "Solution A"}
-                                        dot={{ fill: '#374151', strokeWidth: 2, r: 4 }}
-                                    />
-                                    {comparisonMode === "compare" && (
-                                        <Line 
-                                            type="monotone" 
-                                            dataKey="liquidCooling" 
-                                            stroke="#111827" 
-                                            strokeWidth={2}
-                                            name={fetchedSolutionB?.solution_name || "Solution B"}
-                                            dot={{ fill: '#111827', strokeWidth: 2, r: 4 }}
-                                        />
-                                    )}
-                                </LineChart>
-                            </ResponsiveContainer>
-                        </CardContent>
-                    </Card>
-
-                    {/* Area Chart - Cumulative Cost Analysis */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-base">
-                                {comparisonMode === "single" ? "Cumulative Cost Analysis" : "Cumulative Cost Analysis"}
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <ResponsiveContainer width="100%" height={300}>
-                                <AreaChart data={yearlyData.map((item, index) => ({
-                                    ...item,
-                                    airCoolingCumulative: item.airCooling * (index + 1),
-                                    liquidCoolingCumulative: item.liquidCooling * (index + 1),
-                                }))}>
-                                    <XAxis dataKey="year" fontSize={12} />
-                                    <YAxis 
-                                        tickFormatter={(value) => `$${(value / 1000000).toFixed(1)}M`}
-                                        fontSize={12}
-                                    />
-                                    <Tooltip content={<CustomTooltip />} />
-                                    <Legend />
-                                    <Area 
-                                        type="monotone" 
-                                        dataKey="airCoolingCumulative" 
-                                        stackId="1"
-                                        stroke="#374151" 
-                                        fill="#374151" 
-                                        fillOpacity={0.6}
-                                        name={`${fetchedSolutionA?.solution_name || "Solution A"} Cumulative`}
-                                    />
-                                    {comparisonMode === "compare" && (
-                                        <Area 
-                                            type="monotone" 
-                                            dataKey="liquidCoolingCumulative" 
-                                            stackId="1"
-                                            stroke="#111827" 
-                                            fill="#111827" 
-                                            fillOpacity={0.6}
-                                            name={`${fetchedSolutionB?.solution_name || "Solution B"} Cumulative`}
-                                        />
-                                    )}
-                                </AreaChart>
-                            </ResponsiveContainer>
-                        </CardContent>
-                    </Card>
-
-                    {/* Pie Chart - Cost Distribution */}
-                    {comparisonMode === "compare" && (
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle className="text-base">{fetchedSolutionA?.solution_name || "Solution A"} Cost Distribution</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <ResponsiveContainer width="100%" height={250}>
-                                        <PieChart>
-                                            <Pie
-                                                data={pieData.filter((_, index) => index < 2)}
-                                                cx="50%"
-                                                cy="50%"
-                                                outerRadius={80}
-                                                dataKey="value"
-                                                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                                            >
-                                                {pieData.filter((_, index) => index < 2).map((entry, index) => (
-                                                    <Cell key={`cell-${index}`} fill={entry.color} />
-                                                ))}
-                                            </Pie>
-                                            <Tooltip content={<CustomTooltip />} />
-                                        </PieChart>
-                                    </ResponsiveContainer>
-                                </CardContent>
-                            </Card>
-
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle className="text-base">{fetchedSolutionB?.solution_name || "Solution B"} Cost Distribution</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <ResponsiveContainer width="100%" height={250}>
-                                        <PieChart>
-                                            <Pie
-                                                data={pieData.filter((_, index) => index >= 2)}
-                                                cx="50%"
-                                                cy="50%"
-                                                outerRadius={80}
-                                                dataKey="value"
-                                                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                                            >
-                                                {pieData.filter((_, index) => index >= 2).map((entry, index) => (
-                                                    <Cell key={`cell-${index}`} fill={entry.color} />
-                                                ))}
-                                            </Pie>
-                                            <Tooltip content={<CustomTooltip />} />
-                                        </PieChart>
-                                    </ResponsiveContainer>
-                                </CardContent>
-                            </Card>
-                        </div>
-                    )}
-
-                    {/* Summary Cards */}
-                    <div className={`grid gap-4 ${comparisonMode === "compare" ? "grid-cols-1 md:grid-cols-3" : "grid-cols-1 md:grid-cols-2"}`}>
-                        <Card className="bg-blue-50 border-blue-200">
-                            <CardHeader className="pb-2">
-                                <CardTitle className="text-sm text-blue-900">{fetchedSolutionA?.solution_name || "Solution A"}</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-2">
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-blue-700">Total Capex:</span>
-                                        <span className="font-mono font-medium">$7,865,088</span>
-                                    </div>
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-blue-700">Annual Opex:</span>
-                                        <span className="font-mono font-medium">$822,497</span>
-                                    </div>
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-blue-700">TCO:</span>
-                                        <span className="font-mono font-medium">$19,542,545</span>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {comparisonMode === "compare" && (
-                            <Card className="bg-green-50 border-green-200">
-                                <CardHeader className="pb-2">
-                                    <CardTitle className="text-sm text-green-900">{fetchedSolutionB?.solution_name || "Solution B"}</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="space-y-2">
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-green-700">Total Capex:</span>
-                                            <span className="font-mono font-medium">$6,732,070</span>
-                                        </div>
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-green-700">Annual Opex:</span>
-                                            <span className="font-mono font-medium">$984,365</span>
-                                        </div>
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-green-700">TCO:</span>
-                                            <span className="font-mono font-medium">$20,837,551</span>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        )}
-
-                        {comparisonMode === "compare" && (
-                            <Card className="bg-gray-50 border-gray-200">
-                                <CardHeader className="pb-2">
-                                    <CardTitle className="text-sm text-gray-900">Key Insights</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="space-y-2 text-sm">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                            <span className="text-gray-700">Lower Capex: -$1.13M (-14.4%)</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                                            <span className="text-gray-700">Higher Opex: +$2.43M (+17.4%)</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                                            <span className="text-gray-700">Higher TCO: +$1.30M (+6.6%)</span>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        )}
-                    </div>
-                </div>
+            
             </div>
         ) : (
             <div className="text-center py-8">
