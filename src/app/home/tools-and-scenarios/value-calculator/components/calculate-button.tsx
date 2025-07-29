@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { ClientSolution } from "@/lib/actions/clients-solutions/clients-solutions";
-import { SetStateAction } from "react";
+import { SetStateAction, useState } from "react";
 import { Dispatch } from "react";
+import { Loader2 } from "lucide-react";
 
 interface CalculateButtonProps {
 	fetchedSolutionA: ClientSolution | null;
@@ -22,6 +23,8 @@ export default function CalculateButton({
 	disabled = false,
 	setResultData,
 }: CalculateButtonProps) {
+	const [isCalculating, setIsCalculating] = useState(false);
+
 	const cleanParameterName = (name: string): string => {
 		return name
 			.trim()
@@ -396,50 +399,70 @@ export default function CalculateButton({
 	};
 
 	const handleCalculate = async () => {
-		if (comparisonMode === "single") {
-			// Single mode - calculate only solution A
-			if (!fetchedSolutionA) {
-				console.error("No solution A provided for single mode");
-				return;
-			}
+		setIsCalculating(true);
+		
+		try {
+			if (comparisonMode === "single") {
+				// Single mode - calculate only solution A
+				if (!fetchedSolutionA) {
+					console.error("No solution A provided for single mode");
+					return;
+				}
 
-			const resultA = await calculateSolution(fetchedSolutionA);
+				const resultA = await calculateSolution(fetchedSolutionA);
 
-			if (resultA) {
+				if (resultA) {
+					setResultData({
+						solutionA: resultA,
+					});
+				}
+			} else if (comparisonMode === "compare") {
+				// Compare mode - calculate both solutions
+				if (!fetchedSolutionA || !fetchedSolutionB) {
+					console.error("Both solutions required for comparison mode");
+					return;
+				}
+
+				// Calculate both solutions in parallel
+				const [resultA, resultB] = await Promise.all([
+					calculateSolution(fetchedSolutionA),
+					calculateSolution(fetchedSolutionB),
+				]);
+
+				// Set results in a format that can be used by comparison component
 				setResultData({
 					solutionA: resultA,
+					solutionB: resultB,
 				});
 			}
-		} else if (comparisonMode === "compare") {
-			// Compare mode - calculate both solutions
-			if (!fetchedSolutionA || !fetchedSolutionB) {
-				console.error("Both solutions required for comparison mode");
-				return;
+
+			// Call the onCalculate callback to trigger tab switch
+			if (onCalculate) {
+				onCalculate();
 			}
-
-			// Calculate both solutions in parallel
-			const [resultA, resultB] = await Promise.all([
-				calculateSolution(fetchedSolutionA),
-				calculateSolution(fetchedSolutionB),
-			]);
-
-			// Set results in a format that can be used by comparison component
-			setResultData({
-				solutionA: resultA,
-				solutionB: resultB,
-			});
-		}
-
-		if (onCalculate) {
-			onCalculate();
+		} catch (error) {
+			console.error("Error during calculation:", error);
+		} finally {
+			setIsCalculating(false);
 		}
 	};
 
 
 
 	return (
-		<Button className="px-8 py-2" onClick={handleCalculate} disabled={disabled}>
-			Calculate
+		<Button 
+			className="px-8 py-2" 
+			onClick={handleCalculate} 
+			disabled={disabled || isCalculating}
+		>
+			{isCalculating ? (
+				<>
+					<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+					Calculating...
+				</>
+			) : (
+				"Calculate"
+			)}
 		</Button>
 	);
 }
