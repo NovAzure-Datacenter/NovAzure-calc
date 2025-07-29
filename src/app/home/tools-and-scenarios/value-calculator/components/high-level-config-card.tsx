@@ -43,6 +43,30 @@ export default function HighLevelConfigCard({
 		return value;
 	};
 
+	// Helper function to convert percentage input back to decimal for storage
+	const convertPercentageToDecimal = (value: string, unit: string) => {
+		if (unit === "%") {
+			const numValue = parseFloat(value);
+			if (!isNaN(numValue)) {
+				// Round to 4 decimal places to avoid floating point precision issues
+				return (numValue / 100).toFixed(4);
+			}
+		}
+		return value;
+	};
+
+	// Helper function to convert decimal to percentage for display
+	const convertDecimalToPercentage = (value: string, unit: string) => {
+		if (unit === "%") {
+			const numValue = parseFloat(value);
+			if (!isNaN(numValue)) {
+				// Round to avoid floating point precision issues
+				return Math.round(numValue * 100).toString();
+			}
+		}
+		return value;
+	};
+
 	// Helper function to get parameters from a solution
 	const getSolutionParameters = (solution: any) => {
 		if (!solution?.parameters) return [];
@@ -193,10 +217,17 @@ export default function HighLevelConfigCard({
 								min={parameter.unit === "%" ? formatRangeValue(parameter.range_min || "0", parameter.unit) : parameter.range_min}
 								max={parameter.unit === "%" ? formatRangeValue(parameter.range_max || "∞", parameter.unit) : parameter.range_max}
 								step={parameter.unit === "%" ? "1" : "any"}
-								value={parameterValues[paramId] || ""}
-								onChange={(e) =>
-									handleParameterValueChange(paramId, e.target.value)
+								value={
+									parameter.unit === "%" 
+										? convertDecimalToPercentage(parameterValues[paramId] || "", parameter.unit)
+										: parameterValues[paramId] || ""
 								}
+								onChange={(e) => {
+									const convertedValue = parameter.unit === "%" 
+										? convertPercentageToDecimal(e.target.value, parameter.unit)
+										: e.target.value;
+									handleParameterValueChange(paramId, convertedValue);
+								}}
 								onKeyDown={(e) => {
 									const min = parameter.unit === "%" ? parseFloat(formatRangeValue(parameter.range_min, parameter.unit)) : parseFloat(parameter.range_min);
 									const max = parameter.unit === "%" ? parseFloat(formatRangeValue(parameter.range_max, parameter.unit)) : parseFloat(parameter.range_max);
