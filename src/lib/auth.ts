@@ -1,7 +1,7 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { getUsersCollection } from "@/lib/mongoDb/db";
-import { compare } from "bcrypt";
+import { compare } from "bcryptjs";
 
 export const authOptions: NextAuthOptions = {
 	providers: [
@@ -26,6 +26,16 @@ export const authOptions: NextAuthOptions = {
 						return null;
 					}
 
+					// Ensure user has required fields
+					if (!user._id || !user.email || !user.passwordHash) {
+						console.error("User missing required fields:", { 
+							hasId: !!user._id, 
+							hasEmail: !!user.email, 
+							hasPasswordHash: !!user.passwordHash 
+						});
+						return null;
+					}
+
 					const isPasswordValid = await compare(
 						credentials.password,
 						user.passwordHash
@@ -37,11 +47,11 @@ export const authOptions: NextAuthOptions = {
 
 					// Return minimal user data to keep JWT small
 					return {
-						id: user._id.toString(),
+						id: user._id?.toString() || "",
 						email: user.email,
-						name: `${user.first_name} ${user.last_name}`,
-						role: user.role,
-						company_id: user.company_id.toString(),
+						name: `${user.first_name || ""} ${user.last_name || ""}`.trim() || "Unknown User",
+						role: user.role || "user",
+						client_id: user.client_id?.toString() || "",
 					};
 				} catch (error) {
 					console.error("Auth error:", error);
@@ -54,20 +64,20 @@ export const authOptions: NextAuthOptions = {
 		strategy: "jwt" as const,
 	},
 	callbacks: {
-		async jwt({ token, user }: { token: any; user: any }) {
+		async jwt({ token, user }) {
 			if (user) {
 				// Store only essential data in JWT
 				token.role = user.role;
-				token.company_id = user.company_id;
+				token.client_id = user.client_id;
 			}
 			return token;
 		},
-		async session({ session, token }: { session: any; token: any }) {
+		async session({ session, token }) {
 			if (token) {
 				// Add essential data to session
 				session.user.id = token.sub!;
-				session.user.role = token.role;
-				session.user.company_id = token.company_id;
+				session.user.role = token.role!;
+				session.user.client_id = token.client_id!;
 			}
 			return session;
 		},
@@ -76,6 +86,10 @@ export const authOptions: NextAuthOptions = {
 		signIn: "/login",
 	},
 	secret: process.env.NEXTAUTH_SECRET,
+	// Add NEXTAUTH_URL configuration for proper redirect handling
+	...(process.env.NEXTAUTH_URL && {
+		url: process.env.NEXTAUTH_URL,
+	}),
 };
 
 export default NextAuth(authOptions);

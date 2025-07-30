@@ -8,7 +8,7 @@ export interface UserData {
 	account_type: string;
 	profile_image: string;
 	company_name: string;
-	company_id: string;
+	client_id: string;
 	email: string;
 	work_number: string;
 	mobile_number: string;
@@ -51,13 +51,13 @@ export function useUser() {
 	const updateUser = async (userData: UserData | null) => {
 		// With NextAuth, user data is managed server-side
 		// This function is kept for compatibility but doesn't modify localStorage
-		console.log("User data updated:", userData);
+		//console.log("User data updated:", userData);
 	};
 
 	const logout = async () => {
-		await signOut({ callbackUrl: "/login" });
+		await signOut({ callbackUrl: "/" });
 	};
-
+	
 	return {
 		user: userData,
 		updateUser,

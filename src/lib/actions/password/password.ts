@@ -1,7 +1,7 @@
 "use server";
 
 import { getUsersCollection } from "../../mongoDb/db";
-import { hash, compare } from "bcrypt";
+import { hash, compare } from "bcryptjs";
 import {
 	sendEmail,
 	generatePasswordResetEmail,

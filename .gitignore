@@ -43,7 +43,13 @@ next-env.d.ts
 # Backend
 backend/venv/
 backend/.env
-**/__pycache__/
 
-# Python
-*/pyrightconfig.json
+# Python 
+__pycache__/
+**/__pycache__/
+*.py[cod]
+
+# Cursor
+.cursor/rules
+
+.ruff_cache/

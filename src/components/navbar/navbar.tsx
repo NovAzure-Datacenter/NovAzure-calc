@@ -4,49 +4,27 @@ import Link from "next/link";
 import { Button } from "../ui/button";
 import NavbarText from "./navbar-text";
 import { useUser } from "@/hooks/useUser";
-import { useRouter, usePathname } from "next/navigation";
-import {
-	LogOut,
-	Sun,
-	Moon,
-} from "lucide-react";
-import { useTheme } from "next-themes";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback} from "@/components/ui/avatar";
+import { usePathname } from "next/navigation";
+import { LogOut } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 
-type Role = "Seller" | "Buyer" | "Admin";
-
 export default function Navbar() {
 	const { menuItems, ctaButton } = NavbarText;
-	const { isUserLoggedIn, isLoading, updateUser, user } = useUser();
-	const router = useRouter();
+	const { isUserLoggedIn, isLoading, logout, user: _user } = useUser();
 	const pathname = usePathname();
-	const { theme, setTheme } = useTheme();
-	const [selectedRole, setSelectedRole] = useState<Role>("Seller");
+	const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-	const handleLogout = () => {
-		updateUser(null);
-		router.push("/");
+	const handleLogout = async () => {
+		setIsLoggingOut(true);
+		try {
+			await logout();
+		} catch (error) {
+			console.error("Logout error:", error);
+		} finally {
+			setIsLoggingOut(false);
+		}
 	};
-
-	const handleDashboardClick = (role: Role) => {
-		setSelectedRole(role);
-		router.push(`/${user?.company_name || "home"}`);
-	};
-
-	const getRoleLetter = (role: Role) => {
-		return role.charAt(0);
-	};
-
-	const isMainPage = pathname === "/";
 
 	return (
 		<header className="border-b bg-background fixed top-0 left-0 right-0 z-50 h-12">
@@ -76,76 +54,23 @@ export default function Navbar() {
 					{!isLoading && (
 						<div className="flex items-center pr-4 gap-2">
 							{isUserLoggedIn ? (
-								<DropdownMenu>
-									<DropdownMenuTrigger asChild>
-										<Button
-											variant="ghost"
-											className="relative h-8 w-8 rounded-full"
-										>
-											<Avatar className="h-8 w-8 rounded-full">
-												<AvatarFallback className="rounded-full bg-custom-dark-blue text-primary-foreground">
-													{getRoleLetter(selectedRole)}
-												</AvatarFallback>
-											</Avatar>
+								<div className="flex items-center gap-2">
+									<Link href="/home">
+										<Button size="sm" variant="default" className="hidden sm:flex">
+											Go to Dashboard
 										</Button>
-									</DropdownMenuTrigger>
-									<DropdownMenuContent
-										className="w-56"
-										align="end"
-										sideOffset={4}
+									</Link>
+									<Button
+										size="sm"
+										variant="outline"
+										onClick={handleLogout}
+										disabled={isLoggingOut}
+										className="hidden sm:flex items-center gap-2"
 									>
-										<DropdownMenuItem onClick={() => handleDashboardClick("Seller")}>
-											<div className="flex items-center gap-2 ">
-												<Avatar className="h-6 w-6 rounded-full">
-													<AvatarFallback className="rounded-full bg-custom-dark-blue text-primary-foreground">
-														S
-													</AvatarFallback>
-												</Avatar>
-												<div className="grid flex-1 text-left text-sm leading-tight">
-													Seller
-												</div>
-												<div className="text-sm text-muted-foreground">
-													DEMO
-												</div>
-											</div>
-										</DropdownMenuItem>
-										<DropdownMenuItem onClick={() => handleDashboardClick("Buyer")}>
-											<div className="flex items-center gap-2 ">
-												<Avatar className="h-6 w-6 rounded-full">
-													<AvatarFallback className="rounded-full bg-custom-dark-blue text-primary-foreground">
-														B
-													</AvatarFallback>
-												</Avatar>
-												<div className="grid flex-1 text-left text-sm leading-tight">
-													Buyer
-												</div>
-												<div className="text-sm text-muted-foreground">
-													DEMO
-												</div>
-											</div>
-										</DropdownMenuItem>
-										<DropdownMenuItem onClick={() => handleDashboardClick("Admin")}>
-											<div className="flex items-center gap-2 ">
-												<Avatar className="h-6 w-6 rounded-full">
-													<AvatarFallback className="rounded-full bg-custom-dark-blue text-primary-foreground">
-														A
-													</AvatarFallback>
-												</Avatar>
-												<div className="grid flex-1 text-left text-sm leading-tight">
-													Admin
-												</div>
-												<div className="text-sm text-muted-foreground">
-													DEMO
-												</div>
-											</div>
-										</DropdownMenuItem>
-										<DropdownMenuSeparator />
-										<DropdownMenuItem onClick={handleLogout}>
-											<LogOut className="mr-2 h-4 w-4" />
-											Log out
-										</DropdownMenuItem>
-									</DropdownMenuContent>
-								</DropdownMenu>
+										<LogOut className="h-4 w-4" />
+										{isLoggingOut ? "Logging out..." : "Log out"}
+									</Button>
+								</div>
 							) : (
 								<div className="flex flex-row items-center gap-4">
 									{pathname !== "/login" && (
@@ -157,22 +82,6 @@ export default function Navbar() {
 										</Link>
 									)}
 									<Button size="sm">{ctaButton}</Button>
-									{isMainPage && (
-										<Button
-											size="sm"
-											variant="ghost"
-											onClick={() =>
-												setTheme(theme === "dark" ? "light" : "dark")
-											}
-											className="flex items-center 2"
-										>
-											{theme === "dark" ? (
-												<Sun className="h-4 w-4" />
-											) : (
-												<Moon className="h-4 w-4" />
-											)}
-										</Button>
-									)}
 								</div>
 							)}
 						</div>

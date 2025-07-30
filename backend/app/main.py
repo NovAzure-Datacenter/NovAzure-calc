@@ -1,57 +1,39 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.core.config import settings
-from app.database.connection import db_manager, get_db
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from .api.v1.calculate import router as calculation_router
 
-# Create the FastAPI app instance
 app = FastAPI(
-    title=settings.APP_TITLE,
-    version=settings.APP_VERSION,
-    description=settings.APP_DESCRIPTION,
+    title="Parameter Calculator API",
+    description="A calculation engine for parameter dependencies",
+    version="0.1.0",
 )
-
-# Configure CORS
-origins = [
-    settings.CLIENT_ORIGIN_URL
-]
-# You can add more origins from a comma-separated string in your .env if needed
-# origins.extend(settings.ADDITIONAL_ORIGINS.split(','))
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-@app.on_event("startup")
-async def startup_event():
-    db_manager.connect()
+app.include_router(calculation_router, prefix="/api/v1", tags=["calculations"])
 
-@app.on_event("shutdown")
-async def shutdown_event():
-    db_manager.disconnect()
 
-@app.get("/collections", tags=["Database Test"])
-async def list_collections(db: AsyncIOMotorDatabase = Depends(get_db)):
-    """
-    A temporary endpoint to list all collections (tables) in the database
-    to verify the connection is working.
-    """
-    try:
-        collection_names = await db.list_collection_names()
-        if not collection_names:
-            return {"message": "Database is connected, but it has no collections yet."}
-        return {"collections": collection_names}
-    except Exception as e:
-        # This will catch authentication errors etc.
-        return {"error": f"An error occurred: {e}"}
+async def root():
+    return {"message": "Parameter Calculator API is running"}
 
-@app.get("/", tags=["Root"])
-async def read_root():
-    """
-    A simple endpoint to check if the API is running.
-    """
-    return {"message": f"Welcome to the {settings.APP_TITLE}!"}
+
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy"}
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True,  # Enable auto-reload during development
+    )
