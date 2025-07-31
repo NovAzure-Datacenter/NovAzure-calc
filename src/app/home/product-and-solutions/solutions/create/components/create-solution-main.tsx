@@ -30,13 +30,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { ArrowRight, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
-import {
-	solutionTypes,
-	type Calculation,
-	type SolutionType,
-	type SolutionVariant,
-} from "../../mock-data";
-import { Parameter } from "../../../types";
+
+import { Calculation, Parameter } from "../../../types";
 import { CreateSolutionParameters } from "./create-solution-parameters/create-solution-parameters";
 import {
 	CalculationsConfiguration,
@@ -48,7 +43,6 @@ import { CreateSolutionStep6 } from "./create-solution-step-6";
 import { SubmissionDialog } from "./submission-dialog";
 import { DraftDialog } from "./draft-dialog";
 import Loading from "@/components/loading-main";
-import { globalParameters } from "../../mock-data";
 import { getClientSolutions } from "@/lib/actions/clients-solutions/clients-solutions";
 import { updateClientSolution } from "@/lib/actions/clients-solutions/clients-solutions";
 
@@ -135,7 +129,11 @@ export function CreateSolutionMain() {
 			.map((globalParam) => ({
 				...globalParam,
 				id: `param-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-				provided_by: "company",
+				user_interface: {
+					type: "not_viewable",
+					category: globalParam.category?.name || "Global",
+					is_advanced: false
+				},
 				// Preserve the is_modifiable field from the original global parameter
 				is_modifiable: globalParam.is_modifiable || false,
 			}));

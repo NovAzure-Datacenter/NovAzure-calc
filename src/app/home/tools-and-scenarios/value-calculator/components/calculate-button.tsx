@@ -193,8 +193,11 @@ export default function CalculateButton({
 
 		solution.parameters.forEach((param: any) => {
 			const cleanName = cleanParameterName(param.name);
+			const userInterfaceType = typeof param.user_interface === "string" 
+				? param.user_interface 
+				: param.user_interface?.type || "input";
 
-			if (param.provided_by === "user") {
+			if (userInterfaceType === "input") {
 				let value = null;
 
 				if (param.display_type === "dropdown") {
@@ -232,7 +235,7 @@ export default function CalculateButton({
 					
 					}
 				}
-			} else if (param.provided_by === "company") {
+			} else if (userInterfaceType === "static") {
 				let numValue = null;
 
 				// If parameter has dropdown options, try filter-based resolution first
@@ -255,24 +258,24 @@ export default function CalculateButton({
 					inputs[cleanName] = numValue;
 					
 				} else {
-					console.log(`Company parameter "${param.name}" has no valid value`);
+					console.log(`Static parameter "${param.name}" has no valid value`);
 				}
 			}
 
 			const paramObject: any = {
 				name: cleanName,
 				type:
-					param.provided_by === "user"
+					userInterfaceType === "input"
 						? "USER"
-						: param.provided_by === "company"
+						: userInterfaceType === "static"
 						? "COMPANY"
 						: "CALCULATION",
 			};
 
 			// Only add non-filter parameters to the parameters array
 			if (param.display_type !== "filter") {
-				// Set value for company parameters
-				if (param.provided_by === "company") {
+				// Set value for static parameters
+				if (userInterfaceType === "static") {
 					let paramValue = null;
 
 					// If parameter has dropdown options, try filter-based resolution first

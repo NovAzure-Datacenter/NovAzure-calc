@@ -172,84 +172,27 @@ export default function CategoryTabs({
 						</TabsTrigger>
 					)}
 
-					{/* High Level Configuration Tab */}
-					<TabsTrigger
-						value="High Level Configuration"
-						className="text-muted-foreground text-sm bg-background/80 hover:bg-background border-backdrop"
-						style={
-							activeTab === "High Level Configuration"
-								? getActiveTabStyleWrapper("High Level Configuration")
-								: getCategoryStyleWrapper("High Level Configuration")
-						}
-					>
-						High Level Configuration
-					</TabsTrigger>
-
-					{/* Low Level Configuration Tab */}
-					<TabsTrigger
-						value="Low Level Configuration"
-						className="text-muted-foreground text-sm bg-background/80 hover:bg-background border-backdrop"
-						style={
-							activeTab === "Low Level Configuration"
-								? getActiveTabStyleWrapper("Low Level Configuration")
-								: getCategoryStyleWrapper("Low Level Configuration")
-						}
-					>
-						Low Level Configuration
-					</TabsTrigger>
-
-					{/* Advanced Configuration Tab */}
-					<TabsTrigger
-						value="Advanced Configuration"
-						className="text-muted-foreground text-sm bg-background/80 hover:bg-background border-backdrop"
-						style={
-							activeTab === "Advanced Configuration"
-								? getActiveTabStyleWrapper("Advanced Configuration")
-								: getCategoryStyleWrapper("Advanced Configuration")
-						}
-					>
-						Advanced Configuration
-					</TabsTrigger>
-
-					{/* Show other visible categories */}
+					{/* Custom Categories */}
 					{visibleCategories
-						.filter((category) => category !== "Global")
-						.map((category) => {
-							const isCustomCategory = customCategories.some(
-								(cat) => cat.name === category
-							);
-							const isActive = activeTab === category;
-
-							return (
+						.filter(
+							(category) =>
+								!HIDDEN_CATEGORIES.includes(category.toLowerCase()) &&
+								category !== "Global"
+						)
+						.map((category) => (
 								<TabsTrigger
 									key={category}
 									value={category}
-									className="text-muted-foreground text-sm bg-background/80 hover:bg-background border-backdrop group relative"
+								className="text-muted-foreground text-sm bg-background/80 hover:bg-background border-backdrop"
 									style={
-										isActive
+									activeTab === category
 											? getActiveTabStyleWrapper(category)
 											: getCategoryStyleWrapper(category)
 									}
 								>
-									<span className={isCustomCategory ? "pr-6" : ""}>
 										{category}
-									</span>
-									{isCustomCategory && (
-										<Button
-											size="sm"
-											variant="ghost"
-											onClick={(e) => {
-												e.stopPropagation();
-												handleRemoveCategory(category);
-											}}
-											className="absolute right-1 top-1/2 -translate-y-1/2 h-4 w-4 p-0 opacity-0 group-hover:opacity-100  hover:bg-red-100 hover:text-red-600 "
-										>
-											<X className="h-3 w-3" />
-										</Button>
-									)}
 								</TabsTrigger>
-							);
-						})}
+						))}
 					<Button
 						variant="outline"
 						onClick={() => setIsAddCategoryDialogOpen(true)}
@@ -288,7 +231,7 @@ export default function CategoryTabs({
 						onClick={
 							isAddingParameter ? handleCancelAddParameter : handleAddParameter
 						}
-						disabled={editingParameter !== null || activeTab === "Global" || activeTab === "High Level Configuration" || activeTab === "Low Level Configuration" || activeTab === "Advanced Configuration"}
+						disabled={editingParameter !== null || activeTab === "Global"}
 					>
 						{isAddingParameter ? (
 							<>

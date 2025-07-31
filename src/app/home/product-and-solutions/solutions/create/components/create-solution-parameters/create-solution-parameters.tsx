@@ -82,13 +82,17 @@ export function CreateSolutionParameters({
 		description: string;
 		information: string;
 		category: string;
-		provided_by: string;
-		input_type: string;
+		user_interface: {
+			type: "input" | "static" | "not_viewable";
+			category: string;
+			is_advanced: boolean;
+		};
 		output: boolean;
-		display_type: "simple" | "dropdown" | "range" | "filter";
+		display_type: "simple" | "dropdown" | "range" | "filter" | "conditional";
 		dropdown_options: Array<{ key: string; value: string }>;
 		range_min: string;
 		range_max: string;
+		conditional_rules: Array<{ condition: string; value: string }>;
 	}>({
 		name: "",
 		value: "",
@@ -97,13 +101,17 @@ export function CreateSolutionParameters({
 		description: "",
 		information: "",
 		category: "",
-		provided_by: "user",
-		input_type: "simple",
+		user_interface: {
+			type: "input",
+			category: "",
+			is_advanced: false
+		},
 		output: false,
 		display_type: "simple",
 		dropdown_options: [],
 		range_min: "",
 		range_max: "",
+		conditional_rules: [],
 	});
 	const [activeTab, setActiveTab] = useState("all");
 	const [isAddCategoryDialogOpen, setIsAddCategoryDialogOpen] = useState(false);
@@ -128,13 +136,17 @@ export function CreateSolutionParameters({
 		description: string;
 		information: string;
 		category: string;
-		provided_by: string;
-		input_type: string;
+		user_interface: {
+			type: "input" | "static" | "not_viewable";
+			category: string;
+			is_advanced: boolean;
+		};
 		output: boolean;
-		display_type: "simple" | "dropdown" | "range" | "filter";
+		display_type: "simple" | "dropdown" | "range" | "filter" | "conditional";
 		dropdown_options: Array<{ key: string; value: string }>;
 		range_min: string;
 		range_max: string;
+		conditional_rules: Array<{ condition: string; value: string }>;
 	}>({
 		name: "",
 		value: "",
@@ -143,13 +155,17 @@ export function CreateSolutionParameters({
 		description: "",
 		information: "",
 		category: "",
-		provided_by: "user",
-		input_type: "simple",
+		user_interface: {
+			type: "input",
+			category: "",
+			is_advanced: false
+		},
 		output: false,
 		display_type: "simple",
 		dropdown_options: [],
 		range_min: "",
 		range_max: "",
+		conditional_rules: [],
 	});
 
 	// Search state
@@ -166,44 +182,44 @@ export function CreateSolutionParameters({
 			description: parameter.description,
 			information: parameter.information,
 			category: parameter.category.name,
-			provided_by: parameter.provided_by,
-			input_type: parameter.input_type,
+			user_interface: {
+				type: typeof parameter.user_interface === "string" 
+					? parameter.user_interface as "input" | "static" | "not_viewable"
+					: parameter.user_interface.type,
+				category: typeof parameter.user_interface === "string"
+					? parameter.category.name
+					: parameter.user_interface.category,
+				is_advanced: typeof parameter.user_interface === "string"
+					? false
+					: parameter.user_interface.is_advanced
+			},
 			output: parameter.output,
 			display_type: parameter.display_type,
 			dropdown_options: parameter.dropdown_options || [],
 			range_min: parameter.range_min || "",
 			range_max: parameter.range_max || "",
+			conditional_rules: parameter.conditional_rules || [],
 		});
 	};
 
 	const handleSaveParameter = (parameterId: string) => {
-		const numericValue = parseFloat(editData.value);
-		const numericTestValue = parseFloat(editData.test_value);
-
-		// Basic validation
-		if (isNaN(numericTestValue)) {
+		// Basic validation - only check required fields
+		if (!editData.name.trim() || !editData.unit.trim()) {
 			return;
 		}
 
-		// Conditional validation based on provided_by
-		if (editData.provided_by === "company") {
-			// For company parameters, validate based on display type
-			if (editData.display_type === "simple") {
-				if (isNaN(numericValue) || !editData.value.trim()) {
+		// Additional validation for static parameters
+		if (editData.user_interface.type === "static") {
+			// For static parameters, require a value when display_type is simple
+			if (editData.display_type === "simple" && !editData.value.trim()) {
 					return;
 				}
-			} else if (editData.display_type === "range") {
-				if (!editData.range_min.trim() || !editData.range_max.trim()) {
+			// For static parameters with range display, require both min and max
+			if (editData.display_type === "range" && (!editData.range_min.trim() || !editData.range_max.trim())) {
 					return;
-				}
-			} else if (editData.display_type === "dropdown" || editData.display_type === "filter") {
-				if (editData.dropdown_options.length === 0) {
-					return;
-				}
 			}
-		} else {
-			// For user parameters, value is optional but if provided, must be valid
-			if (editData.value.trim() && isNaN(numericValue)) {
+			// For static parameters with dropdown/filter display, require options
+			if ((editData.display_type === "dropdown" || editData.display_type === "filter") && editData.dropdown_options.length === 0) {
 				return;
 			}
 		}
@@ -225,13 +241,17 @@ export function CreateSolutionParameters({
 							name: editData.category,
 							color: currentParameter.category.color,
 						},
-						provided_by: editData.provided_by,
-						input_type: editData.input_type,
+						user_interface: {
+							type: editData.user_interface.type,
+							category: editData.user_interface.category,
+							is_advanced: editData.user_interface.is_advanced
+						},
 						output: editData.output,
 						display_type: editData.display_type,
 						dropdown_options: editData.dropdown_options,
 						range_min: editData.range_min,
 						range_max: editData.range_max,
+						conditional_rules: editData.conditional_rules,
 				  }
 				: param
 		);
@@ -245,13 +265,17 @@ export function CreateSolutionParameters({
 			description: "",
 			information: "",
 			category: "",
-			provided_by: "user",
-			input_type: "simple",
+			user_interface: {
+				type: "input",
+				category: "",
+				is_advanced: false
+			},
 			output: false,
 			display_type: "simple",
 			dropdown_options: [],
 			range_min: "",
 			range_max: "",
+			conditional_rules: [],
 		});
 	};
 
@@ -265,13 +289,17 @@ export function CreateSolutionParameters({
 			description: "",
 			information: "",
 			category: "",
-			provided_by: "user",
-			input_type: "simple",
+			user_interface: {
+				type: "input",
+				category: "",
+				is_advanced: false
+			},
 			output: false,
 			display_type: "simple",
 			dropdown_options: [],
 			range_min: "",
 			range_max: "",
+			conditional_rules: [],
 		});
 	};
 
@@ -285,44 +313,38 @@ export function CreateSolutionParameters({
 			description: "",
 			information: "",
 			category: activeTab === "all" || activeTab === "Global" ? "" : activeTab,
-			provided_by: "user",
-			input_type: "simple",
+			user_interface: {
+				type: "input",
+				category: "",
+				is_advanced: false
+			},
 			output: false,
 			display_type: "simple",
 			dropdown_options: [],
 			range_min: "",
 			range_max: "",
+			conditional_rules: [],
 		});
 	};
 
 	const handleSaveNewParameter = () => {
-		const numericValue = parseFloat(newParameterData.value);
-		const numericTestValue = parseFloat(newParameterData.test_value);
-
-		// Basic validation
-		if (!newParameterData.name.trim() || isNaN(numericTestValue)) {
+		// Basic validation - only check required fields
+		if (!newParameterData.name.trim() || !newParameterData.unit.trim()) {
 			return;
 		}
 
-		// Conditional validation based on provided_by
-		if (newParameterData.provided_by === "company") {
-			// For company parameters, validate based on display type
-			if (newParameterData.display_type === "simple") {
-				if (isNaN(numericValue) || !newParameterData.value.trim()) {
+		// Additional validation for static parameters
+		if (newParameterData.user_interface.type === "static") {
+			// For static parameters, require a value when display_type is simple
+			if (newParameterData.display_type === "simple" && !newParameterData.value.trim()) {
 					return;
 				}
-			} else if (newParameterData.display_type === "range") {
-				if (!newParameterData.range_min.trim() || !newParameterData.range_max.trim()) {
+			// For static parameters with range display, require both min and max
+			if (newParameterData.display_type === "range" && (!newParameterData.range_min.trim() || !newParameterData.range_max.trim())) {
 					return;
-				}
-			} else if (newParameterData.display_type === "dropdown" || newParameterData.display_type === "filter") {
-				if (newParameterData.dropdown_options.length === 0) {
-					return;
-				}
 			}
-		} else {
-			// For user parameters, value is optional but if provided, must be valid
-			if (newParameterData.value.trim() && isNaN(numericValue)) {
+			// For static parameters with dropdown/filter display, require options
+			if ((newParameterData.display_type === "dropdown" || newParameterData.display_type === "filter") && newParameterData.dropdown_options.length === 0) {
 				return;
 			}
 		}
@@ -346,13 +368,17 @@ export function CreateSolutionParameters({
 				name: newParameterData.category,
 				color: categoryColor,
 			},
-			provided_by: newParameterData.provided_by,
-			input_type: newParameterData.input_type,
+			user_interface: {
+				type: newParameterData.user_interface.type,
+				category: newParameterData.user_interface.category,
+				is_advanced: newParameterData.user_interface.is_advanced
+			},
 			output: newParameterData.output,
 			display_type: newParameterData.display_type,
 			dropdown_options: newParameterData.dropdown_options,
 			range_min: newParameterData.range_min,
 			range_max: newParameterData.range_max,
+			conditional_rules: newParameterData.conditional_rules,
 			is_modifiable: true,
 		};
 
@@ -366,13 +392,17 @@ export function CreateSolutionParameters({
 			description: "",
 			information: "",
 			category: "",
-			provided_by: "user",
-			input_type: "simple",
+			user_interface: {
+				type: "input",
+				category: "",
+				is_advanced: false
+			},
 			output: false,
 			display_type: "simple",
 			dropdown_options: [],
 			range_min: "",
 			range_max: "",
+			conditional_rules: [],
 		});
 	};
 
@@ -391,13 +421,17 @@ export function CreateSolutionParameters({
 			description: "",
 			information: "",
 			category: "",
-			provided_by: "user",
-			input_type: "simple",
+			user_interface: {
+				type: "input",
+				category: "",
+				is_advanced: false
+			},
 			output: false,
 			display_type: "simple",
 			dropdown_options: [],
 			range_min: "",
 			range_max: "",
+			conditional_rules: [],
 		});
 	};
 
@@ -517,8 +551,10 @@ export function CreateSolutionParameters({
 			param.value.toLowerCase().includes(searchQuery.toLowerCase()) ||
 			param.test_value.toLowerCase().includes(searchQuery.toLowerCase()) ||
 			param.unit.toLowerCase().includes(searchQuery.toLowerCase()) ||
-			param.provided_by.toLowerCase().includes(searchQuery.toLowerCase()) ||
-			param.input_type.toLowerCase().includes(searchQuery.toLowerCase());
+			(typeof param.user_interface === "string" 
+				? param.user_interface.toLowerCase().includes(searchQuery.toLowerCase())
+				: param.user_interface.type.toLowerCase().includes(searchQuery.toLowerCase())) ||
+			param.output.toString().toLowerCase().includes(searchQuery.toLowerCase());
 
 		return tabFiltered && searchFiltered;
 	});

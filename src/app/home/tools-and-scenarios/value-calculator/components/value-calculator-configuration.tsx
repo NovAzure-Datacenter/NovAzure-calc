@@ -14,26 +14,11 @@ import { Building2, Cpu, Package, ChevronDown, ChevronUp } from "lucide-react";
 import { useState, Dispatch, SetStateAction, useEffect } from "react";
 import React from "react";
 import {
-	mockLowLevelConfig,
-	mockAdvancedConfig,
-} from "./mock-data";
-import {
 	ClientSolution,
 } from "@/lib/actions/clients-solutions/clients-solutions";
 import MockButton from "./mock-button";
 import CalculateButton from "./calculate-button";
-import HighLevelConfigCard from "./high-level-config-card";
-import LowLevelConfigCard from "./low-level-config-card";
-import AdvancedLevelConfigCard from "./adv-level-config-card";
-
-interface AdvancedConfigItem {
-	id: string;
-	name: string;
-	type: "text" | "dropdown" | "checkbox";
-	unit?: string;
-	placeholder?: string;
-	options?: string[];
-}
+import GlobalConfigCard from "./global-config-card";
 
 interface ValueCalculatorConfigurationProps {
 	onCalculate?: () => void;
@@ -59,22 +44,6 @@ interface ValueCalculatorConfigurationProps {
 	setPlannedYears: Dispatch<SetStateAction<string>>;
 	firstYearOperation: string;
 	setFirstYearOperation: Dispatch<SetStateAction<string>>;
-	isLowLevelExpanded: boolean;
-	setIsLowLevelExpanded: Dispatch<SetStateAction<boolean>>;
-	lowLevelConfigA: Record<string, string>;
-	setLowLevelConfigA: Dispatch<SetStateAction<Record<string, string>>>;
-	lowLevelConfigB: Record<string, string>;
-	setLowLevelConfigB: Dispatch<SetStateAction<Record<string, string>>>;
-	isAdvancedExpanded: boolean;
-	setIsAdvancedExpanded: Dispatch<SetStateAction<boolean>>;
-	advancedConfigA: Record<string, string | boolean>;
-	setAdvancedConfigA: Dispatch<
-		SetStateAction<Record<string, string | boolean>>
-	>;
-	advancedConfigB: Record<string, string | boolean>;
-	setAdvancedConfigB: Dispatch<
-		SetStateAction<Record<string, string | boolean>>
-	>;
 	comparisonMode: "single" | "compare" | null;
 	setComparisonMode: Dispatch<SetStateAction<"single" | "compare" | null>>;
 	// Data from parent component
@@ -120,18 +89,6 @@ export default function ValueCalculatorConfiguration({
 	setPlannedYears,
 	firstYearOperation,
 	setFirstYearOperation,
-	isLowLevelExpanded,
-	setIsLowLevelExpanded,
-	lowLevelConfigA,
-	setLowLevelConfigA,
-	lowLevelConfigB,
-	setLowLevelConfigB,
-	isAdvancedExpanded,
-	setIsAdvancedExpanded,
-	advancedConfigA,
-	setAdvancedConfigA,
-	advancedConfigB,
-	setAdvancedConfigB,
 	comparisonMode,
 	setComparisonMode,
 	// Data from parent component
@@ -158,43 +115,10 @@ export default function ValueCalculatorConfiguration({
 		if (!solution?.parameters) return [];
 		return solution.parameters.filter(
 			(param: any) =>
-				param.provided_by === "user" &&
+				(param.user_interface === "input" || param.user_interface === "static") &&
 				param.category?.name === category
 		);
 	};
-
-	// Determine if cards should be expanded by default based on content
-	const hasHighLevelContent = () => {
-		const solutionAParams = getSolutionParameters(fetchedSolutionA, "High Level Configuration");
-		const solutionBParams = getSolutionParameters(fetchedSolutionB, "High Level Configuration");
-		return solutionAParams.length > 0 || solutionBParams.length > 0;
-	};
-
-	const hasLowLevelContent = () => {
-		const solutionAParams = getSolutionParameters(fetchedSolutionA, "Low Level Configuration");
-		const solutionBParams = getSolutionParameters(fetchedSolutionB, "Low Level Configuration");
-		return solutionAParams.length > 0 || solutionBParams.length > 0;
-	};
-
-	const hasAdvancedContent = () => {
-		const solutionAParams = getSolutionParameters(fetchedSolutionA, "Advanced Level Configuration");
-		const solutionBParams = getSolutionParameters(fetchedSolutionB, "Advanced Level Configuration");
-		return solutionAParams.length > 0 || solutionBParams.length > 0;
-	};
-
-	// Set expansion state based on content
-	useEffect(() => {
-		if (hasHighLevelContent()) {
-			// High level card should always be visible when there's content
-			// (it doesn't have expand/collapse functionality)
-		}
-		if (hasLowLevelContent() && !isLowLevelExpanded) {
-			setIsLowLevelExpanded(true);
-		}
-		if (hasAdvancedContent() && !isAdvancedExpanded) {
-			setIsAdvancedExpanded(true);
-		}
-	}, [fetchedSolutionA, fetchedSolutionB, isLowLevelExpanded, isAdvancedExpanded, setIsLowLevelExpanded, setIsAdvancedExpanded]);
 
 	const availableTechnologies = selectedIndustry
 		? technologies.filter((tech) =>
@@ -221,40 +145,6 @@ export default function ValueCalculatorConfiguration({
 		  )
 		: [];
 
-	const availableLowLevelConfig = selectedSolution
-		? mockLowLevelConfig[selectedSolution] || []
-		: [];
-
-	const getAdvancedConfig = (variantId: string): AdvancedConfigItem[] => {
-		if (selectedSolution && mockAdvancedConfig[selectedSolution]) {
-			return mockAdvancedConfig[selectedSolution][variantId] || [];
-		}
-		return [];
-	};
-
-	const getSelectedSolutionA = () =>
-		clientSolutions.find((s) => s.id === solutionVariantA);
-	const getSelectedSolutionB = () =>
-		clientSolutions.find((s) => s.id === solutionVariantB);
-
-	const getAdvancedConfigForSolution = (
-		solutionId: string
-	): AdvancedConfigItem[] => {
-		const solution = clientSolutions.find((s) => s.id === solutionId);
-		if (!solution) return [];
-
-		const mockSolutionKey = Object.keys(mockAdvancedConfig).find((key) =>
-			key.toLowerCase().includes(solution.solution_name.toLowerCase())
-		);
-
-		if (mockSolutionKey && mockAdvancedConfig[mockSolutionKey]) {
-			const firstVariant = Object.keys(mockAdvancedConfig[mockSolutionKey])[0];
-			return mockAdvancedConfig[mockSolutionKey][firstVariant] || [];
-		}
-
-		return [];
-	};
-
 	const handleIndustryChange = (industryId: string) => {
 		setSelectedIndustry(industryId);
 		setSelectedTechnology("");
@@ -270,47 +160,6 @@ export default function ValueCalculatorConfiguration({
 		setSelectedSolution(solutionId);
 		setSolutionVariantA("");
 		setSolutionVariantB("");
-		const config = mockLowLevelConfig[solutionId] || [];
-		const initialConfig: Record<string, string> = {};
-		config.forEach((item) => {
-			initialConfig[item.id] = item.value;
-		});
-		setLowLevelConfigA(initialConfig);
-		setLowLevelConfigB(initialConfig);
-	};
-
-	const handleLowLevelConfigAChange = (configId: string, value: string) => {
-		setLowLevelConfigA((prev: Record<string, string>) => ({
-			...prev,
-			[configId]: value,
-		}));
-	};
-
-	const handleLowLevelConfigBChange = (configId: string, value: string) => {
-		setLowLevelConfigB((prev: Record<string, string>) => ({
-			...prev,
-			[configId]: value,
-		}));
-	};
-
-	const handleAdvancedConfigAChange = (
-		configId: string,
-		value: string | boolean
-	) => {
-		setAdvancedConfigA((prev: Record<string, string | boolean>) => ({
-			...prev,
-			[configId]: value,
-		}));
-	};
-
-	const handleAdvancedConfigBChange = (
-		configId: string,
-		value: string | boolean
-	) => {
-		setAdvancedConfigB((prev: Record<string, string | boolean>) => ({
-			...prev,
-			[configId]: value,
-		}));
 	};
 
 	const handleParameterValueChange = (parameterId: string, value: any) => {
@@ -519,11 +368,11 @@ export default function ValueCalculatorConfiguration({
 											<div className="w-3 h-3 bg-gray-500 rounded-full"></div>
 											<div className="flex-1">
 												<div className="font-medium text-gray-900">
-													{getSelectedSolutionA()?.solution_name ||
+													{clientSolutions.find((s) => s.id === solutionVariantA)?.solution_name ||
 														"Selected Solution"}
 												</div>
 												<div className="text-sm text-gray-700">
-													{getSelectedSolutionA()?.solution_description ||
+													{clientSolutions.find((s) => s.id === solutionVariantA)?.solution_description ||
 														"No description available"}
 												</div>
 											</div>
@@ -595,11 +444,11 @@ export default function ValueCalculatorConfiguration({
 															Variant A
 														</div>
 														<div className="font-medium text-gray-900">
-															{getSelectedSolutionA()?.solution_name ||
+															{clientSolutions.find((s) => s.id === solutionVariantA)?.solution_name ||
 																"Selected Solution"}
 														</div>
 														<div className="text-sm text-gray-700">
-															{getSelectedSolutionA()?.solution_description ||
+															{clientSolutions.find((s) => s.id === solutionVariantA)?.solution_description ||
 																"No description available"}
 														</div>
 													</div>
@@ -616,11 +465,11 @@ export default function ValueCalculatorConfiguration({
 															Variant B
 														</div>
 														<div className="font-medium text-gray-800">
-															{getSelectedSolutionB()?.solution_name ||
+															{clientSolutions.find((s) => s.id === solutionVariantB)?.solution_name ||
 																"Selected Solution"}
 														</div>
 														<div className="text-sm text-gray-600">
-															{getSelectedSolutionB()?.solution_description ||
+															{clientSolutions.find((s) => s.id === solutionVariantB)?.solution_description ||
 																"No description available"}
 														</div>
 													</div>
@@ -721,8 +570,16 @@ export default function ValueCalculatorConfiguration({
 				</Card>
 			)}
 
-			{/* High Level Configuration Card - Project Settings and Parameters */}
-			<HighLevelConfigCard
+			{/* Global Configuration Card - Display Solution Parameters */}
+			{((comparisonMode === "single" &&
+				solutionVariantA &&
+				clientSolutions.length > 0) ||
+				(comparisonMode === "compare" &&
+					solutionVariantA &&
+					solutionVariantB &&
+					clientSolutions.length > 0)) && (
+				<div className="space-y-6">
+					<GlobalConfigCard
 				comparisonMode={comparisonMode}
 				solutionVariantA={solutionVariantA}
 				solutionVariantB={solutionVariantB}
@@ -732,38 +589,8 @@ export default function ValueCalculatorConfiguration({
 				parameterValues={parameterValues}
 				handleParameterValueChange={handleParameterValueChange}
 			/>
-
-			{/* Low Level Configuration Card - Technical Specifications */}
-			<LowLevelConfigCard
-				comparisonMode={comparisonMode}
-				solutionVariantA={solutionVariantA}
-				solutionVariantB={solutionVariantB}
-				clientSolutions={clientSolutions}
-				fetchedSolutionA={fetchedSolutionA}
-				fetchedSolutionB={fetchedSolutionB}
-				parameterValues={parameterValues}
-				handleParameterValueChange={handleParameterValueChange}
-			/>
-
-			{/* Advanced Configuration Card - Custom Parameters and Settings */}
-			<AdvancedLevelConfigCard
-				comparisonMode={comparisonMode}
-				solutionVariantA={solutionVariantA}
-				solutionVariantB={solutionVariantB}
-				clientSolutions={clientSolutions}
-				fetchedSolutionA={fetchedSolutionA}
-				fetchedSolutionB={fetchedSolutionB}
-				parameterValues={parameterValues}
-				handleParameterValueChange={handleParameterValueChange}
-				advancedConfigA={advancedConfigA}
-				advancedConfigB={advancedConfigB}
-				handleAdvancedConfigAChange={handleAdvancedConfigAChange}
-				handleAdvancedConfigBChange={handleAdvancedConfigBChange}
-				getAdvancedConfig={getAdvancedConfig}
-				getAdvancedConfigForSolution={getAdvancedConfigForSolution}
-				isAdvancedExpanded={isAdvancedExpanded}
-				setIsAdvancedExpanded={setIsAdvancedExpanded}
-			/>
+				</div>
+			)}
 
 			{/* Calculate Button - Trigger Value Calculation */}
 			{((comparisonMode === "single" &&

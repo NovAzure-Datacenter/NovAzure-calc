@@ -11,8 +11,7 @@ import { Input } from "@/components/ui/input";
 import { ChevronUp, ChevronDown } from "lucide-react";
 import { useState, useEffect } from "react";
 
-
-export default function LowLevelConfigCard({
+export default function GlobalConfigCard({
 	comparisonMode,
 	solutionVariantA,
 	solutionVariantB,
@@ -31,7 +30,7 @@ export default function LowLevelConfigCard({
 	parameterValues: any;
 	handleParameterValueChange: (parameterId: string, value: any) => void;
 }) {
-	const [isLowLevelExpanded, setIsLowLevelExpanded] = useState(false);
+	const [isExpanded, setIsExpanded] = useState(false);
 
 	// Helper function to format range values as percentages
 	const formatRangeValue = (value: string, unit: string) => {
@@ -87,10 +86,10 @@ export default function LowLevelConfigCard({
 
 	// Set expansion state based on content
 	useEffect(() => {
-		if (hasContent && !isLowLevelExpanded) {
-			setIsLowLevelExpanded(true);
+		if (hasContent && !isExpanded) {
+			setIsExpanded(true);
 		}
-	}, [hasContent, isLowLevelExpanded]);
+	}, [hasContent, isExpanded]);
 
 	// Find shared parameters (parameters with the same name)
 	const getSharedParameters = () => {
@@ -145,6 +144,12 @@ export default function LowLevelConfigCard({
 						<div className="flex items-center gap-1">
 							<div className="w-2 h-2 bg-gray-400 rounded-full"></div>
 							<span className="text-xs text-gray-500">Info</span>
+						</div>
+					)}
+					{parameter.user_interface === "static" && (
+						<div className="flex items-center gap-1">
+							<div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+							<span className="text-xs text-blue-500">Static</span>
 						</div>
 					)}
 				</div>
@@ -355,20 +360,20 @@ export default function LowLevelConfigCard({
 						) {
 							return;
 						}
-						setIsLowLevelExpanded(!isLowLevelExpanded);
+						setIsExpanded(!isExpanded);
 					}}
 				>
 					<CardHeader>
 						<div className="flex justify-between items-center">
-							<CardTitle className="text-lg">Parameters</CardTitle>
-							{isLowLevelExpanded ? (
+							<CardTitle className="text-lg">Solution Parameters</CardTitle>
+							{isExpanded ? (
 								<ChevronUp className="h-5 w-5" />
 							) : (
 								<ChevronDown className="h-5 w-5" />
 							)}
 						</div>
 					</CardHeader>
-					{isLowLevelExpanded && (
+					{isExpanded && (
 						<CardContent className="space-y-6">
 							{comparisonMode === "single" ? (
 								// Single mode - show all parameters from solution A
@@ -465,4 +470,4 @@ export default function LowLevelConfigCard({
 			)}
 		</>
 	);
-}
+} 

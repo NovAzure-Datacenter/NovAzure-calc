@@ -45,12 +45,7 @@ export default function PreviewDialog({
 }: PreviewDialogProps) {
 	
 	// Filter parameters that are provided by user
-	const userParameters = parameters.filter(param => param.provided_by === "user");
-	
-	// Filter parameters by configuration level
-	const highLevelParameters = userParameters.filter(param => param.category.name === "High Level Configuration");
-	const lowLevelParameters = userParameters.filter(param => param.category.name === "Low Level Configuration");
-	const advancedParameters = userParameters.filter(param => param.category.name === "Advanced Configuration");
+	const userParameters = parameters.filter(param => param.user_interface === "input");
 	
 	// Get selected items for display
 	const getSelectedIndustry = () => availableIndustries.find(i => i.id === selectedIndustry);
@@ -166,7 +161,7 @@ export default function PreviewDialog({
 					</CardHeader>
 					<CardContent className="space-y-6">
 						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-							{highLevelParameters.map((parameter) => (
+							{userParameters.map((parameter) => (
 								<div key={parameter.id} className="space-y-3">
 									<div className="flex items-center gap-2">
 										<Label className="text-sm font-medium">{parameter.name}</Label>
@@ -239,185 +234,9 @@ export default function PreviewDialog({
 							))}
 						</div>
 						
-						{highLevelParameters.length === 0 && (
+						{userParameters.length === 0 && (
 							<div className="text-center py-8 text-muted-foreground">
-								<p>No high level parameters to display</p>
-							</div>
-						)}
-					</CardContent>
-				</Card>
-
-				{/* Low Level Configuration Card */}
-				<Card className="w-full">
-					<CardHeader>
-						<CardTitle className="text-lg">Low Level Configuration</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-6">
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-							{lowLevelParameters.map((parameter) => (
-								<div key={parameter.id} className="space-y-3">
-									<div className="flex items-center gap-2">
-										<Label className="text-sm font-medium">{parameter.name}</Label>
-										{parameter.information && (
-											<TooltipProvider>
-												<Tooltip>
-													<TooltipTrigger asChild>
-														<Badge variant="outline" className="h-5 px-1.5 text-xs cursor-help">
-															<Info className="h-3 w-3" />
-														</Badge>
-													</TooltipTrigger>
-													<TooltipContent className="max-w-xs">
-														<p className="text-sm">{parameter.information}</p>
-													</TooltipContent>
-												</Tooltip>
-											</TooltipProvider>
-										)}
-									</div>
-									<div className="space-y-2">
-										{parameter.display_type === "dropdown" ? (
-											<div className="space-y-2">
-												<Label className="text-xs text-muted-foreground">Select {parameter.name}:</Label>
-												<Select>
-													<SelectTrigger className="w-full">
-														<SelectValue placeholder={`Select an option for ${parameter.name}`} />
-													</SelectTrigger>
-													<SelectContent>
-														{parameter.dropdown_options && parameter.dropdown_options.map((option, index) => (
-															<SelectItem key={index} value={option.key}>
-																{option.key}
-															</SelectItem>
-														))}
-													</SelectContent>
-												</Select>
-											</div>
-										) : parameter.display_type === "range" ? (
-											<div className="space-y-2">
-												<Label className="text-xs text-muted-foreground">
-													{parameter.description || `Enter ${parameter.name}`}
-												</Label>
-												<input 
-													type="number" 
-													className="w-full p-2 border rounded-md text-sm"
-													placeholder={`Enter value between ${parameter.range_min || '0'} and ${parameter.range_max || '∞'}`}
-													min={parameter.range_min}
-													max={parameter.range_max}
-													step="any"
-												/>
-												{parameter.range_min && parameter.range_max && (
-													<div className="text-xs text-muted-foreground">
-														Range: {parameter.range_min} - {parameter.range_max}
-													</div>
-												)}
-											</div>
-										) : (
-											<div className="space-y-2">
-												<Label className="text-xs text-muted-foreground">
-													{parameter.description || `Enter ${parameter.name}`}
-												
-												</Label>
-												<input 
-													type="number" 
-													className="w-full p-2 border rounded-md text-sm"
-													placeholder={`Enter ${parameter.name}`}
-												/>
-											</div>
-										)}
-									</div>
-								</div>
-							))}
-						</div>
-						
-						{lowLevelParameters.length === 0 && (
-							<div className="text-center py-8 text-muted-foreground">
-								<p>No low level parameters to display</p>
-							</div>
-						)}
-					</CardContent>
-				</Card>
-
-				{/* Advanced Configuration Card */}
-				<Card className="w-full">
-					<CardHeader>
-						<CardTitle className="text-lg">Advanced Configuration</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-6">
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-							{advancedParameters.map((parameter) => (
-								<div key={parameter.id} className="space-y-3">
-									<div className="flex items-center gap-2">
-										<Label className="text-sm font-medium">{parameter.name}</Label>
-										{parameter.information && (
-											<TooltipProvider>
-												<Tooltip>
-													<TooltipTrigger asChild>
-														<Badge variant="outline" className="h-5 px-1.5 text-xs cursor-help">
-															<Info className="h-3 w-3" />
-														</Badge>
-													</TooltipTrigger>
-													<TooltipContent className="max-w-xs">
-														<p className="text-sm">{parameter.information}</p>
-													</TooltipContent>
-												</Tooltip>
-											</TooltipProvider>
-										)}
-									</div>
-									<div className="space-y-2">
-										{parameter.display_type === "dropdown" ? (
-											<div className="space-y-2">
-												<Label className="text-xs text-muted-foreground">Select {parameter.name}:</Label>
-												<Select>
-													<SelectTrigger className="w-full">
-														<SelectValue placeholder={`Select an option for ${parameter.name}`} />
-													</SelectTrigger>
-													<SelectContent>
-														{parameter.dropdown_options && parameter.dropdown_options.map((option, index) => (
-															<SelectItem key={index} value={option.key}>
-																{option.key}
-															</SelectItem>
-														))}
-													</SelectContent>
-												</Select>
-											</div>
-										) : parameter.display_type === "range" ? (
-											<div className="space-y-2">
-												<Label className="text-xs text-muted-foreground">
-													{parameter.description || `Enter ${parameter.name}`}
-												</Label>
-												<input 
-													type="number" 
-													className="w-full p-2 border rounded-md text-sm"
-													placeholder={`Enter value between ${parameter.range_min || '0'} and ${parameter.range_max || '∞'}`}
-													min={parameter.range_min}
-													max={parameter.range_max}
-													step="any"
-												/>
-												{parameter.range_min && parameter.range_max && (
-													<div className="text-xs text-muted-foreground">
-														Range: {parameter.range_min} - {parameter.range_max}
-													</div>
-												)}
-											</div>
-										) : (
-											<div className="space-y-2">
-												<Label className="text-xs text-muted-foreground">
-													{parameter.description || `Enter ${parameter.name}`}
-												
-												</Label>
-												<input 
-													type="number" 
-													className="w-full p-2 border rounded-md text-sm"
-													placeholder={`Enter ${parameter.name}`}
-												/>
-											</div>
-										)}
-									</div>
-								</div>
-							))}
-						</div>
-						
-						{advancedParameters.length === 0 && (
-							<div className="text-center py-8 text-muted-foreground">
-								<p>No advanced parameters to display</p>
+								<p>No parameters to display</p>
 							</div>
 						)}
 					</CardContent>

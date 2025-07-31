@@ -54,8 +54,11 @@ type ConfigurationItem = {
 	// Parameter specific fields
 	value?: string;
 	test_value?: string;
-	input_type?: string;
-	provided_by?: string;
+	user_interface?: "input" | "static" | "not_viewable" | {
+		type: "input" | "static" | "not_viewable";
+		category: string;
+		is_advanced: boolean;
+	};
 	// Calculation specific fields
 	formula?: string;
 	result?: any;
@@ -149,8 +152,7 @@ export function CreateSolutionStep6({
 			type: 'parameter',
 			value: param.value,
 			test_value: param.test_value,
-			input_type: param.input_type,
-			provided_by: param.provided_by,
+			user_interface: param.user_interface,
 		})),
 		// Add calculations
 		...formData.calculations.map((calc): ConfigurationItem => ({
@@ -510,10 +512,10 @@ export function CreateSolutionStep6({
 																{item.type === 'parameter' ? (
 																	<div className="space-y-0.5">
 																		<Badge variant="outline" className="text-xs">
-																			{item.input_type}
-																		</Badge>
-																		<Badge variant="outline" className="text-xs">
-																			{item.provided_by}
+																			{typeof item.user_interface === "string" 
+																				? item.user_interface 
+																				: item.user_interface?.type || "Unknown"
+																			}
 																		</Badge>
 																	</div>
 																) : (

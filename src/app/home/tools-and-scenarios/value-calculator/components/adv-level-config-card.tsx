@@ -90,8 +90,7 @@ export default function AdvancedLevelConfigCard({
         if (!solution?.parameters) return [];
         return solution.parameters.filter(
             (param: any) =>
-                param.provided_by === "user" &&
-                param.category?.name === "Advanced Level Configuration"
+                (param.user_interface === "input" || param.user_interface === "static")
         );
     };
 
@@ -291,7 +290,7 @@ export default function AdvancedLevelConfigCard({
 				>
 					<CardHeader>
 						<div className="flex justify-between items-center">
-							<CardTitle className="text-lg">Advanced Configuration</CardTitle>
+							<CardTitle className="text-lg">Advanced Parameters</CardTitle>
 							{isAdvancedExpanded ? (
 								<ChevronUp className="h-5 w-5" />
 							) : (
@@ -306,7 +305,7 @@ export default function AdvancedLevelConfigCard({
 								<div className="space-y-4">
                                     {solutionAAdvancedConfig.length === 0 ? (
                                         <div className="text-center py-8 text-muted-foreground">
-                                            <p>No advanced configuration to display</p>
+                                            <p>No advanced parameters to display</p>
                                         </div>
                                     ) : (
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -323,7 +322,7 @@ export default function AdvancedLevelConfigCard({
                                     {sharedAdvancedConfig.length > 0 && (
                                         <div className="space-y-4">
                                             <h4 className="text-sm font-medium text-gray-700 border-b pb-2">
-                                                Shared Advanced Configuration
+                                                Shared Parameters
                                             </h4>
                                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                                 {sharedAdvancedConfig.map((sharedConfig: AdvancedConfigItem) =>
@@ -337,7 +336,7 @@ export default function AdvancedLevelConfigCard({
                                     {(uniqueAdvancedConfigA.length > 0 || uniqueAdvancedConfigB.length > 0) && (
 									<div className="space-y-4">
                                             <h4 className="text-sm font-medium text-gray-700 border-b pb-2">
-                                                Solution-Specific Advanced Configuration
+                                                Solution-Specific Parameters
 										</h4>
                                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                                                 {/* Solution A Unique Advanced Config */}
@@ -353,7 +352,7 @@ export default function AdvancedLevelConfigCard({
                                                             )
                                                         ) : (
                                                             <div className="text-center py-8 text-muted-foreground">
-                                                                <p className="text-sm">No unique advanced configuration</p>
+                                                                <p className="text-sm">No unique parameters</p>
 															</div>
 											)}
 										</div>
@@ -372,7 +371,7 @@ export default function AdvancedLevelConfigCard({
                                                             )
                                                         ) : (
                                                             <div className="text-center py-8 text-muted-foreground">
-                                                                <p className="text-sm">No unique advanced configuration</p>
+                                                                <p className="text-sm">No unique parameters</p>
 															</div>
 														)}
 													</div>
@@ -384,7 +383,7 @@ export default function AdvancedLevelConfigCard({
                                     {/* No advanced config message */}
                                     {solutionAAdvancedConfig.length === 0 && solutionBAdvancedConfig.length === 0 && (
                                         <div className="text-center py-8 text-muted-foreground">
-                                            <p>No advanced configuration to display</p>
+                                            <p>No advanced parameters to display</p>
                                         </div>
                                     )}
 								</div>

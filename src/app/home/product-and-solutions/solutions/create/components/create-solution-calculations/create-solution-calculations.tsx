@@ -434,8 +434,11 @@ export function CalculationsConfiguration({
 		description: "",
 		information: "",
 		category: "",
-		provided_by: "user",
-		input_type: "simple",
+		user_interface: {
+			type: "input" as "input" | "static" | "not_viewable",
+			category: "",
+			is_advanced: false
+		},
 		output: false,
 		display_type: "simple" as "simple" | "dropdown" | "range" | "filter",
 		dropdown_options: [] as Array<{ key: string; value: string }>,
@@ -822,15 +825,15 @@ export function CalculationsConfiguration({
 		}
 
 		// Conditional validation based on provided_by and display_type
-		if (newParameterData.provided_by === "company") {
+		if (newParameterData.user_interface.type === "static") {
 			if (newParameterData.display_type === "simple" && !newParameterData.value.trim()) {
-				toast.error("Value is required when provided by company");
+				toast.error("Value is required when provided by static");
 				return;
 			} else if (newParameterData.display_type === "range" && (!newParameterData.range_min.trim() || !newParameterData.range_max.trim())) {
-				toast.error("Range min and max values are required when provided by company");
+				toast.error("Range min and max values are required when provided by static");
 				return;
 			} else if ((newParameterData.display_type === "dropdown" || newParameterData.display_type === "filter") && newParameterData.dropdown_options.length === 0) {
-				toast.error("Options are required when provided by company");
+				toast.error("Options are required when provided by static");
 				return;
 			}
 		}
@@ -848,8 +851,7 @@ export function CalculationsConfiguration({
 				name: newParameterData.category,
 				color: "gray", // Default color
 			},
-			provided_by: newParameterData.provided_by,
-			input_type: newParameterData.input_type,
+			user_interface: newParameterData.user_interface,
 			output: newParameterData.output,
 			display_type: newParameterData.display_type,
 			dropdown_options: newParameterData.dropdown_options,
@@ -882,8 +884,11 @@ export function CalculationsConfiguration({
 			description: "",
 			information: "",
 			category: "",
-			provided_by: "user",
-			input_type: "simple",
+			user_interface: {
+				type: "input",
+				category: "",
+				is_advanced: false
+			},
 			output: false,
 			display_type: "simple",
 			dropdown_options: [],
@@ -975,21 +980,51 @@ export function CalculationsConfiguration({
 			tokens.push(currentToken.trim());
 		}
 
-		// Remove the last token
-		if (tokens.length > 0) {
-			tokens.pop();
-		}
-
-		// Reconstruct the formula from remaining tokens
-		const newFormula = tokens.join(' ');
-		setFormula(newFormula);
+		return tokens.map((token, index) => {
+			if (/^[+\-*/()]+$/.test(token)) {
+				// Operators
+				return (
+					<Badge
+						key={index}
+						variant="outline"
+						className="text-blue-600 border-blue-200 bg-blue-50 text-xs font-mono"
+					>
+						{token}
+					</Badge>
+				);
+			} else if (/^\d+$/.test(token)) {
+				// Numbers
+				return (
+					<Badge
+						key={index}
+						variant="outline"
+						className="text-purple-600 border-purple-200 bg-purple-50 text-xs font-mono"
+					>
+						{token}
+					</Badge>
+				);
+			} else if (token.trim()) {
+				// Parameters (including those with spaces)
+				return (
+					<Badge
+						key={index}
+						variant="outline"
+						className="text-gray-600 border-gray-200 bg-gray-50 text-xs font-mono"
+					>
+						{token}
+					</Badge>
+				);
+			} else {
+				// Empty tokens (shouldn't happen with our logic)
+				return null;
+			}
+		}).filter(Boolean);
 	};
 
 	const getColorCodedFormula = (formula: string) => {
 		// More sophisticated tokenization that preserves parameter names with spaces
 		const tokens: string[] = [];
 		let currentToken = '';
-		let inParameter = false;
 		
 		// Split by operators first, then process each part
 		const parts = formula.split(/([+\-*/()])/);
@@ -1107,8 +1142,11 @@ export function CalculationsConfiguration({
 				name: "Calculations",
 				color: "indigo"
 			},
-			provided_by: "calculation",
-			input_type: "calculation",
+			user_interface: {
+				type: "input",
+				category: "Calculations",
+				is_advanced: false
+			},
 			output: calc.output,
 			display_type: "simple",
 			dropdown_options: [],
@@ -1122,12 +1160,7 @@ export function CalculationsConfiguration({
 
 	// Function to get all available categories including configuration categories
 	const getAllAvailableCategories = () => {
-		const configurationCategories = [
-			{ name: "High Level Configuration", color: "blue" },
-			{ name: "Low Level Configuration", color: "green" },
-			{ name: "Advanced Configuration", color: "purple" }
-		];
-		return [...configurationCategories, ...customCategories];
+		return [...customCategories];
 	};
 
 	// Function to get category badge style
@@ -1419,7 +1452,7 @@ export function CalculationsConfiguration({
 											}))
 										}
 										placeholder={
-											newParameterData.provided_by === "company"
+											newParameterData.user_interface.type === "static"
 												? "Value *"
 												: "Value (optional)"
 										}
@@ -1517,50 +1550,26 @@ export function CalculationsConfiguration({
 							</Label>
 							<div className="col-span-3">
 								<Select
-									value={newParameterData.provided_by}
+									value={newParameterData.user_interface.type}
 									onValueChange={(value) =>
 										setNewParameterData((prev) => ({
 											...prev,
-											provided_by: value,
+											user_interface: {
+												...prev.user_interface,
+												type: value as "input" | "static" | "not_viewable",
+											},
 										}))
 									}
 								>
 									<SelectTrigger>
 										<SelectValue>
-											{newParameterData.provided_by || "Select provider"}
+											{newParameterData.user_interface.type || "Select provider"}
 										</SelectValue>
 									</SelectTrigger>
 									<SelectContent>
-										<SelectItem value="user">User</SelectItem>
-										<SelectItem value="company">Company</SelectItem>
-									</SelectContent>
-								</Select>
-							</div>
-						</div>
-
-						{/* Input Type */}
-						<div className="grid grid-cols-4 items-center gap-4">
-							<Label htmlFor="parameter-input-type" className="text-right">
-								Input Type
-							</Label>
-							<div className="col-span-3">
-								<Select
-									value={newParameterData.input_type}
-									onValueChange={(value) =>
-										setNewParameterData((prev) => ({
-											...prev,
-											input_type: value,
-										}))
-									}
-								>
-									<SelectTrigger>
-										<SelectValue>
-											{newParameterData.input_type || "Select type"}
-										</SelectValue>
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="simple">Simple</SelectItem>
-										<SelectItem value="advanced">Advanced</SelectItem>
+										<SelectItem value="input">User Input</SelectItem>
+										<SelectItem value="static">Static Value</SelectItem>
+										<SelectItem value="not_viewable">Not Viewable</SelectItem>
 									</SelectContent>
 								</Select>
 							</div>
@@ -1603,7 +1612,7 @@ export function CalculationsConfiguration({
 							disabled={
 								!newParameterData.name.trim() ||
 								!newParameterData.unit.trim() ||
-								(newParameterData.provided_by === "company" &&
+								(newParameterData.user_interface.type === "static" &&
 									((newParameterData.display_type === "simple" && !newParameterData.value.trim()) ||
 									 (newParameterData.display_type === "range" && (!newParameterData.range_min.trim() || !newParameterData.range_max.trim())) ||
 									 (newParameterData.display_type === "dropdown" && newParameterData.dropdown_options.length === 0) ||

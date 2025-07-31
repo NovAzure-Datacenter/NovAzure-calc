@@ -72,8 +72,7 @@ export default function HighLevelConfigCard({
 		if (!solution?.parameters) return [];
 		return solution.parameters.filter(
 			(param: any) =>
-				param.provided_by === "user" &&
-				param.category?.name === "High Level Configuration"
+				(param.user_interface === "input" || param.user_interface === "static")
 		);
 	};
 
@@ -336,7 +335,7 @@ export default function HighLevelConfigCard({
 				>
 					<CardHeader>
 						<div className="flex justify-between items-center">
-							<CardTitle className="text-lg">High Level Configuration</CardTitle>
+							<CardTitle className="text-lg">Configuration Parameters</CardTitle>
 							{isHighLevelExpanded ? (
 								<ChevronUp className="h-5 w-5" />
 							) : (
@@ -351,7 +350,7 @@ export default function HighLevelConfigCard({
 								<div className="space-y-4">
 									{solutionAParameters.length === 0 ? (
 										<div className="text-center py-8 text-muted-foreground">
-											<p>No high level parameters to display</p>
+											<p>No configuration parameters to display</p>
 										</div>
 									) : (
 										<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -429,7 +428,7 @@ export default function HighLevelConfigCard({
 									{/* No parameters message */}
 									{solutionAParameters.length === 0 && solutionBParameters.length === 0 && (
 										<div className="text-center py-8 text-muted-foreground">
-											<p>No high level parameters to display</p>
+											<p>No configuration parameters to display</p>
 										</div>
 									)}
 								</div>
