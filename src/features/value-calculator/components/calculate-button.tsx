@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ClientSolution } from "@/lib/actions/clients-solutions/clients-solutions";
+import { ClientSolution } from "../api";
 import { SetStateAction, useState } from "react";
 import { Dispatch } from "react";
 import { Loader2 } from "lucide-react";
@@ -24,7 +24,8 @@ export default function CalculateButton({
 	setResultData,
 }: CalculateButtonProps) {
 	const [isCalculating, setIsCalculating] = useState(false);
-
+	console.log(parameterValues)
+	console.log(fetchedSolutionA)
 	const cleanParameterName = (name: string): string => {
 		return name
 			.trim()
@@ -235,7 +236,7 @@ export default function CalculateButton({
 					
 					}
 				}
-			} else if (userInterfaceType === "static") {
+			} else if (userInterfaceType === "static" || userInterfaceType === "not_viewable") {
 				let numValue = null;
 
 				// If parameter has dropdown options, try filter-based resolution first
@@ -258,7 +259,7 @@ export default function CalculateButton({
 					inputs[cleanName] = numValue;
 					
 				} else {
-					console.log(`Static parameter "${param.name}" has no valid value`);
+					console.log(`${userInterfaceType === "static" ? "Static" : "Not viewable"} parameter "${param.name}" has no valid value`);
 				}
 			}
 
@@ -267,15 +268,15 @@ export default function CalculateButton({
 				type:
 					userInterfaceType === "input"
 						? "USER"
-						: userInterfaceType === "static"
+						: userInterfaceType === "static" || userInterfaceType === "not_viewable"
 						? "COMPANY"
 						: "CALCULATION",
 			};
 
 			// Only add non-filter parameters to the parameters array
 			if (param.display_type !== "filter") {
-				// Set value for static parameters
-				if (userInterfaceType === "static") {
+				// Set value for static and not_viewable parameters
+				if (userInterfaceType === "static" || userInterfaceType === "not_viewable") {
 					let paramValue = null;
 
 					// If parameter has dropdown options, try filter-based resolution first
