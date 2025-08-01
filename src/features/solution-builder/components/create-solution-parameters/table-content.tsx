@@ -23,23 +23,196 @@ import {
 	TooltipProvider,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Edit, Info, Save, X, Plus, Trash, Lock, Download } from "lucide-react";
+import {
+	DropdownMenu,
+	DropdownMenuCheckboxItem,
+	DropdownMenuContent,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Edit, Info, Save, X, Plus, Trash, Lock, Download, ChevronDown } from "lucide-react";
 import {
 	getCategoryBadgeStyle,
 	getCategoryBadgeStyleForDropdown,
-} from "./color-utils";
-import React from "react";
+} from "../../../../utils/color-utils";
+import React, { useEffect, useState } from "react";
 import {
-	ConditionalRulesEditor,
-	FilterOptionsEditor,
-	DropdownOptionsEditor,
-	SimpleInputEditor,
-	RangeInputEditor,
 	getDisplayTypeBadgeStyle,
 	renderDisplayTypeEditor,
 	renderDisplayTypeViewer,
 	getUserInterfaceBadgeStyle,
 } from "@/components/table-components/parameter-types";
+
+// Column visibility state type
+export interface ColumnVisibility {
+	parameterName: boolean;
+	category: boolean;
+	displayType: boolean;
+	value: boolean;
+	testValue: boolean;
+	unit: boolean;
+	description: boolean;
+	information: boolean;
+	userInterface: boolean;
+	output: boolean;
+	actions: boolean;
+}
+
+// Column filter component
+export function ColumnFilter({ 
+	columnVisibility, 
+	setColumnVisibility 
+}: { 
+	columnVisibility: ColumnVisibility; 
+	setColumnVisibility: React.Dispatch<React.SetStateAction<ColumnVisibility>>; 
+}) {
+	const [isOpen, setIsOpen] = useState(false);
+
+	const handleToggle = () => {
+		setIsOpen(!isOpen);
+	};
+
+	const handleItemChange = (key: keyof ColumnVisibility, checked: boolean) => {
+		console.log(`${key} changed:`, checked);
+		setColumnVisibility(prev => ({ ...prev, [key]: checked }));
+	};
+
+	// Handle clicking outside to close dropdown
+	React.useEffect(() => {
+		const handleClickOutside = (event: MouseEvent) => {
+			const target = event.target as Element;
+			if (isOpen && !target.closest('.column-filter-dropdown')) {
+				setIsOpen(false);
+			}
+		};
+
+		if (isOpen) {
+			document.addEventListener('mousedown', handleClickOutside);
+		}
+
+		return () => {
+			document.removeEventListener('mousedown', handleClickOutside);
+		};
+	}, [isOpen]);
+
+	return (
+		<div className="relative column-filter-dropdown">
+			<Button 
+				variant="outline" 
+				size="sm" 
+				className="text-xs"
+				onClick={handleToggle}
+			>
+				Columns <ChevronDown className="h-3 w-3 ml-1" />
+			</Button>
+
+			{isOpen && (
+				<div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-[9999] min-w-[200px]">
+					<div className="p-1">
+						<label className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer">
+							<input
+								type="checkbox"
+								checked={columnVisibility.parameterName}
+								onChange={(e) => handleItemChange('parameterName', e.target.checked)}
+								className="mr-2"
+							/>
+							Parameter Name
+						</label>
+						<label className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer">
+							<input
+								type="checkbox"
+								checked={columnVisibility.category}
+								onChange={(e) => handleItemChange('category', e.target.checked)}
+								className="mr-2"
+							/>
+							Category
+						</label>
+						<label className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer">
+							<input
+								type="checkbox"
+								checked={columnVisibility.displayType}
+								onChange={(e) => handleItemChange('displayType', e.target.checked)}
+								className="mr-2"
+							/>
+							Display Type
+						</label>
+						<label className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer">
+							<input
+								type="checkbox"
+								checked={columnVisibility.value}
+								onChange={(e) => handleItemChange('value', e.target.checked)}
+								className="mr-2"
+							/>
+							Value
+						</label>
+						<label className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer">
+							<input
+								type="checkbox"
+								checked={columnVisibility.testValue}
+								onChange={(e) => handleItemChange('testValue', e.target.checked)}
+								className="mr-2"
+							/>
+							Test Value
+						</label>
+						<label className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer">
+							<input
+								type="checkbox"
+								checked={columnVisibility.unit}
+								onChange={(e) => handleItemChange('unit', e.target.checked)}
+								className="mr-2"
+							/>
+							Unit
+						</label>
+						<label className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer">
+							<input
+								type="checkbox"
+								checked={columnVisibility.description}
+								onChange={(e) => handleItemChange('description', e.target.checked)}
+								className="mr-2"
+							/>
+							Description
+						</label>
+						<label className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer">
+							<input
+								type="checkbox"
+								checked={columnVisibility.information}
+								onChange={(e) => handleItemChange('information', e.target.checked)}
+								className="mr-2"
+							/>
+							Information
+						</label>
+						<label className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer">
+							<input
+								type="checkbox"
+								checked={columnVisibility.userInterface}
+								onChange={(e) => handleItemChange('userInterface', e.target.checked)}
+								className="mr-2"
+							/>
+							User Interface
+						</label>
+						<label className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer">
+							<input
+								type="checkbox"
+								checked={columnVisibility.output}
+								onChange={(e) => handleItemChange('output', e.target.checked)}
+								className="mr-2"
+							/>
+							Output
+						</label>
+						<label className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer">
+							<input
+								type="checkbox"
+								checked={columnVisibility.actions}
+								onChange={(e) => handleItemChange('actions', e.target.checked)}
+								className="mr-2"
+							/>
+							Actions
+						</label>
+					</div>
+				</div>
+			)}
+		</div>
+	);
+}
 
 /**
  * TableContent component - Main parameter table with editing capabilities
@@ -67,6 +240,8 @@ export default function TableContent({
 	searchQuery,
 	parameters,
 	activeTab,
+	columnVisibility,
+	setColumnVisibility,
 }: {
 	filteredParameters: Parameter[];
 	editingParameter: string | null;
@@ -168,6 +343,8 @@ export default function TableContent({
 	searchQuery: string;
 	parameters: Parameter[];
 	activeTab: string;
+	columnVisibility: ColumnVisibility;
+	setColumnVisibility: React.Dispatch<React.SetStateAction<ColumnVisibility>>;
 }) {
 	/**
 	 * Wrapper function to match expected signature for category badge styling
@@ -241,10 +418,10 @@ export default function TableContent({
 
 	return (
 		<div className="border rounded-lg">
-			<div className="max-h-[55vh] overflow-y-auto ">
+			<div className="max-h-[55vh] overflow-y-auto relative">
 				<TooltipProvider>
 					<Table>
-						<ParameterTableHeader />
+						<ParameterTableHeader columnVisibility={columnVisibility} />
 						<ParameterTableBody
 							isAddingParameter={isAddingParameter}
 							newParameterData={newParameterData}
@@ -270,6 +447,8 @@ export default function TableContent({
 							activeTab={activeTab}
 							handleAddParameter={handleAddParameter}
 							getDisplayTypeBadgeStyle={getDisplayTypeBadgeStyle}
+							columnVisibility={columnVisibility}
+							setColumnVisibility={setColumnVisibility}
 						/>
 					</Table>
 				</TooltipProvider>
@@ -281,106 +460,128 @@ export default function TableContent({
 /**
  * ParameterTableHeader component - Renders the table header with column definitions and tooltips
  */
-function ParameterTableHeader() {
+function ParameterTableHeader({ columnVisibility }: { columnVisibility: ColumnVisibility }) {
 	return (
 		<TableHeader className="sticky top-0 bg-background z-10">
 			<TableRow>
-				<TableHead className="w-48 bg-background">Parameter Name</TableHead>
-				<TableHead className="w-32 bg-background">Category</TableHead>
-				<TableHead className="w-32 bg-background">
-					<Tooltip>
-						<TooltipTrigger asChild>
-							<div className="flex items-center gap-1 cursor-help">
-								Display Type
-								<Info className="h-3 w-3 text-muted-foreground" />
-							</div>
-						</TooltipTrigger>
-						<TooltipContent>
-							<p className="text-sm">
-								How the value is displayed in the calculator
-							</p>
-							<p className="text-xs text-muted-foreground mt-1">
-								• <strong>Simple:</strong> Text input field
-								<br />• <strong>Dropdown:</strong> Select from predefined
-								options
-								<br />• <strong>Range:</strong> Min/Max number range
-								<br />• <strong>Filter:</strong> Multiple filter options
-							</p>
-						</TooltipContent>
-					</Tooltip>
-				</TableHead>
-				<TableHead className="w-32 bg-background">
-					<Tooltip>
-						<TooltipTrigger asChild>
-							<div className="flex items-center gap-1 cursor-help">
-								Value
-								<Info className="h-3 w-3 text-muted-foreground" />
-							</div>
-						</TooltipTrigger>
-						<TooltipContent>
-							<p className="text-sm">The numerical value for this parameter</p>
-						</TooltipContent>
-					</Tooltip>
-				</TableHead>
-				<TableHead className="w-32 bg-background">
-					<Tooltip>
-						<TooltipTrigger asChild>
-							<div className="flex items-center gap-1 cursor-help">
-								Test Value
-								<Info className="h-3 w-3 text-muted-foreground" />
-							</div>
-						</TooltipTrigger>
-						<TooltipContent>
-							<p className="text-sm">
-								A test value used for validation and testing purposes
-							</p>
-						</TooltipContent>
-					</Tooltip>
-				</TableHead>
-				<TableHead className="w-20 bg-background">Unit</TableHead>
-				<TableHead className="bg-background">Description</TableHead>
-				<TableHead className="bg-background">Information</TableHead>
-				<TableHead className="w-32 bg-background">
-					<Tooltip>
-						<TooltipTrigger asChild>
-							<div className="flex items-center gap-1 cursor-help">
-								User Interface
-								<Info className="h-3 w-3 text-muted-foreground" />
-							</div>
-						</TooltipTrigger>
-						<TooltipContent>
-							<p className="text-sm">
-								Who provides this value during the value calculator
-							</p>
-							<p className="text-xs text-muted-foreground mt-1">
-								• <strong>Input:</strong> Client provides during calculation
-								<br />• <strong>Static:</strong> Pre-loaded by company
-								<br />• <strong>Not Viewable:</strong> System-managed
-								(read-only)
-							</p>
-						</TooltipContent>
-					</Tooltip>
-				</TableHead>
-				<TableHead className="w-32 bg-background">
-					<Tooltip>
-						<TooltipTrigger asChild>
-							<div className="flex items-center gap-1 cursor-help">
-								Output
-								<Info className="h-3 w-3 text-muted-foreground" />
-							</div>
-						</TooltipTrigger>
-						<TooltipContent>
-							<p className="text-sm">
-								Whether this parameter is visible during the value calculator
-							</p>
-							<p className="text-xs text-muted-foreground mt-1">
-								• <strong>True:</strong> Visible to client
-								<br />• <strong>False:</strong> Hidden from client
-							</p>
-						</TooltipContent>
-					</Tooltip>
-				</TableHead>
-				<TableHead className="w-24 bg-background">Actions</TableHead>
+				{columnVisibility.parameterName && (
+					<TableHead className="w-48 bg-background">Parameter Name</TableHead>
+				)}
+				{columnVisibility.category && (
+					<TableHead className="w-32 bg-background">Category</TableHead>
+				)}
+				{columnVisibility.displayType && (
+					<TableHead className="w-32 bg-background">
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<div className="flex items-center gap-1 cursor-help">
+									Display Type
+									<Info className="h-3 w-3 text-muted-foreground" />
+								</div>
+							</TooltipTrigger>
+							<TooltipContent>
+								<p className="text-sm">
+									How the value is displayed in the calculator
+								</p>
+								<p className="text-xs text-muted-foreground mt-1">
+									• <strong>Simple:</strong> Text input field
+									<br />• <strong>Dropdown:</strong> Select from predefined
+									options
+									<br />• <strong>Range:</strong> Min/Max number range
+									<br />• <strong>Filter:</strong> Multiple filter options
+								</p>
+							</TooltipContent>
+						</Tooltip>
+					</TableHead>
+				)}
+				{columnVisibility.value && (
+					<TableHead className="w-32 bg-background">
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<div className="flex items-center gap-1 cursor-help">
+									Value
+									<Info className="h-3 w-3 text-muted-foreground" />
+								</div>
+							</TooltipTrigger>
+							<TooltipContent>
+								<p className="text-sm">The numerical value for this parameter</p>
+							</TooltipContent>
+						</Tooltip>
+					</TableHead>
+				)}
+				{columnVisibility.testValue && (
+					<TableHead className="w-32 bg-background">
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<div className="flex items-center gap-1 cursor-help">
+									Test Value
+									<Info className="h-3 w-3 text-muted-foreground" />
+								</div>
+							</TooltipTrigger>
+							<TooltipContent>
+								<p className="text-sm">
+									A test value used for validation and testing purposes
+								</p>
+							</TooltipContent>
+						</Tooltip>
+					</TableHead>
+				)}
+				{columnVisibility.unit && (
+					<TableHead className="w-20 bg-background">Unit</TableHead>
+				)}
+				{columnVisibility.description && (
+					<TableHead className="bg-background">Description</TableHead>
+				)}
+				{columnVisibility.information && (
+					<TableHead className="bg-background">Information</TableHead>
+				)}
+				{columnVisibility.userInterface && (
+					<TableHead className="w-32 bg-background">
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<div className="flex items-center gap-1 cursor-help">
+									User Interface
+									<Info className="h-3 w-3 text-muted-foreground" />
+								</div>
+							</TooltipTrigger>
+							<TooltipContent>
+								<p className="text-sm">
+									Who provides this value during the value calculator
+								</p>
+								<p className="text-xs text-muted-foreground mt-1">
+									• <strong>Input:</strong> Client provides during calculation
+									<br />• <strong>Static:</strong> Pre-loaded by company
+									<br />• <strong>Not Viewable:</strong> System-managed
+									(read-only)
+								</p>
+							</TooltipContent>
+						</Tooltip>
+					</TableHead>
+				)}
+				{columnVisibility.output && (
+					<TableHead className="w-32 bg-background">
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<div className="flex items-center gap-1 cursor-help">
+									Output
+									<Info className="h-3 w-3 text-muted-foreground" />
+								</div>
+							</TooltipTrigger>
+							<TooltipContent>
+								<p className="text-sm">
+									Whether this parameter is visible during the value calculator
+								</p>
+								<p className="text-xs text-muted-foreground mt-1">
+									• <strong>True:</strong> Visible to client
+									<br />• <strong>False:</strong> Hidden from client
+								</p>
+							</TooltipContent>
+						</Tooltip>
+					</TableHead>
+				)}
+				{columnVisibility.actions && (
+					<TableHead className="w-24 bg-background">Actions</TableHead>
+				)}
 			</TableRow>
 		</TableHeader>
 	);
@@ -412,6 +613,8 @@ function ParameterTableBody({
 	activeTab,
 	handleAddParameter,
 	getDisplayTypeBadgeStyle,
+	columnVisibility,
+	setColumnVisibility,
 }: {
 	isAddingParameter: boolean;
 	newParameterData: any;
@@ -435,15 +638,22 @@ function ParameterTableBody({
 	activeTab: string;
 	handleAddParameter: () => void;
 	getDisplayTypeBadgeStyle: (displayType: string) => any;
+	columnVisibility: ColumnVisibility;
+	setColumnVisibility: React.Dispatch<React.SetStateAction<ColumnVisibility>>;
 }) {
 
+
+	// Helper function to render a table cell conditionally
+	const renderCell = (isVisible: boolean, children: React.ReactNode) => {
+		return isVisible ? <TableCell className="py-2">{children}</TableCell> : null;
+	};
 
 	return (
 		<TableBody>
 			{/* Add new parameter row - appears when isAddingParameter is true */}
 			{isAddingParameter && (
 				<TableRow className="bg-green-50 border-2 border-green-200 shadow-md">
-					<TableCell className="py-2">
+					{renderCell(columnVisibility.parameterName, (
 						<div className="flex items-center gap-2">
 							<Input
 								value={newParameterData.name}
@@ -464,8 +674,8 @@ function ParameterTableBody({
 								}}
 							/>
 						</div>
-					</TableCell>
-					<TableCell className="py-2">
+					))}
+					{renderCell(columnVisibility.category, (
 						<Select
 							value={newParameterData.category}
 							onValueChange={(value) =>
@@ -502,8 +712,8 @@ function ParameterTableBody({
 								)}
 							</SelectContent>
 						</Select>
-					</TableCell>
-					<TableCell className="py-2">
+					))}
+					{renderCell(columnVisibility.displayType, (
 						<Select
 							value={newParameterData.display_type}
 							onValueChange={(value) =>
@@ -537,18 +747,18 @@ function ParameterTableBody({
 								<SelectItem value="conditional">Conditional</SelectItem>
 							</SelectContent>
 						</Select>
-					</TableCell>
-					<TableCell className="py-2">
-						{renderDisplayTypeEditor(
+					))}
+					{renderCell(columnVisibility.value, (
+						renderDisplayTypeEditor(
 							newParameterData.display_type,
 							newParameterData,
 							setNewParameterData,
 							filteredParameters,
 							handleSaveNewParameter,
 							handleCancelAddParameter
-						)}
-					</TableCell>
-					<TableCell className="py-2">
+						)
+					))}
+					{renderCell(columnVisibility.testValue, (
 						<Input
 							value={newParameterData.test_value}
 							onChange={(e) =>
@@ -568,8 +778,8 @@ function ParameterTableBody({
 								}
 							}}
 						/>
-					</TableCell>
-					<TableCell className="py-2">
+					))}
+					{renderCell(columnVisibility.unit, (
 						<Input
 							value={newParameterData.unit}
 							onChange={(e) =>
@@ -588,8 +798,8 @@ function ParameterTableBody({
 								}
 							}}
 						/>
-					</TableCell>
-					<TableCell className="py-2">
+					))}
+					{renderCell(columnVisibility.description, (
 						<Input
 							value={newParameterData.description}
 							onChange={(e) =>
@@ -608,8 +818,8 @@ function ParameterTableBody({
 								}
 							}}
 						/>
-					</TableCell>
-					<TableCell className="py-2">
+					))}
+					{renderCell(columnVisibility.information, (
 						<Input
 							value={newParameterData.information}
 							onChange={(e) =>
@@ -628,70 +838,72 @@ function ParameterTableBody({
 								}
 							}}
 						/>
-					</TableCell>
-					<TableCell className="py-2">
-						<Select
-							value={newParameterData.user_interface.type}
-							onValueChange={(value) =>
-								setNewParameterData((prev: any) => ({
-									...prev,
-									user_interface: {
-										type: value as "input" | "static" | "not_viewable",
-										category: "",
-										is_advanced: false,
-									},
-								}))
-							}
-						>
-							<SelectTrigger className="h-7 text-xs">
-								<SelectValue>
-									<span
-										style={{
-											color: getUserInterfaceBadgeStyle(
-												newParameterData.user_interface.type
-											).color,
-										}}
-									>
-										{newParameterData.user_interface.type || "Select provider"}
-									</span>
-								</SelectValue>
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="input">Input</SelectItem>
-								<SelectItem value="static">Static</SelectItem>
-								<SelectItem value="not_viewable">Not Viewable</SelectItem>
-							</SelectContent>
-						</Select>
-						{newParameterData.user_interface.type === "input" && (
+					))}
+					{renderCell(columnVisibility.userInterface, (
+						<div className="space-y-1">
 							<Select
-								value={
-									newParameterData.user_interface.is_advanced ? "true" : "false"
-								}
+								value={newParameterData.user_interface.type}
 								onValueChange={(value) =>
 									setNewParameterData((prev: any) => ({
 										...prev,
 										user_interface: {
-											...prev.user_interface,
-											is_advanced: value === "true",
+											type: value as "input" | "static" | "not_viewable",
+											category: "",
+											is_advanced: false,
 										},
 									}))
 								}
 							>
-								<SelectTrigger className="h-6 text-xs">
+								<SelectTrigger className="h-7 text-xs">
 									<SelectValue>
-										{newParameterData.user_interface.is_advanced
-											? "Advanced"
-											: "Simple"}
+										<span
+											style={{
+												color: getUserInterfaceBadgeStyle(
+													newParameterData.user_interface.type
+												).color,
+											}}
+										>
+											{newParameterData.user_interface.type || "Select provider"}
+										</span>
 									</SelectValue>
 								</SelectTrigger>
 								<SelectContent>
-									<SelectItem value="false">Simple</SelectItem>
-									<SelectItem value="true">Advanced</SelectItem>
+									<SelectItem value="input">Input</SelectItem>
+									<SelectItem value="static">Static</SelectItem>
+									<SelectItem value="not_viewable">Not Viewable</SelectItem>
 								</SelectContent>
 							</Select>
-						)}
-					</TableCell>
-					<TableCell className="py-2">
+							{newParameterData.user_interface.type === "input" && (
+								<Select
+									value={
+										newParameterData.user_interface.is_advanced ? "true" : "false"
+									}
+									onValueChange={(value) =>
+										setNewParameterData((prev: any) => ({
+											...prev,
+											user_interface: {
+												...prev.user_interface,
+												is_advanced: value === "true",
+											},
+										}))
+									}
+								>
+									<SelectTrigger className="h-6 text-xs">
+										<SelectValue>
+											{newParameterData.user_interface.is_advanced
+												? "Advanced"
+												: "Simple"}
+										</SelectValue>
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="false">Simple</SelectItem>
+										<SelectItem value="true">Advanced</SelectItem>
+									</SelectContent>
+								</Select>
+							)}
+						</div>
+					))}
+					{renderCell(columnVisibility.output, (
 						<Select
 							value={newParameterData.output ? "true" : "false"}
 							onValueChange={(value) =>
@@ -711,9 +923,8 @@ function ParameterTableBody({
 								<SelectItem value="false">False</SelectItem>
 							</SelectContent>
 						</Select>
-					</TableCell>
-
-					<TableCell className="py-2">
+					))}
+					{renderCell(columnVisibility.actions, (
 						<div className="flex items-center gap-1">
 							<Button
 								size="sm"
@@ -746,7 +957,7 @@ function ParameterTableBody({
 								<X className="h-3 w-3" />
 							</Button>
 						</div>
-					</TableCell>
+					))}
 				</TableRow>
 			)}
 
@@ -783,9 +994,11 @@ function ParameterTableBody({
 									: ""
 							}`}
 						>
+
+							
 							{/* Parameter name cell - editable when editing */}
-							<TableCell className="py-2">
-								{isEditing ? (
+							{renderCell(columnVisibility.parameterName, (
+								isEditing ? (
 									<Input
 										value={editData.name}
 										onChange={(e) =>
@@ -803,12 +1016,12 @@ function ParameterTableBody({
 											{highlightSearchTerm(parameter.name, searchQuery)}
 										</span>
 									</div>
-								)}
-							</TableCell>
+								)
+							))}
 
 							{/* Category cell - dropdown when editing, badge when viewing */}
-							<TableCell className="py-2">
-								{isEditing ? (
+							{renderCell(columnVisibility.category, (
+								isEditing ? (
 									<Select
 										value={editData.category}
 										onValueChange={(value) =>
@@ -855,12 +1068,12 @@ function ParameterTableBody({
 									>
 										{highlightSearchTerm(parameter.category.name, searchQuery)}
 									</Badge>
-								)}
-							</TableCell>
+								)
+							))}
 
 							{/* Display type cell - dropdown when editing, badge when viewing */}
-							<TableCell className="py-2">
-								{isEditing ? (
+							{renderCell(columnVisibility.displayType, (
+								isEditing ? (
 									<Select
 										value={editData.display_type}
 										onValueChange={(value) =>
@@ -907,12 +1120,12 @@ function ParameterTableBody({
 													searchQuery
 											  )}
 									</Badge>
-								)}
-							</TableCell>
+								)
+							))}
 
 							{/* Value cell - conditional rendering based on display type */}
-							<TableCell className="py-2">
-								{isEditing ? (
+							{renderCell(columnVisibility.value, (
+								isEditing ? (
 									renderDisplayTypeEditor(
 										editData.display_type,
 										editData,
@@ -930,12 +1143,12 @@ function ParameterTableBody({
 											searchQuery
 										)}
 									</span>
-								)}
-							</TableCell>
+								)
+							))}
 
 							{/* Test value cell - input when editing, text when viewing */}
-							<TableCell className="py-2">
-								{isEditing ? (
+							{renderCell(columnVisibility.testValue, (
+								isEditing ? (
 									<Input
 										value={editData.test_value}
 										onChange={(e) =>
@@ -959,12 +1172,12 @@ function ParameterTableBody({
 									<span className="text-xs text-muted-foreground">
 										{highlightSearchTerm(parameter.test_value, searchQuery)}
 									</span>
-								)}
-							</TableCell>
+								)
+							))}
 
 							{/* Unit cell - input when editing, text when viewing */}
-							<TableCell className="py-2">
-								{isEditing ? (
+							{renderCell(columnVisibility.unit, (
+								isEditing ? (
 									<Input
 										value={editData.unit}
 										onChange={(e) =>
@@ -980,12 +1193,12 @@ function ParameterTableBody({
 									<span className="text-xs text-muted-foreground">
 										{highlightSearchTerm(parameter.unit, searchQuery)}
 									</span>
-								)}
-							</TableCell>
+								)
+							))}
 
 							{/* Description cell - input when editing, text with tooltip when viewing */}
-							<TableCell className="py-2">
-								{isEditing ? (
+							{renderCell(columnVisibility.description, (
+								isEditing ? (
 									<Input
 										value={editData.description}
 										onChange={(e) =>
@@ -1011,12 +1224,12 @@ function ParameterTableBody({
 											</TooltipContent>
 										</Tooltip>
 									</div>
-								)}
-							</TableCell>
+								)
+							))}
 
 							{/* Information cell - input when editing, text with tooltip when viewing */}
-							<TableCell className="py-2">
-								{isEditing ? (
+							{renderCell(columnVisibility.information, (
+								isEditing ? (
 									<Input
 										value={editData.information}
 										onChange={(e) =>
@@ -1042,12 +1255,12 @@ function ParameterTableBody({
 											</TooltipContent>
 										</Tooltip>
 									</div>
-								)}
-							</TableCell>
+								)
+							))}
 
 							{/* User interface cell - dropdowns when editing, badges when viewing */}
-							<TableCell className="py-2">
-								{isEditing ? (
+							{renderCell(columnVisibility.userInterface, (
+								isEditing ? (
 									<div className="space-y-1">
 										<Select
 											value={editData.user_interface.type}
@@ -1172,12 +1385,12 @@ function ParameterTableBody({
 												</Badge>
 											)}
 									</div>
-								)}
-							</TableCell>
+								)
+							))}
 
 							{/* Output cell - dropdown when editing, badge when viewing */}
-							<TableCell className="py-2">
-								{isEditing ? (
+							{renderCell(columnVisibility.output, (
+								isEditing ? (
 									<Select
 										value={editData.output ? "true" : "false"}
 										onValueChange={(value) =>
@@ -1201,11 +1414,11 @@ function ParameterTableBody({
 									<Badge variant="outline" className="text-xs">
 										{isReadOnly ? "—" : parameter.output ? "True" : "False"}
 									</Badge>
-								)}
-							</TableCell>
+								)
+							))}
 
 							{/* Actions cell - edit/delete buttons when viewing, save/cancel when editing */}
-							<TableCell className="py-2">
+							{renderCell(columnVisibility.actions, (
 								<div className="flex items-center gap-1">
 									{!isEditing ? (
 										<>
@@ -1289,7 +1502,7 @@ function ParameterTableBody({
 										</>
 									)}
 								</div>
-							</TableCell>
+							))}
 						</TableRow>
 					);
 				})

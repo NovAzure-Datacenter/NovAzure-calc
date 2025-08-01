@@ -35,10 +35,8 @@ import {
 	renderDisplayTypeEditor,
 	renderDisplayTypeViewer,
 } from "@/components/table-components/parameter-types";
-import {
-	getCategoryBadgeStyle,
-	getCategoryBadgeStyleForDropdown,
-} from "@/app/home/product-and-solutions/solutions/create/components/create-solution-parameters/color-utils";
+import { getCategoryBadgeStyle, getCategoryBadgeStyleForDropdown } from "@/utils/color-utils";
+
 
 export default function GlobalParametersTableContent({
 	filteredParameters,

@@ -37,12 +37,13 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Edit, Save, X, Info, Plus, Trash, Search, Lock } from "lucide-react";
-import { Parameter } from "../../../../types";
+
 import CategoryTabs from "./category-tabs";
-import Searchbar from "./search-bar";
+import Searchbar from "../search-bar";
 import TableContent from "./table-content";
-import { getLevelColor, getCategoryTailwindClasses } from "./color-utils";
+import { getLevelColor, getCategoryTailwindClasses } from "../../../../utils/color-utils";
 import PreviewDialog from "./preview-dialog";
+import { Parameter } from "@/app/home/product-and-solutions/types";
 
 interface CreateSolutionParametersProps {
 	parameters: Parameter[];
@@ -171,6 +172,21 @@ export function CreateSolutionParameters({
 	// Search state
 	const [searchQuery, setSearchQuery] = useState("");
 	const [isPreviewDialogOpen, setIsPreviewDialogOpen] = useState(false);
+
+	// Column visibility state
+	const [columnVisibility, setColumnVisibility] = useState({
+		parameterName: true,
+		category: true,
+		displayType: true,
+		value: true,
+		testValue: true,
+		unit: true,
+		description: true,
+		information: true,
+		userInterface: true,
+		output: true,
+		actions: true,
+	});
 
 	const handleEditParameter = (parameter: Parameter) => {
 		setEditingParameter(parameter.id);
@@ -579,6 +595,8 @@ export function CreateSolutionParameters({
 				parameters={parameters}
 				customCategories={customCategories}
 				setIsPreviewDialogOpen={setIsPreviewDialogOpen}
+				columnVisibility={columnVisibility}
+				setColumnVisibility={setColumnVisibility}
 			/>
 
 			<ConfirmCategoryRemovalDialog
@@ -637,6 +655,8 @@ export function CreateSolutionParameters({
 						searchQuery={searchQuery}
 						parameters={parameters}
 						activeTab={activeTab}
+						columnVisibility={columnVisibility}
+						setColumnVisibility={setColumnVisibility}
 					/>
 				</>
 			)}

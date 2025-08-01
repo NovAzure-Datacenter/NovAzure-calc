@@ -12,11 +12,8 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import Searchbar from "@/app/home/product-and-solutions/solutions/create/components/create-solution-parameters/search-bar";
-import {
-	getCategoryStyle,
-	getActiveTabStyle,
-} from "@/app/home/product-and-solutions/solutions/create/components/create-solution-parameters/color-utils";
+
+
 import GlobalParametersTableContent from "./global-parameters-table-content";
 import GlobalParametersTabs from "./global-parameters-tabs";
 import {
@@ -27,6 +24,9 @@ import {
 } from "@/lib/actions/global-parameters/global-parameters";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { getActiveTabStyle, getCategoryStyle } from "@/utils/color-utils";
+import Searchbar from "@/features/solution-builder/components/search-bar";
+
 
 export default function GlobalParametersMain() {
 	const [activeTab, setActiveTab] = useState("All");

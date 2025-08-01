@@ -1,6 +1,6 @@
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { X, Plus } from "lucide-react";
+import { X, Plus, ChevronDown } from "lucide-react";
 import {
 	Dialog,
 	DialogContent,
@@ -9,6 +9,12 @@ import {
 	DialogDescription,
 	DialogFooter,
 } from "@/components/ui/dialog";
+import {
+	DropdownMenu,
+	DropdownMenuCheckboxItem,
+	DropdownMenuContent,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Parameter } from "@/app/home/product-and-solutions/types";
@@ -16,8 +22,9 @@ import {
 	getCategoryStyle,
 	getActiveTabStyle,
 	getAvailableColors,
-} from "./color-utils";
+} from "../../../../utils/color-utils";
 import { useState } from "react";
+import { ColumnFilter, ColumnVisibility } from "./table-content";
 
 
 const RESERVED_CATEGORY_NAMES = ["industry", "technologies", "global", "technologies"];
@@ -48,6 +55,8 @@ export default function CategoryTabs({
 	parameters,
 	customCategories,
 	setIsPreviewDialogOpen,
+	columnVisibility,
+	setColumnVisibility,
 }: {
 	activeTab: string;
 	setActiveTab: (tab: string) => void;
@@ -75,6 +84,8 @@ export default function CategoryTabs({
 	parameters: Parameter[];
 	customCategories: Array<{ name: string; color: string }>;
 	setIsPreviewDialogOpen: (open: boolean) => void;
+	columnVisibility: ColumnVisibility;
+	setColumnVisibility: React.Dispatch<React.SetStateAction<ColumnVisibility>>;
 }) {
 	const categoryColors = getAvailableColors();
 	const [categoryNameError, setCategoryNameError] = useState<string>("");
@@ -225,7 +236,7 @@ export default function CategoryTabs({
 						</p>
 					</div>
 					<div className="flex items-center gap-2">
-
+						<ColumnFilter columnVisibility={columnVisibility} setColumnVisibility={setColumnVisibility} />
 					<Button
 						className="text-xs "
 						onClick={

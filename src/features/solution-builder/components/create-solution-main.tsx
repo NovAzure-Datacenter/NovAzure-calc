@@ -31,7 +31,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
-import { Calculation, Parameter } from "../../../types";
+
 import { CreateSolutionParameters } from "./create-solution-parameters/create-solution-parameters";
 import {
 	CalculationsConfiguration,
@@ -45,6 +45,8 @@ import { DraftDialog } from "./draft-dialog";
 import Loading from "@/components/loading-main";
 import { getClientSolutions } from "@/lib/actions/clients-solutions/clients-solutions";
 import { updateClientSolution } from "@/lib/actions/clients-solutions/clients-solutions";
+import { Calculation } from "./create-solution-calculations";
+import { Parameter } from "@/app/home/product-and-solutions/types";
 
 interface CreateSolutionData {
 	selectedIndustry: string;
