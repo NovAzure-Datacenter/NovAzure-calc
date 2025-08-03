@@ -8,14 +8,18 @@ export interface Parameter {
 	unit: string;
 	description: string;
 	information: string;
-	provided_by: string;
-	input_type: string;
+	user_interface: "input" | "static" | "not_viewable" | {
+		type: "input" | "static" | "not_viewable";
+		category: string;
+		is_advanced: boolean;
+	};
 	output: boolean;
 	level: string;
-	display_type: "simple" | "dropdown" | "range" | "filter";
+	display_type: "simple" | "dropdown" | "range" | "filter" | "conditional";
 	dropdown_options?: Array<{ key: string; value: string }>;
 	range_min?: string;
 	range_max?: string;
+	conditional_rules?: Array<{ condition: string; value: string }>;
 	category: {
 		name: string;
 		color: string;

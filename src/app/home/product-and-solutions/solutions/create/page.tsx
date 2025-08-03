@@ -1,5 +1,5 @@
+import { CreateSolutionMain } from "@/features/solution-builder/components/create-solution-main";
 import { checkRoutePermission } from "@/lib/auth/check-permissions";
-import { CreateSolutionMain } from "./components/create-solution-main";
 
 export default async function CreateSolution() {
 	await checkRoutePermission("/home/product-and-solutions/solutions/create");

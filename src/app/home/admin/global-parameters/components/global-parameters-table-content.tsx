@@ -24,99 +24,19 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Edit, Info, Save, X, Plus, Trash } from "lucide-react";
+import React from "react";
 import {
-	getCategoryBadgeStyle,
-	getCategoryBadgeStyleForDropdown,
-} from "@/app/home/product-and-solutions/solutions/create/components/create-solution-parameters/color-utils";
+	ConditionalRulesEditor,
+	FilterOptionsEditor,
+	DropdownOptionsEditor,
+	SimpleInputEditor,
+	RangeInputEditor,
+	getDisplayTypeBadgeStyle,
+	renderDisplayTypeEditor,
+	renderDisplayTypeViewer,
+} from "@/components/table-components/parameter-types";
+import { getCategoryBadgeStyle, getCategoryBadgeStyleForDropdown } from "@/utils/color-utils";
 
-// CountryOptionsEditor component for managing country-based values
-function CountryOptionsEditor({
-	options,
-	onOptionsChange,
-	isEditing,
-}: {
-	options: Array<{ key: string; value: string }>;
-	onOptionsChange: (options: Array<{ key: string; value: string }>) => void;
-	isEditing: boolean;
-}) {
-	const addOption = () => {
-		onOptionsChange([...options, { key: "", value: "" }]);
-	};
-
-	const updateOption = (
-		index: number,
-		field: "key" | "value",
-		value: string
-	) => {
-		const newOptions = [...options];
-		newOptions[index] = { ...newOptions[index], [field]: value };
-		onOptionsChange(newOptions);
-	};
-
-	const removeOption = (index: number) => {
-		onOptionsChange(options.filter((_, i) => i !== index));
-	};
-
-	if (!isEditing) {
-		return (
-			<div className="text-xs text-muted-foreground">
-				{options.length > 0 ? (
-					<div className="space-y-1">
-						{options.map((option, index) => (
-							<div key={index} className="flex items-center gap-1">
-								<span className="font-medium">{option.key}:</span>
-								<span>{option.value}</span>
-							</div>
-						))}
-					</div>
-				) : (
-					<span>No country values defined</span>
-				)}
-			</div>
-		);
-	}
-
-	return (
-		<div className="space-y-2">
-			{options.map((option, index) => (
-				<div key={index} className="flex items-center gap-1">
-					<Input
-						value={option.key}
-						onChange={(e) => updateOption(index, "key", e.target.value)}
-						className="h-6 text-xs w-20"
-						placeholder="Country"
-					/>
-					<span className="text-xs">:</span>
-					<Input
-						value={option.value}
-						onChange={(e) => updateOption(index, "value", e.target.value)}
-						className="h-6 text-xs w-24"
-						placeholder="Value"
-						type="number"
-						step="any"
-					/>
-					<Button
-						size="sm"
-						variant="ghost"
-						onClick={() => removeOption(index)}
-						className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
-					>
-						<X className="h-3 w-3" />
-					</Button>
-				</div>
-			))}
-			<Button
-				size="sm"
-				variant="outline"
-				onClick={addOption}
-				className="h-6 text-xs"
-			>
-				<Plus className="h-3 w-3 mr-1" />
-				Add Country Value
-			</Button>
-		</div>
-	);
-}
 
 export default function GlobalParametersTableContent({
 	filteredParameters,
@@ -149,10 +69,11 @@ export default function GlobalParametersTableContent({
 		description: string;
 		category: string;
 		is_modifiable: boolean;
-		display_type: "simple" | "dropdown" | "range" | "filter";
+		display_type: "simple" | "dropdown" | "range" | "filter" | "conditional";
 		dropdown_options: Array<{ key: string; value: string }>;
 		range_min: string;
 		range_max: string;
+		conditional_rules: Array<{ condition: string; value: string }>;
 	};
 	setEditData: React.Dispatch<
 		React.SetStateAction<{
@@ -163,10 +84,11 @@ export default function GlobalParametersTableContent({
 			description: string;
 			category: string;
 			is_modifiable: boolean;
-			display_type: "simple" | "dropdown" | "range" | "filter";
+			display_type: "simple" | "dropdown" | "range" | "filter" | "conditional";
 			dropdown_options: Array<{ key: string; value: string }>;
 			range_min: string;
 			range_max: string;
+			conditional_rules: Array<{ condition: string; value: string }>;
 		}>
 	>;
 	handleEditParameter: (parameter: Parameter) => void;
@@ -184,10 +106,11 @@ export default function GlobalParametersTableContent({
 		description: string;
 		category: string;
 		is_modifiable: boolean;
-		display_type: "simple" | "dropdown" | "range" | "filter";
+		display_type: "simple" | "dropdown" | "range" | "filter" | "conditional";
 		dropdown_options: Array<{ key: string; value: string }>;
 		range_min: string;
 		range_max: string;
+		conditional_rules: Array<{ condition: string; value: string }>;
 	};
 	setNewParameterData: React.Dispatch<
 		React.SetStateAction<{
@@ -198,10 +121,11 @@ export default function GlobalParametersTableContent({
 			description: string;
 			category: string;
 			is_modifiable: boolean;
-			display_type: "simple" | "dropdown" | "range" | "filter";
+			display_type: "simple" | "dropdown" | "range" | "filter" | "conditional";
 			dropdown_options: Array<{ key: string; value: string }>;
 			range_min: string;
 			range_max: string;
+			conditional_rules: Array<{ condition: string; value: string }>;
 		}>
 	>;
 	handleSaveNewParameter: () => void;
@@ -390,7 +314,8 @@ export default function GlobalParametersTableContent({
 														| "simple"
 														| "dropdown"
 														| "range"
-														| "filter",
+														| "filter"
+														| "conditional",
 												}))
 											}
 										>
@@ -404,12 +329,13 @@ export default function GlobalParametersTableContent({
 												<SelectItem value="dropdown">Dropdown</SelectItem>
 												<SelectItem value="range">Range</SelectItem>
 												<SelectItem value="filter">Filter</SelectItem>
+												<SelectItem value="conditional">Conditional</SelectItem>
 											</SelectContent>
 										</Select>
 									</TableCell>
 									<TableCell className="py-2">
 										{newParameterData.display_type === "dropdown" ? (
-											<CountryOptionsEditor
+											<DropdownOptionsEditor
 												options={newParameterData.dropdown_options}
 												onOptionsChange={(options) =>
 													setNewParameterData((prev) => ({
@@ -420,69 +346,54 @@ export default function GlobalParametersTableContent({
 												isEditing={true}
 											/>
 										) : newParameterData.display_type === "range" ? (
-											<div className="space-y-2">
-												<div className="flex items-center gap-2">
-													<Input
-														value={newParameterData.range_min}
-														onChange={(e) =>
-															setNewParameterData((prev) => ({
-																...prev,
-																range_min: e.target.value,
-															}))
-														}
-														className="h-7 text-xs"
-														placeholder="Min"
-														type="number"
-														step="any"
-													/>
-													<span className="text-xs text-muted-foreground">
-														to
-													</span>
-													<Input
-														value={newParameterData.range_max}
-														onChange={(e) =>
-															setNewParameterData((prev) => ({
-																...prev,
-																range_max: e.target.value,
-															}))
-														}
-														className="h-7 text-xs"
-														placeholder="Max"
-														type="number"
-														step="any"
-													/>
-												</div>
-											</div>
+											<RangeInputEditor
+												rangeMin={newParameterData.range_min}
+												rangeMax={newParameterData.range_max}
+												onRangeChange={(field, value) =>
+													setNewParameterData((prev) => ({
+														...prev,
+														[field]: value,
+													}))
+												}
+											/>
 										) : newParameterData.display_type === "filter" ? (
-											<CountryOptionsEditor
-												options={newParameterData.dropdown_options}
+											<FilterOptionsEditor
+												options={newParameterData.dropdown_options.map((opt: any) => opt.value)}
 												onOptionsChange={(options) =>
 													setNewParameterData((prev) => ({
 														...prev,
-														dropdown_options: options,
+														dropdown_options: options.map((opt: any) => ({
+															key: "",
+															value: opt,
+														})),
 													}))
 												}
 												isEditing={true}
 											/>
-										) : (
-											<Input
-												value={newParameterData.value}
-												onChange={(e) =>
+										) : newParameterData.display_type === "conditional" ? (
+											<ConditionalRulesEditor
+												rules={newParameterData.conditional_rules || []}
+												onRulesChange={(rules) =>
 													setNewParameterData((prev) => ({
 														...prev,
-														value: e.target.value,
+														conditional_rules: rules,
 													}))
 												}
-												className="h-7 text-xs"
-												placeholder="Value *"
-												type="number"
-												onKeyDown={(e) => {
-													if (e.key === "Enter") {
-														handleSaveNewParameter();
-													} else if (e.key === "Escape") {
-														handleCancelAddParameter();
-													}
-												}}
+												isEditing={true}
+												filteredParameters={filteredParameters}
+											/>
+										) : (
+											<SimpleInputEditor
+												value={newParameterData.value}
+												onValueChange={(value) =>
+													setNewParameterData((prev) => ({
+														...prev,
+														value: value,
+													}))
+												}
+												placeholder="Value"
+												handleSave={handleSaveNewParameter}
+												handleCancel={handleCancelAddParameter}
 											/>
 										)}
 									</TableCell>
@@ -710,7 +621,8 @@ export default function GlobalParametersTableContent({
 																	| "simple"
 																	| "dropdown"
 																	| "range"
-																	| "filter",
+																	| "filter"
+																	| "conditional",
 															}))
 														}
 													>
@@ -724,10 +636,15 @@ export default function GlobalParametersTableContent({
 															<SelectItem value="dropdown">Dropdown</SelectItem>
 															<SelectItem value="range">Range</SelectItem>
 															<SelectItem value="filter">Filter</SelectItem>
+															<SelectItem value="conditional">Conditional</SelectItem>
 														</SelectContent>
 													</Select>
 												) : (
-													<Badge variant="outline" className="text-xs">
+													<Badge 
+														variant="outline" 
+														className="text-xs"
+														style={getDisplayTypeBadgeStyle(parameter.display_type)}
+													>
 														{highlightSearchTerm(
 															parameter.display_type,
 															searchQuery
@@ -738,7 +655,7 @@ export default function GlobalParametersTableContent({
 											<TableCell className="py-2">
 												{isEditing ? (
 													editData.display_type === "dropdown" ? (
-														<CountryOptionsEditor
+														<DropdownOptionsEditor
 															options={editData.dropdown_options}
 															onOptionsChange={(options) =>
 																setEditData((prev) => ({
@@ -749,69 +666,54 @@ export default function GlobalParametersTableContent({
 															isEditing={true}
 														/>
 													) : editData.display_type === "range" ? (
-														<div className="space-y-2">
-															<div className="flex items-center gap-2">
-																<Input
-																	value={editData.range_min}
-																	onChange={(e) =>
-																		setEditData((prev) => ({
-																			...prev,
-																			range_min: e.target.value,
-																		}))
-																	}
-																	className="h-7 text-xs"
-																	placeholder="Min"
-																	type="number"
-																	step="any"
-																/>
-																<span className="text-xs text-muted-foreground">
-																	to
-																</span>
-																<Input
-																	value={editData.range_max}
-																	onChange={(e) =>
-																		setEditData((prev) => ({
-																			...prev,
-																			range_max: e.target.value,
-																		}))
-																	}
-																	className="h-7 text-xs"
-																	placeholder="Max"
-																	type="number"
-																	step="any"
-																/>
-															</div>
-														</div>
+														<RangeInputEditor
+															rangeMin={editData.range_min}
+															rangeMax={editData.range_max}
+															onRangeChange={(field, value) =>
+																setEditData((prev) => ({
+																	...prev,
+																	[field]: value,
+																}))
+															}
+														/>
 													) : editData.display_type === "filter" ? (
-														<CountryOptionsEditor
-															options={editData.dropdown_options}
+														<FilterOptionsEditor
+															options={editData.dropdown_options.map((opt: any) => opt.value)}
 															onOptionsChange={(options) =>
 																setEditData((prev) => ({
 																	...prev,
-																	dropdown_options: options,
+																	dropdown_options: options.map((opt: any) => ({
+																		key: "",
+																		value: opt,
+																	})),
 																}))
 															}
 															isEditing={true}
 														/>
-													) : (
-														<Input
-															value={editData.value}
-															onChange={(e) =>
+													) : editData.display_type === "conditional" ? (
+														<ConditionalRulesEditor
+															rules={editData.conditional_rules || []}
+															onRulesChange={(rules) =>
 																setEditData((prev) => ({
 																	...prev,
-																	value: e.target.value,
+																	conditional_rules: rules,
 																}))
 															}
-															className="h-7 text-xs"
-															placeholder="Value *"
-															type="number"
-															onKeyDown={(e) => {
-																if (e.key === "Enter") {
-																	handleSaveParameter(parameter.id);
-																} else if (e.key === "Escape") {
-																	handleCancelEdit();
-																}
-															}}
+															isEditing={true}
+															filteredParameters={filteredParameters}
+														/>
+													) : (
+														<SimpleInputEditor
+															value={editData.value}
+															onValueChange={(value) =>
+																setEditData((prev) => ({
+																	...prev,
+																	value: value,
+																}))
+															}
+															placeholder="Value"
+															handleSave={() => handleSaveParameter(parameter.id)}
+															handleCancel={handleCancelEdit}
 														/>
 													)
 												) : (
@@ -869,6 +771,27 @@ export default function GlobalParametersTableContent({
 																</div>
 															) : (
 																<span>No filter options defined</span>
+															)
+														) : parameter.display_type === "conditional" ? (
+															parameter.conditional_rules &&
+															parameter.conditional_rules.length > 0 ? (
+																<div className="space-y-1">
+																	{parameter.conditional_rules.map(
+																		(rule, index) => (
+																			<div
+																				key={index}
+																				className="flex items-center gap-1 text-xs"
+																			>
+																				<span className="font-medium">
+																					If {rule.condition}:
+																				</span>
+																				<span>{rule.value}</span>
+																			</div>
+																		)
+																	)}
+																</div>
+															) : (
+																<span>No conditional rules defined</span>
 															)
 														) : (
 															highlightSearchTerm(parameter.value, searchQuery)
