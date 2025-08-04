@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
 	Table,
 	TableBody,
@@ -34,6 +34,7 @@ import {
 	AccordionItem,
 	AccordionTrigger,
 } from "@/components/ui/accordion";
+import { useCalculationValidator } from "./hooks/useCalculationValidator";
 
 interface TableContentProps {
 	calculations: Calculation[];
@@ -71,15 +72,7 @@ interface TableContentProps {
 	groupedParameters: Record<string, any[]>;
 	// Add calculation props
 	isAddingCalculation: boolean;
-	newCalculationData: {
-		name: string;
-		description: string;
-		formula: string;
-		units: string;
-		category: string;
-		output: boolean;
-		display_result: boolean;
-	};
+	newCalculationData: Calculation;
 	setNewCalculationData: React.Dispatch<
 		React.SetStateAction<{
 			name: string;
@@ -149,6 +142,10 @@ export function TableContent({
 			return newSet;
 		});
 	};
+
+	useCalculationValidator(groupedParameters, newCalculationData);
+
+	console.log("GROUPED PARAMETERS:", groupedParameters)
 
 	return (
 		<div className="border rounded-md">
@@ -457,7 +454,7 @@ export function TableContent({
 											{/* Category */}
 											<TableCell>
 												<Select
-													value={newCalculationData.category}
+													value={newCalculationData.category.name}
 													onValueChange={(value) =>
 														setNewCalculationData((prev) => ({
 															...prev,

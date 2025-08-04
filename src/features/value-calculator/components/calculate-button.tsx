@@ -24,8 +24,6 @@ export default function CalculateButton({
 	setResultData,
 }: CalculateButtonProps) {
 	const [isCalculating, setIsCalculating] = useState(false);
-	console.log(parameterValues)
-	console.log(fetchedSolutionA)
 	const cleanParameterName = (name: string): string => {
 		return name
 			.trim()
@@ -348,6 +346,9 @@ export default function CalculateButton({
 			.filter((item: any) => item.display_result === true)
 			.map((item: any) => cleanParameterName(item.name));
 
+			console.log("INPUTS:", inputs)
+			console.log("PARAMETERS:", parameters)
+			console.log("TARGET:", targetList)
 		return {
 			inputs,
 			parameters,
