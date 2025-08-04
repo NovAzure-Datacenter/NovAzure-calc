@@ -1,4 +1,3 @@
-// Centralized types for product-and-solutions module
 
 export interface Parameter {
 	id: string;

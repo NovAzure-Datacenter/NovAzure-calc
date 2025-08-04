@@ -1,4 +1,4 @@
-import { Parameter } from "@/app/home/product-and-solutions/types";
+import { Parameter } from "@/types/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,196 +23,32 @@ import {
 	TooltipProvider,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-	DropdownMenu,
-	DropdownMenuCheckboxItem,
-	DropdownMenuContent,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Edit, Info, Save, X, Plus, Trash, Lock, Download, ChevronDown } from "lucide-react";
+import { Edit, Info, Save, X, Plus, Trash, Lock, ChevronDown } from "lucide-react";
 import {
 	getCategoryBadgeStyle,
 	getCategoryBadgeStyleForDropdown,
 } from "../../../../utils/color-utils";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
 	getDisplayTypeBadgeStyle,
 	renderDisplayTypeEditor,
 	renderDisplayTypeViewer,
 	getUserInterfaceBadgeStyle,
 } from "@/components/table-components/parameter-types";
+import {
+	TableContentProps,
+	ColumnFilterProps,
+	ParameterTableHeaderProps,
+	ParameterTableBodyProps,
+	ParameterRowProps,
+	AddParameterRowProps,
+	EmptyStateProps,
+	AddParameterButtonProps,
+	SearchHighlightProps,
+	CategoryData,
+	ColumnVisibility,
+} from "../../types/types";
 
-// Column visibility state type
-export interface ColumnVisibility {
-	parameterName: boolean;
-	category: boolean;
-	displayType: boolean;
-	value: boolean;
-	testValue: boolean;
-	unit: boolean;
-	description: boolean;
-	information: boolean;
-	userInterface: boolean;
-	output: boolean;
-	actions: boolean;
-}
-
-// Column filter component
-export function ColumnFilter({ 
-	columnVisibility, 
-	setColumnVisibility 
-}: { 
-	columnVisibility: ColumnVisibility; 
-	setColumnVisibility: React.Dispatch<React.SetStateAction<ColumnVisibility>>; 
-}) {
-	const [isOpen, setIsOpen] = useState(false);
-
-	const handleToggle = () => {
-		setIsOpen(!isOpen);
-	};
-
-	const handleItemChange = (key: keyof ColumnVisibility, checked: boolean) => {
-		console.log(`${key} changed:`, checked);
-		setColumnVisibility(prev => ({ ...prev, [key]: checked }));
-	};
-
-	// Handle clicking outside to close dropdown
-	React.useEffect(() => {
-		const handleClickOutside = (event: MouseEvent) => {
-			const target = event.target as Element;
-			if (isOpen && !target.closest('.column-filter-dropdown')) {
-				setIsOpen(false);
-			}
-		};
-
-		if (isOpen) {
-			document.addEventListener('mousedown', handleClickOutside);
-		}
-
-		return () => {
-			document.removeEventListener('mousedown', handleClickOutside);
-		};
-	}, [isOpen]);
-
-	return (
-		<div className="relative column-filter-dropdown">
-			<Button 
-				variant="outline" 
-				size="sm" 
-				className="text-xs"
-				onClick={handleToggle}
-			>
-				Columns <ChevronDown className="h-3 w-3 ml-1" />
-			</Button>
-
-			{isOpen && (
-				<div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-[9999] min-w-[200px]">
-					<div className="p-1">
-						<label className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer">
-							<input
-								type="checkbox"
-								checked={columnVisibility.parameterName}
-								onChange={(e) => handleItemChange('parameterName', e.target.checked)}
-								className="mr-2"
-							/>
-							Parameter Name
-						</label>
-						<label className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer">
-							<input
-								type="checkbox"
-								checked={columnVisibility.category}
-								onChange={(e) => handleItemChange('category', e.target.checked)}
-								className="mr-2"
-							/>
-							Category
-						</label>
-						<label className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer">
-							<input
-								type="checkbox"
-								checked={columnVisibility.displayType}
-								onChange={(e) => handleItemChange('displayType', e.target.checked)}
-								className="mr-2"
-							/>
-							Display Type
-						</label>
-						<label className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer">
-							<input
-								type="checkbox"
-								checked={columnVisibility.value}
-								onChange={(e) => handleItemChange('value', e.target.checked)}
-								className="mr-2"
-							/>
-							Value
-						</label>
-						<label className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer">
-							<input
-								type="checkbox"
-								checked={columnVisibility.testValue}
-								onChange={(e) => handleItemChange('testValue', e.target.checked)}
-								className="mr-2"
-							/>
-							Test Value
-						</label>
-						<label className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer">
-							<input
-								type="checkbox"
-								checked={columnVisibility.unit}
-								onChange={(e) => handleItemChange('unit', e.target.checked)}
-								className="mr-2"
-							/>
-							Unit
-						</label>
-						<label className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer">
-							<input
-								type="checkbox"
-								checked={columnVisibility.description}
-								onChange={(e) => handleItemChange('description', e.target.checked)}
-								className="mr-2"
-							/>
-							Description
-						</label>
-						<label className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer">
-							<input
-								type="checkbox"
-								checked={columnVisibility.information}
-								onChange={(e) => handleItemChange('information', e.target.checked)}
-								className="mr-2"
-							/>
-							Information
-						</label>
-						<label className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer">
-							<input
-								type="checkbox"
-								checked={columnVisibility.userInterface}
-								onChange={(e) => handleItemChange('userInterface', e.target.checked)}
-								className="mr-2"
-							/>
-							User Interface
-						</label>
-						<label className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer">
-							<input
-								type="checkbox"
-								checked={columnVisibility.output}
-								onChange={(e) => handleItemChange('output', e.target.checked)}
-								className="mr-2"
-							/>
-							Output
-						</label>
-						<label className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer">
-							<input
-								type="checkbox"
-								checked={columnVisibility.actions}
-								onChange={(e) => handleItemChange('actions', e.target.checked)}
-								className="mr-2"
-							/>
-							Actions
-						</label>
-					</div>
-				</div>
-			)}
-		</div>
-	);
-}
 
 /**
  * TableContent component - Main parameter table with editing capabilities
@@ -242,131 +78,16 @@ export default function TableContent({
 	activeTab,
 	columnVisibility,
 	setColumnVisibility,
-}: {
-	filteredParameters: Parameter[];
-	editingParameter: string | null;
-	editData: {
-		name: string;
-		value: string;
-		test_value: string;
-		unit: string;
-		description: string;
-		information: string;
-		category: string;
-		user_interface: {
-			type: "input" | "static" | "not_viewable";
-			category: string;
-			is_advanced: boolean;
-		};
-		output: boolean;
-		display_type: "simple" | "dropdown" | "range" | "filter" | "conditional";
-		dropdown_options: Array<{ key: string; value: string }>;
-		range_min: string;
-		range_max: string;
-		conditional_rules: Array<{ condition: string; value: string }>;
-	};
-	setEditData: React.Dispatch<
-		React.SetStateAction<{
-			name: string;
-			value: string;
-			test_value: string;
-			unit: string;
-			description: string;
-			information: string;
-			category: string;
-			user_interface: {
-				type: "input" | "static" | "not_viewable";
-				category: string;
-				is_advanced: boolean;
-			};
-			output: boolean;
-			display_type: "simple" | "dropdown" | "range" | "filter" | "conditional";
-			dropdown_options: Array<{ key: string; value: string }>;
-			range_min: string;
-			range_max: string;
-			conditional_rules: Array<{ condition: string; value: string }>;
-		}>
-	>;
-	handleEditParameter: (parameter: Parameter) => void;
-	handleSaveParameter: (parameterId: string) => void;
-	handleCancelEdit: () => void;
-	handleDeleteParameter: (parameterId: string) => void;
-	getLevelColor: (level: string) => string;
-	getCategoryColor: (category: string) => string;
-	isAddingParameter: boolean;
-	newParameterData: {
-		name: string;
-		value: string;
-		test_value: string;
-		unit: string;
-		description: string;
-		information: string;
-		category: string;
-		user_interface: {
-			type: "input" | "static" | "not_viewable";
-			category: string;
-			is_advanced: boolean;
-		};
-		output: boolean;
-		display_type: "simple" | "dropdown" | "range" | "filter" | "conditional";
-		dropdown_options: Array<{ key: string; value: string }>;
-		range_min: string;
-		range_max: string;
-		conditional_rules: Array<{ condition: string; value: string }>;
-	};
-	setNewParameterData: React.Dispatch<
-		React.SetStateAction<{
-			name: string;
-			value: string;
-			test_value: string;
-			unit: string;
-			description: string;
-			information: string;
-			category: string;
-			user_interface: {
-				type: "input" | "static" | "not_viewable";
-				category: string;
-				is_advanced: boolean;
-			};
-			output: boolean;
-			display_type: "simple" | "dropdown" | "range" | "filter" | "conditional";
-			dropdown_options: Array<{ key: string; value: string }>;
-			range_min: string;
-			range_max: string;
-			conditional_rules: Array<{ condition: string; value: string }>;
-		}>
-	>;
-	handleSaveNewParameter: () => void;
-	handleCancelAddParameter: () => void;
-	handleAddParameter: () => void;
-	customCategories: Array<{ name: string; color: string }>;
-	searchQuery: string;
-	parameters: Parameter[];
-	activeTab: string;
-	columnVisibility: ColumnVisibility;
-	setColumnVisibility: React.Dispatch<React.SetStateAction<ColumnVisibility>>;
-}) {
-	/**
-	 * Wrapper function to match expected signature for category badge styling
-	 */
+}: TableContentProps) {
+	// Helper functions
 	const getCategoryBadgeStyleWrapper = (categoryName: string) => {
 		return getCategoryBadgeStyle(categoryName, parameters, customCategories);
 	};
 
-	/**
-	 * Wrapper function to match expected signature for dropdown category badge styling
-	 */
 	const getCategoryBadgeStyleForDropdownWrapper = (categoryName: string) => {
-		return getCategoryBadgeStyleForDropdown(
-			categoryName,
-			parameters,
-			customCategories
-		);
+		return getCategoryBadgeStyleForDropdown(categoryName, parameters, customCategories);
 	};
 
-	/**
-	 * Highlights search terms in text by wrapping them in mark tags
-	 */
 	const highlightSearchTerm = (text: string, searchTerm: string) => {
 		if (!searchTerm.trim()) return text;
 
@@ -387,18 +108,8 @@ export default function TableContent({
 		);
 	};
 
-	/**
-	 * Gets all available categories including existing parameters and custom categories
-	 * Excludes system-managed categories that users shouldn't select
-	 */
 	const getAllAvailableCategories = () => {
-		const systemManagedCategories = [
-			"Global",
-			"Industry",
-			"Technology",
-			"Technologies",
-		];
-
+		const systemManagedCategories = ["Global", "Industry", "Technology", "Technologies"];
 		const existingCategories = Array.from(
 			new Set(parameters.map((param) => param.category.name))
 		).filter((category) => !systemManagedCategories.includes(category));
@@ -429,9 +140,7 @@ export default function TableContent({
 							handleSaveNewParameter={handleSaveNewParameter}
 							handleCancelAddParameter={handleCancelAddParameter}
 							getAllAvailableCategories={getAllAvailableCategories}
-							getCategoryBadgeStyleForDropdownWrapper={
-								getCategoryBadgeStyleForDropdownWrapper
-							}
+							getCategoryBadgeStyleForDropdownWrapper={getCategoryBadgeStyleForDropdownWrapper}
 							getUserInterfaceBadgeStyle={getUserInterfaceBadgeStyle}
 							filteredParameters={filteredParameters}
 							editingParameter={editingParameter}
@@ -456,132 +165,171 @@ export default function TableContent({
 		</div>
 	);
 }
+/**
+ * ColumnFilter component - Dropdown for toggling table column visibility
+ * Provides a user-friendly interface to show/hide specific table columns
+ */
+export function ColumnFilter({ 
+	columnVisibility, 
+	setColumnVisibility 
+}: ColumnFilterProps) {
+	const [isOpen, setIsOpen] = useState(false);
+
+	const handleToggle = () => {
+		setIsOpen(!isOpen);
+	};
+
+	const handleItemChange = (key: keyof ColumnVisibility, checked: boolean) => {
+		setColumnVisibility(prev => ({ ...prev, [key]: checked }));
+	};
+
+	// Handle clicking outside to close dropdown
+	React.useEffect(() => {
+		const handleClickOutside = (event: MouseEvent) => {
+			const target = event.target as Element;
+			if (isOpen && !target.closest('.column-filter-dropdown')) {
+				setIsOpen(false);
+			}
+		};
+
+		if (isOpen) {
+			document.addEventListener('mousedown', handleClickOutside);
+		}
+
+		return () => {
+			document.removeEventListener('mousedown', handleClickOutside);
+		};
+	}, [isOpen]);
+
+	const columnOptions = [
+		{ key: 'parameterName' as keyof ColumnVisibility, label: 'Parameter Name' },
+		{ key: 'category' as keyof ColumnVisibility, label: 'Category' },
+		{ key: 'displayType' as keyof ColumnVisibility, label: 'Display Type' },
+		{ key: 'value' as keyof ColumnVisibility, label: 'Value' },
+		{ key: 'testValue' as keyof ColumnVisibility, label: 'Test Value' },
+		{ key: 'unit' as keyof ColumnVisibility, label: 'Unit' },
+		{ key: 'description' as keyof ColumnVisibility, label: 'Description' },
+		{ key: 'information' as keyof ColumnVisibility, label: 'Information' },
+		{ key: 'userInterface' as keyof ColumnVisibility, label: 'User Interface' },
+		{ key: 'output' as keyof ColumnVisibility, label: 'Output' },
+		{ key: 'actions' as keyof ColumnVisibility, label: 'Actions' },
+	];
+
+	return (
+		<div className="relative column-filter-dropdown">
+			<Button 
+				variant="outline" 
+				size="sm" 
+				className="text-xs"
+				onClick={handleToggle}
+			>
+				Columns <ChevronDown className="h-3 w-3 ml-1" />
+			</Button>
+
+			{isOpen && (
+				<div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-[9999] min-w-[200px]">
+					<div className="p-1">
+						{columnOptions.map(({ key, label }) => (
+							<label key={key} className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer">
+							<input
+								type="checkbox"
+									checked={columnVisibility[key]}
+									onChange={(e) => handleItemChange(key, e.target.checked)}
+								className="mr-2"
+							/>
+								{label}
+						</label>
+						))}
+					</div>
+				</div>
+			)}
+		</div>
+	);
+}
 
 /**
  * ParameterTableHeader component - Renders the table header with column definitions and tooltips
  */
-function ParameterTableHeader({ columnVisibility }: { columnVisibility: ColumnVisibility }) {
+function ParameterTableHeader({ columnVisibility }: ParameterTableHeaderProps) {
+	const headerColumns = [
+		{ key: 'parameterName', label: 'Parameter Name', width: 'w-48' },
+		{ key: 'category', label: 'Category', width: 'w-32' },
+		{ key: 'displayType', label: 'Display Type', width: 'w-32', hasTooltip: true },
+		{ key: 'value', label: 'Value', width: 'w-32', hasTooltip: true },
+		{ key: 'testValue', label: 'Test Value', width: 'w-32', hasTooltip: true },
+		{ key: 'unit', label: 'Unit', width: 'w-20' },
+		{ key: 'description', label: 'Description', width: '' },
+		{ key: 'information', label: 'Information', width: '' },
+		{ key: 'userInterface', label: 'User Interface', width: 'w-32', hasTooltip: true },
+		{ key: 'output', label: 'Output', width: 'w-32', hasTooltip: true },
+		{ key: 'actions', label: 'Actions', width: 'w-24' },
+	];
+
+	const getTooltipContent = (columnKey: string) => {
+		switch (columnKey) {
+			case 'displayType':
+				return {
+					title: 'How the value is displayed in the calculator',
+					content: '• Simple: Text input field\n• Dropdown: Select from predefined options\n• Range: Min/Max number range\n• Filter: Multiple filter options'
+				};
+			case 'value':
+				return {
+					title: 'The numerical value for this parameter',
+					content: ''
+				};
+			case 'testValue':
+				return {
+					title: 'A test value used for validation and testing purposes',
+					content: ''
+				};
+			case 'userInterface':
+				return {
+					title: 'Who provides this value during the value calculator',
+					content: '• Input: Client provides during calculation\n• Static: Pre-loaded by company\n• Not Viewable: System-managed (read-only)'
+				};
+			case 'output':
+				return {
+					title: 'Whether this parameter is visible during the value calculator',
+					content: '• True: Visible to client\n• False: Hidden from client'
+				};
+			default:
+				return null;
+		}
+	};
+
 	return (
 		<TableHeader className="sticky top-0 bg-background z-10">
 			<TableRow>
-				{columnVisibility.parameterName && (
-					<TableHead className="w-48 bg-background">Parameter Name</TableHead>
-				)}
-				{columnVisibility.category && (
-					<TableHead className="w-32 bg-background">Category</TableHead>
-				)}
-				{columnVisibility.displayType && (
-					<TableHead className="w-32 bg-background">
+				{headerColumns.map(({ key, label, width, hasTooltip }) => {
+					if (!columnVisibility[key as keyof ColumnVisibility]) return null;
+
+					const tooltipContent = hasTooltip ? getTooltipContent(key) : null;
+
+					return (
+						<TableHead key={key} className={`${width} bg-background`}>
+							{tooltipContent ? (
 						<Tooltip>
 							<TooltipTrigger asChild>
 								<div className="flex items-center gap-1 cursor-help">
-									Display Type
+											{label}
 									<Info className="h-3 w-3 text-muted-foreground" />
 								</div>
 							</TooltipTrigger>
 							<TooltipContent>
-								<p className="text-sm">
-									How the value is displayed in the calculator
-								</p>
-								<p className="text-xs text-muted-foreground mt-1">
-									• <strong>Simple:</strong> Text input field
-									<br />• <strong>Dropdown:</strong> Select from predefined
-									options
-									<br />• <strong>Range:</strong> Min/Max number range
-									<br />• <strong>Filter:</strong> Multiple filter options
-								</p>
+										<p className="text-sm">{tooltipContent.title}</p>
+										{tooltipContent.content && (
+											<p className="text-xs text-muted-foreground mt-1 whitespace-pre-line">
+												{tooltipContent.content}
+											</p>
+										)}
 							</TooltipContent>
 						</Tooltip>
+							) : (
+								label
+							)}
 					</TableHead>
-				)}
-				{columnVisibility.value && (
-					<TableHead className="w-32 bg-background">
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<div className="flex items-center gap-1 cursor-help">
-									Value
-									<Info className="h-3 w-3 text-muted-foreground" />
-								</div>
-							</TooltipTrigger>
-							<TooltipContent>
-								<p className="text-sm">The numerical value for this parameter</p>
-							</TooltipContent>
-						</Tooltip>
-					</TableHead>
-				)}
-				{columnVisibility.testValue && (
-					<TableHead className="w-32 bg-background">
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<div className="flex items-center gap-1 cursor-help">
-									Test Value
-									<Info className="h-3 w-3 text-muted-foreground" />
-								</div>
-							</TooltipTrigger>
-							<TooltipContent>
-								<p className="text-sm">
-									A test value used for validation and testing purposes
-								</p>
-							</TooltipContent>
-						</Tooltip>
-					</TableHead>
-				)}
-				{columnVisibility.unit && (
-					<TableHead className="w-20 bg-background">Unit</TableHead>
-				)}
-				{columnVisibility.description && (
-					<TableHead className="bg-background">Description</TableHead>
-				)}
-				{columnVisibility.information && (
-					<TableHead className="bg-background">Information</TableHead>
-				)}
-				{columnVisibility.userInterface && (
-					<TableHead className="w-32 bg-background">
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<div className="flex items-center gap-1 cursor-help">
-									User Interface
-									<Info className="h-3 w-3 text-muted-foreground" />
-								</div>
-							</TooltipTrigger>
-							<TooltipContent>
-								<p className="text-sm">
-									Who provides this value during the value calculator
-								</p>
-								<p className="text-xs text-muted-foreground mt-1">
-									• <strong>Input:</strong> Client provides during calculation
-									<br />• <strong>Static:</strong> Pre-loaded by company
-									<br />• <strong>Not Viewable:</strong> System-managed
-									(read-only)
-								</p>
-							</TooltipContent>
-						</Tooltip>
-					</TableHead>
-				)}
-				{columnVisibility.output && (
-					<TableHead className="w-32 bg-background">
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<div className="flex items-center gap-1 cursor-help">
-									Output
-									<Info className="h-3 w-3 text-muted-foreground" />
-								</div>
-							</TooltipTrigger>
-							<TooltipContent>
-								<p className="text-sm">
-									Whether this parameter is visible during the value calculator
-								</p>
-								<p className="text-xs text-muted-foreground mt-1">
-									• <strong>True:</strong> Visible to client
-									<br />• <strong>False:</strong> Hidden from client
-								</p>
-							</TooltipContent>
-						</Tooltip>
-					</TableHead>
-				)}
-				{columnVisibility.actions && (
-					<TableHead className="w-24 bg-background">Actions</TableHead>
-				)}
+					);
+				})}
 			</TableRow>
 		</TableHeader>
 	);
@@ -614,35 +362,7 @@ function ParameterTableBody({
 	handleAddParameter,
 	getDisplayTypeBadgeStyle,
 	columnVisibility,
-	setColumnVisibility,
-}: {
-	isAddingParameter: boolean;
-	newParameterData: any;
-	setNewParameterData: any;
-	handleSaveNewParameter: () => void;
-	handleCancelAddParameter: () => void;
-	getAllAvailableCategories: () => any[];
-	getCategoryBadgeStyleForDropdownWrapper: (name: string) => any;
-	getUserInterfaceBadgeStyle: (type: string) => any;
-	filteredParameters: Parameter[];
-	editingParameter: string | null;
-	editData: any;
-	setEditData: any;
-	handleEditParameter: (parameter: Parameter) => void;
-	handleSaveParameter: (parameterId: string) => void;
-	handleCancelEdit: () => void;
-	handleDeleteParameter: (parameterId: string) => void;
-	highlightSearchTerm: (text: string, searchTerm: string) => any;
-	searchQuery: string;
-	getCategoryBadgeStyleWrapper: (name: string) => any;
-	activeTab: string;
-	handleAddParameter: () => void;
-	getDisplayTypeBadgeStyle: (displayType: string) => any;
-	columnVisibility: ColumnVisibility;
-	setColumnVisibility: React.Dispatch<React.SetStateAction<ColumnVisibility>>;
-}) {
-
-
+}: ParameterTableBodyProps) {
 	// Helper function to render a table cell conditionally
 	const renderCell = (isVisible: boolean, children: React.ReactNode) => {
 		return isVisible ? <TableCell className="py-2">{children}</TableCell> : null;
@@ -650,28 +370,121 @@ function ParameterTableBody({
 
 	return (
 		<TableBody>
-			{/* Add new parameter row - appears when isAddingParameter is true */}
+			{/* Add new parameter row */}
 			{isAddingParameter && (
+				<AddParameterRow
+					isAddingParameter={isAddingParameter}
+					newParameterData={newParameterData}
+					setNewParameterData={setNewParameterData}
+					handleSaveNewParameter={handleSaveNewParameter}
+					handleCancelAddParameter={handleCancelAddParameter}
+					getAllAvailableCategories={getAllAvailableCategories}
+					getCategoryBadgeStyleForDropdownWrapper={getCategoryBadgeStyleForDropdownWrapper}
+					getUserInterfaceBadgeStyle={getUserInterfaceBadgeStyle}
+					getDisplayTypeBadgeStyle={getDisplayTypeBadgeStyle}
+					columnVisibility={columnVisibility}
+				/>
+			)}
+
+			{/* Empty state when no parameters are found */}
+			<EmptyState filteredParameters={filteredParameters} isAddingParameter={isAddingParameter} />
+
+			{/* Parameter rows */}
+			{filteredParameters.map((parameter) => {
+				const isEditing = editingParameter === parameter.id;
+
+				return (
+					<ParameterRow
+						key={parameter.id}
+						parameter={parameter}
+						isEditing={isEditing}
+						editData={editData}
+						setEditData={setEditData}
+						handleEditParameter={handleEditParameter}
+						handleSaveParameter={handleSaveParameter}
+						handleCancelEdit={handleCancelEdit}
+						handleDeleteParameter={handleDeleteParameter}
+						highlightSearchTerm={highlightSearchTerm}
+						searchQuery={searchQuery}
+						getCategoryBadgeStyleWrapper={getCategoryBadgeStyleWrapper}
+						getCategoryBadgeStyleForDropdownWrapper={getCategoryBadgeStyleForDropdownWrapper}
+						getUserInterfaceBadgeStyle={getUserInterfaceBadgeStyle}
+						getDisplayTypeBadgeStyle={getDisplayTypeBadgeStyle}
+						getAllAvailableCategories={getAllAvailableCategories}
+						columnVisibility={columnVisibility}
+						editingParameter={editingParameter}
+						isAddingParameter={isAddingParameter}
+					/>
+				);
+			})}
+
+			{/* Add parameter button row */}
+			<AddParameterButton
+				isAddingParameter={isAddingParameter}
+				activeTab={activeTab}
+				handleAddParameter={handleAddParameter}
+				handleCancelAddParameter={handleCancelAddParameter}
+			/>
+		</TableBody>
+	);
+}
+
+/**
+ * AddParameterRow component - Renders the row for adding a new parameter
+ */
+function AddParameterRow({
+	isAddingParameter,
+	newParameterData,
+	setNewParameterData,
+	handleSaveNewParameter,
+	handleCancelAddParameter,
+	getAllAvailableCategories,
+	getCategoryBadgeStyleForDropdownWrapper,
+	getUserInterfaceBadgeStyle,
+	getDisplayTypeBadgeStyle,
+	columnVisibility,
+}: AddParameterRowProps) {
+	// Helper function to render a table cell conditionally
+	const renderCell = (isVisible: boolean, children: React.ReactNode) => {
+		return isVisible ? <TableCell className="py-2">{children}</TableCell> : null;
+	};
+
+	const handleKeyDown = (e: React.KeyboardEvent) => {
+		if (e.key === "Enter") {
+			handleSaveNewParameter();
+		} else if (e.key === "Escape") {
+			handleCancelAddParameter();
+		}
+	};
+
+	const isSaveDisabled = () => {
+		return (
+			!newParameterData.name.trim() ||
+			!newParameterData.unit.trim() ||
+			(newParameterData.user_interface.type === "static" &&
+				((newParameterData.display_type === "simple" && !newParameterData.value.trim()) ||
+					(newParameterData.display_type === "range" &&
+						(!newParameterData.range_min.trim() || !newParameterData.range_max.trim())) ||
+					(newParameterData.display_type === "dropdown" && newParameterData.dropdown_options.length === 0) ||
+					(newParameterData.display_type === "filter" && newParameterData.dropdown_options.length === 0)))
+		);
+	};
+
+	return (
 				<TableRow className="bg-green-50 border-2 border-green-200 shadow-md">
 					{renderCell(columnVisibility.parameterName, (
 						<div className="flex items-center gap-2">
 							<Input
 								value={newParameterData.name}
 								onChange={(e) =>
-									setNewParameterData((prev: any) => ({
+							setNewParameterData((prev) => ({
 										...prev,
 										name: e.target.value,
 									}))
 								}
 								className="h-7 text-xs"
 								placeholder="Parameter name"
-								onKeyDown={(e) => {
-									if (e.key === "Enter") {
-										handleSaveNewParameter();
-									} else if (e.key === "Escape") {
-										handleCancelAddParameter();
-									}
-								}}
+						onKeyDown={handleKeyDown}
 							/>
 						</div>
 					))}
@@ -679,7 +492,7 @@ function ParameterTableBody({
 						<Select
 							value={newParameterData.category}
 							onValueChange={(value) =>
-								setNewParameterData((prev: any) => ({
+						setNewParameterData((prev) => ({
 									...prev,
 									category: value,
 								}))
@@ -690,15 +503,13 @@ function ParameterTableBody({
 							</SelectTrigger>
 							<SelectContent>
 								{getAllAvailableCategories().length > 0 ? (
-									getAllAvailableCategories().map((category: any) => (
+							getAllAvailableCategories().map((category) => (
 										<SelectItem key={category.name} value={category.name}>
 											<div className="flex items-center gap-2">
 												<Badge
 													variant="outline"
 													className="text-xs"
-													style={getCategoryBadgeStyleForDropdownWrapper(
-														category.name
-													)}
+											style={getCategoryBadgeStyleForDropdownWrapper(category.name)}
 												>
 													{category.name}
 												</Badge>
@@ -717,24 +528,15 @@ function ParameterTableBody({
 						<Select
 							value={newParameterData.display_type}
 							onValueChange={(value) =>
-								setNewParameterData((prev: any) => ({
+						setNewParameterData((prev) => ({
 									...prev,
-									display_type: value as
-										| "simple"
-										| "dropdown"
-										| "range"
-										| "filter"
-										| "conditional",
+							display_type: value as "simple" | "dropdown" | "range" | "filter" | "conditional",
 								}))
 							}
 						>
 							<SelectTrigger className="h-7 text-xs">
 								<SelectValue>
-									<span
-										style={getDisplayTypeBadgeStyle(
-											newParameterData.display_type
-										)}
-									>
+							<span style={getDisplayTypeBadgeStyle(newParameterData.display_type)}>
 										{newParameterData.display_type || "Select type"}
 									</span>
 								</SelectValue>
@@ -753,7 +555,7 @@ function ParameterTableBody({
 							newParameterData.display_type,
 							newParameterData,
 							setNewParameterData,
-							filteredParameters,
+					[],
 							handleSaveNewParameter,
 							handleCancelAddParameter
 						)
@@ -762,7 +564,7 @@ function ParameterTableBody({
 						<Input
 							value={newParameterData.test_value}
 							onChange={(e) =>
-								setNewParameterData((prev: any) => ({
+						setNewParameterData((prev) => ({
 									...prev,
 									test_value: e.target.value,
 								}))
@@ -770,73 +572,49 @@ function ParameterTableBody({
 							className="h-7 text-xs"
 							placeholder="Test Value"
 							type="number"
-							onKeyDown={(e) => {
-								if (e.key === "Enter") {
-									handleSaveNewParameter();
-								} else if (e.key === "Escape") {
-									handleCancelAddParameter();
-								}
-							}}
+					onKeyDown={handleKeyDown}
 						/>
 					))}
 					{renderCell(columnVisibility.unit, (
 						<Input
 							value={newParameterData.unit}
 							onChange={(e) =>
-								setNewParameterData((prev: any) => ({
+						setNewParameterData((prev) => ({
 									...prev,
 									unit: e.target.value,
 								}))
 							}
 							className="h-7 text-xs"
 							placeholder="Unit"
-							onKeyDown={(e) => {
-								if (e.key === "Enter") {
-									handleSaveNewParameter();
-								} else if (e.key === "Escape") {
-									handleCancelAddParameter();
-								}
-							}}
+					onKeyDown={handleKeyDown}
 						/>
 					))}
 					{renderCell(columnVisibility.description, (
 						<Input
 							value={newParameterData.description}
 							onChange={(e) =>
-								setNewParameterData((prev: any) => ({
+						setNewParameterData((prev) => ({
 									...prev,
 									description: e.target.value,
 								}))
 							}
 							className="h-7 text-xs"
 							placeholder="Description"
-							onKeyDown={(e) => {
-								if (e.key === "Enter") {
-									handleSaveNewParameter();
-								} else if (e.key === "Escape") {
-									handleCancelAddParameter();
-								}
-							}}
+					onKeyDown={handleKeyDown}
 						/>
 					))}
 					{renderCell(columnVisibility.information, (
 						<Input
 							value={newParameterData.information}
 							onChange={(e) =>
-								setNewParameterData((prev: any) => ({
+						setNewParameterData((prev) => ({
 									...prev,
 									information: e.target.value,
 								}))
 							}
 							className="h-7 text-xs"
 							placeholder="Information"
-							onKeyDown={(e) => {
-								if (e.key === "Enter") {
-									handleSaveNewParameter();
-								} else if (e.key === "Escape") {
-									handleCancelAddParameter();
-								}
-							}}
+					onKeyDown={handleKeyDown}
 						/>
 					))}
 					{renderCell(columnVisibility.userInterface, (
@@ -844,7 +622,7 @@ function ParameterTableBody({
 							<Select
 								value={newParameterData.user_interface.type}
 								onValueChange={(value) =>
-									setNewParameterData((prev: any) => ({
+							setNewParameterData((prev) => ({
 										...prev,
 										user_interface: {
 											type: value as "input" | "static" | "not_viewable",
@@ -856,13 +634,7 @@ function ParameterTableBody({
 							>
 								<SelectTrigger className="h-7 text-xs">
 									<SelectValue>
-										<span
-											style={{
-												color: getUserInterfaceBadgeStyle(
-													newParameterData.user_interface.type
-												).color,
-											}}
-										>
+								<span style={{ color: getUserInterfaceBadgeStyle(newParameterData.user_interface.type).color }}>
 											{newParameterData.user_interface.type || "Select provider"}
 										</span>
 									</SelectValue>
@@ -875,11 +647,9 @@ function ParameterTableBody({
 							</Select>
 							{newParameterData.user_interface.type === "input" && (
 								<Select
-									value={
-										newParameterData.user_interface.is_advanced ? "true" : "false"
-									}
+							value={newParameterData.user_interface.is_advanced ? "true" : "false"}
 									onValueChange={(value) =>
-										setNewParameterData((prev: any) => ({
+								setNewParameterData((prev) => ({
 											...prev,
 											user_interface: {
 												...prev.user_interface,
@@ -890,9 +660,7 @@ function ParameterTableBody({
 								>
 									<SelectTrigger className="h-6 text-xs">
 										<SelectValue>
-											{newParameterData.user_interface.is_advanced
-												? "Advanced"
-												: "Simple"}
+									{newParameterData.user_interface.is_advanced ? "Advanced" : "Simple"}
 										</SelectValue>
 									</SelectTrigger>
 									<SelectContent>
@@ -907,7 +675,7 @@ function ParameterTableBody({
 						<Select
 							value={newParameterData.output ? "true" : "false"}
 							onValueChange={(value) =>
-								setNewParameterData((prev: any) => ({
+						setNewParameterData((prev) => ({
 									...prev,
 									output: value === "true",
 								}))
@@ -931,20 +699,7 @@ function ParameterTableBody({
 								variant="ghost"
 								onClick={handleSaveNewParameter}
 								className="h-5 w-5 p-0 text-green-600 hover:text-green-700"
-								disabled={
-									!newParameterData.name.trim() ||
-									!newParameterData.unit.trim() ||
-									(newParameterData.user_interface.type === "static" &&
-										((newParameterData.display_type === "simple" &&
-											!newParameterData.value.trim()) ||
-											(newParameterData.display_type === "range" &&
-												(!newParameterData.range_min.trim() ||
-													!newParameterData.range_max.trim())) ||
-											(newParameterData.display_type === "dropdown" &&
-												newParameterData.dropdown_options.length === 0) ||
-											(newParameterData.display_type === "filter" &&
-												newParameterData.dropdown_options.length === 0)))
-								}
+						disabled={isSaveDisabled()}
 							>
 								<Save className="h-3 w-3" />
 							</Button>
@@ -959,33 +714,78 @@ function ParameterTableBody({
 						</div>
 					))}
 				</TableRow>
-			)}
+	);
+}
 
-			{/* Empty state when no parameters are found */}
-			{filteredParameters.length === 0 && !isAddingParameter ? (
-				<TableRow>
-					<TableCell colSpan={11} className="text-center py-8">
-						<div className="flex flex-col items-center gap-2 text-muted-foreground">
-							<Info className="h-8 w-8" />
-							<p className="text-sm font-medium">No parameters found</p>
-							<p className="text-xs">Add parameters to get started</p>
-						</div>
-					</TableCell>
-				</TableRow>
-			) : (
-				/* Parameter rows - maps through filtered parameters */
-				filteredParameters.map((parameter) => {
-					const isEditing = editingParameter === parameter.id;
-					const isGlobal = parameter.category.name === "Global";
-					const isIndustry = parameter.category.name === "Industry";
-					const isTechnology =
-						parameter.category.name === "Technology" ||
-						parameter.category.name === "Technologies";
-					const isReadOnly = false;
+/**
+ * ParameterRow component - Renders a single parameter row with editing capabilities
+ */
+function ParameterRow({
+	parameter,
+	isEditing,
+	editData,
+	setEditData,
+	handleEditParameter,
+	handleSaveParameter,
+	handleCancelEdit,
+	handleDeleteParameter,
+	highlightSearchTerm,
+	searchQuery,
+	getCategoryBadgeStyleWrapper,
+	getCategoryBadgeStyleForDropdownWrapper,
+	getUserInterfaceBadgeStyle,
+	getDisplayTypeBadgeStyle,
+	getAllAvailableCategories,
+	columnVisibility,
+	editingParameter,
+	isAddingParameter,
+}: ParameterRowProps) {
+	// Helper function to render a table cell conditionally
+	const renderCell = (isVisible: boolean, children: React.ReactNode) => {
+		return isVisible ? <TableCell className="py-2">{children}</TableCell> : null;
+	};
+
+	const handleKeyDown = (e: React.KeyboardEvent) => {
+		if (e.key === "Enter") {
+			handleSaveParameter(parameter.id);
+		} else if (e.key === "Escape") {
+			handleCancelEdit();
+		}
+	};
+
+	const isSaveDisabled = () => {
+		return (
+			!editData.name.trim() ||
+			!editData.unit.trim() ||
+			(editData.user_interface.type === "static" &&
+				((editData.display_type === "simple" && !editData.value.trim()) ||
+					(editData.display_type === "range" &&
+						(!editData.range_min.trim() || !editData.range_max.trim())) ||
+					(editData.display_type === "dropdown" && editData.dropdown_options.length === 0) ||
+					(editData.display_type === "filter" && editData.dropdown_options.length === 0)))
+		);
+	};
+
+	const getUserInterfaceDisplayText = (userInterface: any) => {
+		if (typeof userInterface === "string") {
+			return userInterface === "input" ? "Input" : 
+				   userInterface === "static" ? "Static" : 
+				   userInterface === "not_viewable" ? "Not Viewable" : userInterface;
+		}
+		return userInterface.type === "input" ? "Input" : 
+			   userInterface.type === "static" ? "Static" : 
+			   userInterface.type === "not_viewable" ? "Not Viewable" : userInterface.type;
+	};
+
+	const getReadOnlyTooltip = (userInterface: any) => {
+		const type = typeof userInterface === "string" ? userInterface : userInterface.type;
+		if (type === "not_viewable") return "Global parameter - not modifiable";
+		if (type === "static") return "Company parameter - not modifiable";
+		return "Parameter - not modifiable";
+	};
 
 					return (
 						<TableRow
-							key={parameter.id}
 							className={`transition-all duration-200 h-12 ${
 								isEditing ? "bg-blue-50 border-2 border-blue-200 shadow-md" : ""
 							} ${
@@ -994,15 +794,12 @@ function ParameterTableBody({
 									: ""
 							}`}
 						>
-
-							
-							{/* Parameter name cell - editable when editing */}
 							{renderCell(columnVisibility.parameterName, (
 								isEditing ? (
 									<Input
 										value={editData.name}
 										onChange={(e) =>
-											setEditData((prev: any) => ({
+							setEditData((prev) => ({
 												...prev,
 												name: e.target.value,
 											}))
@@ -1019,13 +816,12 @@ function ParameterTableBody({
 								)
 							))}
 
-							{/* Category cell - dropdown when editing, badge when viewing */}
 							{renderCell(columnVisibility.category, (
 								isEditing ? (
 									<Select
 										value={editData.category}
 										onValueChange={(value) =>
-											setEditData((prev: any) => ({
+							setEditData((prev) => ({
 												...prev,
 												category: value,
 											}))
@@ -1036,15 +832,13 @@ function ParameterTableBody({
 										</SelectTrigger>
 										<SelectContent>
 											{getAllAvailableCategories().length > 0 ? (
-												getAllAvailableCategories().map((category: any) => (
+								getAllAvailableCategories().map((category) => (
 													<SelectItem key={category.name} value={category.name}>
 														<div className="flex items-center gap-2">
 															<Badge
 																variant="outline"
 																className="text-xs"
-																style={getCategoryBadgeStyleForDropdownWrapper(
-																	category.name
-																)}
+												style={getCategoryBadgeStyleForDropdownWrapper(category.name)}
 															>
 																{category.name}
 															</Badge>
@@ -1062,39 +856,27 @@ function ParameterTableBody({
 									<Badge
 										variant="outline"
 										className="text-xs"
-										style={getCategoryBadgeStyleWrapper(
-											parameter.category.name
-										)}
+						style={getCategoryBadgeStyleWrapper(parameter.category.name)}
 									>
 										{highlightSearchTerm(parameter.category.name, searchQuery)}
 									</Badge>
 								)
 							))}
 
-							{/* Display type cell - dropdown when editing, badge when viewing */}
 							{renderCell(columnVisibility.displayType, (
 								isEditing ? (
 									<Select
 										value={editData.display_type}
 										onValueChange={(value) =>
-											setEditData((prev: any) => ({
+							setEditData((prev) => ({
 												...prev,
-												display_type: value as
-													| "simple"
-													| "dropdown"
-													| "range"
-													| "filter"
-													| "conditional",
+								display_type: value as "simple" | "dropdown" | "range" | "filter" | "conditional",
 											}))
 										}
 									>
 										<SelectTrigger className="h-7 text-xs">
 											<SelectValue>
-												<span
-													style={getDisplayTypeBadgeStyle(
-														editData.display_type
-													)}
-												>
+								<span style={getDisplayTypeBadgeStyle(editData.display_type)}>
 													{editData.display_type || "Select type"}
 												</span>
 											</SelectValue>
@@ -1113,24 +895,18 @@ function ParameterTableBody({
 										className="text-xs"
 										style={getDisplayTypeBadgeStyle(parameter.display_type)}
 									>
-										{isReadOnly
-											? "—"
-											: highlightSearchTerm(
-													parameter.display_type,
-													searchQuery
-											  )}
+						{highlightSearchTerm(parameter.display_type, searchQuery)}
 									</Badge>
 								)
 							))}
 
-							{/* Value cell - conditional rendering based on display type */}
 							{renderCell(columnVisibility.value, (
 								isEditing ? (
 									renderDisplayTypeEditor(
 										editData.display_type,
 										editData,
 										setEditData,
-										filteredParameters,
+						[],
 										() => handleSaveParameter(parameter.id),
 										handleCancelEdit
 									)
@@ -1146,13 +922,12 @@ function ParameterTableBody({
 								)
 							))}
 
-							{/* Test value cell - input when editing, text when viewing */}
 							{renderCell(columnVisibility.testValue, (
 								isEditing ? (
 									<Input
 										value={editData.test_value}
 										onChange={(e) =>
-											setEditData((prev: any) => ({
+							setEditData((prev) => ({
 												...prev,
 												test_value: e.target.value,
 											}))
@@ -1160,13 +935,7 @@ function ParameterTableBody({
 										className="h-7 text-xs"
 										placeholder="Test Value"
 										type="number"
-										onKeyDown={(e) => {
-											if (e.key === "Enter") {
-												handleSaveParameter(parameter.id);
-											} else if (e.key === "Escape") {
-												handleCancelEdit();
-											}
-										}}
+						onKeyDown={handleKeyDown}
 									/>
 								) : (
 									<span className="text-xs text-muted-foreground">
@@ -1175,13 +944,12 @@ function ParameterTableBody({
 								)
 							))}
 
-							{/* Unit cell - input when editing, text when viewing */}
 							{renderCell(columnVisibility.unit, (
 								isEditing ? (
 									<Input
 										value={editData.unit}
 										onChange={(e) =>
-											setEditData((prev: any) => ({
+							setEditData((prev) => ({
 												...prev,
 												unit: e.target.value,
 											}))
@@ -1196,13 +964,12 @@ function ParameterTableBody({
 								)
 							))}
 
-							{/* Description cell - input when editing, text with tooltip when viewing */}
 							{renderCell(columnVisibility.description, (
 								isEditing ? (
 									<Input
 										value={editData.description}
 										onChange={(e) =>
-											setEditData((prev: any) => ({
+							setEditData((prev) => ({
 												...prev,
 												description: e.target.value,
 											}))
@@ -1227,13 +994,12 @@ function ParameterTableBody({
 								)
 							))}
 
-							{/* Information cell - input when editing, text with tooltip when viewing */}
 							{renderCell(columnVisibility.information, (
 								isEditing ? (
 									<Input
 										value={editData.information}
 										onChange={(e) =>
-											setEditData((prev: any) => ({
+							setEditData((prev) => ({
 												...prev,
 												information: e.target.value,
 											}))
@@ -1258,14 +1024,13 @@ function ParameterTableBody({
 								)
 							))}
 
-							{/* User interface cell - dropdowns when editing, badges when viewing */}
 							{renderCell(columnVisibility.userInterface, (
 								isEditing ? (
 									<div className="space-y-1">
 										<Select
 											value={editData.user_interface.type}
 											onValueChange={(value) =>
-												setEditData((prev: any) => ({
+								setEditData((prev) => ({
 													...prev,
 													user_interface: {
 														type: value as "input" | "static" | "not_viewable",
@@ -1277,39 +1042,22 @@ function ParameterTableBody({
 										>
 											<SelectTrigger className="h-7 text-xs">
 												<SelectValue>
-													<span
-														style={{
-															color: getUserInterfaceBadgeStyle(
-																editData.user_interface.type
-															).color,
-														}}
-													>
-														{editData.user_interface.type === "input"
-															? "Input"
-															: editData.user_interface.type === "static"
-															? "Static"
-															: editData.user_interface.type === "not_viewable"
-															? "Not Viewable"
-															: editData.user_interface.type ||
-															  "Select provider"}
+									<span style={{ color: getUserInterfaceBadgeStyle(editData.user_interface.type).color }}>
+										{getUserInterfaceDisplayText(editData.user_interface)}
 													</span>
 												</SelectValue>
 											</SelectTrigger>
 											<SelectContent>
 												<SelectItem value="input">Input</SelectItem>
 												<SelectItem value="static">Static</SelectItem>
-												<SelectItem value="not_viewable">
-													Not Viewable
-												</SelectItem>
+								<SelectItem value="not_viewable">Not Viewable</SelectItem>
 											</SelectContent>
 										</Select>
 										{editData.user_interface.type === "input" && (
 											<Select
-												value={
-													editData.user_interface.is_advanced ? "true" : "false"
-												}
+								value={editData.user_interface.is_advanced ? "true" : "false"}
 												onValueChange={(value) =>
-													setEditData((prev: any) => ({
+									setEditData((prev) => ({
 														...prev,
 														user_interface: {
 															...prev.user_interface,
@@ -1320,9 +1068,7 @@ function ParameterTableBody({
 											>
 												<SelectTrigger className="h-6 text-xs">
 													<SelectValue>
-														{editData.user_interface.is_advanced
-															? "Advanced"
-															: "Simple"}
+										{editData.user_interface.is_advanced ? "Advanced" : "Simple"}
 													</SelectValue>
 												</SelectTrigger>
 												<SelectContent>
@@ -1343,21 +1089,7 @@ function ParameterTableBody({
 											)}
 										>
 											{highlightSearchTerm(
-												typeof parameter.user_interface === "string"
-													? parameter.user_interface === "input"
-														? "Input"
-														: parameter.user_interface === "static"
-														? "Static"
-														: parameter.user_interface === "not_viewable"
-														? "Not Viewable"
-														: parameter.user_interface
-													: parameter.user_interface.type === "input"
-													? "Input"
-													: parameter.user_interface.type === "static"
-													? "Static"
-													: parameter.user_interface.type === "not_viewable"
-													? "Not Viewable"
-													: parameter.user_interface.type,
+								getUserInterfaceDisplayText(parameter.user_interface),
 												searchQuery
 											)}
 										</Badge>
@@ -1367,8 +1099,7 @@ function ParameterTableBody({
 													variant="outline"
 													className="text-xs"
 													style={{
-														backgroundColor: parameter.user_interface
-															.is_advanced
+										backgroundColor: parameter.user_interface.is_advanced
 															? "#fef3c7"
 															: "#f0f9ff",
 														color: parameter.user_interface.is_advanced
@@ -1379,22 +1110,19 @@ function ParameterTableBody({
 															: "#3b82f6",
 													}}
 												>
-													{parameter.user_interface.is_advanced
-														? "Advanced"
-														: "Simple"}
+									{parameter.user_interface.is_advanced ? "Advanced" : "Simple"}
 												</Badge>
 											)}
 									</div>
 								)
 							))}
 
-							{/* Output cell - dropdown when editing, badge when viewing */}
 							{renderCell(columnVisibility.output, (
 								isEditing ? (
 									<Select
 										value={editData.output ? "true" : "false"}
 										onValueChange={(value) =>
-											setEditData((prev: any) => ({
+							setEditData((prev) => ({
 												...prev,
 												output: value === "true",
 											}))
@@ -1412,47 +1140,21 @@ function ParameterTableBody({
 									</Select>
 								) : (
 									<Badge variant="outline" className="text-xs">
-										{isReadOnly ? "—" : parameter.output ? "True" : "False"}
+						{parameter.output ? "True" : "False"}
 									</Badge>
 								)
 							))}
 
-							{/* Actions cell - edit/delete buttons when viewing, save/cancel when editing */}
 							{renderCell(columnVisibility.actions, (
 								<div className="flex items-center gap-1">
 									{!isEditing ? (
-										<>
-											{isReadOnly ? (
-												<Tooltip>
-													<TooltipTrigger asChild>
-														<Lock className="h-3 w-3 text-muted-foreground cursor-help" />
-													</TooltipTrigger>
-													<TooltipContent>
-														<p className="text-sm">
-															{(typeof parameter.user_interface === "string"
-																? parameter.user_interface
-																: parameter.user_interface.type) ===
-															"not_viewable"
-																? "Global parameter - not modifiable"
-																: (typeof parameter.user_interface === "string"
-																		? parameter.user_interface
-																		: parameter.user_interface.type) ===
-																  "static"
-																? "Company parameter - not modifiable"
-																: "Parameter - not modifiable"}
-														</p>
-													</TooltipContent>
-												</Tooltip>
-											) : (
 												<>
 													<Button
 														size="sm"
 														variant="ghost"
 														onClick={() => handleEditParameter(parameter)}
 														className="h-5 w-5 p-0"
-														disabled={
-															editingParameter !== null || isAddingParameter
-														}
+								disabled={editingParameter !== null || isAddingParameter}
 													>
 														<Edit className="h-3 w-3" />
 													</Button>
@@ -1464,8 +1166,6 @@ function ParameterTableBody({
 													>
 														<Trash className="h-3 w-3" />
 													</Button>
-												</>
-											)}
 										</>
 									) : (
 										<>
@@ -1474,20 +1174,7 @@ function ParameterTableBody({
 												variant="ghost"
 												onClick={() => handleSaveParameter(parameter.id)}
 												className="h-5 w-5 p-0 text-green-600 hover:text-green-700"
-												disabled={
-													!editData.name.trim() ||
-													!editData.unit.trim() ||
-													(editData.user_interface.type === "static" &&
-														((editData.display_type === "simple" &&
-															!editData.value.trim()) ||
-															(editData.display_type === "range" &&
-																(!editData.range_min.trim() ||
-																	!editData.range_max.trim())) ||
-															(editData.display_type === "dropdown" &&
-																editData.dropdown_options.length === 0) ||
-															(editData.display_type === "filter" &&
-																editData.dropdown_options.length === 0)))
-												}
+								disabled={isSaveDisabled()}
 											>
 												<Save className="h-3 w-3" />
 											</Button>
@@ -1505,26 +1192,50 @@ function ParameterTableBody({
 							))}
 						</TableRow>
 					);
-				})
-			)}
+}
 
-			{/* Add parameter row - appears when not adding and not on Global tab */}
-			{!isAddingParameter && activeTab !== "Global" && (
+/**
+ * EmptyState component - Shows when no parameters are found
+ */
+function EmptyState({ filteredParameters, isAddingParameter }: EmptyStateProps) {
+	if (filteredParameters.length !== 0 || isAddingParameter) return null;
+
+	return (
+		<TableRow>
+			<TableCell colSpan={11} className="text-center py-8">
+				<div className="flex flex-col items-center gap-2 text-muted-foreground">
+					<Info className="h-8 w-8" />
+					<p className="text-sm font-medium">No parameters found</p>
+					<p className="text-xs">Add parameters to get started</p>
+				</div>
+			</TableCell>
+		</TableRow>
+	);
+}
+
+/**
+ * AddParameterButton component - Renders the add parameter button row
+ */
+function AddParameterButton({
+	isAddingParameter,
+	activeTab,
+	handleAddParameter,
+	handleCancelAddParameter,
+}: AddParameterButtonProps) {
+	if (isAddingParameter || activeTab === "Global") return null;
+
+	return (
 				<TableRow className="border-t-2">
 					<TableCell
 						colSpan={11}
 						className="text-center bg-muted/50 cursor-pointer py-2"
-						onClick={
-							isAddingParameter ? handleCancelAddParameter : handleAddParameter
-						}
+				onClick={isAddingParameter ? handleCancelAddParameter : handleAddParameter}
 					>
 						<div className="flex items-center gap-2 justify-center text-muted-foreground">
 							<Plus className="h-3 w-3" />
-							<span className="text-xs">Add Parameter </span>
+					<span className="text-xs">Add Parameter</span>
 						</div>
 					</TableCell>
 				</TableRow>
-			)}
-		</TableBody>
 	);
 }

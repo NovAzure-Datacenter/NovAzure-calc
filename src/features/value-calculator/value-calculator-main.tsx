@@ -9,9 +9,9 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useState, Dispatch, SetStateAction, useEffect } from "react";
-import ValueCalculatorConfiguration from "./value-calculator-configuration";
-import ValueCalculatorResults from "./value-calculator-results";
-import ValueCalculatorOutputs from "./value-calculator-outputs";
+import ValueCalculatorConfiguration from "./components/value-calculator-configuration";
+import ValueCalculatorResults from "./components/value-calculator-results";
+import ValueCalculatorOutputs from "./components/value-calculator-outputs";
 import { useUser } from "@/hooks/useUser";
 import {
 	fetchClientInitialData,
@@ -20,12 +20,15 @@ import {
 	fetchSolutionVariantADetails,
 	fetchSolutionVariantBDetails,
 	ClientSolution,
-} from "../api";
+} from "@/features/value-calculator/api";
 import {
 	TabNavigationProps,
 	TabContentProps,
 	ComparisonMode,
-} from "../types/types";
+} from "@/features/value-calculator/types/types";
+import TestResultsAIPowered from "@/features/value-calculator/components/test-results-aipowered";
+import TestResultsSemantics from "@/features/value-calculator/components/test-results-semantics";
+import TestResultsWidget from "@/features/value-calculator/components/test-results-widget";
 
 /**
  * ValueCalculatorMain component - Main orchestrator for the value calculator feature
@@ -508,7 +511,7 @@ function TabContent({
 						<CardTitle className="text-lg">Comparison</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<ValueCalculatorResults
+						{/* <ValueCalculatorResults
 							hasCalculated={hasCalculated}
 							selectedIndustry={selectedIndustry}
 							selectedTechnology={selectedTechnology}
@@ -519,7 +522,30 @@ function TabContent({
 							fetchedSolutionB={fetchedSolutionB}
 							resultData={resultData}
 							comparisonMode={comparisonMode}
-						/>
+						/> */}
+						{/* <TestResultsSemantics solutionData={fetchedSolutionA || fetchedSolutionB || {
+								solution_name: "No Solution Selected",
+								solution_description: "Please configure a solution to view results",
+								status: "pending",
+								parameters: [],
+								calculations: []
+							}}/> */}
+							<TestResultsWidget solutionData={fetchedSolutionA || fetchedSolutionB || {
+								solution_name: "No Solution Selected",
+								solution_description: "Please configure a solution to view results",
+								status: "pending",
+								parameters: [],
+								calculations: []
+							}}/>
+						{/* <TestResultsAIPowered 
+							solutionData={fetchedSolutionA || fetchedSolutionB || {
+								solution_name: "No Solution Selected",
+								solution_description: "Please configure a solution to view results",
+								status: "pending",
+								parameters: [],
+								calculations: []
+							}}
+						/> */}
 					</CardContent>
 				</Card>
 			</TabsContent>

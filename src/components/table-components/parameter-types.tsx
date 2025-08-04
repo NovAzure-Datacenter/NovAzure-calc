@@ -1,4 +1,4 @@
-import { Parameter } from "@/app/home/product-and-solutions/types";
+import { Parameter } from "@/types/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { X, Plus, Download } from "lucide-react";

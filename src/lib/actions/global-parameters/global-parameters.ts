@@ -1,7 +1,7 @@
 "use server";
 
 import { getGlobalParametersCollection } from "@/lib/mongoDb/db";
-import { Parameter } from "@/app/home/product-and-solutions/types";
+import { Parameter } from "@/types/types";
 import { ObjectId } from "mongodb";
 
 // Cache for global parameters to avoid multiple database calls

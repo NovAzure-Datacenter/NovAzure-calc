@@ -1,4 +1,4 @@
-import { Calculation } from "@/app/home/product-and-solutions/types";
+import { Calculation } from "@/types/types";
 
 interface ColorStyle {
 	backgroundColor: string;
