@@ -1,4 +1,4 @@
-import { Parameter } from "@/app/home/product-and-solutions/types";
+import { Parameter } from "@/types/types";
 
 
 interface ColorStyle {

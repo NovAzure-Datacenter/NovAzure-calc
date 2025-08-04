@@ -9,9 +9,9 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useState, Dispatch, SetStateAction, useEffect } from "react";
-import ValueCalculatorConfiguration from "./value-calculator-configuration";
-import ValueCalculatorResults from "./value-calculator-results";
-import ValueCalculatorOutputs from "./value-calculator-outputs";
+import ValueCalculatorConfiguration from "./components/value-calculator-configuration";
+import ValueCalculatorResults from "./components/value-calculator-results";
+import ValueCalculatorOutputs from "./components/value-calculator-outputs";
 import { useUser } from "@/hooks/useUser";
 import {
 	fetchClientInitialData,
@@ -20,15 +20,15 @@ import {
 	fetchSolutionVariantADetails,
 	fetchSolutionVariantBDetails,
 	ClientSolution,
-} from "../api";
+} from "@/features/value-calculator/api";
 import {
 	TabNavigationProps,
 	TabContentProps,
 	ComparisonMode,
-} from "../types/types";
-import TestResultsAIPowered from "./test-results-aipowered";
-import TestResultsSemantics from "./test-results-semantics";
-import TestResultsWidget from "./test-results-widget";
+} from "@/features/value-calculator/types/types";
+import TestResultsAIPowered from "@/features/value-calculator/components/test-results-aipowered";
+import TestResultsSemantics from "@/features/value-calculator/components/test-results-semantics";
+import TestResultsWidget from "@/features/value-calculator/components/test-results-widget";
 
 /**
  * ValueCalculatorMain component - Main orchestrator for the value calculator feature
