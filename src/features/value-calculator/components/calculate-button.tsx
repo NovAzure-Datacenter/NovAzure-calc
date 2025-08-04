@@ -343,6 +343,7 @@ export default function CalculateButton({
 				}
 			});
 		}
+		
 
 		const targetList = solution.calculations
 			.filter((item: any) => item.display_result === true)
@@ -353,6 +354,7 @@ export default function CalculateButton({
 			parameters,
 			target: targetList,
 		};
+
 	};
 
 	const calculateSolution = async (solution: ClientSolution) => {
@@ -394,6 +396,8 @@ export default function CalculateButton({
 				},
 				{}
 			);
+
+			console.log(cleanData)
 
 			return cleanData;
 		} catch (err) {

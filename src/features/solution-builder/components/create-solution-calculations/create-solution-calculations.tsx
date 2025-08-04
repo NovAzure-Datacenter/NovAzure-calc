@@ -459,6 +459,12 @@ export function CalculationsConfiguration({
 	});
 	const [hasInitialized, setHasInitialized] = useState(false);
 
+useEffect(() => {
+	console.log('calculations', calculations)
+	console.log('parameters', parameters)
+}, [calculations])
+
+
 	// Migrate old calculations to new format
 	useEffect(() => {
 		// If no calculations are provided, initialize with mock data

@@ -404,23 +404,23 @@ export function CreateSolutionMain() {
 		try {
 			setIsLoadingParameters(true);
 			setIsLoadingCalculations(true);
-			console.log("Loading data for solution variant:", solutionVariantId);
+			// console.log("Loading data for solution variant:", solutionVariantId);
 
 			// Check if this is an existing solution variant (not a new one)
 			if (!solutionVariantId.startsWith("new-variant-")) {
 				// Get the existing solution data
 				const existingSolutions = await getClientSolutions(clientData.id);
-				console.log(
-					"Found existing solutions:",
-					existingSolutions.solutions?.length || 0
-				);
+				// console.log(
+				// 	"Found existing solutions:",
+				// 	existingSolutions.solutions?.length || 0
+				// );
 
 				if (existingSolutions.solutions) {
 					const existingSolution = existingSolutions.solutions.find(
 						(solution) => solution.id === solutionVariantId
 					);
 
-					console.log("Found matching solution:", existingSolution);
+					// console.log("Found matching solution:", existingSolution);
 
 					if (existingSolution) {
 						// Merge existing parameters with global parameters
@@ -446,7 +446,7 @@ export function CreateSolutionMain() {
 								...existingSolution.parameters,
 							];
 
-							console.log('mergedParameters', mergedParameters);
+							// console.log('mergedParameters', mergedParameters);
 							setFormData((prev) => ({
 								...prev,
 								parameters: mergedParameters,
@@ -484,7 +484,7 @@ export function CreateSolutionMain() {
 					}
 				}
 			} else {
-				console.log("New variant selected, starting with global parameters");
+				// console.log("New variant selected, starting with global parameters");
 				// For new variants, create copies of global parameters
 				const globalParams = await getAllGlobalParameters();
 				const globalParamCopies = createGlobalParameterCopies(globalParams, []);
@@ -878,6 +878,9 @@ export function CreateSolutionMain() {
 				return false;
 		}
 	};
+
+
+
 
 	if (isLoading) {
 		return <Loading />;

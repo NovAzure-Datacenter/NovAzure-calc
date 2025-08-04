@@ -26,6 +26,9 @@ import {
 	TabContentProps,
 	ComparisonMode,
 } from "../types/types";
+import TestResultsAIPowered from "./test-results-aipowered";
+import TestResultsSemantics from "./test-results-semantics";
+import TestResultsWidget from "./test-results-widget";
 
 /**
  * ValueCalculatorMain component - Main orchestrator for the value calculator feature
@@ -508,7 +511,7 @@ function TabContent({
 						<CardTitle className="text-lg">Comparison</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<ValueCalculatorResults
+						{/* <ValueCalculatorResults
 							hasCalculated={hasCalculated}
 							selectedIndustry={selectedIndustry}
 							selectedTechnology={selectedTechnology}
@@ -519,7 +522,30 @@ function TabContent({
 							fetchedSolutionB={fetchedSolutionB}
 							resultData={resultData}
 							comparisonMode={comparisonMode}
-						/>
+						/> */}
+						{/* <TestResultsSemantics solutionData={fetchedSolutionA || fetchedSolutionB || {
+								solution_name: "No Solution Selected",
+								solution_description: "Please configure a solution to view results",
+								status: "pending",
+								parameters: [],
+								calculations: []
+							}}/> */}
+							<TestResultsWidget solutionData={fetchedSolutionA || fetchedSolutionB || {
+								solution_name: "No Solution Selected",
+								solution_description: "Please configure a solution to view results",
+								status: "pending",
+								parameters: [],
+								calculations: []
+							}}/>
+						{/* <TestResultsAIPowered 
+							solutionData={fetchedSolutionA || fetchedSolutionB || {
+								solution_name: "No Solution Selected",
+								solution_description: "Please configure a solution to view results",
+								status: "pending",
+								parameters: [],
+								calculations: []
+							}}
+						/> */}
 					</CardContent>
 				</Card>
 			</TabsContent>
