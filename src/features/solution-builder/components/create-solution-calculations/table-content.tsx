@@ -54,6 +54,7 @@ import {
  * Supports adding new calculations, editing existing ones, and managing calculation categories
  */
 import { useCalculationValidator } from "./hooks/useCalculationValidator";
+import { CustomCalculationCategory } from "../../utils/calculation-color-utils";
 
 interface TableContentProps {
 	calculations: Calculation[];

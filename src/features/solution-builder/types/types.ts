@@ -1,6 +1,9 @@
 import { Parameter } from "@/types/types";
 import { Calculation } from "@/types/types";
 
+// Re-export Calculation for use in other modules
+export type { Calculation };
+
 // ============================================================================
 // CORE TYPES
 // ============================================================================
