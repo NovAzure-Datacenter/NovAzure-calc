@@ -35,6 +35,7 @@ import {
 	DropdownOptionsEditorProps,
 } from "../../types/types";
 import { useCalculationValidator } from "./hooks/useCalculationValidator";
+import { useCalculatorLevelManager } from "./hooks/useCalculatorLevelManager";
 import { groupParametersByCategory } from "../../api";
 
 /**
@@ -204,7 +205,7 @@ export function CalculationMain({
 					dropdown_options: [],
 					range_min: "",
 					range_max: "",
-					level: calc.level || 1,
+					level: calc.level || 2,
 					status: calc.status,
 					formula: calc.formula,
 				})
@@ -231,6 +232,32 @@ export function CalculationMain({
 	// Get calculation results using memoized data
 	const editCalculationResult = useCalculationValidator(groupedParametersWithCalculations, editCalculationData);
 	const newCalculationResult = useCalculationValidator(groupedParametersWithCalculations, newCalculationDataForValidation);
+	
+	// Calculate levels for all calculations
+	const { parameters: parametersWithLevels } = useCalculatorLevelManager(groupedParametersWithCalculations, calculations);
+
+	// Update calculation levels when they change
+	useEffect(() => {
+		if (parametersWithLevels.length > 0) {
+			const calculationLevelUpdates = parametersWithLevels
+				.filter(p => p.type === "CALCULATION")
+				.map(p => ({ name: p.name, level: p.level }));
+
+			let hasLevelChanges = false;
+			const updatedCalculations = calculations.map(calc => {
+				const levelUpdate = calculationLevelUpdates.find(update => update.name === calc.name);
+				if (levelUpdate && calc.level !== levelUpdate.level) {
+					hasLevelChanges = true;
+					return { ...calc, level: levelUpdate.level };
+				}
+				return calc;
+			});
+
+			if (hasLevelChanges) {
+				onCalculationsChange(updatedCalculations);
+			}
+		}
+	}, [parametersWithLevels, calculations, onCalculationsChange]);
 
 	/**
 	 * Handle calculation editing
@@ -381,6 +408,8 @@ export function CalculationMain({
 				defaultColors[newCalculationData.category.toLowerCase()] || "gray";
 		}
 
+		const calculatedLevel = 2;
+
 		const newCalculation: Calculation = {
 			id: `calc-${Date.now()}`,
 			name: newCalculationData.name,
@@ -398,7 +427,7 @@ export function CalculationMain({
 				newCalculationData.display_result !== undefined
 					? newCalculationData.display_result
 					: false,
-			level: 1,
+			level: calculatedLevel,
 		};
 
 		onCalculationsChange([newCalculation, ...calculations]);

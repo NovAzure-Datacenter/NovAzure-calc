@@ -214,8 +214,8 @@ function CalculationsTableHeader({}: CalculationsTableHeaderProps) {
 			width: 'w-16', 
 			hasTooltip: true, 
 			tooltip: {
-				title: 'The calculation priority level based on category',
-				content: '• Level 1: Financial calculations\n• Level 2: Performance & Efficiency\n• Level 3: Operational'
+				title: 'The calculation dependency level',
+				content: '• Level 1: Static parameters (Company/User/Global)\n• Level 2+: Calculations that depend on other calculations\n• Higher levels depend on lower level calculations'
 			}
 		},
 		{ key: 'name', label: 'Name', width: 'w-32', hasTooltip: false },
@@ -447,22 +447,6 @@ function CalculationRow({
 	toggleFormulaExpanded,
 }: CalculationRowProps) {
 	// Helper functions
-	const getCalculationLevel = (category: any) => {
-		if (typeof category === "string") return "1";
-		
-		switch (category?.name) {
-			case "financial":
-				return "1";
-			case "performance":
-				return "2";
-			case "efficiency":
-				return "2";
-			case "operational":
-				return "3";
-			default:
-				return "1";
-		}
-	};
 
 	const getCategoryName = (category: any) => {
 		return typeof category === "string" ? category : category?.name || "Unknown";
@@ -474,7 +458,7 @@ function CalculationRow({
 			<TableRow className="transition-all duration-200 bg-blue-50 border-2 border-blue-200 shadow-md">
 				{/* Level */}
 				<TableCell>
-					<span className="text-sm font-mono">{getCalculationLevel(calculation.category)}</span>
+					<span className="text-sm font-mono">{calculation.level || 1}</span>
 				</TableCell>
 				
 				{/* Formula - Expanded mode (spans all remaining columns) */}
@@ -506,7 +490,7 @@ function CalculationRow({
 		>
 			{/* Level */}
 			<TableCell>
-				<span className="text-sm font-mono">{getCalculationLevel(calculation.category)}</span>
+				<span className="text-sm font-mono">{calculation.level || 1}</span>
 			</TableCell>
 			
 			{/* Name */}
@@ -783,13 +767,8 @@ function AddCalculationRow({
 	isAddFormulaExpanded,
 	setIsAddFormulaExpanded,
 }: AddCalculationRowProps) {
-	// Debug logging
-	console.log('AddCalculationRow render:', { isAddFormulaExpanded, isAddingCalculation });
-
 	const handleExpandClick = () => {
-		console.log('Expand button clicked, current state:', isAddFormulaExpanded);
 		setIsAddFormulaExpanded(!isAddFormulaExpanded);
-		console.log('New state will be:', !isAddFormulaExpanded);
 	};
 
 	return (
