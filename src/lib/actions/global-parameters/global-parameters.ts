@@ -1,7 +1,7 @@
 "use server";
 
 import { getGlobalParametersCollection } from "@/lib/mongoDb/db";
-import { Parameter } from "@/app/home/product-and-solutions/types";
+import { Parameter } from "@/types/types";
 import { ObjectId } from "mongodb";
 
 // Cache for global parameters to avoid multiple database calls
@@ -32,8 +32,7 @@ function convertToParameter(doc: any): Parameter {
 		test_value: doc.test_value,
 		unit: doc.unit,
 		description: doc.description,
-		provided_by: doc.provided_by || "global",
-		input_type: doc.input_type || "simple",
+		user_interface: doc.user_interface || "not_viewable",
 		output: doc.output !== undefined ? doc.output : true,
 		level: doc.level || "L1",
 		category: {
@@ -58,8 +57,7 @@ function convertToMongoDoc(parameter: Omit<Parameter, "id">): any {
 		unit: parameter.unit,
 		description: parameter.description,
 		information: parameter.information,
-		provided_by: parameter.provided_by,
-		input_type: parameter.input_type,
+		user_interface: parameter.user_interface,
 		output: parameter.output,
 		level: parameter.level,
 		category: parameter.category,

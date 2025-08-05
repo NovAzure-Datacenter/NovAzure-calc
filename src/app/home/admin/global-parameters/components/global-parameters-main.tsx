@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Plus, X } from "lucide-react";
-import { Parameter } from "@/app/home/product-and-solutions/types";
+import { Parameter } from "@/types/types";
 import {
 	Card,
 	CardContent,
@@ -12,11 +12,8 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import Searchbar from "@/app/home/product-and-solutions/solutions/create/components/create-solution-parameters/search-bar";
-import {
-	getCategoryStyle,
-	getActiveTabStyle,
-} from "@/app/home/product-and-solutions/solutions/create/components/create-solution-parameters/color-utils";
+
+
 import GlobalParametersTableContent from "./global-parameters-table-content";
 import GlobalParametersTabs from "./global-parameters-tabs";
 import {
@@ -27,6 +24,9 @@ import {
 } from "@/lib/actions/global-parameters/global-parameters";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { getActiveTabStyle, getCategoryStyle } from "@/utils/color-utils";
+import Searchbar from "@/features/solution-builder/components/search-bar";
+
 
 export default function GlobalParametersMain() {
 	const [activeTab, setActiveTab] = useState("All");
@@ -46,10 +46,11 @@ export default function GlobalParametersMain() {
 		description: "",
 		category: "",
 		is_modifiable: true,
-		display_type: "simple" as "simple" | "dropdown" | "range" | "filter",
+		display_type: "simple" as "simple" | "dropdown" | "range" | "filter" | "conditional",
 		dropdown_options: [] as Array<{ key: string; value: string }>,
 		range_min: "",
 		range_max: "",
+		conditional_rules: [] as Array<{ condition: string; value: string }>,
 	});
 
 	// New parameter data state
@@ -61,10 +62,11 @@ export default function GlobalParametersMain() {
 		description: "",
 		category: "",
 		is_modifiable: true,
-		display_type: "simple" as "simple" | "dropdown" | "range" | "filter",
+		display_type: "simple" as "simple" | "dropdown" | "range" | "filter" | "conditional",
 		dropdown_options: [] as Array<{ key: string; value: string }>,
 		range_min: "",
 		range_max: "",
+		conditional_rules: [] as Array<{ condition: string; value: string }>,
 	});
 
 	// Custom categories for each tab
@@ -172,6 +174,7 @@ export default function GlobalParametersMain() {
 			dropdown_options: parameter.dropdown_options || [],
 			range_min: parameter.range_min || "",
 			range_max: parameter.range_max || "",
+			conditional_rules: parameter.conditional_rules || [],
 		});
 	};
 
@@ -185,8 +188,7 @@ export default function GlobalParametersMain() {
 				description: editData.description,
 				information: "",
 				category: { name: editData.category, color: "blue" },
-				provided_by: "global",
-				input_type: "simple",
+				user_interface: "not_viewable",
 				output: true,
 				level: "L1",
 				is_modifiable: editData.is_modifiable,
@@ -194,6 +196,7 @@ export default function GlobalParametersMain() {
 				dropdown_options: editData.dropdown_options,
 				range_min: editData.range_min,
 				range_max: editData.range_max,
+				conditional_rules: editData.conditional_rules,
 			});
 
 			// Update local state
@@ -216,6 +219,7 @@ export default function GlobalParametersMain() {
 				dropdown_options: [],
 				range_min: "",
 				range_max: "",
+				conditional_rules: [],
 			});
 
 			toast.success("Parameter updated successfully");
@@ -239,6 +243,7 @@ export default function GlobalParametersMain() {
 			dropdown_options: [],
 			range_min: "",
 			range_max: "",
+			conditional_rules: [],
 		});
 	};
 
@@ -270,6 +275,7 @@ export default function GlobalParametersMain() {
 			dropdown_options: [],
 			range_min: "",
 			range_max: "",
+			conditional_rules: [],
 		});
 	};
 
@@ -283,8 +289,7 @@ export default function GlobalParametersMain() {
 				description: newParameterData.description,
 				information: "",
 				category: { name: newParameterData.category, color: "blue" },
-				provided_by: "global",
-				input_type: "simple",
+				user_interface: "not_viewable",
 				output: true,
 				level: "L1",
 				is_modifiable: newParameterData.is_modifiable,
@@ -292,6 +297,7 @@ export default function GlobalParametersMain() {
 				dropdown_options: newParameterData.dropdown_options,
 				range_min: newParameterData.range_min,
 				range_max: newParameterData.range_max,
+				conditional_rules: newParameterData.conditional_rules,
 			});
 
 			// Update local state
@@ -310,6 +316,7 @@ export default function GlobalParametersMain() {
 				dropdown_options: [],
 				range_min: "",
 				range_max: "",
+				conditional_rules: [],
 			});
 
 			toast.success("Parameter added successfully");
@@ -333,6 +340,7 @@ export default function GlobalParametersMain() {
 			dropdown_options: [],
 			range_min: "",
 			range_max: "",
+			conditional_rules: [],
 		});
 	};
 

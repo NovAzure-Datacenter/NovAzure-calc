@@ -37,9 +37,10 @@ import {
 import { getIndustries } from "@/lib/actions/industry/industry";
 import { getTechnologies } from "@/lib/actions/technology/technology";
 import { SolutionDialog } from "./solution-dialog";
-import { SubmissionDialog } from "../create/components/submission-dialog";
+
 import { toast } from "sonner";
 import Loading from "@/components/loading-main";
+import { SubmissionDialog } from "@/features/solution-builder/components/submission-dialog";
 
 interface ClientSolution {
 	id?: string;
