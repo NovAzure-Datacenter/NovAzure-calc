@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,6 +34,8 @@ import {
 	FilterOptionsEditorProps,
 	DropdownOptionsEditorProps,
 } from "../../types/types";
+import { useCalculationValidator } from "./hooks/useCalculationValidator";
+import { groupParametersByCategory } from "../../api";
 
 /**
  * CalculationMain component
@@ -165,134 +167,70 @@ export function CalculationMain({
 		}
 	}, [isAddNewParameterDialogOpen]);
 
-	/**
-	 * Evaluate formula and return result
-	 */
-	const evaluateFormula = (formula: string): number | string => {
-		try {
-			const context: { [key: string]: number } = {};
-
-			// Add parameters to context
-			parameters.forEach((param) => {
-				const value =
-					param.overrideValue !== null
-						? param.overrideValue
-						: param.defaultValue;
-				context[param.id] = value;
-				context[param.id.replace(/-/g, "_")] = value;
-			});
-
-			// Add calculations to context
-			calculations.forEach((calc) => {
-				if (calc.result !== "Error" && typeof calc.result === "number") {
-					context[calc.name] = calc.result;
-					context[calc.name.replace(/\s+/g, "_")] = calc.result;
-				}
-			});
-
-			// Replace parameter and calculation names in formula with their values
-			let evaluatedFormula = formula;
-			Object.entries(context).forEach(([key, value]) => {
-				const regex = new RegExp(
-					`\\b${key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
-					"g"
-				);
-				evaluatedFormula = evaluatedFormula.replace(regex, value.toString());
-			});
-
-			// Safe evaluation using Function constructor
-			const result = new Function(
-				...Object.keys(context),
-				`return ${evaluatedFormula}`
-			)(...Object.values(context));
-
-			if (typeof result === "number" && !isNaN(result) && isFinite(result)) {
-				return parseFloat(result.toFixed(2));
+	const groupedParameters = useMemo(() => {
+		return parameters.reduce((acc, param) => {
+			const categoryName = param.category.name;
+			if (!acc[categoryName]) {
+				acc[categoryName] = [];
 			}
-			return "Error";
-		} catch (error) {
-			return "Error";
+			acc[categoryName].push(param);
+			return acc;
+		}, {} as Record<string, (typeof parameters)[0][]>);
+	}, [parameters]);
+
+	const groupedParametersWithCalculations = useMemo(() => {
+		const grouped = { ...groupedParameters };
+
+		if (calculations.length > 0) {
+			grouped["Calculations"] = calculations.map(
+				(calc) => ({
+					id: calc.id,
+					name: calc.name,
+					description: calc.description,
+					value: calc.result,
+					test_value: calc.result,
+					unit: calc.units,
+					category: {
+						name: "Calculations",
+						color: "indigo",
+					},
+					user_interface: {
+						type: "input",
+						category: "Calculations",
+						is_advanced: false,
+					},
+					output: calc.output,
+					display_type: "simple",
+					dropdown_options: [],
+					range_min: "",
+					range_max: "",
+					level: calc.level || 1,
+					status: calc.status,
+					formula: calc.formula,
+				})
+			);
 		}
-	};
 
-	// Update calculation results
-	useEffect(() => {
-		if (calculations.length > 0 && hasInitialized) {
-			const createEvaluationContext = () => {
-				const context: { [key: string]: number } = {};
+		return grouped;
+	}, [groupedParameters, calculations]);
 
-				parameters.forEach((param) => {
-					const value =
-						param.overrideValue !== null
-							? param.overrideValue
-							: param.defaultValue;
-					context[param.id] = value;
-					context[param.id.replace(/-/g, "_")] = value;
-				});
+	// Memoize calculation data to prevent infinite loops
+	const editCalculationData = useMemo(() => {
+		return editingCalculation && editData.name && editData.formula ? {
+			name: editData.name,
+			formula: editData.formula
+		} : null;
+	}, [editingCalculation, editData.name, editData.formula]);
+	
+	const newCalculationDataForValidation = useMemo(() => {
+		return isAddingCalculation && newCalculationData.name && newCalculationData.formula 
+			? newCalculationData 
+			: null;
+	}, [isAddingCalculation, newCalculationData.name, newCalculationData.formula]);
 
-				calculations.forEach((calc) => {
-					if (calc.result !== "Error" && typeof calc.result === "number") {
-						context[calc.name] = calc.result;
-						context[calc.name.replace(/\s+/g, "_")] = calc.result;
-					}
-				});
-
-				return context;
-			};
-
-			const context = createEvaluationContext();
-
-			const updatedCalculations = calculations.map((calc) => {
-				try {
-					const selfReference = calc.formula.includes(calc.name);
-					if (selfReference) {
-						return {
-							...calc,
-							result: "Error",
-							status: "error" as const,
-						};
-					}
-
-					let evaluatedFormula = calc.formula;
-					Object.entries(context).forEach(([key, value]) => {
-						const regex = new RegExp(
-							`\\b${key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
-							"g"
-						);
-						evaluatedFormula = evaluatedFormula.replace(
-							regex,
-							value.toString()
-						);
-					});
-
-					const result = new Function(
-						...Object.keys(context),
-						`return ${evaluatedFormula}`
-					)(...Object.values(context));
-
-					const finalResult =
-						typeof result === "number" && !isNaN(result) && isFinite(result)
-							? parseFloat(result.toFixed(2))
-							: "Error";
-
-					return {
-						...calc,
-						result: finalResult,
-						status:
-							finalResult === "Error" ? ("error" as const) : ("valid" as const),
-					};
-				} catch (error) {
-					return {
-						...calc,
-						result: "Error",
-						status: "error" as const,
-					};
-				}
-			});
-
-			onCalculationsChange(updatedCalculations);
-		}
-	}, [parameters, hasInitialized]);
+	// Get calculation results using memoized data
+	const editCalculationResult = useCalculationValidator(groupedParametersWithCalculations, editCalculationData);
+	const newCalculationResult = useCalculationValidator(groupedParametersWithCalculations, newCalculationDataForValidation);
 
 	/**
 	 * Handle calculation editing
@@ -320,6 +258,9 @@ export function CalculationMain({
 	 * Handle saving calculation changes
 	 */
 	const handleSaveCalculation = (calculationId: string) => {
+		// Use the editCalculationResult from the hook
+		const calculationResult = editCalculationResult ? 
+			Object.values(editCalculationResult)[0] : null;
 		const updatedCalculations = calculations.map((calc) =>
 			calc.id === calculationId
 				? {
@@ -334,15 +275,15 @@ export function CalculationMain({
 						},
 						output: editData.output,
 						display_result: editData.display_result,
-						result: evaluateFormula(editData.formula),
+						result: calculationResult,
 						status:
-							evaluateFormula(editData.formula) === "Error"
+							calculationResult === null
 								? ("error" as const)
 								: ("valid" as const),
 				  }
 				: calc
 		);
-		onCalculationsChange(updatedCalculations);
+		onCalculationsChange(updatedCalculations as Calculation[]);
 		setEditingCalculation(null);
 		setEditData({
 			name: "",
@@ -419,6 +360,10 @@ export function CalculationMain({
 			return;
 		}
 
+		// Use the newCalculationResult from the hook
+		const calculationResult = newCalculationResult ? 
+			Object.values(newCalculationResult)[0] : null;
+
 		let categoryColor = "green";
 		const customCategory = customCategories.find(
 			(cat) => cat.name === newCalculationData.category
@@ -440,10 +385,10 @@ export function CalculationMain({
 			id: `calc-${Date.now()}`,
 			name: newCalculationData.name,
 			formula: newCalculationData.formula,
-			result: "Error",
+			result: calculationResult || "Error",
 			units: newCalculationData.units,
 			description: newCalculationData.description,
-			status: "error",
+			status: calculationResult !== null ? "valid" : "error",
 			category: {
 				name: newCalculationData.category,
 				color: categoryColor,
@@ -797,46 +742,6 @@ export function CalculationMain({
 		}
 	};
 
-	const groupedParameters = parameters.reduce((acc, param) => {
-		const categoryName = param.category.name;
-		if (!acc[categoryName]) {
-			acc[categoryName] = [];
-		}
-		acc[categoryName].push(param);
-		return acc;
-	}, {} as Record<string, (typeof parameters)[0][]>);
-
-	const groupedParametersWithCalculations = { ...groupedParameters };
-
-	if (calculations.length > 0) {
-		groupedParametersWithCalculations["Calculations"] = calculations.map(
-			(calc) => ({
-				id: calc.id,
-				name: calc.name,
-				description: calc.description,
-				value: calc.result,
-				test_value: calc.result,
-				unit: calc.units,
-				category: {
-					name: "Calculations",
-					color: "indigo",
-				},
-				user_interface: {
-					type: "input",
-					category: "Calculations",
-					is_advanced: false,
-				},
-				output: calc.output,
-				display_type: "simple",
-				dropdown_options: [],
-				range_min: "",
-				range_max: "",
-				level: calc.level || 1,
-				status: calc.status,
-				formula: calc.formula,
-			})
-		);
-	}
 
 	const getAllAvailableCategories = () => {
 		return [...customCategories];

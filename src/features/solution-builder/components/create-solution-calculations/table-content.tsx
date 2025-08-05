@@ -164,10 +164,6 @@ export function TableContent({
 		});
 	};
 
-	useCalculationValidator(groupedParameters, newCalculationData);
-
-	console.log("GROUPED PARAMETERS:", groupedParameters)
-
 	return (
 		<div className="border rounded-md">
 			<div className="max-h-[55vh] overflow-y-auto">
@@ -615,18 +611,27 @@ function CalculationRow({
 			{/* Mock Result */}
 			<TableCell>
 				<div className="flex items-center gap-2">
+					<Badge 
+						className={`text-xs ${
+							calculation.status === "error" 
+								? "bg-red-100 text-red-800 border-red-200" 
+								: "bg-green-100 text-green-800 border-green-200"
+						}`}
+					>
+						{calculation.status === "error" ? "Error:" : "Valid:"}
+					</Badge>
 					<span
 						className={`text-sm font-mono ${
 							calculation.status === "error" ? "text-red-600" : "text-green-600"
 						}`}
 					>
-						{typeof calculation.result === "number"
-							? calculation.result.toLocaleString()
-							: calculation.result}
+						{calculation.status === "error" 
+							? "Error"
+							: typeof calculation.result === "number"
+								? calculation.result.toLocaleString()
+								: calculation.result
+						}
 					</span>
-					<Badge className={`text-xs ${getStatusColor(calculation.status)}`}>
-						{calculation.status}
-					</Badge>
 				</div>
 			</TableCell>
 			

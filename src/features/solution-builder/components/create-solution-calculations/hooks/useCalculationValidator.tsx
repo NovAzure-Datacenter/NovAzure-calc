@@ -1,22 +1,18 @@
-
 import { useState, useEffect } from "react";
 
 export function useCalculationValidator(
 	groupedParameters: any,
 	newCalculationData: { name: string; formula: string } | null
 ) {
-	console.log("GROUPED PARAMETERS:", groupedParameters);
 	const [parameters, setParameters] = useState<any[]>([]);
 
 	useEffect(() => {
 		const unifiedParameters: any[] = [];
 
-		// Process each category in groupedParameters
 		Object.entries(groupedParameters).forEach(([categoryName, items]) => {
 			if (Array.isArray(items)) {
 				items.forEach((item: any) => {
-					// Determine the type based on the category or item properties
-					let paramType = "COMPANY"; // default
+					let paramType = "COMPANY";
 
 					if (categoryName.toLowerCase() === "calculations") {
 						paramType = "CALCULATION";
@@ -24,7 +20,6 @@ export function useCalculationValidator(
 						categoryName.toLowerCase() === "global" ||
 						categoryName.toLowerCase() === "general"
 					) {
-						// Check if it's a company parameter (static/not_viewable)
 						const userInterfaceType =
 							typeof item.user_interface === "string"
 								? item.user_interface
@@ -40,16 +35,13 @@ export function useCalculationValidator(
 						}
 					}
 
-					// Create the parameter object with only required fields
 					const parameterObject: any = {
 						name: item.name,
 						type: paramType,
-						// Keep original item reference for validation logic
 						originalItem: item,
 						category: categoryName.toLowerCase(),
 					};
 
-					// Add value for parameters (general/global)
 					if (paramType === "USER" || paramType === "COMPANY") {
 						if (item.value !== undefined && item.value !== "") {
 							parameterObject.value = item.value;
@@ -61,7 +53,6 @@ export function useCalculationValidator(
 						}
 					}
 
-					// Add formula for calculations
 					if (paramType === "CALCULATION" && item.formula) {
 						parameterObject.formula = item.formula;
 					}
@@ -71,7 +62,6 @@ export function useCalculationValidator(
 			}
 		});
 
-		// Add the new calculation data
 		if (
 			newCalculationData &&
 			newCalculationData.name &&
@@ -89,7 +79,6 @@ export function useCalculationValidator(
 
 		setParameters(unifiedParameters);
 
-		// Prepare request body after parameters are set
 		if (unifiedParameters.length > 0) {
 			prepareRequestBodyForValidator(unifiedParameters);
 		}
@@ -131,7 +120,6 @@ export function useCalculationValidator(
 		const requestParameters: any[] = [];
 		const parameterNameMapping = new Map<string, string>();
 
-		// Build parameter name mapping from unified parameters
 		unifiedParams.forEach((param: any) => {
 			const cleanName = cleanParameterName(param.name);
 			parameterNameMapping.set(param.name, cleanName);
@@ -144,7 +132,6 @@ export function useCalculationValidator(
 				.filter((match) => match.length > 0);
 		};
 
-		// Extract parameter names from all formulas and add to mapping
 		unifiedParams.forEach((param: any) => {
 			if (param.formula) {
 				const extractedNames = extractParameterNamesFromFormula(param.formula);
@@ -172,7 +159,6 @@ export function useCalculationValidator(
 				return null;
 			}
 
-			// Find the Country parameter (filter type) in unified parameters
 			const countryParam = allUnifiedParams.find(
 				(p) =>
 					p.originalItem &&
@@ -187,13 +173,11 @@ export function useCalculationValidator(
 			return null;
 		};
 
-		// Process unified parameters to create inputs and request parameters
 		unifiedParams.forEach((param: any) => {
 			const cleanName = cleanParameterName(param.name);
 			const originalItem = param.originalItem;
 
 			if (param.type === "USER") {
-				// Handle USER parameters (input type)
 				const userInterfaceType =
 					typeof originalItem?.user_interface === "string"
 						? originalItem.user_interface
@@ -202,12 +186,10 @@ export function useCalculationValidator(
 				let value = null;
 
 				if (originalItem?.display_type === "dropdown") {
-					// First try to resolve based on filter (country selection)
 					value = resolveFilterBasedParameter(param, unifiedParams);
 				} else if (originalItem?.display_type !== "filter") {
 					let hasValidValue = false;
 
-					// Try to use the main value first
 					if (originalItem?.value !== undefined && originalItem.value !== "") {
 						value = parseFloat(originalItem.value);
 						if (!isNaN(value)) {
@@ -216,7 +198,6 @@ export function useCalculationValidator(
 						}
 					}
 
-					// Fallback to test_value if no valid value found
 					if (
 						!hasValidValue &&
 						originalItem?.test_value !== undefined &&
@@ -229,21 +210,17 @@ export function useCalculationValidator(
 					}
 				}
 
-				// Create parameter object for USER type
 				const paramObject: any = {
 					name: cleanName,
 					type: "USER",
 				};
 
-				// Only add non-filter parameters to the parameters array
 				if (originalItem?.display_type !== "filter") {
 					requestParameters.push(paramObject);
 				}
 			} else if (param.type === "COMPANY") {
-				// Handle COMPANY parameters (static/not_viewable)
 				let numValue = null;
 
-				// If parameter has dropdown options, try filter-based resolution first
 				if (
 					originalItem?.dropdown_options &&
 					originalItem.dropdown_options.length > 0
@@ -251,7 +228,6 @@ export function useCalculationValidator(
 					numValue = resolveFilterBasedParameter(param, unifiedParams);
 				}
 
-				// If no filter resolution or it failed, try direct value
 				if (
 					numValue === null &&
 					originalItem?.value !== undefined &&
@@ -263,7 +239,6 @@ export function useCalculationValidator(
 					}
 				}
 
-				// Fallback to test_value if value is not available
 				if (
 					numValue === null &&
 					originalItem?.test_value !== undefined &&
@@ -279,23 +254,19 @@ export function useCalculationValidator(
 					inputs[cleanName] = numValue;
 				}
 
-				// Create parameter object for COMPANY type
 				const paramObject: any = {
 					name: cleanName,
 					type: "COMPANY",
 				};
 
-				// Set value for company parameters
 				if (numValue !== null && !isNaN(numValue)) {
 					paramObject.value = numValue;
 				}
 
-				// Only add non-filter parameters to the parameters array
 				if (originalItem?.display_type !== "filter") {
 					requestParameters.push(paramObject);
 				}
 			} else if (param.type === "CALCULATION") {
-				// Handle CALCULATION parameters
 				if (param.formula) {
 					const calcObject: any = {
 						name: cleanName,
@@ -303,7 +274,6 @@ export function useCalculationValidator(
 						formula: cleanFormula(param.formula, parameterNameMapping),
 					};
 
-					// Add optional fields if they exist
 					if (originalItem?.units) calcObject.unit = originalItem.units;
 					if (originalItem?.description)
 						calcObject.description = originalItem.description;
@@ -319,7 +289,6 @@ export function useCalculationValidator(
 			}
 		});
 
-		// Create target list - use only the newCalculationData as the single target
 		const targetList =
 			newCalculationData && newCalculationData.name
 				? [cleanParameterName(newCalculationData.name)]
@@ -331,11 +300,6 @@ export function useCalculationValidator(
 			target: targetList,
 		};
 
-		console.log("VALIDATOR INPUTS:", inputs);
-		console.log("VALIDATOR PARAMETERS:", requestParameters);
-		console.log("VALIDATOR TARGET:", targetList);
-		console.log("VALIDATOR REQUEST BODY:", requestBody);
-
 		return requestBody;
 	};
 
@@ -345,8 +309,6 @@ export function useCalculationValidator(
 		if (!requestBody) {
 			return null;
 		}
-
-		console.log("REQUEST BODY:", requestBody);
 
 		try {
 			const response = await fetch("http://localhost:8000/api/v1/calculate", {
@@ -370,8 +332,6 @@ export function useCalculationValidator(
 			const dataArray = Array.isArray(resultArray)
 				? resultArray
 				: [resultArray];
-
-			console.log("DATA ARRAY:", dataArray);
 
 			const cleanData = dataArray.reduce(
 				(acc: Record<string, any>, value: any, index: number) => {
@@ -398,7 +358,6 @@ export function useCalculationValidator(
 		const getCalculationResult = async () => {
 			if (parameters.length > 0) {
 				const returnValue = await calculateCalculation(parameters);
-				console.log("UNIFIED PARAMETERS:", returnValue);
 				setCalculationResult(returnValue);
 			}
 		};
@@ -407,7 +366,4 @@ export function useCalculationValidator(
 	}, [parameters]);
 
 	return calculationResult;
-
-	// optimistically render
-	// save in db
 }
