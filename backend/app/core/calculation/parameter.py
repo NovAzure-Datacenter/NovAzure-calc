@@ -10,6 +10,7 @@ def is_valid_unit(unit: str) -> bool:
     # You can expand this as needed (e.g., check against a set of allowed units)
     return bool(unit)  # For now, just require non-empty string
 
+
 class Parameter:
     def __init__(self, data: dict):
         self.name = data["name"]
@@ -32,7 +33,9 @@ class Parameter:
             if self.value is None:
                 raise ValueError(f"{self.type} parameter '{self.name}' requires value")
             if not self.unit or not is_valid_unit(self.unit):
-                raise ValueError(f"{self.type} parameter '{self.name}' requires a valid unit")
+                raise ValueError(
+                    f"{self.type} parameter '{self.name}' requires a valid unit"
+                )
 
         # User parameter: optionally check unit
         if self.type == "USER":
@@ -42,7 +45,9 @@ class Parameter:
         # Calculation parameter: must have formula, dependencies, and valid unit propagation
         if self.type == "CALCULATION":
             if not self.formula:
-                raise ValueError(f"{self.type} parameter '{self.name}' requires formula")
+                raise ValueError(
+                    f"{self.type} parameter '{self.name}' requires formula"
+                )
             self.dependencies = self.extract_dependencies()
             if param_map is not None:
                 computed_unit = self.compute_unit(param_map)
@@ -139,11 +144,21 @@ class Parameter:
             return param_map[node].unit
         if isinstance(node, dict):
             op_type = node["type"]
-            left_unit = self._compute_unit_from_ast(node["left"], param_map) if "left" in node else ""
-            right_unit = self._compute_unit_from_ast(node["right"], param_map) if "right" in node else ""
+            left_unit = (
+                self._compute_unit_from_ast(node["left"], param_map)
+                if "left" in node
+                else ""
+            )
+            right_unit = (
+                self._compute_unit_from_ast(node["right"], param_map)
+                if "right" in node
+                else ""
+            )
             if op_type in ["Add", "Subtract"]:
                 if left_unit != right_unit:
-                    raise ValueError(f"Unit mismatch in {op_type}: {left_unit} vs {right_unit}")
+                    raise ValueError(
+                        f"Unit mismatch in {op_type}: {left_unit} vs {right_unit}"
+                    )
                 return left_unit
             elif op_type == "Multiply":
                 return self._combine_units(left_unit, right_unit, op_type)
