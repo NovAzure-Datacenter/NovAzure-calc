@@ -229,14 +229,11 @@ export function CalculationMain({
 			: null;
 	}, [isAddingCalculation, newCalculationData.name, newCalculationData.formula]);
 
-	// Get calculation results using memoized data
 	const editCalculationResult = useCalculationValidator(groupedParametersWithCalculations, editCalculationData);
 	const newCalculationResult = useCalculationValidator(groupedParametersWithCalculations, newCalculationDataForValidation);
 	
-	// Calculate levels for all calculations
 	const { parameters: parametersWithLevels } = useCalculatorLevelManager(groupedParametersWithCalculations, calculations);
 
-	// Update calculation levels when they change
 	useEffect(() => {
 		if (parametersWithLevels.length > 0) {
 			const calculationLevelUpdates = parametersWithLevels
@@ -285,7 +282,6 @@ export function CalculationMain({
 	 * Handle saving calculation changes
 	 */
 	const handleSaveCalculation = (calculationId: string) => {
-		// Use the editCalculationResult from the hook
 		const calculationResult = editCalculationResult ? 
 			Object.values(editCalculationResult)[0] : null;
 		const updatedCalculations = calculations.map((calc) =>
@@ -387,7 +383,6 @@ export function CalculationMain({
 			return;
 		}
 
-		// Use the newCalculationResult from the hook
 		const calculationResult = newCalculationResult ? 
 			Object.values(newCalculationResult)[0] : null;
 
@@ -560,7 +555,7 @@ export function CalculationMain({
 	};
 
 	/**
-	 * Formula manipulation functions
+	 * Formula manipulation functions (insert, reset, rewind)
 	 */
 	const insertIntoFormula = (text: string) => {
 		if (isAddingCalculation) {

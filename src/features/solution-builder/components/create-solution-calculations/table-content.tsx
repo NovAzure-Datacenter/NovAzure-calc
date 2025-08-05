@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import {
 	Table,
 	TableBody,
@@ -324,17 +324,24 @@ function CalculationsTableBody({
 	expandedCalculations,
 	setExpandedCalculations,
 }: CalculationsTableBodyProps) {
-	// State for add calculation formula expansion
+	const sortedCalculations = useMemo(() => {
+		return [...calculations].sort((a, b) => {
+			const levelA = a.level || 1;
+			const levelB = b.level || 1;
+			return levelB - levelA;
+		});
+	}, [calculations]);
+
 	const [isAddFormulaExpanded, setIsAddFormulaExpanded] = useState(false);
 
-	// Reset formula expansion when add calculation is cancelled
+
 	React.useEffect(() => {
 		if (!isAddingCalculation) {
 			setIsAddFormulaExpanded(false);
 		}
 	}, [isAddingCalculation]);
 
-	// Helper functions
+
 	const toggleFormulaExpanded = (calculationId: string) => {
 		setExpandedCalculations(prev => {
 			const newSet = new Set(prev);
@@ -382,7 +389,7 @@ function CalculationsTableBody({
 			)}
 
 			{/* Calculation rows */}
-			{calculations.map((calculation) => {
+			{sortedCalculations.map((calculation) => {
 				const isEditing = editingCalculation === calculation.id;
 				const isFormulaExpanded = expandedCalculations.has(calculation.id);
 
@@ -479,7 +486,6 @@ function CalculationRow({
 		);
 	}
 
-	// Normal row rendering (not expanded)
 	return (
 		<TableRow
 			className={`transition-all duration-200 ${
@@ -780,8 +786,7 @@ function AddCalculationRow({
 			
 			{/* If formula is expanded, only render level and formula columns */}
 			{isAddFormulaExpanded ? (
-				/* Formula - Expanded mode (spans all remaining columns) */
-				<TableCell colSpan={9} className="p-0">
+					<TableCell colSpan={9} className="p-0">
 					<ExpandedFormulaEditor
 						title="Formula Editor - New Calculation"
 						formula={newCalculationData.formula}
@@ -1299,7 +1304,6 @@ function ParametersByCategory({ groupedParameters, insertIntoFormula, className 
  * ParameterButton component - Individual parameter button
  */
 function ParameterButton({ param, insertIntoFormula }: ParameterButtonProps) {
-	// Helper function to get category color for the parameter
 	const getParameterCategoryColor = (paramCategory: any) => {
 		if (!paramCategory || !paramCategory.color) {
 			return "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100";
