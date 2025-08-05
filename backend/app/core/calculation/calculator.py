@@ -36,15 +36,12 @@ class Calculator:
         for param in self.parameters:
             if param.type != "CALCULATION":
                 continue
-
             units = {
                 self.param_map[dep].unit
                 for dep in param.dependencies
                 if dep in self.param_map and self.param_map[dep].unit
             }
-
             if len(units) == 1:
                 param.unit = units.pop()
             else:
                 param.unit = None
-                
