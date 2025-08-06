@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 
 import CategoryTabs from "./category-tabs";
-import Searchbar from "../search-bar";
+import Searchbar from "./search-bar";
 import TableContent from "./table-content";
 import { getLevelColor, getCategoryTailwindClasses } from "../../../../utils/color-utils";
 import PreviewDialog from "./preview-dialog";
@@ -210,7 +210,7 @@ export function ParameterMain({
 	const filteredParameters = getFilteredParameters(parameters, activeTab, searchQuery);
 
 	return (
-		<div className="space-y-6">
+		<div className="space-y-6 ">
 			<CategoryTabs
 				activeTab={activeTab}
 				setActiveTab={setActiveTab}

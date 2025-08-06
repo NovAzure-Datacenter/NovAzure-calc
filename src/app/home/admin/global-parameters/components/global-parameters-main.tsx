@@ -25,7 +25,7 @@ import {
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { getActiveTabStyle, getCategoryStyle } from "@/utils/color-utils";
-import Searchbar from "@/features/solution-builder/components/search-bar";
+import Searchbar from "@/features/solution-builder/components/create-solution-parameters/search-bar";
 
 
 export default function GlobalParametersMain() {

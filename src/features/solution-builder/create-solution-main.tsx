@@ -7,6 +7,7 @@ import {
 	Card,
 	CardContent,
 	CardDescription,
+	CardFooter,
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
@@ -15,9 +16,7 @@ import { ArrowRight, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
 import { ParameterMain } from "./components/create-solution-parameters/parameter-main";
-import {
-	CalculationMain,
-} from "./components/create-solution-calculations/calculation-main";
+import { CalculationMain } from "./components/create-solution-calculations/calculation-main";
 import { CreateSolutionProgress } from "./components/create-solution-progress";
 import { CreateSolutionFilter } from "./create-solution-filter";
 import { CreateSolutionSubmit } from "./create-solution-submit";
@@ -45,7 +44,6 @@ import {
 	getOtherIndustries,
 	getOtherTechnologies,
 } from "./api";
-
 /**
  * CreateSolutionMain component - Main orchestrator for the solution builder feature
  * Manages state, data fetching, and coordinates between different creation steps
@@ -62,7 +60,8 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 	const [isLoadingIndustries, setIsLoadingIndustries] = useState(false);
 	const [isLoadingTechnologies, setIsLoadingTechnologies] = useState(false);
 	const [isLoadingSolutionTypes, setIsLoadingSolutionTypes] = useState(false);
-	const [isLoadingSolutionVariants, setIsLoadingSolutionVariants] = useState(false);
+	const [isLoadingSolutionVariants, setIsLoadingSolutionVariants] =
+		useState(false);
 	const [isLoadingParameters, setIsLoadingParameters] = useState(false);
 	const [isLoadingCalculations, setIsLoadingCalculations] = useState(false);
 
@@ -70,8 +69,12 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 	const [clientData, setClientData] = useState<any>(null);
 	const [availableIndustries, setAvailableIndustries] = useState<any[]>([]);
 	const [availableTechnologies, setAvailableTechnologies] = useState<any[]>([]);
-	const [availableSolutionTypes, setAvailableSolutionTypes] = useState<any[]>([]);
-	const [availableSolutionVariants, setAvailableSolutionVariants] = useState<any[]>([]);
+	const [availableSolutionTypes, setAvailableSolutionTypes] = useState<any[]>(
+		[]
+	);
+	const [availableSolutionVariants, setAvailableSolutionVariants] = useState<
+		any[]
+	>([]);
 
 	// Creation mode state
 	const [isCreatingNewSolution, setIsCreatingNewSolution] = useState(false);
@@ -80,21 +83,31 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 	// Submission state
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [showSubmissionDialog, setShowSubmissionDialog] = useState(false);
-	const [submissionStatus, setSubmissionStatus] = useState<"success" | "error">("success");
+	const [submissionStatus, setSubmissionStatus] = useState<"success" | "error">(
+		"success"
+	);
 	const [submissionMessage, setSubmissionMessage] = useState("");
 	const [submittedSolutionName, setSubmittedSolutionName] = useState("");
 	const [showDraftDialog, setShowDraftDialog] = useState(false);
-	const [draftStatus, setDraftStatus] = useState<"success" | "error">("success");
+	const [draftStatus, setDraftStatus] = useState<"success" | "error">(
+		"success"
+	);
 	const [draftMessage, setDraftMessage] = useState("");
 	const [draftSolutionName, setDraftSolutionName] = useState("");
 
 	// Solution tracking state
-	const [isExistingSolutionLoaded, setIsExistingSolutionLoaded] = useState(false);
-	const [existingSolutionId, setExistingSolutionId] = useState<string | null>(null);
+	const [isExistingSolutionLoaded, setIsExistingSolutionLoaded] =
+		useState(false);
+	const [existingSolutionId, setExistingSolutionId] = useState<string | null>(
+		null
+	);
 
 	// Category states for parameters and calculations
-	const [customParameterCategories, setCustomParameterCategories] = useState<Array<{ name: string; color: string }>>([]);
-	const [customCalculationCategories, setCustomCalculationCategories] = useState<Array<{ name: string; color: string }>>([]);
+	const [customParameterCategories, setCustomParameterCategories] = useState<
+		Array<{ name: string; color: string }>
+	>([]);
+	const [customCalculationCategories, setCustomCalculationCategories] =
+		useState<Array<{ name: string; color: string }>>([]);
 
 	// Form data state
 	const [formData, setFormData] = useState<CreateSolutionData>({
@@ -123,12 +136,12 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 
 			// Load initial data using centralized API
 			const initialData = await fetchInitialData(user._id);
-			
+
 			if (initialData.clientData) {
 				setClientData(initialData.clientData);
 				setAvailableIndustries(initialData.industries);
 				setAvailableTechnologies(initialData.technologies);
-				
+
 				// Set global parameters
 				setFormData((prev) => ({
 					...prev,
@@ -150,7 +163,10 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 	/**
 	 * Fetch solution types based on selected industry and technology
 	 */
-	const loadSolutionTypes = async (industryId: string, technologyId: string) => {
+	const loadSolutionTypes = async (
+		industryId: string,
+		technologyId: string
+	) => {
 		try {
 			setIsLoadingSolutionTypes(true);
 			const result = await fetchSolutionTypes(industryId, technologyId);
@@ -187,7 +203,11 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 			setIsLoadingParameters(true);
 			setIsLoadingCalculations(true);
 
-			const result = await fetchExistingSolutionData(solutionVariantId, clientData, formData.parameters);
+			const result = await fetchExistingSolutionData(
+				solutionVariantId,
+				clientData,
+				formData.parameters
+			);
 
 			if (result.existingSolution) {
 				setFormData((prev) => ({
@@ -202,7 +222,9 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 					...prev,
 					parameters: result.parameters,
 				}));
-				toast.warning("Existing solution not found. Starting with global parameters.");
+				toast.warning(
+					"Existing solution not found. Starting with global parameters."
+				);
 			}
 		} catch (error) {
 			console.error("Error loading existing solution data:", error);
@@ -383,12 +405,15 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 			setIsSubmitting(true);
 
 			if (isExistingSolutionLoaded && existingSolutionId) {
-				const updateResult = await updateExistingClientSolution(existingSolutionId, {
-					parameters: formData.parameters,
-					calculations: formData.calculations,
-					status: "draft",
-					updated_at: new Date(),
-				});
+				const updateResult = await updateExistingClientSolution(
+					existingSolutionId,
+					{
+						parameters: formData.parameters,
+						calculations: formData.calculations,
+						status: "draft",
+						updated_at: new Date(),
+					}
+				);
 
 				if (updateResult.success) {
 					setDraftStatus("success");
@@ -508,16 +533,21 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 			setIsSubmitting(true);
 
 			if (isExistingSolutionLoaded && existingSolutionId) {
-				const updateResult = await updateExistingClientSolution(existingSolutionId, {
-					parameters: formData.parameters,
-					calculations: formData.calculations,
-					status: "pending",
-					updated_at: new Date(),
-				});
+				const updateResult = await updateExistingClientSolution(
+					existingSolutionId,
+					{
+						parameters: formData.parameters,
+						calculations: formData.calculations,
+						status: "pending",
+						updated_at: new Date(),
+					}
+				);
 
 				if (updateResult.success) {
 					setSubmissionStatus("success");
-					setSubmissionMessage("Solution updated and submitted for review successfully!");
+					setSubmissionMessage(
+						"Solution updated and submitted for review successfully!"
+					);
 					setSubmittedSolutionName("Updated Solution");
 					setShowSubmissionDialog(true);
 				} else {
@@ -621,7 +651,9 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 		} catch (error) {
 			console.error("Error submitting solution:", error);
 			setSubmissionStatus("error");
-			setSubmissionMessage("Failed to submit solution for review. Please try again.");
+			setSubmissionMessage(
+				"Failed to submit solution for review. Please try again."
+			);
 			setShowSubmissionDialog(true);
 		} finally {
 			setIsSubmitting(false);
@@ -632,21 +664,29 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 	 * Helper functions for getting selected data
 	 */
 	const getSelectedIndustryName = () => {
-		const industry = availableIndustries.find((i) => i.id === formData.selectedIndustry);
+		const industry = availableIndustries.find(
+			(i) => i.id === formData.selectedIndustry
+		);
 		return industry?.name || "Not selected";
 	};
 
 	const getSelectedTechnologyName = () => {
-		const technology = availableTechnologies.find((t) => t.id === formData.selectedTechnology);
+		const technology = availableTechnologies.find(
+			(t) => t.id === formData.selectedTechnology
+		);
 		return technology?.name || "Not selected";
 	};
 
 	const getSelectedSolutionType = () => {
-		return availableSolutionTypes.find((s) => s.id === formData.selectedSolutionId);
+		return availableSolutionTypes.find(
+			(s) => s.id === formData.selectedSolutionId
+		);
 	};
 
 	const getSelectedSolutionVariant = () => {
-		return availableSolutionVariants.find((v) => v.id === formData.selectedSolutionVariantId);
+		return availableSolutionVariants.find(
+			(v) => v.id === formData.selectedSolutionVariantId
+		);
 	};
 
 	/**
@@ -687,8 +727,10 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 			case 1:
 				const hasIndustry = !!formData.selectedIndustry;
 				const hasTechnology = !!formData.selectedTechnology;
-				const hasSolution = formData.selectedSolutionId || isCreatingNewSolution;
-				const hasSolutionVariant = !!formData.selectedSolutionVariantId || isCreatingNewVariant;
+				const hasSolution =
+					formData.selectedSolutionId || isCreatingNewSolution;
+				const hasSolutionVariant =
+					!!formData.selectedSolutionVariantId || isCreatingNewVariant;
 
 				if (isCreatingNewSolution) {
 					return (
@@ -700,7 +742,9 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 					);
 				}
 
-				return !hasIndustry || !hasTechnology || !hasSolution || !hasSolutionVariant;
+				return (
+					!hasIndustry || !hasTechnology || !hasSolution || !hasSolutionVariant
+				);
 			case 2:
 				if (isLoadingParameters) {
 					return false;
@@ -730,29 +774,29 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 	}
 
 	return (
-		<div className="w-full h-screen flex flex-col pb-8 overflow-hidden">
+		<div className="w-full h-screen flex flex-col  py-2  ">
 			{/* Header */}
-			<div className="text-center space-y-1 flex-shrink-0 p-4">
+			{/* <div className="text-center space-y-1 flex-shrink-0 p-4">
 				<h1 className="text-2xl font-bold">Create New Solution</h1>
 				<p className="text-sm text-muted-foreground">
 					Follow the steps below to create a new solution for your organization
 				</p>
-			</div>
+			</div> */}
 
 			{/* Progress Steps */}
-			<div className="flex-shrink-0 px-4">
+			{/* <div className="flex-shrink-0 px-4">
 				<CreateSolutionProgress currentStep={currentStep} />
-			</div>
+			</div> */}
 
 			{/* Step Content */}
-			<Card className="flex flex-col min-h-0 max-h-[calc(100vh-200px)] overflow-hidden mx-4">
-				<CardHeader className="pb-4 flex-shrink-0">
+			<Card className="flex flex-col h-full mx-2 max-w-full py-0 pt-4">
+				<CardHeader className="">
 					<CardTitle className="text-lg">{getStepTitle()}</CardTitle>
 					<CardDescription className="text-sm">
 						{getStepDescription()}
 					</CardDescription>
 				</CardHeader>
-				<CardContent className="flex-1 overflow-y-auto space-y-4 overflow-x-hidden">
+				<CardContent className="flex-1 px-2 bg">
 					<StepContent
 						currentStep={currentStep}
 						formData={formData}
@@ -797,9 +841,11 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 						getSelectedSolutionType={getSelectedSolutionType}
 						getSelectedSolutionVariant={getSelectedSolutionVariant}
 					/>
+				</CardContent>
 
-					{/* Navigation Buttons */}
-					<div className="flex justify-between pt-4 flex-shrink-0">
+				{/* Navigation Buttons */}
+				<CardFooter className="p-4 border-t bg-gray-50">
+					<div className="w-full flex flex-row justify-between flex-shrink-0 ">
 						<Button
 							variant="outline"
 							onClick={handlePrevious}
@@ -823,7 +869,7 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 							</Button>
 						) : null}
 					</div>
-				</CardContent>
+				</CardFooter>
 			</Card>
 
 			{/* Submission Dialog */}

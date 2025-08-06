@@ -142,10 +142,10 @@ export function ProjectsGrid({
 				onOpenChange={setDialogOpen}
 			/>
 
-			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
 				{/* Create New Project Card - Always visible */}
 				<Card
-					className="cursor-pointer hover:shadow-md transition-shadow group relative border-dashed border-2 border-muted-foreground/20 hover:border-primary/50"
+					className="cursor-pointer hover:shadow-md transition-shadow group relative border-dashed border-2 border-muted-foreground/20 hover:border-primary/50 h-fit"
 					onClick={handleCreateProjectClick}
 				>
 					<CardHeader className="pb-2 pt-6">
@@ -169,7 +169,7 @@ export function ProjectsGrid({
 				{projects.map((project) => (
 					<Card
 						key={project.id}
-						className="cursor-pointer hover:shadow-md transition-shadow group relative"
+						className="cursor-pointer hover:shadow-md transition-shadow group relative h-fit"
 						onClick={() => onProjectClick(project)}
 					>
 						{/* Status badge at top right */}

@@ -539,7 +539,7 @@ function TabContentOverview({
 				</CardHeader>
 				<CardContent className="my-2">
 					{applicableIndustries.length > 0 ? (
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
 							{applicableIndustries.map((industry) => (
 								<Card key={industry.id} className="p-3">
 									<CardContent className="p-0">
