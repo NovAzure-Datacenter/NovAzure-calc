@@ -3,10 +3,11 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Save, Send, AlertTriangle, Info } from "lucide-react";
+import { Save, Send, AlertTriangle } from "lucide-react";
+import { CreateSolutionSubmitProps } from "./types/types";
 
 /**
- * CreateSolutionSubmitTest component - Test version with just ActionCards and WarningMessage
+ * CreateSolutionSubmit component - Review and submit solution
  */
 export function CreateSolutionSubmit({
 	formData,
@@ -20,57 +21,95 @@ export function CreateSolutionSubmit({
 	getSelectedSolutionType,
 	getSelectedSolutionVariant,
 	isExistingSolutionLoaded,
+}: CreateSolutionSubmitProps) {
+	return (
+		<div className="w-full h-full overflow-y-auto space-y-4 p-4">
+			{/* Solution Summary Section */}
+			<div className="space-y-3">
+				<h3 className="text-lg font-semibold">Solution Summary</h3>
+				{/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+					<SummaryCard
+						icon={<div className="w-4 h-4 bg-blue-500 rounded" />}
+						title="Industry"
+						value={getSelectedIndustryName()}
+						bgColor="bg-blue-50"
+						iconColor="text-blue-600"
+					/>
+					<SummaryCard
+						icon={<div className="w-4 h-4 bg-green-500 rounded" />}
+						title="Technology"
+						value={getSelectedTechnologyName()}
+						bgColor="bg-green-50"
+						iconColor="text-green-600"
+					/>
+				</div> */}
+			</div>
+
+			{/* Configuration Summary */}
+			<div className="space-y-3">
+				<h3 className="text-lg font-semibold">Configuration</h3>
+				{/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+					<SummaryCard
+						icon={<div className="w-4 h-4 bg-purple-500 rounded" />}
+						title="Parameters"
+						value={`${formData.parameters.length} configured`}
+						bgColor="bg-purple-50"
+						iconColor="text-purple-600"
+					/>
+					<SummaryCard
+						icon={<div className="w-4 h-4 bg-orange-500 rounded" />}
+						title="Calculations"
+						value={`${formData.calculations.length} configured`}
+						bgColor="bg-orange-50"
+						iconColor="text-orange-600"
+					/>
+				</div> */}
+			</div>
+
+			{/* Action Cards */}
+			<ActionCards
+				isSubmitting={isSubmitting}
+				isExistingSolutionLoaded={isExistingSolutionLoaded || false}
+				onSaveAsDraft={onSaveAsDraft}
+				onSubmitForReview={onSubmitForReview}
+			/>
+
+			{/* Warning Message */}
+			<WarningMessage />
+		</div>
+	);
+}
+
+/**
+ * SummaryCard component - Displays summary information
+ */
+function SummaryCard({
+	icon,
+	title,
+	value,
+	bgColor,
+	iconColor,
 }: {
-	formData: {
-		solutionName: string;
-		solutionDescription: string;
-		solutionVariant: string;
-		customSolutionVariant: string;
-		customSolutionVariantDescription: string;
-		parameters: any[];
-		calculations: any[];
-	};
-	showCustomSolutionType: boolean;
-	showCustomSolutionVariant: boolean;
-	isSubmitting: boolean;
-	onSaveAsDraft: () => void;
-	onSubmitForReview: () => void;
-	getSelectedIndustryName: () => string;
-	getSelectedTechnologyName: () => string;
-	getSelectedSolutionType: () => any;
-	getSelectedSolutionVariant: () => any;
-	isExistingSolutionLoaded?: boolean;
+	icon: React.ReactNode;
+	title: string;
+	value: string;
+	bgColor: string;
+	iconColor: string;
 }) {
 	return (
-		<div
-			className="w-full max-w-[calc(100vw-18rem)] min-h-[500px] h-[600px] overflow-hidden bg-red-900 p-4 rounded border-4 border-red-800"
-			style={{
-				backgroundColor: "red !important",
-				border: "4px solid red !important",
-				padding: "16px",
-				margin: "16px",
-			}}
-		>
-			<div className="text-white font-bold text-lg mb-4">
-				TEST: PARENT CONTAINER - DARK RED BACKGROUND
-			</div>
-			<div className="w-full h-full overflow-y-auto overflow-x-hidden space-y-3 p-2">
-				<div className="bg-green-600 p-2 rounded"></div>
-
-				<div className="bg-pink-600 p-2 rounded">
-					<ActionCards
-						isSubmitting={isSubmitting}
-						isExistingSolutionLoaded={isExistingSolutionLoaded || false}
-						onSaveAsDraft={onSaveAsDraft}
-						onSubmitForReview={onSubmitForReview}
-					/>
+		<Card className="border">
+			<CardContent className="p-4">
+				<div className="flex items-center gap-3">
+					<div className={`p-2 ${bgColor} rounded-lg`}>
+						<div className={iconColor}>{icon}</div>
+					</div>
+					<div className="flex-1">
+						<h4 className="font-medium text-sm text-muted-foreground">{title}</h4>
+						<p className="font-semibold text-sm">{value}</p>
+					</div>
 				</div>
-
-				<div className="bg-yellow-600 p-2 rounded">
-					<WarningMessage />
-				</div>
-			</div>
-		</div>
+			</CardContent>
+		</Card>
 	);
 }
 
@@ -137,7 +176,7 @@ function ActionCards({
 	};
 
 	return (
-		<div className="grid grid-cols-1 lg:grid-cols-2 gap-3 w-full max-w-full overflow-hidden bg-pink-100 p-2 rounded">
+		<div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 			<ActionCard {...saveAsDraftCard} />
 			<ActionCard {...submitForReviewCard} />
 		</div>
@@ -173,24 +212,20 @@ function ActionCard({
 	iconColor: string;
 }) {
 	return (
-		<Card className="border-dashed border-2 hover:border-primary/50 transition-colors w-full max-w-full overflow-hidden">
-			<CardContent className="p-3 w-full max-w-full overflow-hidden">
-				<div className="flex items-center gap-2 mb-2 w-full max-w-full overflow-hidden">
-					<div className={`p-1.5 ${bgColor} rounded-full flex-shrink-0`}>
-						{icon}
+		<Card className="border-dashed border-2 hover:border-primary/50 transition-colors">
+			<CardContent className="p-4">
+				<div className="flex items-center gap-3 mb-3">
+					<div className={`p-2 ${bgColor} rounded-lg`}>
+						<div className={iconColor}>{icon}</div>
 					</div>
-					<div className="min-w-0 flex-1 overflow-hidden">
-						<h3 className="font-semibold text-sm truncate">{title}</h3>
-						<p className="text-xs text-muted-foreground truncate">
-							{description}
-						</p>
+					<div className="flex-1">
+						<h3 className="font-semibold text-sm">{title}</h3>
+						<p className="text-xs text-muted-foreground">{description}</p>
 					</div>
 				</div>
-				<ul className="text-xs text-muted-foreground space-y-0.5 mb-2 w-full max-w-full overflow-hidden">
+				<ul className="text-xs text-muted-foreground space-y-1 mb-3">
 					{benefits.map((benefit, index) => (
-						<li key={index} className="truncate">
-							• {benefit}
-						</li>
+						<li key={index}>• {benefit}</li>
 					))}
 				</ul>
 				<Button
@@ -222,13 +257,11 @@ function ActionCard({
  */
 function WarningMessage() {
 	return (
-		<div className="flex items-start gap-2 p-2 border rounded-md bg-yellow-50 border-yellow-200 w-full max-w-full overflow-hidden bg-yellow-100 p-2 rounded">
+		<div className="flex items-start gap-3 p-3 border rounded-md bg-yellow-50 border-yellow-200">
 			<AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
-			<div className="text-xs text-yellow-800 w-full max-w-full overflow-hidden">
-				<p className="font-medium truncate">
-					Review your solution before submitting
-				</p>
-				<p className="mt-1 truncate">
+			<div className="text-xs text-yellow-800">
+				<p className="font-medium">Review your solution before submitting</p>
+				<p className="mt-1">
 					Once submitted for review, your solution will be evaluated by our
 					team. You can save as draft to continue editing later.
 				</p>
