@@ -42,6 +42,7 @@ export function ParameterMain({
 	availableTechnologies = [],
 	availableSolutionTypes = [],
 	isLoadingParameters = false,
+	usedParameterIds = [],
 }: CreateSolutionParametersProps) {
 	// State management
 	const [editingParameter, setEditingParameter] = useState<string | null>(null);
@@ -279,6 +280,7 @@ export function ParameterMain({
 						activeTab={activeTab}
 						columnVisibility={columnVisibility}
 						setColumnVisibility={setColumnVisibility}
+						usedParameterIds={usedParameterIds}
 					/>
 				</>
 			)}
@@ -445,13 +447,13 @@ function convertParameterToEditData(parameter: Parameter): ParameterEditData {
 		user_interface: {
 			type: typeof parameter.user_interface === "string" 
 				? parameter.user_interface as "input" | "static" | "not_viewable"
-				: parameter.user_interface.type,
+				: parameter.user_interface?.type || "input",
 			category: typeof parameter.user_interface === "string"
 				? parameter.category.name
-				: parameter.user_interface.category,
+				: parameter.user_interface?.category || "",
 			is_advanced: typeof parameter.user_interface === "string"
 				? false
-				: parameter.user_interface.is_advanced
+				: parameter.user_interface?.is_advanced || false
 		},
 		output: parameter.output,
 		display_type: parameter.display_type,
@@ -484,9 +486,9 @@ function convertEditDataToParameter(
 			color: categoryColor,
 		},
 		user_interface: {
-			type: editData.user_interface.type,
-			category: editData.user_interface.category,
-			is_advanced: editData.user_interface.is_advanced
+			type: editData.user_interface?.type || "input",
+			category: editData.user_interface?.category || "",
+			is_advanced: editData.user_interface?.is_advanced || false
 		},
 		output: editData.output,
 		display_type: editData.display_type,
@@ -511,7 +513,7 @@ function validateParameterEditData(editData: ParameterEditData): ParameterValida
 	}
 
 	// Additional validation for static parameters
-	if (editData.user_interface.type === "static") {
+			if (editData.user_interface?.type === "static") {
 		if (editData.display_type === "simple" && !editData.value.trim()) {
 			return {
 				isValid: false,
@@ -586,7 +588,7 @@ function getFilteredParameters(parameters: Parameter[], activeTab: string, searc
 			param.unit.toLowerCase().includes(searchQuery.toLowerCase()) ||
 			(typeof param.user_interface === "string" 
 				? param.user_interface.toLowerCase().includes(searchQuery.toLowerCase())
-				: param.user_interface.type.toLowerCase().includes(searchQuery.toLowerCase())) ||
+				: param.user_interface?.type?.toLowerCase().includes(searchQuery.toLowerCase()) || false) ||
 			param.output.toString().toLowerCase().includes(searchQuery.toLowerCase());
 
 		return tabFiltered && searchFiltered;

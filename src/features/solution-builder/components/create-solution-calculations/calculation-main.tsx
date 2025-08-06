@@ -485,7 +485,7 @@ export function CalculationMain({
 			return;
 		}
 
-		if (newParameterData.user_interface.type === "static") {
+		if (newParameterData.user_interface?.type === "static") {
 			if (
 				newParameterData.display_type === "simple" &&
 				!newParameterData.value.trim()
@@ -1323,7 +1323,7 @@ function AddParameterDialog({
 										}))
 									}
 									placeholder={
-										newParameterData.user_interface.type === "static"
+										newParameterData.user_interface?.type === "static"
 											? "Value *"
 											: "Value (optional)"
 									}
@@ -1421,7 +1421,7 @@ function AddParameterDialog({
 						</Label>
 						<div className="col-span-3">
 							<Select
-								value={newParameterData.user_interface.type}
+								value={newParameterData.user_interface?.type || "input"}
 								onValueChange={(value) =>
 									setNewParameterData((prev: any) => ({
 										...prev,
@@ -1434,7 +1434,7 @@ function AddParameterDialog({
 							>
 								<SelectTrigger>
 									<SelectValue>
-										{newParameterData.user_interface.type || "Select provider"}
+										{newParameterData.user_interface?.type || "Select provider"}
 									</SelectValue>
 								</SelectTrigger>
 								<SelectContent>
@@ -1483,7 +1483,7 @@ function AddParameterDialog({
 						disabled={
 							!newParameterData.name.trim() ||
 							!newParameterData.unit.trim() ||
-							(newParameterData.user_interface.type === "static" &&
+							(newParameterData.user_interface?.type === "static" &&
 								((newParameterData.display_type === "simple" &&
 									!newParameterData.value.trim()) ||
 									(newParameterData.display_type === "range" &&

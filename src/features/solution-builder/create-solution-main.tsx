@@ -102,6 +102,9 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 		null
 	);
 
+	// Used parameters tracking state
+	const [usedParameterIds, setUsedParameterIds] = useState<string[]>([]);
+
 	// Category states for parameters and calculations
 	const [customParameterCategories, setCustomParameterCategories] = useState<
 		Array<{ name: string; color: string }>
@@ -373,6 +376,10 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 
 	const handleCalculationsChange = (calculations: Calculation[]) => {
 		setFormData((prev) => ({ ...prev, calculations }));
+	};
+
+	const handleUsedParametersChange = (usedParameterIds: string[]) => {
+		setUsedParameterIds(usedParameterIds);
 	};
 
 	const handleAddSolutionVariant = (newVariant: any) => {
@@ -840,6 +847,7 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 						getSelectedTechnologyName={getSelectedTechnologyName}
 						getSelectedSolutionType={getSelectedSolutionType}
 						getSelectedSolutionVariant={getSelectedSolutionVariant}
+						onUsedParametersChange={handleUsedParametersChange}
 					/>
 				</CardContent>
 
@@ -939,7 +947,53 @@ function StepContent({
 	getSelectedTechnologyName,
 	getSelectedSolutionType,
 	getSelectedSolutionVariant,
+	onUsedParametersChange,
 }: StepContentProps) {
+	// Extract used parameter IDs from calculations
+	const extractUsedParameterIds = (): string[] => {
+		const usedIds = new Set<string>();
+
+		// Test case: if no calculations, return empty array
+		if (formData.calculations.length === 0) {
+			return [];
+		}
+
+		formData.calculations.forEach((calculation) => {
+			// Extract parameter names from formula (improved regex to match parameter names)
+			const parameterMatches = calculation.formula.match(/[a-zA-Z_][a-zA-Z0-9_]*/g) || [];
+
+			parameterMatches.forEach((match) => {
+				// Skip common mathematical functions and constants
+				const skipWords = ['Math', 'sin', 'cos', 'tan', 'log', 'exp', 'sqrt', 'abs', 'round', 'floor', 'ceil', 'max', 'min', 'pi', 'e', 'self', 'this'];
+				if (skipWords.includes(match)) {
+					return;
+				}
+
+				// Find parameter with this name (case-insensitive search)
+				const parameter = formData.parameters.find((param) =>
+					param.name.toLowerCase() === match.toLowerCase() ||
+					param.name.replace(/[^a-zA-Z0-9_]/g, '').toLowerCase() === match.toLowerCase()
+				);
+
+				if (parameter) {
+					usedIds.add(parameter.id);
+				} else {
+					// Try to find by partial match or similar names
+					const similarParam = formData.parameters.find((param) =>
+						param.name.toLowerCase().includes(match.toLowerCase()) ||
+						match.toLowerCase().includes(param.name.toLowerCase())
+					);
+					if (similarParam) {
+						usedIds.add(similarParam.id);
+					}
+				}
+			});
+		});
+
+		const result = Array.from(usedIds);
+		return result;
+	};
+
 	return (
 		<>
 			{/* Step 1: Industry, Technology & Solution Selection */}
@@ -995,6 +1049,7 @@ function StepContent({
 					availableTechnologies={availableTechnologies}
 					availableSolutionTypes={availableSolutionTypes}
 					isLoadingParameters={isLoadingParameters}
+					usedParameterIds={extractUsedParameterIds()}
 				/>
 			)}
 
@@ -1040,6 +1095,9 @@ function StepContent({
 					getSelectedSolutionType={getSelectedSolutionType}
 					getSelectedSolutionVariant={getSelectedSolutionVariant}
 					isExistingSolutionLoaded={isExistingSolutionLoaded}
+					unusedParameterIds={formData.parameters
+						.filter(param => !extractUsedParameterIds().includes(param.id))
+						.map(param => param.id)}
 				/>
 			)}
 		</>
