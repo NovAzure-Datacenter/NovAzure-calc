@@ -115,9 +115,7 @@ export interface CalculationResults {
 /**
  * ValueCalculatorMain component props interface
  */
-export interface ValueCalculatorMainProps {
-	// No props needed as this is the main orchestrator component
-}
+export type ValueCalculatorMainProps = Record<string, never>;
 
 /**
  * ValueCalculatorConfiguration component props interface

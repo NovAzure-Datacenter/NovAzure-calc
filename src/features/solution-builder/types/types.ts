@@ -108,9 +108,7 @@ export interface DialogProps {
 // MAIN COMPONENT PROPS
 // ============================================================================
 
-export interface CreateSolutionMainProps {
-	// No props needed
-}
+export type CreateSolutionMainProps = Record<string, never>;
 
 /**
  * Step content props - combines common interfaces
@@ -430,7 +428,7 @@ export interface ConfirmParameterRemovalDialogProps {
 	parameters: Parameter[];
 }
 
-export interface ParameterValidationResult extends ValidationResult {}
+export type ParameterValidationResult = ValidationResult;
 
 export interface TableContentProps {
 	filteredParameters: Parameter[];
@@ -597,9 +595,7 @@ export interface CalculationsTableContentProps {
 	customCategories: Array<{ name: string; color: string }>;
 }
 
-export interface CalculationsTableHeaderProps {
-	// No specific props needed for now
-}
+export type CalculationsTableHeaderProps = Record<string, never>;
 
 export interface CalculationsTableBodyProps {
 	calculations: Calculation[];
@@ -773,7 +769,7 @@ export interface CategoryColorSelectorProps {
 	availableColors: string[];
 }
 
-export interface CategoryValidationResult extends ValidationResult {}
+export type CategoryValidationResult = ValidationResult;
 
 // ============================================================================
 // PARAMETER DIALOG TYPES
@@ -961,9 +957,7 @@ export interface ConfigurationTableProps {
 	calculationsCount: number;
 }
 
-export interface ConfigurationTableHeaderProps {
-	// No specific props needed for now
-}
+export type ConfigurationTableHeaderProps = Record<string, never>;
 
 export interface ConfigurationTableBodyProps {
 	configurationItems: ConfigurationItem[];
@@ -994,9 +988,7 @@ export interface ActionCardProps {
 	iconColor: string;
 }
 
-export interface WarningMessageProps {
-	// No specific props needed for now
-}
+export type WarningMessageProps = Record<string, never>;
 
 export interface LoadingSpinnerProps {
 	className?: string;

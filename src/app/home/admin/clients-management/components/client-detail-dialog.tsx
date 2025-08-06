@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
 	Dialog,
 	DialogContent,
@@ -79,34 +79,7 @@ export function ClientsDetailDialog({
 	const [isLoadingIndustries, setIsLoadingIndustries] = useState(false);
 	const [isLoadingTechnologies, setIsLoadingTechnologies] = useState(false);
 
-	if (!client) return null;
-	const IconComponent = stringToIconComponent(client.logo);
-
-	// Load industries and technologies when dialog opens
-	useEffect(() => {
-		if (
-			open &&
-			(client.selected_industries?.length || client.selected_technologies?.length)
-		) {
-			loadIndustriesAndTechnologies();
-		}
-	}, [open, client]);
-
-	// Initialize edited client when editing starts
-	useEffect(() => {
-		if (client && open) {
-			setEditedClient({ ...client });
-		}
-	}, [client, open]);
-
-	// Set initial edit mode when dialog opens
-	useEffect(() => {
-		if (open) {
-			setIsEditing(initialEditMode);
-		}
-	}, [open, initialEditMode]);
-
-	const loadIndustriesAndTechnologies = async () => {
+	const loadIndustriesAndTechnologies = useCallback(async () => {
 		// Load industries
 		setIsLoadingIndustries(true);
 		try {
@@ -134,7 +107,35 @@ export function ClientsDetailDialog({
 		} finally {
 			setIsLoadingTechnologies(false);
 		}
-	};
+	}, []);
+
+	// Load industries and technologies when dialog opens
+	useEffect(() => {
+		if (
+			open &&
+			client &&
+			(client.selected_industries?.length || client.selected_technologies?.length)
+		) {
+			loadIndustriesAndTechnologies();
+		}
+	}, [open, client, loadIndustriesAndTechnologies]);
+
+	// Initialize edited client when editing starts
+	useEffect(() => {
+		if (client && open) {
+			setEditedClient({ ...client });
+		}
+	}, [client, open]);
+
+	// Set initial edit mode when dialog opens
+	useEffect(() => {
+		if (open) {
+			setIsEditing(initialEditMode);
+		}
+	}, [open, initialEditMode]);
+
+	if (!client) return null;
+	const IconComponent = stringToIconComponent(client.logo);
 
 	const handleEdit = () => {
 		setIsEditing(true);

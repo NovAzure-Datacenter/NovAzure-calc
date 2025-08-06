@@ -133,7 +133,7 @@ export default function TestResultsWidget({ solutionData }: { solutionData: any 
 		if (!newWidgetTitle.trim()) return;
 
 		// Auto-select relevant data sources based on widget type
-		let initialDataSource: { calculations: string[]; parameters: string[] } = { calculations: [], parameters: [] };
+		const initialDataSource: { calculations: string[]; parameters: string[] } = { calculations: [], parameters: [] };
 		
 		if (selectedWidgetType === 'kpi-card') {
 			// For KPI cards, select the first available calculation
