@@ -469,7 +469,7 @@ export default function LeadsList({
 								<p>
 									Are you sure you want to remove{" "}
 									<strong>
-										"{selectedLead.first_name} {selectedLead.last_name}"
+										&ldquo;{selectedLead.first_name} {selectedLead.last_name}&rdquo;
 									</strong>
 									?
 								</p>

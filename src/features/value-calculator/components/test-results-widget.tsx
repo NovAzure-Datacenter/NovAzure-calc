@@ -342,7 +342,7 @@ export default function TestResultsWidget({ solutionData }: { solutionData: any 
 						<Grid className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
 						<p className="text-muted-foreground">No widgets configured</p>
 						<p className="text-sm text-gray-500 mt-2">
-							Click "Add Widget" to start building your dashboard
+							Click &ldquo;Add Widget&rdquo; to start building your dashboard
 						</p>
 					</div>
 				</div>

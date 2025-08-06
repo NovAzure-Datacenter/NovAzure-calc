@@ -237,8 +237,7 @@ export function CalculationMain({
 			: null;
 	}, [
 		isAddingCalculation,
-		newCalculationData.name,
-		newCalculationData.formula,
+		newCalculationData,
 	]);
 
 	const editCalculationResult = useCalculationValidator(groupedParametersWithCalculations, editCalculationData);

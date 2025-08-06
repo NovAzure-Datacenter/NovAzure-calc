@@ -8,7 +8,7 @@ import {
 	TooltipProvider,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useState, Dispatch, SetStateAction, useEffect } from "react";
+import { useState, Dispatch, SetStateAction, useEffect, useCallback } from "react";
 import ValueCalculatorConfiguration from "./components/value-calculator-configuration";
 import ValueCalculatorResults from "./components/value-calculator-results";
 import ValueCalculatorOutputs from "./components/value-calculator-outputs";
@@ -81,7 +81,7 @@ export default function ValueCalculatorMain() {
 	/**
 	 * Fetch client solutions filtered by industry and technology
 	 */
-	const fetchClientSolutions = async (
+	const fetchClientSolutions = useCallback(async (
 		industryId: string,
 		technologyId: string
 	) => {
@@ -103,12 +103,12 @@ export default function ValueCalculatorMain() {
 		} finally {
 			setIsLoadingSolutions(false);
 		}
-	};
+	}, [user?.client_id]);
 
 	/**
 	 * Fetch solution types based on selected industry and technology
 	 */
-	const fetchSolutionTypes = async (
+	const fetchSolutionTypes = useCallback(async (
 		industryId: string,
 		technologyId: string
 	) => {
@@ -129,7 +129,7 @@ export default function ValueCalculatorMain() {
 		} finally {
 			setIsLoadingSolutionTypes(false);
 		}
-	};
+	}, []);
 
 	/**
 	 * Fetch solution variant A details
@@ -174,7 +174,7 @@ export default function ValueCalculatorMain() {
 	/**
 	 * Load initial client data and populate industries/technologies
 	 */
-	const loadClientDataAndSelections = async () => {
+	const loadClientDataAndSelections = useCallback(async () => {
 		if (!user?.client_id) {
 			return;
 		}
@@ -196,7 +196,14 @@ export default function ValueCalculatorMain() {
 			setIsLoadingIndustries(false);
 			setIsLoadingTechnologies(false);
 		}
-	};
+	}, [user?.client_id]);
+
+	const triggerDataFetching = useCallback(() => {
+		if (selectedIndustry && selectedTechnology) {
+			fetchClientSolutions(selectedIndustry, selectedTechnology);
+			fetchSolutionTypes(selectedIndustry, selectedTechnology);
+		}
+	}, [selectedIndustry, selectedTechnology, fetchClientSolutions, fetchSolutionTypes]);
 
 	/**
 	 * Handle industry selection change
@@ -275,33 +282,20 @@ export default function ValueCalculatorMain() {
 	};
 
 	/**
-	 * Trigger data fetching when both industry and technology are selected
-	 */
-	const triggerDataFetching = () => {
-		if (selectedIndustry && selectedTechnology && user?.client_id) {
-			fetchClientSolutions(selectedIndustry, selectedTechnology);
-			fetchSolutionTypes(selectedIndustry, selectedTechnology);
-		} else {
-			setClientSolutions([]);
-			setSolutionTypes([]);
-		}
-	};
-
-	/**
-	 * Load initial data when user is available
+	 * Load client data and selections when user is available
 	 */
 	useEffect(() => {
 		if (user?.client_id) {
 			loadClientDataAndSelections();
 		}
-	}, [user?.client_id]);
+	}, [user?.client_id, loadClientDataAndSelections]);
 
 	/**
 	 * Trigger data fetching when dependencies change
 	 */
 	useEffect(() => {
 		triggerDataFetching();
-	}, [selectedIndustry, selectedTechnology, user?.client_id]);
+	}, [selectedIndustry, selectedTechnology, user?.client_id, triggerDataFetching]);
 
 	/**
 	 * Handle calculation completion and tab switching

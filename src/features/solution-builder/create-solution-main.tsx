@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useCallback } from "react";
 import { useState, useEffect } from "react";
 import { useUser } from "@/hooks/useUser";
 import {
@@ -128,12 +128,12 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 	/**
 	 * Load initial client data and populate industries/technologies
 	 */
-	const loadInitialData = async () => {
+	const loadInitialData = useCallback(async () => {
 		if (!user) return;
 
-		try {
-			setIsLoading(true);
+		setIsLoading(true);
 
+		try {
 			// Load initial data using centralized API
 			const initialData = await fetchInitialData(user._id);
 
@@ -158,7 +158,7 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 		} finally {
 			setIsLoading(false);
 		}
-	};
+	}, [user]);
 
 	/**
 	 * Fetch solution types based on selected industry and technology
@@ -767,7 +767,7 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 		if (user) {
 			loadInitialData();
 		}
-	}, [user]);
+	}, [user, loadInitialData]);
 
 	if (isLoading) {
 		return <Loading />;

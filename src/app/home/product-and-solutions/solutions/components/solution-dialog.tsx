@@ -670,7 +670,7 @@ export function SolutionDialog({
 							<DialogDescription className="space-y-2">
 								<p>
 									Are you sure you want to remove{" "}
-									<strong>"{solution.name}"</strong>?
+									<strong>&ldquo;{solution.name}&rdquo;</strong>?
 								</p>
 								<p className="text-sm text-muted-foreground">
 									This will permanently delete the solution and all associated

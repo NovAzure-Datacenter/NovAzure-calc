@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from "recharts";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { 
 	fetchIndustryDetails, 
 	fetchTechnologyDetails, 
@@ -102,9 +102,9 @@ export default function ValueCalculatorResults({
 	/**
 	 * Resolve solution ID to display name
 	 */
-	const resolveSolutionName = async (solutionId: string) => {
+	const resolveSolutionName = useCallback(async (solutionId: string) => {
 		if (!solutionId || !selectedIndustry || !selectedTechnology) return;
-		
+
 		setIsLoadingNames(true);
 		try {
 			const solutionTypes = await fetchSolutionTypesForDisplay(selectedIndustry, selectedTechnology);
@@ -119,22 +119,16 @@ export default function ValueCalculatorResults({
 		} finally {
 			setIsLoadingNames(false);
 		}
-	};
+	}, [selectedIndustry, selectedTechnology]);
 
 	/**
 	 * Resolve names when IDs change
 	 */
 	useEffect(() => {
-		if (selectedIndustry) {
-			resolveIndustryName(selectedIndustry);
-		}
-		if (selectedTechnology) {
-			resolveTechnologyName(selectedTechnology);
-		}
 		if (selectedSolution) {
 			resolveSolutionName(selectedSolution);
 		}
-	}, [selectedIndustry, selectedTechnology, selectedSolution]);
+	}, [selectedIndustry, selectedTechnology, selectedSolution, resolveSolutionName]);
 
 
 	/**

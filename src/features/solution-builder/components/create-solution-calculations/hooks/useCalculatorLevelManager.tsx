@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 interface Parameter {
 	name: string;
@@ -19,75 +19,7 @@ export function useCalculatorLevelManager(
 ): UseCalculatorLevelManagerResult {
 	const [parameters, setParameters] = useState<Parameter[]>([]);
 
-	useEffect(() => {
-		const unifiedParameters: Parameter[] = [];
-
-		Object.entries(groupedParameters).forEach(([categoryName, items]) => {
-			if (Array.isArray(items)) {
-				items.forEach((item: any) => {
-					let paramType: Parameter["type"] = "COMPANY";
-					let level = 1;
-
-					if (categoryName.toLowerCase() === "calculations") {
-						paramType = "CALCULATION";
-						level = 2;
-					} else if (
-						categoryName.toLowerCase() === "global" ||
-						categoryName.toLowerCase() === "general"
-					) {
-						const userInterfaceType =
-							typeof item.user_interface === "string"
-								? item.user_interface
-								: item.user_interface?.type || "input";
-
-						if (
-							userInterfaceType === "static" ||
-							userInterfaceType === "not_viewable"
-						) {
-							paramType = "COMPANY";
-						} else {
-							paramType = "USER";
-						}
-					}
-
-					const parameterObject: Parameter = {
-						name: item.name,
-						type: paramType,
-						level: level,
-						originalItem: item,
-						category: categoryName.toLowerCase(),
-					};
-
-					if (paramType === "CALCULATION" && item.formula) {
-						parameterObject.formula = item.formula;
-					}
-
-					unifiedParameters.push(parameterObject);
-				});
-			}
-		});
-
-		if (calculations && calculations.length > 0) {
-			calculations.forEach((calc) => {
-				if (calc.name && calc.formula) {
-					const newCalcObject: Parameter = {
-						name: calc.name,
-						type: "CALCULATION",
-						level: 2,
-						formula: calc.formula,
-						category: "calculations",
-						originalItem: calc,
-					};
-					unifiedParameters.push(newCalcObject);
-				}
-			});
-		}
-
-		const processedParams = calculateParameterLevels(unifiedParameters);
-		setParameters(processedParams);
-	}, [groupedParameters, calculations]);
-
-	const extractParameterNamesFromFormula = (formula: string, allParams: Parameter[]): string[] => {
+	const extractParameterNamesFromFormula = useCallback((formula: string, allParams: Parameter[]): string[] => {
 		const foundParams: string[] = [];
 		
 		const paramNames = allParams.map(p => p.name).sort((a, b) => b.length - a.length);
@@ -114,9 +46,9 @@ export function useCalculatorLevelManager(
 		});
 		
 		return foundParams;
-	};
+	}, []);
 
-	const findParameterByName = (name: string, allParams: Parameter[]): Parameter | null => {
+	const findParameterByName = useCallback((name: string, allParams: Parameter[]): Parameter | null => {
 		const param = allParams.find(p => p.name === name);
 		if (param) return param;
 
@@ -124,9 +56,9 @@ export function useCalculatorLevelManager(
 		if (paramCaseInsensitive) return paramCaseInsensitive;
 
 		return null;
-	};
+	}, []);
 
-	const calculateParameterLevels = (allParameters: Parameter[]): Parameter[] => {
+	const calculateParameterLevels = useCallback((allParameters: Parameter[]): Parameter[] => {
 		const processedParams = [...allParameters];
 		const calculationParams = processedParams.filter(p => p.type === "CALCULATION");
 		
@@ -161,7 +93,73 @@ export function useCalculatorLevelManager(
 		}
 
 		return processedParams.sort((a, b) => a.level - b.level);
-	};
+	}, [extractParameterNamesFromFormula, findParameterByName]);
+
+	useEffect(() => {
+		const unifiedParameters: Parameter[] = [];
+
+		Object.entries(groupedParameters).forEach(([categoryName, items]) => {
+			if (Array.isArray(items)) {
+				items.forEach((item: any) => {
+					let paramType: "USER" | "COMPANY" | "CALCULATION" = "COMPANY";
+
+					if (categoryName.toLowerCase() === "calculations") {
+						paramType = "CALCULATION";
+					} else if (
+						categoryName.toLowerCase() === "global" ||
+						categoryName.toLowerCase() === "general"
+					) {
+						const userInterfaceType =
+							typeof item.user_interface === "string"
+								? item.user_interface
+								: item.user_interface?.type || "input";
+
+						if (
+							userInterfaceType === "static" ||
+							userInterfaceType === "not_viewable"
+						) {
+							paramType = "COMPANY";
+						} else {
+							paramType = "USER";
+						}
+					}
+
+					const parameterObject: Parameter = {
+						name: item.name,
+						type: paramType,
+						level: paramType === "CALCULATION" ? 2 : 1,
+						originalItem: item,
+						category: categoryName.toLowerCase(),
+					};
+
+					if (paramType === "CALCULATION" && item.formula) {
+						parameterObject.formula = item.formula;
+					}
+
+					unifiedParameters.push(parameterObject);
+				});
+			}
+		});
+
+		if (calculations && calculations.length > 0) {
+			calculations.forEach((calc) => {
+				if (calc.name && calc.formula) {
+					const newCalcObject: Parameter = {
+						name: calc.name,
+						type: "CALCULATION",
+						level: 2,
+						formula: calc.formula,
+						category: "calculations",
+						originalItem: calc,
+					};
+					unifiedParameters.push(newCalcObject);
+				}
+			});
+		}
+
+		const processedParams = calculateParameterLevels(unifiedParameters);
+		setParameters(processedParams);
+	}, [groupedParameters, calculations, calculateParameterLevels]);
 
 	return { parameters };
 }

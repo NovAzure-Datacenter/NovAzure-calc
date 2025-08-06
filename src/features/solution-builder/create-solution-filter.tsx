@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -129,13 +129,8 @@ export function CreateSolutionFilter({
 	/**
 	 * Fetch existing solutions that match the current criteria
 	 */
-	const fetchExistingSolutions = async () => {
-		if (
-			!clientData?.id ||
-			!selectedIndustry ||
-			!selectedTechnology ||
-			!selectedSolutionId
-		) {
+	const fetchExistingSolutions = useCallback(async () => {
+		if (!selectedIndustry || !selectedTechnology || !selectedSolutionId || !clientData?.id) {
 			setExistingSolutions([]);
 			return;
 		}
@@ -158,7 +153,7 @@ export function CreateSolutionFilter({
 		} finally {
 			setIsLoadingExistingSolutions(false);
 		}
-	};
+	}, [selectedIndustry, selectedTechnology, selectedSolutionId, clientData?.id]);
 
 	/**
 	 * Handle create new variant action
@@ -222,6 +217,7 @@ export function CreateSolutionFilter({
 		selectedTechnology,
 		selectedSolutionId,
 		clientData?.id,
+		fetchExistingSolutions,
 	]);
 
 	return (

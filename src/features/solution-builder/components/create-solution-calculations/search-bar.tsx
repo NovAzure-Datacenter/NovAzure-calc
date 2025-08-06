@@ -46,7 +46,7 @@ export default function Searchbar({
 			{searchQuery && (
 				<div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
 					<span>
-						Searching for: "{searchQuery}" • {filteredCalculations.length} result
+						Searching for: &ldquo;{searchQuery}&rdquo; • {filteredCalculations.length} result
 						{filteredCalculations.length !== 1 ? "s" : ""}
 					</span>
 					{searchQuery && (

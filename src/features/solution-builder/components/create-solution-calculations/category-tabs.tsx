@@ -387,8 +387,8 @@ function AddCalculationCategoryDialog({
 					<DialogDescription>
 						Create a new calculation category to organize your calculations.
 						<br />
-						<strong>Note:</strong> "Financial", "Performance", "Efficiency",
-						and "Operational" are reserved names and cannot be used.
+						<strong>Note:</strong> &ldquo;Financial&rdquo;, &ldquo;Performance&rdquo;, &ldquo;Efficiency&rdquo;,
+						and &ldquo;Operational&rdquo; are reserved names and cannot be used.
 					</DialogDescription>
 				</DialogHeader>
 				<div className="grid gap-4 py-4">

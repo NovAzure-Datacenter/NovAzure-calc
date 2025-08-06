@@ -134,7 +134,7 @@ export function CreateProductStep2({
 					<div>
 						<Label className="text-sm font-medium">Solution Variant</Label>
 						<p className="text-xs text-muted-foreground">
-							Select a specific variant for this product, or choose "No Variant" to apply globally to the solution
+							Select a specific variant for this product, or choose &ldquo;No Variant&rdquo; to apply globally to the solution
 						</p>
 					</div>
 
@@ -272,7 +272,7 @@ export function CreateProductStep2({
 							</Button>
 						</div>
 						<p className="text-xs text-muted-foreground">
-							Add key features and capabilities of your product (e.g., "Wireless connectivity", "Real-time monitoring", "Cloud integration")
+							Add key features and capabilities of your product (e.g., &ldquo;Wireless connectivity&rdquo;, &ldquo;Real-time monitoring&rdquo;, &ldquo;Cloud integration&rdquo;)
 						</p>
 					</CardHeader>
 					<CardContent className="pt-0">
@@ -319,7 +319,7 @@ export function CreateProductStep2({
 							</Button>
 						</div>
 						<p className="text-xs text-muted-foreground">
-							Create specification categories and add technical specifications within each category (e.g., "Dimensions and Weight", "Power Requirements", "Network Specifications")
+							Create specification categories and add technical specifications within each category (e.g., &ldquo;Dimensions and Weight&rdquo;, &ldquo;Power Requirements&rdquo;, &ldquo;Network Specifications&rdquo;)
 						</p>
 					</CardHeader>
 					<CardContent className="pt-0">
@@ -388,7 +388,7 @@ export function CreateProductStep2({
 							))}
 							{(formData.specificationCategories || []).length === 0 && (
 								<div className="text-center py-4 text-gray-500 text-xs">
-									No specification categories added yet. Click "Add Category" to get started.
+									No specification categories added yet. Click &ldquo;Add Category&rdquo; to get started.
 								</div>
 							)}
 						</div>
