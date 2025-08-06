@@ -29,6 +29,7 @@ import {
 	getCategoryBadgeStyleForDropdown,
 } from "../../../../utils/color-utils";
 import React, { useState } from "react";
+import { toast } from "sonner";
 import {
 	getDisplayTypeBadgeStyle,
 	renderDisplayTypeEditor,
@@ -476,15 +477,22 @@ function AddParameterRow({
 						<div className="flex items-center gap-2">
 							<Input
 								value={newParameterData.name}
-								onChange={(e) =>
-							setNewParameterData((prev) => ({
+								onChange={(e) => {
+									const originalValue = e.target.value;
+									const filteredValue = originalValue.replace(/[()+=\-*/]/g, '');
+									
+									if (originalValue !== filteredValue) {
+										toast.error("Characters ()+-*/ are not allowed in parameter names");
+									}
+									
+									setNewParameterData((prev) => ({
 										...prev,
-										name: e.target.value,
-									}))
-								}
+										name: filteredValue,
+									}));
+								}}
 								className="h-7 text-xs"
 								placeholder="Parameter name"
-						onKeyDown={handleKeyDown}
+								onKeyDown={handleKeyDown}
 							/>
 						</div>
 					))}
@@ -798,12 +806,19 @@ function ParameterRow({
 								isEditing ? (
 									<Input
 										value={editData.name}
-										onChange={(e) =>
-							setEditData((prev) => ({
+										onChange={(e) => {
+											const originalValue = e.target.value;
+											const filteredValue = originalValue.replace(/[()+=\-*/]/g, '');
+											
+											if (originalValue !== filteredValue) {
+												toast.error("Characters ()+-*/ are not allowed in parameter names");
+											}
+											
+											setEditData((prev) => ({
 												...prev,
-												name: e.target.value,
-											}))
-										}
+												name: filteredValue,
+											}));
+										}}
 										className="h-7 text-xs"
 										placeholder="Parameter name"
 									/>

@@ -1,4 +1,5 @@
 import React from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -241,7 +242,16 @@ function ParameterNameField({ value, onChange, placeholder }: ParameterNameField
 			<Input
 				id="parameter-name"
 				value={value}
-				onChange={(e) => onChange(e.target.value)}
+				onChange={(e) => {
+					const originalValue = e.target.value;
+					const filteredValue = originalValue.replace(/[()+=\-*/]/g, '');
+					
+					if (originalValue !== filteredValue) {
+						toast.error("Characters ()+-*/ are not allowed in parameter names");
+					}
+					
+					onChange(filteredValue);
+				}}
 				placeholder={placeholder}
 			/>
 		</ParameterFormField>
