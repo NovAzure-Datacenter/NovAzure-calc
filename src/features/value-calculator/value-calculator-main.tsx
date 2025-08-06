@@ -26,7 +26,6 @@ import {
 	TabContentProps,
 	ComparisonMode,
 } from "@/features/value-calculator/types/types";
-import TestResultsAIPowered from "@/features/value-calculator/components/test-results-aipowered";
 import TestResultsSemantics from "@/features/value-calculator/components/test-results-semantics";
 import TestResultsWidget from "@/features/value-calculator/components/test-results-widget";
 
