@@ -1,13 +1,9 @@
+import { Parameter } from "@/features/solution-builder/api";
 import type {
 	Industry,
 	Technology,
 } from "../../admin/industries-and-technologies/types";
-import type {
-	Solution,
-	SolutionType,
-	Parameter,
-	Calculation,
-} from "../../product-and-solutions/solutions/mock-data";
+
 import {
 	Building2,
 	Fuel,

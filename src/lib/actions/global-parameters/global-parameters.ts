@@ -1,7 +1,7 @@
 "use server";
 
 import { getGlobalParametersCollection } from "@/lib/mongoDb/db";
-import { Parameter } from "@/app/home/product-and-solutions/types";
+import { Parameter } from "@/types/types";
 import { ObjectId } from "mongodb";
 
 // Cache for global parameters to avoid multiple database calls
@@ -32,8 +32,7 @@ function convertToParameter(doc: any): Parameter {
 		test_value: doc.test_value,
 		unit: doc.unit,
 		description: doc.description,
-		provided_by: doc.provided_by || "global",
-		input_type: doc.input_type || "simple",
+		user_interface: doc.user_interface || "not_viewable",
 		output: doc.output !== undefined ? doc.output : true,
 		level: doc.level || "L1",
 		category: {
@@ -41,6 +40,11 @@ function convertToParameter(doc: any): Parameter {
 			color: doc.category?.color || "blue",
 		},
 		is_modifiable: doc.is_modifiable || false,
+		display_type: doc.display_type || "simple",
+		dropdown_options: doc.dropdown_options || [],
+		range_min: doc.range_min || "",
+		range_max: doc.range_max || "",
+		information: doc.information || "",
 	};
 }
 
@@ -52,12 +56,16 @@ function convertToMongoDoc(parameter: Omit<Parameter, "id">): any {
 		test_value: parameter.test_value,
 		unit: parameter.unit,
 		description: parameter.description,
-		provided_by: parameter.provided_by,
-		input_type: parameter.input_type,
+		information: parameter.information,
+		user_interface: parameter.user_interface,
 		output: parameter.output,
 		level: parameter.level,
 		category: parameter.category,
 		is_modifiable: parameter.is_modifiable,
+		display_type: parameter.display_type,
+		dropdown_options: parameter.dropdown_options,
+		range_min: parameter.range_min,
+		range_max: parameter.range_max,
 	};
 }
 

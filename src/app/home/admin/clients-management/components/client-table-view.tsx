@@ -690,7 +690,7 @@ export function ClientsTableView({
 							<DialogDescription className="space-y-2">
 								<p>
 									Are you sure you want to remove{" "}
-									<strong>"{selectedClient.company_name}"</strong>?
+									<strong>&quot;{selectedClient.company_name}&quot;</strong>?
 								</p>
 								<p className="text-sm text-muted-foreground">
 									This will permanently delete the client and all associated
