@@ -90,7 +90,7 @@ export function SubmissionDialog({
 								<div className="text-sm font-medium text-gray-900 mb-1">
 									Solution Submitted
 								</div>
-								<div className="text-sm text-gray-600">"{solutionName}"</div>
+								<div className="text-sm text-gray-600">&quot;{solutionName}&quot;</div>
 								<Badge
 									variant="outline"
 									className="text-xs mt-2 bg-yellow-100 text-yellow-800 border-yellow-200"
@@ -162,7 +162,7 @@ export function SubmissionDialog({
 								<div className="text-blue-700 space-y-1">
 									<div>• Your solution will be reviewed by our team</div>
 									<div>
-										• You'll receive email notifications on status updates
+										• You&apos;ll receive email notifications on status updates
 									</div>
 									<div>• Review typically takes 2-3 business days</div>
 								</div>

@@ -821,7 +821,7 @@ function TabContentParameters({
 							No Parameters
 						</h3>
 						<p className="text-muted-foreground text-sm">
-							This industry doesn't have any parameters defined yet.
+							This industry doesn&apos;t have any parameters defined yet.
 						</p>
 						{isEditing && (
 							<Button
@@ -890,7 +890,7 @@ function RenderIndustryRemoveDialog({
 					<DialogDescription className="space-y-2">
 						<p>
 							Are you sure you want to remove{" "}
-							<strong>"{industry?.name}"</strong>?
+							<strong>&quot;{industry?.name}&quot;</strong>?
 						</p>
 						<p className="text-sm text-muted-foreground">
 							This will permanently delete the industry

@@ -17,12 +17,13 @@ import {
 	getAvailableColors,
 } from "../../../../utils/color-utils";
 import { useState } from "react";
-import { ColumnFilter, ColumnVisibility } from "./table-content";
+import { ColumnFilter } from "./table-content";
 import {
 	CategoryTabsProps,
 	AddCategoryDialogProps,
 	CategoryData,
 	CategoryValidationResult,
+	ColumnVisibility,
 	RESERVED_CATEGORY_NAMES,
 	HIDDEN_CATEGORIES,
 } from "../../types/types";

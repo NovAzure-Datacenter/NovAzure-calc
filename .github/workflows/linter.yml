@@ -29,3 +29,14 @@ jobs:
           ruff check .
           ruff format --check .
           ruff check --fix .
+  lint-frontend:
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v3
+        - name: Install dependencies
+          run: |
+            npm install
+        - name: Run linting
+          run: |
+            npm run lint
