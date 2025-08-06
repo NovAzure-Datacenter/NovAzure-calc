@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import { toast } from "sonner";
 import {
 	Table,
 	TableBody,
@@ -504,12 +505,19 @@ function CalculationRow({
 				{isEditing ? (
 					<Input
 						value={editData.name}
-						onChange={(e) =>
+						onChange={(e) => {
+							const originalValue = e.target.value;
+							const filteredValue = originalValue.replace(/[()+=\-*/]/g, '');
+							
+							if (originalValue !== filteredValue) {
+								toast.error("Characters ()+-*/ are not allowed in calculation names");
+							}
+							
 							setEditData((prev) => ({
 								...prev,
-								name: e.target.value,
-							}))
-						}
+								name: filteredValue,
+							}));
+						}}
 						className="h-8 text-sm"
 						placeholder="Calculation name"
 					/>
@@ -803,17 +811,24 @@ function AddCalculationRow({
 				<>
 					{/* Name */}
 					<TableCell>
-						<Input
-							value={newCalculationData.name}
-							onChange={(e) =>
-								setNewCalculationData((prev) => ({
-									...prev,
-									name: e.target.value,
-								}))
+											<Input
+						value={newCalculationData.name}
+						onChange={(e) => {
+							const originalValue = e.target.value;
+							const filteredValue = originalValue.replace(/[()+=\-*/]/g, '');
+							
+							if (originalValue !== filteredValue) {
+								toast.error("Characters ()+-*/ are not allowed in calculation names");
 							}
-							className="h-8 text-sm"
-							placeholder="Calculation name"
-						/>
+							
+							setNewCalculationData((prev) => ({
+								...prev,
+								name: filteredValue,
+							}));
+						}}
+						className="h-8 text-sm"
+						placeholder="Calculation name"
+					/>
 					</TableCell>
 					{/* Category */}
 					<TableCell>
