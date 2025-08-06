@@ -15,6 +15,7 @@ class Calculator:
     def evaluate(self, targets: List[str]) -> Dict[str, List[float]]:
         graph = DependencyGraph(self.parameters)
         evaluation_order = graph.topological_sort()
+        self._set_calculation_units()
 
         for param_name in evaluation_order:
             param = self.param_map[param_name]
@@ -34,3 +35,21 @@ class Calculator:
             results.append(self.context[target])
 
         return {"result": results}
+
+    def _set_calculation_units(self):
+        for param in self.parameters:
+            if param.type != "CALCULATION":
+                continue
+
+            units = [
+                self.param_map[dep].unit
+                for dep in param.dependencies
+                if dep in self.param_map and self.param_map[dep].unit
+            ]
+
+            if not units:
+                param.unit = None
+            elif all(u == units[0] for u in units):
+                param.unit = units[0]
+            else:
+                param.unit = None
