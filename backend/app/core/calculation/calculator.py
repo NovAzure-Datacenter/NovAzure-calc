@@ -35,7 +35,7 @@ class Calculator:
             results.append(self.context[target])
 
         return {"result": results}
-    
+
     def _set_calculation_units(self):
         for param in self.parameters:
             if param.type != "CALCULATION":
