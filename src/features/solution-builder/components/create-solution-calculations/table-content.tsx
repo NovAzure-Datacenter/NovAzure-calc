@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import {
 	Table,
 	TableBody,
@@ -214,8 +214,8 @@ function CalculationsTableHeader({}: CalculationsTableHeaderProps) {
 			width: 'w-16', 
 			hasTooltip: true, 
 			tooltip: {
-				title: 'The calculation priority level based on category',
-				content: '• Level 1: Financial calculations\n• Level 2: Performance & Efficiency\n• Level 3: Operational'
+				title: 'The calculation dependency level',
+				content: '• Level 1: Static parameters (Company/User/Global)\n• Level 2+: Calculations that depend on other calculations\n• Higher levels depend on lower level calculations'
 			}
 		},
 		{ key: 'name', label: 'Name', width: 'w-32', hasTooltip: false },
@@ -324,17 +324,24 @@ function CalculationsTableBody({
 	expandedCalculations,
 	setExpandedCalculations,
 }: CalculationsTableBodyProps) {
-	// State for add calculation formula expansion
+	const sortedCalculations = useMemo(() => {
+		return [...calculations].sort((a, b) => {
+			const levelA = a.level || 1;
+			const levelB = b.level || 1;
+			return levelB - levelA;
+		});
+	}, [calculations]);
+
 	const [isAddFormulaExpanded, setIsAddFormulaExpanded] = useState(false);
 
-	// Reset formula expansion when add calculation is cancelled
+
 	React.useEffect(() => {
 		if (!isAddingCalculation) {
 			setIsAddFormulaExpanded(false);
 		}
 	}, [isAddingCalculation]);
 
-	// Helper functions
+
 	const toggleFormulaExpanded = (calculationId: string) => {
 		setExpandedCalculations(prev => {
 			const newSet = new Set(prev);
@@ -382,7 +389,7 @@ function CalculationsTableBody({
 			)}
 
 			{/* Calculation rows */}
-			{calculations.map((calculation) => {
+			{sortedCalculations.map((calculation) => {
 				const isEditing = editingCalculation === calculation.id;
 				const isFormulaExpanded = expandedCalculations.has(calculation.id);
 
@@ -447,22 +454,6 @@ function CalculationRow({
 	toggleFormulaExpanded,
 }: CalculationRowProps) {
 	// Helper functions
-	const getCalculationLevel = (category: any) => {
-		if (typeof category === "string") return "1";
-		
-		switch (category?.name) {
-			case "financial":
-				return "1";
-			case "performance":
-				return "2";
-			case "efficiency":
-				return "2";
-			case "operational":
-				return "3";
-			default:
-				return "1";
-		}
-	};
 
 	const getCategoryName = (category: any) => {
 		return typeof category === "string" ? category : category?.name || "Unknown";
@@ -474,7 +465,7 @@ function CalculationRow({
 			<TableRow className="transition-all duration-200 bg-blue-50 border-2 border-blue-200 shadow-md">
 				{/* Level */}
 				<TableCell>
-					<span className="text-sm font-mono">{getCalculationLevel(calculation.category)}</span>
+					<span className="text-sm font-mono">{calculation.level || 1}</span>
 				</TableCell>
 				
 				{/* Formula - Expanded mode (spans all remaining columns) */}
@@ -495,7 +486,6 @@ function CalculationRow({
 		);
 	}
 
-	// Normal row rendering (not expanded)
 	return (
 		<TableRow
 			className={`transition-all duration-200 ${
@@ -506,7 +496,7 @@ function CalculationRow({
 		>
 			{/* Level */}
 			<TableCell>
-				<span className="text-sm font-mono">{getCalculationLevel(calculation.category)}</span>
+				<span className="text-sm font-mono">{calculation.level || 1}</span>
 			</TableCell>
 			
 			{/* Name */}
@@ -783,13 +773,8 @@ function AddCalculationRow({
 	isAddFormulaExpanded,
 	setIsAddFormulaExpanded,
 }: AddCalculationRowProps) {
-	// Debug logging
-	console.log('AddCalculationRow render:', { isAddFormulaExpanded, isAddingCalculation });
-
 	const handleExpandClick = () => {
-		console.log('Expand button clicked, current state:', isAddFormulaExpanded);
 		setIsAddFormulaExpanded(!isAddFormulaExpanded);
-		console.log('New state will be:', !isAddFormulaExpanded);
 	};
 
 	return (
@@ -801,8 +786,7 @@ function AddCalculationRow({
 			
 			{/* If formula is expanded, only render level and formula columns */}
 			{isAddFormulaExpanded ? (
-				/* Formula - Expanded mode (spans all remaining columns) */
-				<TableCell colSpan={9} className="p-0">
+					<TableCell colSpan={9} className="p-0">
 					<ExpandedFormulaEditor
 						title="Formula Editor - New Calculation"
 						formula={newCalculationData.formula}
@@ -1320,7 +1304,6 @@ function ParametersByCategory({ groupedParameters, insertIntoFormula, className 
  * ParameterButton component - Individual parameter button
  */
 function ParameterButton({ param, insertIntoFormula }: ParameterButtonProps) {
-	// Helper function to get category color for the parameter
 	const getParameterCategoryColor = (paramCategory: any) => {
 		if (!paramCategory || !paramCategory.color) {
 			return "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100";

@@ -113,22 +113,7 @@ export function CreateSolutionSubmit({
 		}
 	};
 
-	const getCalculationLevel = (category: any) => {
-		if (typeof category === "string") return 1;
-		
-		switch (category?.name) {
-			case "financial":
-				return 1;
-			case "performance":
-				return 2;
-			case "efficiency":
-				return 2;
-			case "operational":
-				return 3;
-			default:
-				return 1;
-		}
-	};
+
 
 	const createConfigurationItems = (parameters: Parameter[], calculations: Calculation[]): ConfigurationItem[] => {
 		const items: ConfigurationItem[] = [
@@ -156,7 +141,7 @@ export function CreateSolutionSubmit({
 				result: calc.result,
 				status: calc.status,
 				output: calc.output,
-				level: getCalculationLevel(calc.category),
+				level: calc.level || 2,
 			})),
 		];
 
