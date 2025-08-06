@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
+import { toast } from "sonner";
 import {
 	Table,
 	TableBody,
@@ -352,10 +353,9 @@ function CalculationsTableHeader({
 			label: "Level",
 			hasTooltip: true,
 			tooltip: {
-				title: "The calculation priority level based on category",
-				content:
-					"• Level 1: Financial calculations\n• Level 2: Performance & Efficiency\n• Level 3: Operational",
-			},
+				title: 'The calculation dependency level',
+				content: '• Level 1: Static parameters (Company/User/Global)\n• Level 2+: Calculations that depend on other calculations\n• Higher levels depend on lower level calculations'
+			}
 		},
 		{ key: "name", label: "Name", hasTooltip: false },
 		{ key: "category", label: "Category", hasTooltip: false },
@@ -479,8 +479,23 @@ function CalculationsTableBody({
 	setExpandedCalculations,
 	renderCell,
 }: CalculationsTableBodyProps) {
-	// State for add calculation formula expansion
+	const sortedCalculations = useMemo(() => {
+		return [...calculations].sort((a, b) => {
+			const levelA = a.level || 1;
+			const levelB = b.level || 1;
+			return levelB - levelA;
+		});
+	}, [calculations]);
+
 	const [isAddFormulaExpanded, setIsAddFormulaExpanded] = useState(false);
+
+
+	React.useEffect(() => {
+		if (!isAddingCalculation) {
+			setIsAddFormulaExpanded(false);
+		}
+	}, [isAddingCalculation]);
+
 
 	const toggleFormulaExpanded = (calculationId: string) => {
 		setExpandedCalculations((prev) => {
@@ -543,7 +558,7 @@ function CalculationsTableBody({
 			)}
 
 			{/* Calculation rows */}
-			{calculations.map((calculation) => {
+			{sortedCalculations.map((calculation) => {
 				const isEditing = editingCalculation === calculation.id;
 				const isFormulaExpanded = expandedCalculations.has(calculation.id);
 
@@ -620,22 +635,6 @@ function CalculationRow({
 	}, [isEditing]);
 
 	// Helper functions
-	const getCalculationLevel = (category: any) => {
-		if (typeof category === "string") return "1";
-
-		switch (category?.name) {
-			case "financial":
-				return "1";
-			case "performance":
-				return "2";
-			case "efficiency":
-				return "2";
-			case "operational":
-				return "3";
-			default:
-				return "1";
-		}
-	};
 
 	const getCategoryName = (category: any) => {
 		return typeof category === "string"
@@ -650,9 +649,7 @@ function CalculationRow({
 			<TableRow className="transition-all duration-200 bg-blue-50 border-2 border-blue-200 shadow-md">
 				{/* Level */}
 				<TableCell>
-					<span className="text-xs font-mono">
-						{getCalculationLevel(calculation.category)}
-					</span>
+					<span className="text-sm font-mono">{calculation.level || 1}</span>
 				</TableCell>
 
 				{/* Formula - Expanded mode (spans all remaining columns) */}
@@ -682,7 +679,7 @@ function CalculationRow({
 				{/* Level */}
 				<TableCell>
 					<span className="text-xs font-mono">
-						{getCalculationLevel(calculation.category)}
+						{ calculation.level || 1}
 					</span>
 				</TableCell>
 
@@ -706,7 +703,37 @@ function CalculationRow({
 		);
 	}
 
-	// Normal row rendering (not expanded)
+	// If formula editor is expanded when editing, render expanded formula editor
+	if (isFormulaEditorExpanded && isEditing) {
+		return (
+			<TableRow className="transition-all duration-200 bg-blue-50 border-2 border-blue-200 shadow-md">
+				{/* Level */}
+				<TableCell>
+					<span className="text-xs font-mono">
+						{calculation.level || 1}
+					</span>
+				</TableCell>
+
+				{/* Formula - Expanded mode (spans all remaining columns) */}
+				<TableCell colSpan={9} className="p-0">
+					<ExpandedFormulaEditor
+						title={`Formula Editor - ${calculation.name}`}
+						formula={editData.formula}
+						onFormulaChange={(formula) =>
+							setEditData((prev) => ({ ...prev, formula }))
+						}
+						onCollapse={() => setIsFormulaEditorExpanded(false)}
+						resetFormula={resetFormula}
+						rewindFormula={rewindFormula}
+						getColorCodedFormula={getColorCodedFormula}
+						groupedParameters={groupedParameters}
+						insertIntoFormula={insertIntoFormula}
+					/>
+				</TableCell>
+			</TableRow>
+		);
+	}
+
 	return (
 		<TableRow
 			className={`transition-all duration-200 ${
@@ -720,28 +747,30 @@ function CalculationRow({
 			}}
 		>
 			{/* Level */}
-			{renderCell(
-				true,
-				<span className="text-xs font-mono ">
-					{getCalculationLevel(calculation.category)}
-				</span>,
-				"level",
-				isFormulaExpanded
-			)}
-
+			<TableCell>
+				<span className="text-sm font-mono">{calculation.level || 1}</span>
+			</TableCell>
+			
 			{/* Name */}
 			{renderCell(
 				true,
 				isEditing ? (
 					<Input
 						value={editData.name}
-						onChange={(e) =>
+						onChange={(e) => {
+							const originalValue = e.target.value;
+							const filteredValue = originalValue.replace(/[()+=\-*/]/g, '');
+							
+							if (originalValue !== filteredValue) {
+								toast.error("Characters ()+-*/ are not allowed in calculation names");
+							}
+							
 							setEditData((prev) => ({
 								...prev,
-								name: e.target.value,
-							}))
-						}
-						className="h-7 text-xs"
+								name: filteredValue,
+							}));
+						}}
+						className="h-8 text-sm"
 						placeholder="Calculation name"
 					/>
 				) : (
@@ -1085,16 +1114,8 @@ function AddCalculationRow({
 	setIsAddFormulaExpanded,
 	renderCell,
 }: AddCalculationRowProps) {
-	// Debug logging
-	console.log("AddCalculationRow render:", {
-		isAddFormulaExpanded,
-		isAddingCalculation,
-	});
-
 	const handleExpandClick = () => {
-		console.log("Expand button clicked, current state:", isAddFormulaExpanded);
 		setIsAddFormulaExpanded(!isAddFormulaExpanded);
-		console.log("New state will be:", !isAddFormulaExpanded);
 	};
 
 	return (
@@ -1108,8 +1129,7 @@ function AddCalculationRow({
 
 			{/* If formula is expanded, only render level and formula columns */}
 			{isAddFormulaExpanded ? (
-				/* Formula - Expanded mode (spans all remaining columns) */
-				<TableCell colSpan={9} className="p-0">
+					<TableCell colSpan={9} className="p-0">
 					<ExpandedFormulaEditor
 						title="Formula Editor - New Calculation"
 						formula={newCalculationData.formula}
@@ -1129,17 +1149,24 @@ function AddCalculationRow({
 					{/* Name */}
 					{renderCell(
 						true,
-						<Input
-							value={newCalculationData.name}
-							onChange={(e) =>
-								setNewCalculationData((prev) => ({
-									...prev,
-									name: e.target.value,
-								}))
+											<Input
+						value={newCalculationData.name}
+						onChange={(e) => {
+							const originalValue = e.target.value;
+							const filteredValue = originalValue.replace(/[()+=\-*/]/g, '');
+							
+							if (originalValue !== filteredValue) {
+								toast.error("Characters ()+-*/ are not allowed in calculation names");
 							}
-							className="h-7 text-xs"
-							placeholder="Calculation name"
-						/>,
+							
+							setNewCalculationData((prev) => ({
+								...prev,
+								name: filteredValue,
+							}));
+						}}
+						className="h-7 text-xs"
+						placeholder="Calculation name"
+					/>,
 						"name"
 					)}
 					{/* Category */}
@@ -1610,7 +1637,6 @@ function ParametersByCategory({
  * ParameterButton component - Individual parameter button
  */
 function ParameterButton({ param, insertIntoFormula }: ParameterButtonProps) {
-	// Helper function to get category color for the parameter
 	const getParameterCategoryColor = (paramCategory: any) => {
 		if (!paramCategory || !paramCategory.color) {
 			return "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100";

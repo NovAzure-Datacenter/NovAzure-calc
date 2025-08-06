@@ -318,7 +318,7 @@ function ConfirmCategoryRemovalDialog({
 					<DialogHeader>
 						<DialogTitle>Confirm Category Removal</DialogTitle>
 						<DialogDescription>
-							Are you sure you want to remove the category "{confirmCategory}"?
+							Are you sure you want to remove the category &quot;{confirmCategory}&quot;?
 							<br />
 							This action cannot be undone. {parametersInCategory} parameter
 							{parametersInCategory !== 1 ? "s" : ""} in this category will be
@@ -362,7 +362,7 @@ function ConfirmParameterRemovalDialog({
 					<DialogHeader>
 						<DialogTitle>Confirm Parameter Removal</DialogTitle>
 						<DialogDescription>
-							Are you sure you want to remove the parameter "{parameterName}"?
+							Are you sure you want to remove the parameter &quot;{parameterName}&quot;?
 							<br />
 							This action cannot be undone.
 						</DialogDescription>

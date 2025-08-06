@@ -757,7 +757,7 @@ function IndustrySection({
 					{clientSelectedIndustries.length > 0 && (
 						<div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
 							<Label className="text-xs font-medium text-muted-foreground mb-2">
-								Your Organization's Industries
+								Your Organization&apos;s Industries
 							</Label>
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-2">
 								{clientSelectedIndustries.map((industryId: string) => {
@@ -972,7 +972,7 @@ function TechnologySection({
 					{clientSelectedTechnologies.length > 0 && canSelectTechnology && (
 						<div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
 							<Label className="text-xs font-medium text-muted-foreground mb-2">
-								Your Organization's Technologies
+								Your Organization&apos;s Technologies
 							</Label>
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-2">
 								{clientSelectedTechnologies.map((technologyId: string) => {

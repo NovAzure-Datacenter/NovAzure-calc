@@ -36,6 +36,7 @@ import {
 	DropdownOptionsEditorProps,
 } from "../../types/types";
 import { useCalculationValidator } from "./hooks/useCalculationValidator";
+import { useCalculatorLevelManager } from "./hooks/useCalculatorLevelManager";
 import { groupParametersByCategory } from "../../api";
 
 /**
@@ -186,31 +187,33 @@ export function CalculationMain({
 		const grouped = { ...groupedParameters };
 
 		if (calculations.length > 0) {
-			grouped["Calculations"] = calculations.map((calc) => ({
-				id: calc.id,
-				name: calc.name,
-				description: calc.description,
-				value: calc.result,
-				test_value: calc.result,
-				unit: calc.units,
-				category: {
-					name: "Calculations",
-					color: "indigo",
-				},
-				user_interface: {
-					type: "input",
-					category: "Calculations",
-					is_advanced: false,
-				},
-				output: calc.output,
-				display_type: "simple",
-				dropdown_options: [],
-				range_min: "",
-				range_max: "",
-				level: calc.level || 1,
-				status: calc.status,
-				formula: calc.formula,
-			}));
+			grouped["Calculations"] = calculations.map(
+				(calc) => ({
+					id: calc.id,
+					name: calc.name,
+					description: calc.description,
+					value: calc.result,
+					test_value: calc.result,
+					unit: calc.units,
+					category: {
+						name: "Calculations",
+						color: "indigo",
+					},
+					user_interface: {
+						type: "input",
+						category: "Calculations",
+						is_advanced: false,
+					},
+					output: calc.output,
+					display_type: "simple",
+					dropdown_options: [],
+					range_min: "",
+					range_max: "",
+					level: calc.level || 2,
+					status: calc.status,
+					formula: calc.formula,
+				})
+			);
 		}
 
 		return grouped;
@@ -238,15 +241,32 @@ export function CalculationMain({
 		newCalculationData.formula,
 	]);
 
-	// Get calculation results using memoized data
-	const editCalculationResult = useCalculationValidator(
-		groupedParametersWithCalculations,
-		editCalculationData
-	);
-	const newCalculationResult = useCalculationValidator(
-		groupedParametersWithCalculations,
-		newCalculationDataForValidation
-	);
+	const editCalculationResult = useCalculationValidator(groupedParametersWithCalculations, editCalculationData);
+	const newCalculationResult = useCalculationValidator(groupedParametersWithCalculations, newCalculationDataForValidation);
+	
+	const { parameters: parametersWithLevels } = useCalculatorLevelManager(groupedParametersWithCalculations, calculations);
+
+	useEffect(() => {
+		if (parametersWithLevels.length > 0) {
+			const calculationLevelUpdates = parametersWithLevels
+				.filter(p => p.type === "CALCULATION")
+				.map(p => ({ name: p.name, level: p.level }));
+
+			let hasLevelChanges = false;
+			const updatedCalculations = calculations.map(calc => {
+				const levelUpdate = calculationLevelUpdates.find(update => update.name === calc.name);
+				if (levelUpdate && calc.level !== levelUpdate.level) {
+					hasLevelChanges = true;
+					return { ...calc, level: levelUpdate.level };
+				}
+				return calc;
+			});
+
+			if (hasLevelChanges) {
+				onCalculationsChange(updatedCalculations);
+			}
+		}
+	}, [parametersWithLevels, calculations, onCalculationsChange]);
 
 	/**
 	 * Handle calculation editing
@@ -276,10 +296,8 @@ export function CalculationMain({
 	 * Handle saving calculation changes
 	 */
 	const handleSaveCalculation = (calculationId: string) => {
-		// Use the editCalculationResult from the hook
-		const calculationResult = editCalculationResult
-			? Object.values(editCalculationResult)[0]
-			: null;
+		const calculationResult = editCalculationResult ? 
+			Object.values(editCalculationResult)[0] : null;
 		const updatedCalculations = calculations.map((calc) =>
 			calc.id === calculationId
 				? {
@@ -379,10 +397,8 @@ export function CalculationMain({
 			return;
 		}
 
-		// Use the newCalculationResult from the hook
-		const calculationResult = newCalculationResult
-			? Object.values(newCalculationResult)[0]
-			: null;
+		const calculationResult = newCalculationResult ? 
+			Object.values(newCalculationResult)[0] : null;
 
 		let categoryColor = "green";
 		const customCategory = customCategories.find(
@@ -401,6 +417,8 @@ export function CalculationMain({
 				defaultColors[newCalculationData.category.toLowerCase()] || "gray";
 		}
 
+		const calculatedLevel = 2;
+
 		const newCalculation: Calculation = {
 			id: `calc-${Date.now()}`,
 			name: newCalculationData.name,
@@ -418,7 +436,7 @@ export function CalculationMain({
 				newCalculationData.display_result !== undefined
 					? newCalculationData.display_result
 					: false,
-			level: 1,
+			level: calculatedLevel,
 		};
 
 		onCalculationsChange([newCalculation, ...calculations]);
@@ -551,7 +569,7 @@ export function CalculationMain({
 	};
 
 	/**
-	 * Formula manipulation functions
+	 * Formula manipulation functions (insert, reset, rewind)
 	 */
 	const insertIntoFormula = (text: string) => {
 		if (isAddingCalculation) {
