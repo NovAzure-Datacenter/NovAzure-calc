@@ -34,19 +34,19 @@ class Calculator:
         return {"result": self.context[target]}
     
     def _set_calculation_units(self):
-     for param in self.parameters:
-        if param.type != "CALCULATION":
-            continue
+        for param in self.parameters:
+            if param.type != "CALCULATION":
+                continue
 
-        units = [
-            self.param_map[dep].unit
-            for dep in param.dependencies
-            if dep in self.param_map and self.param_map[dep].unit
-        ]
+            units = [
+                self.param_map[dep].unit
+                for dep in param.dependencies
+                if dep in self.param_map and self.param_map[dep].unit
+            ]
 
-        if not units:
-            param.unit = None
-        elif all(u == units[0] for u in units):
-            param.unit = units[0]
-        else:
-            param.unit = None
+            if not units:
+                param.unit = None
+            elif all(u == units[0] for u in units):
+                param.unit = units[0]
+            else:
+                param.unit = None
