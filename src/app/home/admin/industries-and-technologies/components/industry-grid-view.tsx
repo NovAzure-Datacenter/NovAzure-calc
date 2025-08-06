@@ -118,14 +118,14 @@ export function GridView({ data, onIndustryDeleted }: {
 		<>
 			<Card className="h-[calc(100vh-200px)] relative">
 				<CardContent className="h-full overflow-y-auto relative">
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
 						{data.map((industry) => {
 							const parameterSummary = getParameterSummary(industry.parameters);
 
 							return (
 								<Card
 									key={industry.id}
-									className="p-4 hover:shadow-md transition-shadow duration-200"
+									className="p-4 hover:shadow-md transition-shadow duration-200 h-fit"
 								>
 									<CardContent className="p-0 space-y-4">
 										<div className="flex items-start justify-between">

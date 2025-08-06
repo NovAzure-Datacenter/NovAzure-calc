@@ -92,6 +92,22 @@ export function CreateProjectDialog({
 		}));
 	}, []);
 
+	const resetForm = useCallback(() => {
+		setFormData({
+			name: "",
+			description: "",
+			status: "active",
+			start_date: "",
+			end_date: "",
+			project_manager: "",
+			budget: "",
+			location: "",
+			priority: "medium",
+			selected_industries: [],
+			selected_technologies: [],
+		});
+	}, []);
+
 	const handleSubmit = useCallback(
 		async (e: React.FormEvent) => {
 			e.preventDefault();
@@ -165,24 +181,8 @@ export function CreateProjectDialog({
 				setIsSubmitting(false);
 			}
 		},
-		[formData, selectedLead, userId, onCreate, setOpen]
+		[formData, selectedLead, userId, onCreate, setOpen, resetForm]
 	);
-
-	const resetForm = useCallback(() => {
-		setFormData({
-			name: "",
-			description: "",
-			status: "active",
-			start_date: "",
-			end_date: "",
-			project_manager: "",
-			budget: "",
-			location: "",
-			priority: "medium",
-			selected_industries: [],
-			selected_technologies: [],
-		});
-	}, []);
 
 	const isFormValid = useMemo(
 		() =>

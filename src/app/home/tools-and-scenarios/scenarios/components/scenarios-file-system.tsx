@@ -98,6 +98,54 @@ export function ScenariosFileSystem({
 		{}
 	);
 
+	// Helper functions to resolve IDs to names
+	const getSolutionName = useCallback(async (solutionId: string): Promise<string> => {
+		// Check cache first
+		if (solutionCache[solutionId]) {
+			return solutionCache[solutionId].solution_name || solutionId;
+		}
+
+		try {
+			const result = await getSolutionById(solutionId);
+			if (result.success && result.solution) {
+				// Cache the solution data
+				setSolutionCache((prev) => ({
+					...prev,
+					[solutionId]: result.solution,
+				}));
+				return result.solution.solution_name || solutionId;
+			}
+		} catch (error) {
+			console.error("Error fetching solution:", error);
+		}
+
+		return solutionId;
+	}, [solutionCache]);
+
+	const getUserName = useCallback(async (userId: string): Promise<string> => {
+		// Check cache first
+		if (userCache[userId]) {
+			return userCache[userId];
+		}
+
+		try {
+			const user = await getUserById(userId);
+			if (user.success && user.user) {
+				const userName =
+					`${user.user.first_name} ${user.user.last_name}`.trim() || userId;
+				setUserCache((prev) => ({
+					...prev,
+					[userId]: userName,
+				}));
+				return userName;
+			}
+		} catch (error) {
+			console.error("Error fetching user:", error);
+		}
+
+		return userId;
+	}, [userCache]);
+
 	// Load leads when component mounts
 	useEffect(() => {
 		async function loadLeads() {
@@ -211,61 +259,7 @@ export function ScenariosFileSystem({
 		if (scenarios.length > 0) {
 			resolveNames();
 		}
-	}, [scenarios]);
-
-	// Helper function to get resolved name
-	function getResolvedName(type: "solution" | "user", id: string): string {
-		const cacheKey = `${type}_${id}`;
-		return resolvedNames[cacheKey] || id;
-	}
-
-	// Helper functions to resolve IDs to names
-	async function getSolutionName(solutionId: string): Promise<string> {
-		// Check cache first
-		if (solutionCache[solutionId]) {
-			return solutionCache[solutionId].solution_name || solutionId;
-		}
-
-		try {
-			const result = await getSolutionById(solutionId);
-			if (result.success && result.solution) {
-				// Cache the solution data
-				setSolutionCache((prev) => ({
-					...prev,
-					[solutionId]: result.solution,
-				}));
-				return result.solution.solution_name || solutionId;
-			}
-		} catch (error) {
-			console.error("Error fetching solution:", error);
-		}
-
-		return solutionId;
-	}
-
-	async function getUserName(userId: string): Promise<string> {
-		// Check cache first
-		if (userCache[userId]) {
-			return userCache[userId];
-		}
-
-		try {
-			const user = await getUserById(userId);
-			if (user.success && user.user) {
-				const userName =
-					`${user.user.first_name} ${user.user.last_name}`.trim() || userId;
-				setUserCache((prev) => ({
-					...prev,
-					[userId]: userName,
-				}));
-				return userName;
-			}
-		} catch (error) {
-			console.error("Error fetching user:", error);
-		}
-
-		return userId;
-	}
+	}, [scenarios, getSolutionName, getUserName, resolvedNames]);
 
 	// Navigation handlers
 	function handleLeadClick(lead: LeadData) {
@@ -420,7 +414,7 @@ export function ScenariosFileSystem({
 		return (
 			<div className="space-y-4">
 				<Skeleton className="h-8 w-64" />
-				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
 					{[...Array(6)].map((_, i) => (
 						<Skeleton key={i} className="h-32" />
 					))}

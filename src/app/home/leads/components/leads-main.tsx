@@ -6,7 +6,7 @@ import { Grid3X3, RefreshCw, Search } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { List } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import LeadsList from "./leads-list";
 import { CreateLeadDialog } from "./create-lead";
@@ -27,7 +27,7 @@ export function LeadsMain() {
 		loadData();
 	};
 
-	const loadData = async () => {
+	const loadData = useCallback(async () => {
 		if (!user?._id) {
 			toast.error("User not authenticated");
 			return;
@@ -48,7 +48,7 @@ export function LeadsMain() {
 		} finally {
 			setIsLoading(false);
 		}
-	};
+	}, [user?._id]);
 
 	const handleCreateLead = async (leadData: any) => {
 		if (!user?._id) {
@@ -80,7 +80,7 @@ export function LeadsMain() {
 		if (user?._id && !isUserLoading) {
 			loadData();
 		}
-	}, [user?._id, isUserLoading]);
+	}, [user?._id, isUserLoading, loadData]);
 
 	// Filter leads based on search query
 	const filteredLeads = leads.filter((lead) => {

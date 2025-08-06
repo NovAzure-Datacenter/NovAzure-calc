@@ -27,7 +27,8 @@ import CalculationCategoryTabs from "./category-tabs";
 import { CustomCalculationCategory } from "../../utils/calculation-color-utils";
 import { Calculation } from "@/types/types";
 import { TableContent } from "./table-content";
-import PreviewDialog from "../create-solution-parameters/preview-dialog";
+import Searchbar from "./search-bar";
+import PreviewDialog from "../create-solution-calculations/preview-dialog";
 import {
 	CalculationsConfigurationProps,
 	CalculationEditData,
@@ -82,6 +83,9 @@ export function CalculationMain({
 	const [isAddNewParameterDialogOpen, setIsAddNewParameterDialogOpen] =
 		useState(false);
 	const [isPreviewDialogOpen, setIsPreviewDialogOpen] = useState(false);
+
+	// Search state
+	const [searchQuery, setSearchQuery] = useState("");
 
 	// State for new parameter data
 	const [newParameterData, setNewParameterData] = useState({
@@ -217,17 +221,24 @@ export function CalculationMain({
 
 	// Memoize calculation data to prevent infinite loops
 	const editCalculationData = useMemo(() => {
-		return editingCalculation && editData.name && editData.formula ? {
-			name: editData.name,
-			formula: editData.formula
-		} : null;
-	}, [editingCalculation, editData.name, editData.formula]);
-	
-	const newCalculationDataForValidation = useMemo(() => {
-		return isAddingCalculation && newCalculationData.name && newCalculationData.formula 
-			? newCalculationData 
+		return editingCalculation && editData.name && editData.formula
+			? {
+					name: editData.name,
+					formula: editData.formula,
+			  }
 			: null;
-	}, [isAddingCalculation, newCalculationData.name, newCalculationData.formula]);
+	}, [editingCalculation, editData.name, editData.formula]);
+
+	const newCalculationDataForValidation = useMemo(() => {
+		return isAddingCalculation &&
+			newCalculationData.name &&
+			newCalculationData.formula
+			? newCalculationData
+			: null;
+	}, [
+		isAddingCalculation,
+		newCalculationData,
+	]);
 
 	const editCalculationResult = useCalculationValidator(groupedParametersWithCalculations, editCalculationData);
 	const newCalculationResult = useCalculationValidator(groupedParametersWithCalculations, newCalculationDataForValidation);
@@ -276,6 +287,8 @@ export function CalculationMain({
 					? calculation.display_result
 					: false,
 		});
+		// Ensure formula editor starts in collapsed state when editing begins
+		// This will be handled by the TableContent component
 	};
 
 	/**
@@ -766,7 +779,6 @@ export function CalculationMain({
 		}
 	};
 
-
 	const getAllAvailableCategories = () => {
 		return [...customCategories];
 	};
@@ -797,23 +809,58 @@ export function CalculationMain({
 	};
 
 	const getFilteredCalculations = (): Calculation[] => {
-		if (activeTab === "all") {
-			return calculations;
+		let filtered = calculations;
+
+		// Filter by active tab
+		if (activeTab !== "all") {
+			filtered = filtered.filter((calc) => {
+				if (!calc.category) {
+					return false;
+				}
+
+				const categoryName = (() => {
+					if (typeof calc.category === "string") {
+						return (calc.category as string).toLowerCase();
+					}
+					return (calc.category?.name || "").toLowerCase();
+				})();
+
+				return categoryName?.toLowerCase() === activeTab.toLowerCase();
+			});
 		}
-		return calculations.filter((calc) => {
-			if (!calc.category) {
-				return false;
-			}
 
-			const categoryName =
-				typeof calc.category === "string" ? calc.category : calc.category.name;
+		// Filter by search query
+		if (searchQuery.trim()) {
+			const query = searchQuery.toLowerCase();
+			filtered = filtered.filter((calc) => {
+				const name = calc.name.toLowerCase();
+				const description = calc.description.toLowerCase();
+				const formula = calc.formula.toLowerCase();
+				const units = calc.units.toLowerCase();
+				const status = String(calc.status || "").toLowerCase();
+				const categoryName = (() => {
+					if (typeof calc.category === "string") {
+						return (calc.category as string).toLowerCase();
+					}
+					return (calc.category?.name || "").toLowerCase();
+				})();
 
-			return categoryName?.toLowerCase() === activeTab.toLowerCase();
-		});
+				return (
+					name.includes(query) ||
+					description.includes(query) ||
+					formula.includes(query) ||
+					units.includes(query) ||
+					status.includes(query) ||
+					categoryName.includes(query)
+				);
+			});
+		}
+
+		return filtered;
 	};
 
 	return (
-		<div className="space-y-4">
+		<div className="space-y-6 ">
 			<CalculationCategoryTabs
 				activeTab={activeTab}
 				setActiveTab={setActiveTab}
@@ -835,6 +882,12 @@ export function CalculationMain({
 			/>
 
 			<LoadingIndicator isLoading={isLoadingCalculations} />
+
+			<Searchbar
+				searchQuery={searchQuery}
+				setSearchQuery={setSearchQuery}
+				filteredCalculations={getFilteredCalculations()}
+			/>
 
 			<TableContent
 				calculations={getFilteredCalculations()}
@@ -865,13 +918,6 @@ export function CalculationMain({
 			<PreviewDialog
 				isOpen={isPreviewDialogOpen}
 				onOpenChange={setIsPreviewDialogOpen}
-				parameters={parameters}
-				selectedIndustry={selectedIndustry}
-				selectedTechnology={selectedTechnology}
-				selectedSolutionId={selectedSolutionId}
-				availableIndustries={availableIndustries}
-				availableTechnologies={availableTechnologies}
-				availableSolutionTypes={availableSolutionTypes}
 			/>
 
 			<AddParameterDialog
@@ -886,7 +932,7 @@ export function CalculationMain({
 				parametersCount={parameters.length}
 			/>
 
-			<CalculationsSummary filteredCalculations={getFilteredCalculations()} />
+			
 		</div>
 	);
 }
@@ -1070,38 +1116,6 @@ function LoadingIndicator({ isLoading }: { isLoading: boolean }) {
 	);
 }
 
-/**
- * CalculationsSummary component
- * Shows summary statistics for calculations
- */
-function CalculationsSummary({
-	filteredCalculations,
-}: {
-	filteredCalculations: Calculation[];
-}) {
-	const validCount = filteredCalculations.filter(
-		(c) => c.status === "valid"
-	).length;
-	const errorCount = filteredCalculations.filter(
-		(c) => c.status === "error"
-	).length;
-
-	return (
-		<div className="flex justify-between items-center pt-3 border-t">
-			<div className="text-sm text-muted-foreground">
-				<span className="font-medium">{filteredCalculations.length}</span>{" "}
-				calculations
-				<span className="mx-2">•</span>
-				<span className="font-medium">{validCount}</span> valid
-				<span className="mx-2">•</span>
-				<span className="font-medium text-red-600">{errorCount}</span> errors
-			</div>
-			<div className="flex items-center gap-2 text-xs text-muted-foreground">
-				<span>Click parameters to insert into formulas</span>
-			</div>
-		</div>
-	);
-}
 
 /**
  * AddParameterDialog component

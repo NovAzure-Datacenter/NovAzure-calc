@@ -5,7 +5,7 @@ import { Grid3X3, RefreshCw, Search } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { List } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useUser } from "@/hooks/useUser";
 import { toast } from "sonner";
 import { getClientByUserId } from "@/lib/actions/clients/clients";
@@ -21,22 +21,13 @@ import { ScenariosFileSystem } from "./scenarios-file-system";
 
 export function ScenariosMain() {
 	const { user } = useUser();
-	const [searchQuery, setSearchQuery] = useState("");
-	const [isLoading, setIsLoading] = useState(false);
 	const [clientData, setClientData] = useState<any>(null);
-	const [availableIndustries, setAvailableIndustries] = useState<Industry[]>(
-		[]
-	);
-	const [availableTechnologies, setAvailableTechnologies] = useState<
-		Technology[]
-	>([]);
+	const [availableIndustries, setAvailableIndustries] = useState<Industry[]>([]);
+	const [availableTechnologies, setAvailableTechnologies] = useState<Technology[]>([]);
+	const [isLoading, setIsLoading] = useState(false);
+	const [searchQuery, setSearchQuery] = useState("");
 
-	// Load client data and available industries/technologies
-	useEffect(() => {
-		loadData();
-	}, [user?._id]);
-
-	const loadData = async () => {
+	const loadData = useCallback(async () => {
 		if (!user?._id) return;
 
 		setIsLoading(true);
@@ -99,7 +90,11 @@ export function ScenariosMain() {
 		} finally {
 			setIsLoading(false);
 		}
-	};
+	}, [user?._id]);
+
+	useEffect(() => {
+		loadData();
+	}, [user?._id, loadData]);
 
 	const handleRefresh = () => {
 		loadData();
