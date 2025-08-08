@@ -1,4 +1,5 @@
 import pytest
+
 from app.core.calculation.calculator import Calculator
 from app.core.calculation.parameter import Parameter
 

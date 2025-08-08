@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+
 from app.core.calculation.calculator import Calculator
 from app.core.calculation.parameter import Parameter
 from app.core.schemas import CalculationRequest, CalculationResponse

@@ -74,29 +74,19 @@ class Parameter:
         op_type = node["type"]
 
         if op_type == "Add":
-            return self._evaluate_ast(node["left"], context) + self._evaluate_ast(
-                node["right"], context
-            )
+            return self._evaluate_ast(node["left"], context) + self._evaluate_ast(node["right"], context)
 
-        if op_type == "Subtract":
-            return self._evaluate_ast(node["left"], context) - self._evaluate_ast(
-                node["right"], context
-            )
+        elif op_type == "Subtract":
+            return self._evaluate_ast(node["left"], context) - self._evaluate_ast(node["right"], context)
 
-        if op_type == "Multiply":
-            return self._evaluate_ast(node["left"], context) * self._evaluate_ast(
-                node["right"], context
-            )
+        elif op_type == "Multiply":
+            return self._evaluate_ast(node["left"], context) * self._evaluate_ast(node["right"], context)
 
-        if op_type == "Divide":
-            return self._evaluate_ast(node["left"], context) / self._evaluate_ast(
-                node["right"], context
-            )
+        elif op_type == "Divide":
+            return self._evaluate_ast(node["left"], context) / self._evaluate_ast(node["right"], context)
 
         elif op_type == "Power":
-            return self._evaluate_ast(node["left"], context) ** self._evaluate_ast(
-                node["right"], context
-            )
+            return self._evaluate_ast(node["left"], context) ** self._evaluate_ast(node["right"], context)
 
         elif op_type.startswith("Unary"):
             return -self._evaluate_ast(node["operand"], context)
