@@ -6,3 +6,7 @@ node_modules
 *.md
 Dockerfile
 compose.yaml
+__pycache__/
+*.pyc
+venv/
+backend/venv/
