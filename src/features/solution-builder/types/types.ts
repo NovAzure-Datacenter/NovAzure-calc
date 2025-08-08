@@ -551,6 +551,7 @@ export interface ParameterRowProps {
 	toggleRowExpansion: (parameterId: string) => void;
 	usedParameterIds?: string[];
 	isUnused?: boolean;
+	parameters?: Parameter[];
 }
 
 export interface AddParameterRowProps {
@@ -573,6 +574,7 @@ export interface AddParameterRowProps {
 		isExpanded?: boolean
 	) => React.ReactElement | null;
 	usedParameterIds?: string[];
+	parameters?: Parameter[];
 }
 
 export interface EmptyStateProps {

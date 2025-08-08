@@ -601,6 +601,7 @@ function ParameterTableBody({
 					columnVisibility={columnVisibility}
 					renderCell={renderCell}
 					usedParameterIds={usedParameterIds}
+					parameters={filteredParameters}
 				/>
 			)}
 
@@ -644,6 +645,7 @@ function ParameterTableBody({
 						toggleRowExpansion={toggleRowExpansion}
 						usedParameterIds={usedParameterIds}
 						isUnused={isUnused}
+						parameters={filteredParameters}
 					/>
 				);
 			})}
@@ -675,6 +677,7 @@ function AddParameterRow({
 	columnVisibility,
 	renderCell,
 	usedParameterIds,
+	parameters,
 }: AddParameterRowProps) {
 	const handleKeyDown = (e: React.KeyboardEvent) => {
 		if (e.key === "Enter") {
@@ -746,17 +749,9 @@ function AddParameterRow({
 						{getAllAvailableCategories().length > 0 ? (
 							getAllAvailableCategories().map((category) => (
 								<SelectItem key={category.name} value={category.name}>
-									<div className="flex items-center gap-2">
-										<Badge
-											variant="outline"
-											className="text-xs"
-											style={getCategoryBadgeStyleForDropdownWrapper(
-												category.name
-											)}
-										>
-											{category.name}
-										</Badge>
-									</div>
+									<span style={getCategoryBadgeStyleForDropdownWrapper(category.name)}>
+										{category.name}
+									</span>
 								</SelectItem>
 							))
 						) : (
@@ -809,7 +804,7 @@ function AddParameterRow({
 					newParameterData.display_type,
 					newParameterData,
 					setNewParameterData,
-					[],
+					parameters || [],
 					handleSaveNewParameter,
 					handleCancelAddParameter
 				),
@@ -1023,6 +1018,7 @@ function ParameterRow({
 	toggleRowExpansion,
 	usedParameterIds,
 	isUnused,
+	parameters,
 }: ParameterRowProps) {
 	const handleKeyDown = (e: React.KeyboardEvent) => {
 		if (e.key === "Enter") {
@@ -1163,17 +1159,9 @@ function ParameterRow({
 							{getAllAvailableCategories().length > 0 ? (
 								getAllAvailableCategories().map((category) => (
 									<SelectItem key={category.name} value={category.name}>
-										<div className="flex items-center gap-2">
-											<Badge
-												variant="outline"
-												className="text-xs"
-												style={getCategoryBadgeStyleForDropdownWrapper(
-													category.name
-												)}
-											>
-												{category.name}
-											</Badge>
-										</div>
+										<span style={getCategoryBadgeStyleForDropdownWrapper(category.name)}>
+											{category.name}
+										</span>
 									</SelectItem>
 								))
 							) : (
@@ -1248,7 +1236,7 @@ function ParameterRow({
 						editData.display_type,
 						editData,
 						setEditData,
-						[],
+						parameters, // Pass all parameters instead of empty array
 						() => handleSaveParameter(parameter.id),
 						handleCancelEdit
 					)

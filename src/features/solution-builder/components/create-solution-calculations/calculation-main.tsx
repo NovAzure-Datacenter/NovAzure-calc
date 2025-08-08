@@ -173,7 +173,7 @@ export function CalculationMain({
 	}, [isAddNewParameterDialogOpen]);
 
 	const groupedParameters = useMemo(() => {
-		return parameters.reduce((acc, param) => {
+		const grouped = parameters.reduce((acc, param) => {
 			const categoryName = param.category.name;
 			if (!acc[categoryName]) {
 				acc[categoryName] = [];
@@ -181,6 +181,8 @@ export function CalculationMain({
 			acc[categoryName].push(param);
 			return acc;
 		}, {} as Record<string, (typeof parameters)[0][]>);
+
+		return grouped;
 	}, [parameters]);
 
 	const groupedParametersWithCalculations = useMemo(() => {
@@ -482,6 +484,17 @@ export function CalculationMain({
 
 		if (!newParameterData.unit.trim()) {
 			toast.error("Unit is required");
+			return;
+		}
+
+		// Check for duplicate parameter names (case-insensitive)
+		const normalizedNewName = newParameterData.name.trim().toLowerCase();
+		const hasDuplicate = parameters.some(param => 
+			param.name.toLowerCase() === normalizedNewName
+		);
+		
+		if (hasDuplicate) {
+			toast.error(`A parameter named "${newParameterData.name.trim()}" already exists.`);
 			return;
 		}
 

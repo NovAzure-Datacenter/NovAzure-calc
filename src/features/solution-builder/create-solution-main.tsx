@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback } from "react";
+import { useCallback } from "react";
 import { useState, useEffect } from "react";
 import { useUser } from "@/hooks/useUser";
 import {
@@ -39,10 +39,6 @@ import {
 	createNewSolutionVariant,
 	createNewClientSolution,
 	updateExistingClientSolution,
-	fetchClientSelectedData,
-	filterTechnologiesByIndustry,
-	getOtherIndustries,
-	getOtherTechnologies,
 } from "./api";
 /**
  * CreateSolutionMain component - Main orchestrator for the solution builder feature
@@ -102,8 +98,7 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 		null
 	);
 
-	// Used parameters tracking state
-	const [usedParameterIds, setUsedParameterIds] = useState<string[]>([]);
+
 
 	// Category states for parameters and calculations
 	const [customParameterCategories, setCustomParameterCategories] = useState<
@@ -378,9 +373,7 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 		setFormData((prev) => ({ ...prev, calculations }));
 	};
 
-	const handleUsedParametersChange = (usedParameterIds: string[]) => {
-		setUsedParameterIds(usedParameterIds);
-	};
+
 
 	const handleAddSolutionVariant = (newVariant: any) => {
 		setAvailableSolutionVariants((prev) => [...prev, newVariant]);
@@ -847,7 +840,7 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 						getSelectedTechnologyName={getSelectedTechnologyName}
 						getSelectedSolutionType={getSelectedSolutionType}
 						getSelectedSolutionVariant={getSelectedSolutionVariant}
-						onUsedParametersChange={handleUsedParametersChange}
+
 					/>
 				</CardContent>
 
@@ -947,10 +940,10 @@ function StepContent({
 	getSelectedTechnologyName,
 	getSelectedSolutionType,
 	getSelectedSolutionVariant,
-	onUsedParametersChange,
+
 }: StepContentProps) {
-	// Extract used parameter IDs from calculations
-	const extractUsedParameterIds = (): string[] => {
+	// Extract used parameter IDs from calculations and nested parameters
+	const extractUsedParameterIds = () => {
 		const usedIds = new Set<string>();
 
 		// Test case: if no calculations, return empty array
@@ -958,40 +951,114 @@ function StepContent({
 			return [];
 		}
 
-		formData.calculations.forEach((calculation) => {
-			// Extract parameter names from formula (improved regex to match parameter names)
-			const parameterMatches = calculation.formula.match(/[a-zA-Z_][a-zA-Z0-9_]*/g) || [];
-
-			parameterMatches.forEach((match) => {
+		// Helper function to extract parameter names from a formula
+		const extractParameterNamesFromFormula = (formula: string): string[] => {
+			// Updated regex to capture parameter names with spaces and numbers
+			const parameterMatches = formula.match(/[a-zA-Z_][a-zA-Z0-9_\s]*/g) || [];
+			return parameterMatches.filter(match => {
 				// Skip common mathematical functions and constants
-				const skipWords = ['Math', 'sin', 'cos', 'tan', 'log', 'exp', 'sqrt', 'abs', 'round', 'floor', 'ceil', 'max', 'min', 'pi', 'e', 'self', 'this'];
-				if (skipWords.includes(match)) {
-					return;
-				}
+				const skipWords = ['Math', 'sin', 'cos', 'tan', 'log', 'exp', 'sqrt', 'abs', 'round', 'floor', 'ceil', 'max', 'min', 'pi', 'e', 'self', 'this', 'conditional'];
+				return !skipWords.includes(match);
+			});
+		};
 
-				// Find parameter with this name (case-insensitive search)
-				const parameter = formData.parameters.find((param) =>
-					param.name.toLowerCase() === match.toLowerCase() ||
-					param.name.replace(/[^a-zA-Z0-9_]/g, '').toLowerCase() === match.toLowerCase()
+		// Helper function to find ALL parameters by name (case-insensitive search)
+		const findAllParametersByName = (name: string) => {
+			return formData.parameters.filter((param) => {
+				const paramName = param.name.toLowerCase();
+				const searchName = name.toLowerCase();
+				
+				// Direct match
+				if (paramName === searchName) return true;
+				
+				// Cleaned name match (remove special characters but keep spaces)
+				const cleanedParamName = paramName.replace(/[^a-zA-Z0-9_\s]/g, '');
+				const cleanedSearchName = searchName.replace(/[^a-zA-Z0-9_\s]/g, '');
+				if (cleanedParamName === cleanedSearchName) return true;
+				
+				// Handle spaces and underscores
+				const normalizedParamName = paramName.replace(/[\s_]+/g, '_');
+				const normalizedSearchName = searchName.replace(/[\s_]+/g, '_');
+				if (normalizedParamName === normalizedSearchName) return true;
+				
+				// Trim whitespace and compare
+				if (paramName.trim() === searchName.trim()) return true;
+				
+				return false;
+			});
+		};
+
+		// Helper function to find ALL parameters by partial match
+		const findAllParametersByPartialMatch = (name: string) => {
+			return formData.parameters.filter((param) => {
+				const paramName = param.name.toLowerCase();
+				const searchName = name.toLowerCase();
+				
+				// Direct contains match
+				if (paramName.includes(searchName) || searchName.includes(paramName)) return true;
+				
+				// Cleaned name contains match (keep spaces)
+				const cleanedParamName = paramName.replace(/[^a-zA-Z0-9_\s]/g, '');
+				const cleanedSearchName = searchName.replace(/[^a-zA-Z0-9_\s]/g, '');
+				if (cleanedParamName.includes(cleanedSearchName) || cleanedSearchName.includes(cleanedParamName)) return true;
+				
+				// Normalized contains match
+				const normalizedParamName = paramName.replace(/[\s_]+/g, '_');
+				const normalizedSearchName = searchName.replace(/[\s_]+/g, '_');
+				if (normalizedParamName.includes(normalizedSearchName) || normalizedSearchName.includes(normalizedParamName)) return true;
+				
+				// Trim whitespace and compare
+				if (paramName.trim().includes(searchName.trim()) || searchName.trim().includes(paramName.trim())) return true;
+				
+				return false;
+			});
+		};
+
+		// Extract parameter names from all calculation formulas
+		formData.calculations.forEach((calculation) => {
+			const parameterNames = extractParameterNamesFromFormula(calculation.formula);
+
+			parameterNames.forEach((name) => {
+				const matchingParameters = findAllParametersByName(name);
+				const partialMatchingParameters = findAllParametersByPartialMatch(name);
+
+				// Combine all matching parameters and remove duplicates
+				const allMatchingParameters = [...matchingParameters, ...partialMatchingParameters];
+				const uniqueMatchingParameters = allMatchingParameters.filter((param, index, arr) => 
+					arr.findIndex(p => p.id === param.id) === index
 				);
 
-				if (parameter) {
-					usedIds.add(parameter.id);
-				} else {
-					// Try to find by partial match or similar names
-					const similarParam = formData.parameters.find((param) =>
-						param.name.toLowerCase().includes(match.toLowerCase()) ||
-						match.toLowerCase().includes(param.name.toLowerCase())
-					);
-					if (similarParam) {
-						usedIds.add(similarParam.id);
-					}
-				}
+				// Mark all matching parameters as used
+				uniqueMatchingParameters.forEach(matchingParameter => {
+					usedIds.add(matchingParameter.id);
+				});
 			});
 		});
 
-		const result = Array.from(usedIds);
-		return result;
+		// NEW: Mark filter parameters as used if they provide values to conditional parameters
+		formData.parameters.forEach((filterParameter) => {
+			if (filterParameter.display_type === "filter" && filterParameter.dropdown_options && Array.isArray(filterParameter.dropdown_options)) {
+				// Check if any conditional parameter uses values from this filter
+				const isUsedInConditional = formData.parameters.some((conditionalParam) => {
+					if (conditionalParam.display_type === "conditional" && conditionalParam.conditional_rules && Array.isArray(conditionalParam.conditional_rules)) {
+						return conditionalParam.conditional_rules.some((rule) => {
+							// Check if the rule's condition or value matches any of the filter's dropdown options
+							return filterParameter.dropdown_options!.some((filterOption) => {
+								const filterValue = filterOption.value || filterOption.key;
+								return rule.condition === filterValue || rule.value === filterValue;
+							});
+						});
+					}
+					return false;
+				});
+
+				if (isUsedInConditional) {
+					usedIds.add(filterParameter.id);
+				}
+			}
+		});
+
+		return Array.from(usedIds);
 	};
 
 	return (

@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import {
 	Dialog,
 	DialogContent,
@@ -83,8 +84,11 @@ export function ParameterMain({
 	};
 
 	const handleSaveParameter = (parameterId: string) => {
-		const validation = validateParameterEditData(editData);
+		// Exclude the current parameter from duplicate check when editing
+		const otherParameters = parameters.filter(p => p.id !== parameterId);
+		const validation = validateParameterEditData(editData, otherParameters);
 		if (!validation.isValid) {
+			toast.error(validation.errorMessage);
 			return;
 		}
 
@@ -116,8 +120,9 @@ export function ParameterMain({
 	};
 
 	const handleSaveNewParameter = () => {
-		const validation = validateParameterEditData(newParameterData);
+		const validation = validateParameterEditData(newParameterData, parameters);
 		if (!validation.isValid) {
+			toast.error(validation.errorMessage);
 			return;
 		}
 
@@ -503,7 +508,7 @@ function convertEditDataToParameter(
 /**
  * Helper function to validate parameter edit data
  */
-function validateParameterEditData(editData: ParameterEditData): ParameterValidationResult {
+function validateParameterEditData(editData: ParameterEditData, existingParameters: Parameter[] = []): ParameterValidationResult {
 	// Basic validation - check required fields
 	if (!editData.name.trim() || !editData.unit.trim()) {
 		return {
@@ -512,8 +517,21 @@ function validateParameterEditData(editData: ParameterEditData): ParameterValida
 		};
 	}
 
+	// Check for duplicate parameter names (case-insensitive)
+	const normalizedNewName = editData.name.trim().toLowerCase();
+	const hasDuplicate = existingParameters.some(param => 
+		param.name.toLowerCase() === normalizedNewName
+	);
+	
+	if (hasDuplicate) {
+		return {
+			isValid: false,
+			errorMessage: `A parameter named "${editData.name.trim()}" already exists.`
+		};
+	}
+
 	// Additional validation for static parameters
-			if (editData.user_interface?.type === "static") {
+		if (editData.user_interface?.type === "static") {
 		if (editData.display_type === "simple" && !editData.value.trim()) {
 			return {
 				isValid: false,

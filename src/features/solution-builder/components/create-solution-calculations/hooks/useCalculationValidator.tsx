@@ -68,70 +68,24 @@ export function useCalculationValidator(
 			}
 		});
 
-		const resolveFilterBasedParameter = (
-			param: any,
-			allUnifiedParams: any[]
-		): number | null => {
-			const originalItem = param.originalItem;
 
-			if (
-				!originalItem ||
-				originalItem.display_type !== "dropdown" ||
-				!originalItem.dropdown_options ||
-				originalItem.dropdown_options.length === 0
-			) {
-				return null;
-			}
-
-			const countryParam = allUnifiedParams.find(
-				(p) =>
-					p.originalItem &&
-					p.originalItem.display_type === "filter" &&
-					p.name.toLowerCase().includes("country")
-			);
-
-			if (!countryParam || !countryParam.originalItem.dropdown_options) {
-				return null;
-			}
-
-			return null;
-		};
 
 		unifiedParams.forEach((param: any) => {
-			const cleanName = cleanParameterName(param.name);
 			const originalItem = param.originalItem;
+			const cleanName = cleanParameterName(param.name);
 
 			if (param.type === "USER") {
-				const userInterfaceType =
-					typeof originalItem?.user_interface === "string"
-						? originalItem.user_interface
-						: originalItem?.user_interface?.type || "input";
+				let numValue = null;
 
-				let value = null;
-
-				if (originalItem?.display_type === "dropdown") {
-					value = resolveFilterBasedParameter(param, unifiedParams);
-				} else if (originalItem?.display_type !== "filter") {
-					let hasValidValue = false;
-
-					if (originalItem?.value !== undefined && originalItem.value !== "") {
-						value = parseFloat(originalItem.value);
-						if (!isNaN(value)) {
-							inputs[cleanName] = value;
-							hasValidValue = true;
-						}
+				if (originalItem?.value !== undefined) {
+					const directValue = parseFloat(originalItem.value);
+					if (!isNaN(directValue)) {
+						numValue = directValue;
 					}
+				}
 
-					if (
-						!hasValidValue &&
-						originalItem?.test_value !== undefined &&
-						originalItem.test_value !== ""
-					) {
-						value = parseFloat(originalItem.test_value);
-						if (!isNaN(value)) {
-							inputs[cleanName] = value;
-						}
-					}
+				if (numValue !== null && !isNaN(numValue)) {
+					inputs[cleanName] = numValue;
 				}
 
 				const paramObject: any = {
@@ -139,38 +93,22 @@ export function useCalculationValidator(
 					type: "USER",
 				};
 
+				if (numValue !== null && !isNaN(numValue)) {
+					paramObject.value = numValue;
+				}
+
 				if (originalItem?.display_type !== "filter") {
 					requestParameters.push(paramObject);
 				}
-			} else if (param.type === "COMPANY") {
+			}
+			// Handle COMPANY parameters
+			else if (param.type === "COMPANY") {
 				let numValue = null;
 
-				if (
-					originalItem?.dropdown_options &&
-					originalItem.dropdown_options.length > 0
-				) {
-					numValue = resolveFilterBasedParameter(param, unifiedParams);
-				}
-
-				if (
-					numValue === null &&
-					originalItem?.value !== undefined &&
-					originalItem.value !== ""
-				) {
+				if (originalItem?.value !== undefined) {
 					const directValue = parseFloat(originalItem.value);
 					if (!isNaN(directValue)) {
 						numValue = directValue;
-					}
-				}
-
-				if (
-					numValue === null &&
-					originalItem?.test_value !== undefined &&
-					originalItem.test_value !== ""
-				) {
-					const testValue = parseFloat(originalItem.test_value);
-					if (!isNaN(testValue)) {
-						numValue = testValue;
 					}
 				}
 
@@ -190,26 +128,22 @@ export function useCalculationValidator(
 				if (originalItem?.display_type !== "filter") {
 					requestParameters.push(paramObject);
 				}
-			} else if (param.type === "CALCULATION") {
-				if (param.formula) {
-					const calcObject: any = {
-						name: cleanName,
-						type: "CALCULATION",
-						formula: cleanFormula(param.formula, parameterNameMapping),
-					};
+			}
+			// Handle CALCULATION parameters
+			else if (param.type === "CALCULATION") {
+				const paramObject: any = {
+					name: cleanName,
+					type: "CALCULATION",
+				};
 
-					if (originalItem?.units) calcObject.unit = originalItem.units;
-					if (originalItem?.description)
-						calcObject.description = originalItem.description;
-					if (originalItem?.output !== undefined)
-						calcObject.output = originalItem.output;
-					if (originalItem?.level !== undefined)
-						calcObject.level = originalItem.level;
-					if (originalItem?.category)
-						calcObject.category = originalItem.category;
-
-					requestParameters.push(calcObject);
+				if (originalItem?.formula) {
+					paramObject.formula = cleanFormula(
+						originalItem.formula,
+						parameterNameMapping
+					);
 				}
+
+				requestParameters.push(paramObject);
 			}
 		});
 
