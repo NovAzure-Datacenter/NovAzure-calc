@@ -21,10 +21,10 @@ def test_calculation():
             },
         ],
         "inputs": {"price": 100, "quantity": 5},
-        "target": "final",
+        "target": ["final"],
     }
 
     response = client.post("/api/v1/calculate", json=request_body)
     assert response.status_code == 200
 
-    assert response.json() == {"result": 550.0}
+    assert response.json() == {"result": [550.0]}

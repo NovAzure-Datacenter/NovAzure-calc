@@ -115,9 +115,7 @@ class TestCalculator:
             calculator.evaluate(["result"])
 
         # Test missing dependency
-        parameter_dicts = [
-            {"name": "result", "type": "CALCULATION", "formula": "missing * 2"}
-        ]
+        parameter_dicts = [{"name": "result", "type": "CALCULATION", "formula": "missing * 2"}]
 
         parameters = [Parameter(param) for param in parameter_dicts]
         calculator = Calculator(parameters, {})
@@ -148,18 +146,12 @@ class TestCalculator:
         parameters = [Parameter(param) for param in parameter_dicts]
         calculator = Calculator(parameters, {"valid": 5.0})
 
-        with pytest.raises(
-            ValueError, match="Target 'missing_target' was not resolved"
-        ):
+        with pytest.raises(ValueError, match="Target 'missing_target' was not resolved"):
             calculator.evaluate(["missing_target"])
 
         # Test invalid parameter definition
-        with pytest.raises(
-            ValueError, match="GLOBAL parameter 'invalid' requires value"
-        ):
+        with pytest.raises(ValueError, match="GLOBAL parameter 'invalid' requires value"):
             Parameter({"name": "invalid", "type": "GLOBAL"})  # Missing value
 
-        with pytest.raises(
-            ValueError, match="CALCULATION parameter 'invalid' requires formula"
-        ):
+        with pytest.raises(ValueError, match="CALCULATION parameter 'invalid' requires formula"):
             Parameter({"name": "invalid", "type": "CALCULATION"})  # Missing formula
