@@ -38,6 +38,7 @@ import {
 import { useCalculationValidator } from "./hooks/useCalculationValidator";
 import { useCalculatorLevelManager } from "./hooks/useCalculatorLevelManager";
 import { groupParametersByCategory } from "../../api";
+import { getAllGlobalCalculations, initializeGlobalCalculations } from "@/lib/actions/global-calculations/global-calculations";
 
 /**
  * CalculationMain component
@@ -68,10 +69,115 @@ export function CalculationMain({
 		formula: "",
 		units: "",
 		description: "",
-		category: "financial",
+		category: "capex",
 		output: false,
 		display_result: false,
 	});
+	const [availableCategories, setAvailableCategories] = useState<Array<{
+		name: string;
+		color: string;
+	}>>([
+		{
+			name: "capex",
+			color: "bg-green-50 text-green-700 border-green-200"
+		},
+		{
+			name: "opex",
+			color: "bg-blue-50 text-blue-700 border-blue-200"
+		}
+	]);
+
+	// Extract categories from calculations and update available categories
+	useEffect(() => {
+		const extractedCategories = new Set<string>();
+		
+		// Add default categories
+		extractedCategories.add("capex");
+		extractedCategories.add("opex");
+		
+		// Extract categories from calculations
+		calculations.forEach(calculation => {
+			if (calculation.category) {
+				const categoryName = typeof calculation.category === "string" 
+					? calculation.category 
+					: calculation.category.name;
+				if (categoryName) {
+					extractedCategories.add(categoryName.toLowerCase());
+				}
+			}
+		});
+		
+		// Create category objects with default colors using full Tailwind classes
+		const categoryObjects = Array.from(extractedCategories).map(name => {
+			// Check if we already have this category with a specific color
+			const existingCategory = availableCategories.find(cat => cat.name.toLowerCase() === name.toLowerCase());
+			if (existingCategory) {
+				return existingCategory;
+			}
+			
+			// Default colors for known categories using full Tailwind classes
+			const defaultColors: Record<string, string> = {
+				capex: "bg-green-50 text-green-700 border-green-200",
+				opex: "bg-blue-50 text-blue-700 border-blue-200",
+				financial: "bg-purple-50 text-purple-700 border-purple-200",
+				performance: "bg-yellow-50 text-yellow-700 border-yellow-200",
+				efficiency: "bg-orange-50 text-orange-700 border-orange-200",
+				operational: "bg-indigo-50 text-indigo-700 border-indigo-200",
+				water: "bg-cyan-50 text-cyan-700 border-cyan-200",
+				energy: "bg-amber-50 text-amber-700 border-amber-200",
+				maintenance: "bg-slate-50 text-slate-700 border-slate-200",
+				infrastructure: "bg-stone-50 text-stone-700 border-stone-200",
+			};
+			
+			return {
+				name: name,
+				color: defaultColors[name.toLowerCase()] || "bg-gray-50 text-gray-700 border-gray-200"
+			};
+		});
+		
+		setAvailableCategories(categoryObjects);
+	}, [calculations]);
+
+	/**
+	 * Get all available categories including custom ones
+	 */
+	const getAllAvailableCategories = () => {
+		const allCategories = [...availableCategories];
+		
+		// Add custom categories
+		if (customCategories) {
+			customCategories.forEach(customCat => {
+				if (!allCategories.find(cat => cat.name.toLowerCase() === customCat.name.toLowerCase())) {
+					allCategories.push({
+						name: customCat.name,
+						color: customCat.color
+					});
+				}
+			});
+		}
+		
+		return allCategories;
+	};
+
+	/**
+	 * Get all categories for tabs (including custom categories)
+	 */
+	const getAllCategories = () => {
+		const allCategories = getAllAvailableCategories();
+		
+		// Return just the category names as strings
+		return ["all", ...allCategories.map(cat => cat.name)];
+	};
+
+	/**
+	 * Get category color by name
+	 */
+	const getCategoryColorByName = (categoryName: string) => {
+		const allCategories = getAllAvailableCategories();
+		const category = allCategories.find(cat => cat.name.toLowerCase() === categoryName.toLowerCase());
+		return category?.color || "bg-gray-50 text-gray-700 border-gray-200";
+	};
+
 
 	const [activeTab, setActiveTab] = useState("all");
 	const [isAddCategoryDialogOpen, setIsAddCategoryDialogOpen] = useState(false);
@@ -115,55 +221,13 @@ export function CalculationMain({
 		description: "",
 		formula: "",
 		units: "",
-		category: "financial",
+		category: "capex",
 		output: false,
 		display_result: false,
 	});
+	// Add loading state for global calculations
+	const [isLoadingGlobalCalculations, setIsLoadingGlobalCalculations] = useState(true);
 	const [hasInitialized, setHasInitialized] = useState(false);
-
-	// Migrate old calculations to new format
-	useEffect(() => {
-		const needsMigration = calculations.some(
-			(calc) =>
-				typeof calc.category === "string" ||
-				!calc.category ||
-				calc.display_result === undefined
-		);
-
-		if (needsMigration) {
-			const migratedCalculations = calculations.map((calc) => {
-				if (
-					calc.category &&
-					typeof calc.category === "object" &&
-					calc.category.name &&
-					calc.display_result !== undefined
-				) {
-					return calc;
-				}
-
-				const oldCategory =
-					typeof calc.category === "string" ? calc.category : "financial";
-				const defaultColors: Record<string, string> = {
-					financial: "green",
-					performance: "blue",
-					efficiency: "yellow",
-					operational: "purple",
-				};
-
-				return {
-					...calc,
-					display_result:
-						calc.display_result !== undefined ? calc.display_result : false,
-					category: {
-						name: oldCategory,
-						color: defaultColors[oldCategory.toLowerCase()] || "gray",
-					},
-				};
-			});
-
-			onCalculationsChange(migratedCalculations);
-		}
-	}, [calculations, onCalculationsChange]);
 
 	// Reset form when dialog opens
 	useEffect(() => {
@@ -307,7 +371,7 @@ export function CalculationMain({
 						description: editData.description,
 						category: {
 							name: editData.category,
-							color: getCategoryColor(editData.category),
+							color: getCategoryColorByName(editData.category),
 						},
 						output: editData.output,
 						display_result: editData.display_result,
@@ -342,7 +406,7 @@ export function CalculationMain({
 			formula: "",
 			units: "",
 			description: "",
-			category: "financial",
+			category: "capex",
 			output: false,
 			display_result: false,
 		});
@@ -378,7 +442,7 @@ export function CalculationMain({
 	 * Handle calculation management
 	 */
 	const handleAddCalculation = () => {
-		const defaultCategory = activeTab === "all" ? "financial" : activeTab;
+		const defaultCategory = activeTab === "all" ? "capex" : activeTab;
 		setNewCalculationData({
 			name: "",
 			description: "",
@@ -399,22 +463,7 @@ export function CalculationMain({
 		const calculationResult = newCalculationResult ? 
 			Object.values(newCalculationResult)[0] : null;
 
-		let categoryColor = "green";
-		const customCategory = customCategories.find(
-			(cat) => cat.name === newCalculationData.category
-		);
-		if (customCategory) {
-			categoryColor = customCategory.color;
-		} else {
-			const defaultColors: Record<string, string> = {
-				financial: "green",
-				performance: "blue",
-				efficiency: "yellow",
-				operational: "purple",
-			};
-			categoryColor =
-				defaultColors[newCalculationData.category.toLowerCase()] || "gray";
-		}
+		const categoryColor = getCategoryColorByName(newCalculationData.category);
 
 		const calculatedLevel = 2;
 
@@ -445,7 +494,7 @@ export function CalculationMain({
 			description: "",
 			formula: "",
 			units: "",
-			category: "financial",
+			category: "capex",
 			output: false,
 			display_result: false,
 		});
@@ -752,18 +801,7 @@ export function CalculationMain({
 	 * Utility functions
 	 */
 	const getCategoryColor = (category: string) => {
-		switch (category) {
-			case "financial":
-				return "bg-green-50 text-green-700 border-green-200";
-			case "performance":
-				return "bg-blue-50 text-blue-700 border-blue-200";
-			case "efficiency":
-				return "bg-yellow-50 text-yellow-700 border-yellow-200";
-			case "operational":
-				return "bg-purple-50 text-purple-700 border-purple-200";
-			default:
-				return "bg-gray-50 text-gray-700 border-gray-200";
-		}
+		return getCategoryColorByName(category);
 	};
 
 	const getStatusColor = (status: string) => {
@@ -779,33 +817,21 @@ export function CalculationMain({
 		}
 	};
 
-	const getAllAvailableCategories = () => {
-		return [...customCategories];
-	};
-
 	const getCategoryBadgeStyle = (categoryName: string) => {
-		const category = getAllAvailableCategories().find(
-			(cat) => cat.name === categoryName
-		);
-		if (category) {
+		const categoryColor = getCategoryColorByName(categoryName);
+		
+		// Extract color name from the full Tailwind class string
+		// Example: "bg-green-50 text-green-700 border-green-200" -> "green"
+		const colorMatch = categoryColor.match(/bg-(\w+)-\d+/);
+		if (colorMatch) {
+			const colorName = colorMatch[1];
 			return {
-				backgroundColor: `var(--${category.color}-50)`,
-				borderColor: `var(--${category.color}-200)`,
-				color: `var(--${category.color}-700)`,
+				backgroundColor: `var(--${colorName}-50)`,
+				borderColor: `var(--${colorName}-200)`,
+				color: `var(--${colorName}-700)`,
 			};
 		}
 		return {};
-	};
-
-	const getAllCategories = (): string[] => {
-		const defaultCategories = [
-			"financial",
-			"performance",
-			"efficiency",
-			"operational",
-		];
-		const customCategoryNames = customCategories.map((cat) => cat.name);
-		return [...defaultCategories, ...customCategoryNames];
 	};
 
 	const getFilteredCalculations = (): Calculation[] => {
@@ -859,6 +885,38 @@ export function CalculationMain({
 		return filtered;
 	};
 
+	const ensureGlobalCalculations = async () => {
+		try {
+			setIsLoadingGlobalCalculations(true);
+			await initializeGlobalCalculations();
+			const globalCalculations = await getAllGlobalCalculations();
+			
+			const existingCalculationNames = new Set(calculations.map(calc => calc.name));
+			const missingGlobalCalculations = globalCalculations.filter(
+				globalCalc => !existingCalculationNames.has(globalCalc.name)
+			);
+			
+			if (missingGlobalCalculations.length > 0) {
+				const updatedCalculations = [...calculations, ...missingGlobalCalculations];
+				onCalculationsChange(updatedCalculations);
+			}
+			
+			setHasInitialized(true);
+		} catch (error) {
+			console.error("Error ensuring global calculations:", error);
+			toast.error("Failed to load global calculations");
+		} finally {
+			setIsLoadingGlobalCalculations(false);
+		}
+	};
+
+	useEffect(() => {
+		ensureGlobalCalculations();
+	}, []); 
+
+	// Combined loading state
+	const isTableLoading = isLoadingCalculations || isLoadingGlobalCalculations || !hasInitialized;
+
 	return (
 		<div className="space-y-6 ">
 			<CalculationCategoryTabs
@@ -881,7 +939,7 @@ export function CalculationMain({
 				setIsPreviewDialogOpen={setIsPreviewDialogOpen}
 			/>
 
-			<LoadingIndicator isLoading={isLoadingCalculations} />
+			<LoadingIndicator isLoading={isTableLoading} />
 
 			<Searchbar
 				searchQuery={searchQuery}
@@ -889,31 +947,34 @@ export function CalculationMain({
 				filteredCalculations={getFilteredCalculations()}
 			/>
 
-			<TableContent
-				calculations={getFilteredCalculations()}
-				editingCalculation={editingCalculation}
-				editData={editData}
-				setEditData={setEditData}
-				handleEditCalculation={handleEditCalculation}
-				handleSaveCalculation={handleSaveCalculation}
-				handleCancelEdit={handleCancelEdit}
-				handleDeleteCalculation={handleDeleteCalculation}
-				insertIntoFormula={insertIntoFormula}
-				resetFormula={resetFormula}
-				rewindFormula={rewindFormula}
-				getColorCodedFormula={getColorCodedFormula}
-				getCategoryColor={getCategoryColor}
-				getStatusColor={getStatusColor}
-				groupedParameters={groupedParametersWithCalculations}
-				isAddingCalculation={isAddingCalculation}
-				newCalculationData={newCalculationData}
-				setNewCalculationData={setNewCalculationData}
-				handleSaveNewCalculation={handleSaveNewCalculation}
-				handleCancelAddCalculation={handleCancelAddCalculation}
-				handleAddCalculation={handleAddCalculation}
-				allCategories={getAllCategories()}
-				customCategories={customCategories}
-			/>
+			{/* Only render table when not loading */}
+			{!isTableLoading && (
+				<TableContent
+					calculations={getFilteredCalculations()}
+					editingCalculation={editingCalculation}
+					editData={editData}
+					setEditData={setEditData}
+					handleEditCalculation={handleEditCalculation}
+					handleSaveCalculation={handleSaveCalculation}
+					handleCancelEdit={handleCancelEdit}
+					handleDeleteCalculation={handleDeleteCalculation}
+					insertIntoFormula={insertIntoFormula}
+					resetFormula={resetFormula}
+					rewindFormula={rewindFormula}
+					getColorCodedFormula={getColorCodedFormula}
+					getCategoryColor={getCategoryColor}
+					getStatusColor={getStatusColor}
+					groupedParameters={groupedParametersWithCalculations}
+					isAddingCalculation={isAddingCalculation}
+					newCalculationData={newCalculationData}
+					setNewCalculationData={setNewCalculationData}
+					handleSaveNewCalculation={handleSaveNewCalculation}
+					handleCancelAddCalculation={handleCancelAddCalculation}
+					handleAddCalculation={handleAddCalculation}
+					allCategories={getAllCategories()}
+					customCategories={customCategories}
+				/>
+			)}
 
 			<PreviewDialog
 				isOpen={isPreviewDialogOpen}
@@ -931,8 +992,6 @@ export function CalculationMain({
 				getCategoryBadgeStyle={getCategoryBadgeStyle}
 				parametersCount={parameters.length}
 			/>
-
-			
 		</div>
 	);
 }
@@ -1109,7 +1168,7 @@ function LoadingIndicator({ isLoading }: { isLoading: boolean }) {
 			<div className="flex items-center gap-3">
 				<div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
 				<span className="text-sm text-muted-foreground">
-					Loading existing solution calculations...
+					Loading calculations and global parameters...
 				</span>
 			</div>
 		</div>

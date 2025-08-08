@@ -92,3 +92,9 @@ export async function getGlobalParametersCollection(): Promise<Collection> {
 	return db.collection("global_parameters");
 }
 
+// Global Calculations Collection
+export async function getGlobalCalculationsCollection(): Promise<Collection> {
+	const db = await getDb();
+	return db.collection("global_calculations");
+}
+

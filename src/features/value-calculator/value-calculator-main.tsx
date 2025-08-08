@@ -504,7 +504,7 @@ function TabContent({
 						<CardTitle className="text-lg">Comparison</CardTitle>
 					</CardHeader>
 					<CardContent>
-						{/* <ValueCalculatorResults
+						<ValueCalculatorResults
 							hasCalculated={hasCalculated}
 							selectedIndustry={selectedIndustry}
 							selectedTechnology={selectedTechnology}
@@ -515,7 +515,7 @@ function TabContent({
 							fetchedSolutionB={fetchedSolutionB}
 							resultData={resultData}
 							comparisonMode={comparisonMode}
-						/> */}
+						/>
 						{/* <TestResultsSemantics solutionData={fetchedSolutionA || fetchedSolutionB || {
 								solution_name: "No Solution Selected",
 								solution_description: "Please configure a solution to view results",
@@ -523,13 +523,13 @@ function TabContent({
 								parameters: [],
 								calculations: []
 							}}/> */}
-							<TestResultsWidget solutionData={fetchedSolutionA || fetchedSolutionB || {
+							{/* <TestResultsWidget solutionData={fetchedSolutionA || fetchedSolutionB || {
 								solution_name: "No Solution Selected",
 								solution_description: "Please configure a solution to view results",
 								status: "pending",
 								parameters: [],
 								calculations: []
-							}}/>
+							}}/> */}
 						{/* <TestResultsAIPowered 
 							solutionData={fetchedSolutionA || fetchedSolutionB || {
 								solution_name: "No Solution Selected",

@@ -579,6 +579,28 @@ function ParameterTableBody({
 	expandedRows,
 	toggleRowExpansion,
 }: ParameterTableBodyProps) {
+	const sortedParameters = React.useMemo(() => {
+		return [...filteredParameters].sort((a, b) => {
+			const categoryA = a.category.name.toLowerCase();
+			const categoryB = b.category.name.toLowerCase();
+
+			const isAPriority = categoryA === "global" || categoryA === "required";
+			const isBPriority = categoryB === "global" || categoryB === "required";
+
+			if (isAPriority === isBPriority) {
+				return 0;
+			}
+
+			return isAPriority ? -1 : 1;
+		});
+	}, [filteredParameters]);
+
+	// Find the index where priority parameters end
+	const priorityEndIndex = sortedParameters.findIndex((param) => {
+		const category = param.category.name.toLowerCase();
+		return category !== "global" && category !== "required";
+	});
+
 	return (
 		<TableBody>
 			{/* Add new parameter row */}
@@ -607,37 +629,96 @@ function ParameterTableBody({
 			/>
 
 			{/* Parameter rows */}
-			{filteredParameters.map((parameter) => {
+			{sortedParameters.map((parameter, index) => {
 				const isEditing = editingParameter === parameter.id;
 				const isExpanded = expandedRows.has(parameter.id);
+				const category = parameter.category.name.toLowerCase();
+				const isPriority = category === "global" || category === "required";
 
 				return (
-					<ParameterRow
-						key={parameter.id}
-						parameter={parameter}
-						isEditing={isEditing}
-						editData={editData}
-						setEditData={setEditData}
-						handleEditParameter={handleEditParameter}
-						handleSaveParameter={handleSaveParameter}
-						handleCancelEdit={handleCancelEdit}
-						handleDeleteParameter={handleDeleteParameter}
-						highlightSearchTerm={highlightSearchTerm}
-						searchQuery={searchQuery}
-						getCategoryBadgeStyleWrapper={getCategoryBadgeStyleWrapper}
-						getCategoryBadgeStyleForDropdownWrapper={
-							getCategoryBadgeStyleForDropdownWrapper
-						}
-						getUserInterfaceBadgeStyle={getUserInterfaceBadgeStyle}
-						getDisplayTypeBadgeStyle={getDisplayTypeBadgeStyle}
-						getAllAvailableCategories={getAllAvailableCategories}
-						columnVisibility={columnVisibility}
-						editingParameter={editingParameter}
-						isAddingParameter={isAddingParameter}
-						renderCell={renderCell}
-						expandedRows={expandedRows}
-						toggleRowExpansion={toggleRowExpansion}
-					/>
+					<React.Fragment key={parameter.id}>
+						{/* Add "Required Parameters" header at the beginning of priority parameters */}
+						{index === 0 && priorityEndIndex > 0 && (
+							<TableRow>
+								<TableCell
+									colSpan={
+										Object.keys(columnVisibility).filter(
+											(key) =>
+												columnVisibility[key as keyof typeof columnVisibility]
+										).length
+									}
+									className="py-2 px-3 bg-gray-50 border-b border-gray-200"
+								>
+									<div className="flex items-center justify-center gap-2">
+										<span className="text-xs font-semibold uppercase tracking-wide">
+											Required Parameters
+										</span>
+									</div>
+								</TableCell>
+							</TableRow>
+						)}
+
+						{/* Add separator bar between priority and non-priority parameters */}
+						{index === priorityEndIndex && priorityEndIndex > 0 && (
+							<>
+								<TableRow>
+									<TableCell
+										colSpan={
+											Object.keys(columnVisibility).filter(
+												(key) =>
+													columnVisibility[key as keyof typeof columnVisibility]
+											).length
+										}
+										className="h-5 p-0 border-none"
+										// style={{ backgroundColor: "gray" }}
+									/>
+								</TableRow>
+								<TableRow>
+									<TableCell
+										colSpan={
+											Object.keys(columnVisibility).filter(
+												(key) =>
+													columnVisibility[key as keyof typeof columnVisibility]
+											).length
+										}
+										className="py-2 px-3 bg-gray-50 border-b border-gray-200"
+									>
+										<div className="flex items-center justify-center gap-2">
+											<span className="text-xs font-semibold uppercase tracking-wide">
+												User Created
+											</span>
+										</div>
+									</TableCell>
+								</TableRow>
+							</>
+						)}
+
+						<ParameterRow
+							parameter={parameter}
+							isEditing={isEditing}
+							editData={editData}
+							setEditData={setEditData}
+							handleEditParameter={handleEditParameter}
+							handleSaveParameter={handleSaveParameter}
+							handleCancelEdit={handleCancelEdit}
+							handleDeleteParameter={handleDeleteParameter}
+							highlightSearchTerm={highlightSearchTerm}
+							searchQuery={searchQuery}
+							getCategoryBadgeStyleWrapper={getCategoryBadgeStyleWrapper}
+							getCategoryBadgeStyleForDropdownWrapper={
+								getCategoryBadgeStyleForDropdownWrapper
+							}
+							getUserInterfaceBadgeStyle={getUserInterfaceBadgeStyle}
+							getDisplayTypeBadgeStyle={getDisplayTypeBadgeStyle}
+							getAllAvailableCategories={getAllAvailableCategories}
+							columnVisibility={columnVisibility}
+							editingParameter={editingParameter}
+							isAddingParameter={isAddingParameter}
+							renderCell={renderCell}
+							expandedRows={expandedRows}
+							toggleRowExpansion={toggleRowExpansion}
+						/>
+					</React.Fragment>
 				);
 			})}
 
@@ -701,21 +782,23 @@ function AddParameterRow({
 					<Input
 						value={newParameterData.name}
 						onChange={(e) => {
-									const originalValue = e.target.value;
-									const filteredValue = originalValue.replace(/[()+=\-*/]/g, '');
-									
-									if (originalValue !== filteredValue) {
-										toast.error("Characters ()+-*/ are not allowed in parameter names");
-									}
-									
-									setNewParameterData((prev) => ({
+							const originalValue = e.target.value;
+							const filteredValue = originalValue.replace(/[()+=\-*/]/g, "");
+
+							if (originalValue !== filteredValue) {
+								toast.error(
+									"Characters ()+-*/ are not allowed in parameter names"
+								);
+							}
+
+							setNewParameterData((prev) => ({
 								...prev,
 								name: filteredValue,
 							}));
 						}}
 						className="h-7 text-xs"
 						placeholder="Parameter name"
-								onKeyDown={handleKeyDown}
+						onKeyDown={handleKeyDown}
 					/>
 				</div>,
 				"parameterName"
@@ -1022,6 +1105,10 @@ function ParameterRow({
 		}
 	};
 
+	// Check if this is a priority parameter (Global/Required)
+	const category = parameter.category.name.toLowerCase();
+	const isPriority = category === "global" || category === "required";
+
 	const isSaveDisabled = () => {
 		return (
 			!editData.name.trim() ||
@@ -1087,20 +1174,23 @@ function ParameterRow({
 					<Input
 						value={editData.name}
 						onChange={(e) => {
-											const originalValue = e.target.value;
-											const filteredValue = originalValue.replace(/[()+=\-*/]/g, '');
-											
-											if (originalValue !== filteredValue) {
-												toast.error("Characters ()+-*/ are not allowed in parameter names");
-											}
-											
-											setEditData((prev) => ({
+							const originalValue = e.target.value;
+							const filteredValue = originalValue.replace(/[()+=\-*/]/g, "");
+
+							if (originalValue !== filteredValue) {
+								toast.error(
+									"Characters ()+-*/ are not allowed in parameter names"
+								);
+							}
+
+							setEditData((prev) => ({
 								...prev,
 								name: filteredValue,
 							}));
 						}}
-						className="h-7 text-xs"
+						className={`h-7 text-xs ${isPriority ? "bg-gray-100 cursor-not-allowed" : ""}`}
 						placeholder="Parameter name"
+						disabled={isPriority}
 					/>
 				) : (
 					<div className="flex items-center gap-2">
@@ -1124,8 +1214,9 @@ function ParameterRow({
 								category: value,
 							}))
 						}
+						disabled={isPriority}
 					>
-						<SelectTrigger className="h-7 text-xs">
+						<SelectTrigger className={`h-7 text-xs ${isPriority ? "bg-gray-100 cursor-not-allowed" : ""}`}>
 							<SelectValue placeholder="Select category" />
 						</SelectTrigger>
 						<SelectContent>
@@ -1181,8 +1272,9 @@ function ParameterRow({
 									| "conditional",
 							}))
 						}
+						disabled={isPriority}
 					>
-						<SelectTrigger className="h-7 text-xs">
+						<SelectTrigger className={`h-7 text-xs ${isPriority ? "bg-gray-100 cursor-not-allowed" : ""}`}>
 							<SelectValue>
 								<span style={getDisplayTypeBadgeStyle(editData.display_type)}>
 									{editData.display_type || "Select type"}
@@ -1246,10 +1338,11 @@ function ParameterRow({
 								test_value: e.target.value,
 							}))
 						}
-						className="h-7 text-xs"
+						className={`h-7 text-xs ${isPriority ? "bg-gray-100 cursor-not-allowed" : ""}`}
 						placeholder="Test Value"
 						type="number"
 						onKeyDown={handleKeyDown}
+						disabled={isPriority}
 					/>
 				) : (
 					<span className="text-xs text-muted-foreground">
@@ -1271,8 +1364,9 @@ function ParameterRow({
 								unit: e.target.value,
 							}))
 						}
-						className="h-7 text-xs"
+						className={`h-7 text-xs ${isPriority ? "bg-gray-100 cursor-not-allowed" : ""}`}
 						placeholder="Unit"
+						disabled={isPriority}
 					/>
 				) : (
 					<span className="text-xs text-muted-foreground">
@@ -1294,8 +1388,9 @@ function ParameterRow({
 								description: e.target.value,
 							}))
 						}
-						className="h-7 text-xs"
+						className={`h-7 text-xs ${isPriority ? "bg-gray-100 cursor-not-allowed" : ""}`}
 						placeholder="Description"
+						disabled={isPriority}
 					/>
 				) : (
 					<div className="flex items-center gap-2">
@@ -1327,8 +1422,9 @@ function ParameterRow({
 								information: e.target.value,
 							}))
 						}
-						className="h-7 text-xs"
+						className={`h-7 text-xs ${isPriority ? "bg-gray-100 cursor-not-allowed" : ""}`}
 						placeholder="Information"
+						disabled={isPriority}
 					/>
 				) : (
 					<div className="flex items-center gap-2">
@@ -1496,14 +1592,18 @@ function ParameterRow({
 							>
 								<Edit className="h-3 w-3" />
 							</Button>
-							<Button
-								size="sm"
-								variant="ghost"
-								onClick={() => handleDeleteParameter(parameter.id)}
-								className="h-5 w-5 p-0 text-red-600 hover:text-red-700"
-							>
-								<Trash className="h-3 w-3" />
-							</Button>
+
+							{parameter.category.name.toLowerCase() !== "global" &&
+								parameter.category.name.toLowerCase() !== "required" && (
+									<Button
+										size="sm"
+										variant="ghost"
+										onClick={() => handleDeleteParameter(parameter.id)}
+										className="h-5 w-5 p-0 text-red-600 hover:text-red-700"
+									>
+										<Trash className="h-3 w-3" />
+									</Button>
+								)}
 						</>
 					) : (
 						<>

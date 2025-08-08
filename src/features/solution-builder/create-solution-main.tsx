@@ -44,6 +44,7 @@ import {
 	getOtherIndustries,
 	getOtherTechnologies,
 } from "./api";
+import ValueMain from "./components/create-solution-valuebuilder/value-main";
 /**
  * CreateSolutionMain component - Main orchestrator for the solution builder feature
  * Manages state, data fetching, and coordinates between different creation steps
@@ -142,11 +143,7 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 				setAvailableIndustries(initialData.industries);
 				setAvailableTechnologies(initialData.technologies);
 
-				// Set global parameters
-				setFormData((prev) => ({
-					...prev,
-					parameters: initialData.globalParameters,
-				}));
+	
 			} else {
 				console.error("Error loading client data");
 				toast.error("Failed to load client data");
@@ -316,6 +313,12 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 		if (variantId.startsWith("new-variant-")) {
 			setIsExistingSolutionLoaded(false);
 			setExistingSolutionId(null);
+
+			setFormData((prev) => ({
+				...prev,
+				parameters: [],
+				calculations: []
+			}));
 		}
 
 		if (variantId && !variantId.startsWith("new-variant-")) {
@@ -342,7 +345,12 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 
 	const handleCreateNewVariant = () => {
 		setIsCreatingNewVariant(true);
-		setFormData((prev) => ({ ...prev, selectedSolutionVariantId: "" }));
+		setFormData((prev) => ({ 
+			...prev, 
+			selectedSolutionVariantId: "",
+			parameters: [], 
+			calculations: [] 
+		}));
 		setIsExistingSolutionLoaded(false);
 		setExistingSolutionId(null);
 	};
@@ -386,7 +394,8 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 		if (
 			(currentStep === 1 || currentStep === 2) &&
 			formData.selectedSolutionVariantId &&
-			!isExistingSolutionLoaded
+			!isExistingSolutionLoaded &&
+			!formData.selectedSolutionVariantId.startsWith("new-variant-")
 		) {
 			loadExistingSolutionData(formData.selectedSolutionVariantId);
 		}
@@ -701,6 +710,8 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 			case 3:
 				return "Configure Calculations";
 			case 4:
+				return "Configure Value";
+			case 5:
 				return "Review and Submit";
 			default:
 				return "Create Solution";
@@ -716,6 +727,8 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 			case 3:
 				return "Set up calculations and formulas for your solution";
 			case 4:
+				return "Configure the value that will be used in your solution calculations";
+			case 5:
 				return "Review your solution configuration and submit for approval";
 			default:
 				return "Follow the steps to create your solution";
@@ -774,19 +787,7 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 	}
 
 	return (
-		<div className="w-full h-screen flex flex-col  py-2  ">
-			{/* Header */}
-			{/* <div className="text-center space-y-1 flex-shrink-0 p-4">
-				<h1 className="text-2xl font-bold">Create New Solution</h1>
-				<p className="text-sm text-muted-foreground">
-					Follow the steps below to create a new solution for your organization
-				</p>
-			</div> */}
-
-			{/* Progress Steps */}
-			{/* <div className="flex-shrink-0 px-4">
-				<CreateSolutionProgress currentStep={currentStep} />
-			</div> */}
+		<div className="flex flex-col  py-2 h-full">
 
 			{/* Step Content */}
 			<Card className="flex flex-col h-full mx-2 max-w-full py-0 pt-4">
@@ -796,7 +797,7 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 						{getStepDescription()}
 					</CardDescription>
 				</CardHeader>
-				<CardContent className="flex-1 px-2 bg">
+				<CardContent className="flex-1 px-2 h-full">
 					<StepContent
 						currentStep={currentStep}
 						formData={formData}
@@ -842,7 +843,6 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 						getSelectedSolutionVariant={getSelectedSolutionVariant}
 					/>
 				</CardContent>
-
 				{/* Navigation Buttons */}
 				<CardFooter className="p-4 border-t bg-gray-50">
 					<div className="w-full flex flex-row justify-between flex-shrink-0 ">
@@ -857,7 +857,7 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 							Previous
 						</Button>
 
-						{currentStep < 4 ? (
+						{currentStep < 5 ? (
 							<Button
 								onClick={handleNext}
 								disabled={isNextDisabled()}
@@ -941,7 +941,7 @@ function StepContent({
 	getSelectedSolutionVariant,
 }: StepContentProps) {
 	return (
-		<>
+		<div>
 			{/* Step 1: Industry, Technology & Solution Selection */}
 			{currentStep === 1 && (
 				<CreateSolutionFilter
@@ -1018,8 +1018,16 @@ function StepContent({
 				/>
 			)}
 
-			{/* Step 4: Review and Submit */}
+			{/* Step 4: Value Configuration */}
 			{currentStep === 4 && (
+				<ValueMain
+					formData={formData}
+					
+				/>
+			)}
+
+			{/* Step 5: Review and Submit */}
+			{currentStep === 5 && (
 				<CreateSolutionSubmit
 					formData={{
 						solutionName: formData.solutionName,
@@ -1042,6 +1050,6 @@ function StepContent({
 					isExistingSolutionLoaded={isExistingSolutionLoaded}
 				/>
 			)}
-		</>
+		</div>
 	);
 }
