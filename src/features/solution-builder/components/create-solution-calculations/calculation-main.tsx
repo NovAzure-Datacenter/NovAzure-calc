@@ -95,10 +95,10 @@ export function CalculationMain({
 		unit: "",
 		description: "",
 		information: "",
-		category: "",
+		category: "Global",
 		user_interface: {
 			type: "input" as "input" | "static" | "not_viewable",
-			category: "",
+			category: "Global",
 			is_advanced: false,
 		},
 		output: false,
@@ -173,7 +173,7 @@ export function CalculationMain({
 	}, [isAddNewParameterDialogOpen]);
 
 	const groupedParameters = useMemo(() => {
-		return parameters.reduce((acc, param) => {
+		const grouped = parameters.reduce((acc, param) => {
 			const categoryName = param.category.name;
 			if (!acc[categoryName]) {
 				acc[categoryName] = [];
@@ -181,6 +181,8 @@ export function CalculationMain({
 			acc[categoryName].push(param);
 			return acc;
 		}, {} as Record<string, (typeof parameters)[0][]>);
+
+		return grouped;
 	}, [parameters]);
 
 	const groupedParametersWithCalculations = useMemo(() => {
@@ -485,7 +487,23 @@ export function CalculationMain({
 			return;
 		}
 
-		if (newParameterData.user_interface.type === "static") {
+		if (!newParameterData.category.trim()) {
+			toast.error("Category is required");
+			return;
+		}
+
+		// Check for duplicate parameter names (case-insensitive)
+		const normalizedNewName = newParameterData.name.trim().toLowerCase();
+		const hasDuplicate = parameters.some(param => 
+			param.name.toLowerCase() === normalizedNewName
+		);
+		
+		if (hasDuplicate) {
+			toast.error(`A parameter named "${newParameterData.name.trim()}" already exists.`);
+			return;
+		}
+
+		if (newParameterData.user_interface?.type === "static") {
 			if (
 				newParameterData.display_type === "simple" &&
 				!newParameterData.value.trim()
@@ -553,10 +571,10 @@ export function CalculationMain({
 			unit: "",
 			description: "",
 			information: "",
-			category: "",
+			category: "Global",
 			user_interface: {
 				type: "input",
-				category: "",
+				category: "Global",
 				is_advanced: false,
 			},
 			output: false,
@@ -1187,9 +1205,10 @@ function AddParameterDialog({
 										category: value,
 									}))
 								}
+								required
 							>
-								<SelectTrigger>
-									<SelectValue placeholder="Select category" />
+								<SelectTrigger className={!newParameterData.category ? "border-red-500" : ""}>
+									<SelectValue placeholder="Select category *" />
 								</SelectTrigger>
 								<SelectContent>
 									{getAllAvailableCategories().length > 0 ? (
@@ -1213,6 +1232,9 @@ function AddParameterDialog({
 									)}
 								</SelectContent>
 							</Select>
+							{!newParameterData.category && (
+								<p className="text-sm text-red-500 mt-1">Category is required</p>
+							)}
 						</div>
 					</div>
 
@@ -1323,7 +1345,7 @@ function AddParameterDialog({
 										}))
 									}
 									placeholder={
-										newParameterData.user_interface.type === "static"
+										newParameterData.user_interface?.type === "static"
 											? "Value *"
 											: "Value (optional)"
 									}
@@ -1421,7 +1443,7 @@ function AddParameterDialog({
 						</Label>
 						<div className="col-span-3">
 							<Select
-								value={newParameterData.user_interface.type}
+								value={newParameterData.user_interface?.type || "input"}
 								onValueChange={(value) =>
 									setNewParameterData((prev: any) => ({
 										...prev,
@@ -1434,7 +1456,7 @@ function AddParameterDialog({
 							>
 								<SelectTrigger>
 									<SelectValue>
-										{newParameterData.user_interface.type || "Select provider"}
+										{newParameterData.user_interface?.type || "Select provider"}
 									</SelectValue>
 								</SelectTrigger>
 								<SelectContent>
@@ -1483,7 +1505,9 @@ function AddParameterDialog({
 						disabled={
 							!newParameterData.name.trim() ||
 							!newParameterData.unit.trim() ||
-							(newParameterData.user_interface.type === "static" &&
+							!newParameterData.category ||
+							!newParameterData.category.trim() ||
+							(newParameterData.user_interface?.type === "static" &&
 								((newParameterData.display_type === "simple" &&
 									!newParameterData.value.trim()) ||
 									(newParameterData.display_type === "range" &&

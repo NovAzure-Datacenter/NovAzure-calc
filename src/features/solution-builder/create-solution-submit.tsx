@@ -21,6 +21,7 @@ export function CreateSolutionSubmit({
 	getSelectedSolutionType,
 	getSelectedSolutionVariant,
 	isExistingSolutionLoaded,
+	unusedParameterIds = [],
 }: CreateSolutionSubmitProps) {
 	return (
 		<div className="w-full h-full overflow-y-auto space-y-4 p-4">
@@ -65,6 +66,33 @@ export function CreateSolutionSubmit({
 					/>
 				</div> */}
 			</div>
+
+			{/* Unused Parameters Warning */}
+			{unusedParameterIds.length > 0 && (
+				<div className="space-y-3">
+					<div className="flex items-center gap-2 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+						<AlertTriangle className="w-5 h-5 text-yellow-600" />
+						<div className="flex-1">
+							<h4 className="font-medium text-yellow-800">Unused Parameters Warning</h4>
+							<p className="text-sm text-yellow-700">
+								The following {unusedParameterIds.length} parameter{unusedParameterIds.length === 1 ? '' : 's'} {unusedParameterIds.length === 1 ? 'is' : 'are'} not used in any calculations:
+							</p>
+							<div className="mt-2">
+								<ul className="text-sm text-yellow-700 list-disc list-inside space-y-1">
+									{unusedParameterIds.map((paramId) => {
+										const param = formData.parameters.find(p => p.id === paramId);
+										return (
+											<li key={paramId}>
+												{param ? param.name : `Parameter ${paramId}`}
+											</li>
+										);
+									})}
+								</ul>
+							</div>
+						</div>
+					</div>
+				</div>
+			)}
 
 			{/* Action Cards */}
 			<ActionCards

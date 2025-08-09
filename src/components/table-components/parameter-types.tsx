@@ -3,6 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { X, Plus, Download } from "lucide-react";
 import React from "react";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 
 /**
  * ConditionalRulesEditor component - Manages conditional rules for parameters
@@ -48,7 +55,9 @@ export function ConditionalRulesEditor({
 				param.dropdown_options.length > 0
 		);
 
-		if (filterParameters.length === 0) return;
+		if (filterParameters.length === 0) {
+			return;
+		}
 
 		if (!selectedFilterId) {
 			setShowFilterSelector(true);
@@ -77,26 +86,7 @@ export function ConditionalRulesEditor({
 
 	const handleFilterSelection = (filterId: string) => {
 		setSelectedFilterId(filterId);
-		const filterParameters = filteredParameters.filter(
-			(param) =>
-				param.display_type === "filter" &&
-				param.dropdown_options &&
-				param.dropdown_options.length > 0
-		);
-		const selectedFilter = filterParameters.find(
-			(param) => param.id === filterId
-		);
-		if (selectedFilter) {
-			const filterValues =
-				selectedFilter.dropdown_options?.map((opt: any) => opt.value) || [];
-			const newRules = filterValues.map((value) => ({
-				condition: value,
-				value: "",
-			}));
-			onRulesChange(newRules);
-			setShowFilterSelector(false);
-			setSelectedFilterId("");
-		}
+		loadFromFilter();
 	};
 
 	if (!isEditing) {
@@ -166,47 +156,76 @@ export function ConditionalRulesEditor({
 					<Button
 						size="sm"
 						variant="outline"
-						onClick={loadFromFilter}
+						onClick={() => {
+							loadFromFilter();
+						}}
 						className="h-6 text-xs"
 						disabled={availableFilters.length === 0}
+						style={{ 
+							opacity: availableFilters.length === 0 ? 0.5 : 1,
+							pointerEvents: availableFilters.length === 0 ? 'none' : 'auto'
+						}}
 					>
 						<Download className="h-3 w-3 mr-1" />
-						Load from Filter
+						Load from Filter ({availableFilters.length})
 					</Button>
 				</div>
-				{showFilterSelector && availableFilters.length > 0 && (
-					<div className="border rounded-md p-2 bg-muted/50 w-full">
-						<p className="text-xs font-medium mb-2">
-							Select a filter to load from:
-						</p>
-						<div className="space-y-1 w-full max-w-48 overflow-y-auto w-full flex flex-col gap-1">
-							{availableFilters.map((filter) => (
-								<Button
-									key={filter.id}
-									size="sm"
-									variant="ghost"
-									onClick={() => handleFilterSelection(filter.id)}
-									className="h-6 text-xs w-full justify-start text-left border-border border-2"
-								>
-									<div className="flex items-center w-full gap-2">
-										<span className="truncate flex-1 text-left">
-											{filter.name}
-										</span>
-										<span className="text-muted-foreground text-xs whitespace-nowrap">
-											{filter.dropdown_options?.length || 0} options
-										</span>
-									</div>
-								</Button>
-							))}
+				
+				{/* Enhanced Filter Selector */}
+				{showFilterSelector && (
+					<div className="border rounded-md p-3 bg-muted/50 w-full">
+						<div className="flex items-center justify-between mb-2">
+							<p className="text-xs font-medium">
+								Select a filter to load from:
+							</p>
+							<Button
+								size="sm"
+								variant="ghost"
+								onClick={() => {
+									setShowFilterSelector(false);
+								}}
+								className="h-5 w-5 p-0"
+							>
+								<X className="h-3 w-3" />
+							</Button>
 						</div>
-						<Button
-							size="sm"
-							variant="ghost"
-							onClick={() => setShowFilterSelector(false)}
-							className="h-6 text-xs mt-2 w-full"
-						>
-							Cancel
-						</Button>
+						
+						{availableFilters.length > 0 ? (
+							<div className="space-y-1 max-h-32 overflow-y-auto">
+								{availableFilters.map((filter) => (
+									<Button
+										key={filter.id}
+										size="sm"
+										variant="ghost"
+										onClick={() => handleFilterSelection(filter.id)}
+										className="h-7 text-xs w-full justify-start text-left border-border border hover:bg-accent"
+									>
+										<div className="flex items-center w-full gap-2">
+											<span className="truncate flex-1 text-left font-medium">
+												{filter.name}
+											</span>
+											<span className="text-muted-foreground text-xs whitespace-nowrap">
+												{filter.dropdown_options?.length || 0} options
+											</span>
+										</div>
+									</Button>
+								))}
+							</div>
+						) : (
+							<div className="text-xs text-muted-foreground p-2">
+								No filter parameters available. Create a filter parameter first.
+							</div>
+						)}
+						
+						{/* Alternative: Direct Filter Selection */}
+						{availableFilters.length === 0 && (
+							<div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs">
+								<p className="font-medium text-yellow-800 mb-1">No filters found</p>
+								<p className="text-yellow-700">
+									To use filters in conditional rules, first create parameters with display type "filter".
+								</p>
+							</div>
+						)}
 					</div>
 				)}
 			</div>

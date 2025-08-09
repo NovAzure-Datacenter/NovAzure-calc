@@ -87,6 +87,7 @@ export default function TableContent({
 	activeTab,
 	columnVisibility,
 	setColumnVisibility,
+	usedParameterIds = [],
 }: TableContentProps) {
 	// State for expanded rows
 	const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
@@ -321,6 +322,7 @@ export default function TableContent({
 								renderCell={renderCell}
 								expandedRows={expandedRows}
 								toggleRowExpansion={toggleRowExpansion}
+								usedParameterIds={usedParameterIds}
 							/>
 						</Table>
 					</div>
@@ -578,6 +580,7 @@ function ParameterTableBody({
 	renderCell,
 	expandedRows,
 	toggleRowExpansion,
+	usedParameterIds,
 }: ParameterTableBodyProps) {
 	return (
 		<TableBody>
@@ -597,6 +600,8 @@ function ParameterTableBody({
 					getDisplayTypeBadgeStyle={getDisplayTypeBadgeStyle}
 					columnVisibility={columnVisibility}
 					renderCell={renderCell}
+					usedParameterIds={usedParameterIds}
+					parameters={filteredParameters}
 				/>
 			)}
 
@@ -610,6 +615,7 @@ function ParameterTableBody({
 			{filteredParameters.map((parameter) => {
 				const isEditing = editingParameter === parameter.id;
 				const isExpanded = expandedRows.has(parameter.id);
+				const isUnused = !(usedParameterIds || []).includes(parameter.id);
 
 				return (
 					<ParameterRow
@@ -637,6 +643,9 @@ function ParameterTableBody({
 						renderCell={renderCell}
 						expandedRows={expandedRows}
 						toggleRowExpansion={toggleRowExpansion}
+						usedParameterIds={usedParameterIds}
+						isUnused={isUnused}
+						parameters={filteredParameters}
 					/>
 				);
 			})}
@@ -667,6 +676,8 @@ function AddParameterRow({
 	getDisplayTypeBadgeStyle,
 	columnVisibility,
 	renderCell,
+	usedParameterIds,
+	parameters,
 }: AddParameterRowProps) {
 	const handleKeyDown = (e: React.KeyboardEvent) => {
 		if (e.key === "Enter") {
@@ -676,22 +687,23 @@ function AddParameterRow({
 		}
 	};
 
-	const isSaveDisabled = () => {
-		return (
-			!newParameterData.name.trim() ||
-			!newParameterData.unit.trim() ||
-			(newParameterData.user_interface.type === "static" &&
-				((newParameterData.display_type === "simple" &&
-					!newParameterData.value.trim()) ||
-					(newParameterData.display_type === "range" &&
-						(!newParameterData.range_min.trim() ||
-							!newParameterData.range_max.trim())) ||
-					(newParameterData.display_type === "dropdown" &&
-						newParameterData.dropdown_options.length === 0) ||
-					(newParameterData.display_type === "filter" &&
-						newParameterData.dropdown_options.length === 0)))
-		);
-	};
+			const isSaveDisabled = () => {
+			return (
+				!newParameterData.name.trim() ||
+				!newParameterData.unit.trim() ||
+				!newParameterData.category.trim() ||
+				(newParameterData.user_interface?.type === "static" &&
+					((newParameterData.display_type === "simple" &&
+						!newParameterData.value.trim()) ||
+						(newParameterData.display_type === "range" &&
+							(!newParameterData.range_min.trim() ||
+								!newParameterData.range_max.trim())) ||
+						(newParameterData.display_type === "dropdown" &&
+							newParameterData.dropdown_options.length === 0) ||
+						(newParameterData.display_type === "filter" &&
+							newParameterData.dropdown_options.length === 0)))
+			);
+		};
 
 	return (
 		<TableRow className="bg-green-50 border-2 border-green-200 shadow-md">
@@ -738,17 +750,9 @@ function AddParameterRow({
 						{getAllAvailableCategories().length > 0 ? (
 							getAllAvailableCategories().map((category) => (
 								<SelectItem key={category.name} value={category.name}>
-									<div className="flex items-center gap-2">
-										<Badge
-											variant="outline"
-											className="text-xs"
-											style={getCategoryBadgeStyleForDropdownWrapper(
-												category.name
-											)}
-										>
-											{category.name}
-										</Badge>
-									</div>
+									<span style={getCategoryBadgeStyleForDropdownWrapper(category.name)}>
+										{category.name}
+									</span>
 								</SelectItem>
 							))
 						) : (
@@ -801,7 +805,7 @@ function AddParameterRow({
 					newParameterData.display_type,
 					newParameterData,
 					setNewParameterData,
-					[],
+					parameters || [],
 					handleSaveNewParameter,
 					handleCancelAddParameter
 				),
@@ -876,13 +880,13 @@ function AddParameterRow({
 				columnVisibility.userInterface,
 				<div className="space-y-1">
 					<Select
-						value={newParameterData.user_interface.type}
+						value={newParameterData.user_interface?.type || "input"}
 						onValueChange={(value) =>
 							setNewParameterData((prev) => ({
 								...prev,
 								user_interface: {
 									type: value as "input" | "static" | "not_viewable",
-									category: "",
+									category: "Global",
 									is_advanced: false,
 								},
 							}))
@@ -893,11 +897,11 @@ function AddParameterRow({
 								<span
 									style={{
 										color: getUserInterfaceBadgeStyle(
-											newParameterData.user_interface.type
+											newParameterData.user_interface?.type || "input"
 										).color,
 									}}
 								>
-									{newParameterData.user_interface.type || "Select provider"}
+									{newParameterData.user_interface?.type || "Select provider"}
 								</span>
 							</SelectValue>
 						</SelectTrigger>
@@ -907,10 +911,10 @@ function AddParameterRow({
 							<SelectItem value="not_viewable">Not Viewable</SelectItem>
 						</SelectContent>
 					</Select>
-					{newParameterData.user_interface.type === "input" && (
+					{newParameterData.user_interface?.type === "input" && (
 						<Select
 							value={
-								newParameterData.user_interface.is_advanced ? "true" : "false"
+								newParameterData.user_interface?.is_advanced ? "true" : "false"
 							}
 							onValueChange={(value) =>
 								setNewParameterData((prev) => ({
@@ -924,7 +928,7 @@ function AddParameterRow({
 						>
 							<SelectTrigger className="h-6 text-xs">
 								<SelectValue>
-									{newParameterData.user_interface.is_advanced
+									{newParameterData.user_interface?.is_advanced
 										? "Advanced"
 										: "Simple"}
 								</SelectValue>
@@ -1013,6 +1017,9 @@ function ParameterRow({
 	renderCell,
 	expandedRows,
 	toggleRowExpansion,
+	usedParameterIds,
+	isUnused,
+	parameters,
 }: ParameterRowProps) {
 	const handleKeyDown = (e: React.KeyboardEvent) => {
 		if (e.key === "Enter") {
@@ -1026,7 +1033,8 @@ function ParameterRow({
 		return (
 			!editData.name.trim() ||
 			!editData.unit.trim() ||
-			(editData.user_interface.type === "static" &&
+			!editData.category.trim() ||
+			(editData.user_interface?.type === "static" &&
 				((editData.display_type === "simple" && !editData.value.trim()) ||
 					(editData.display_type === "range" &&
 						(!editData.range_min.trim() || !editData.range_max.trim())) ||
@@ -1038,6 +1046,9 @@ function ParameterRow({
 	};
 
 	const getUserInterfaceDisplayText = (userInterface: any) => {
+		if (!userInterface) {
+			return "Not Viewable";
+		}
 		if (typeof userInterface === "string") {
 			return userInterface === "input"
 				? "Input"
@@ -1046,6 +1057,9 @@ function ParameterRow({
 				: userInterface === "not_viewable"
 				? "Not Viewable"
 				: userInterface;
+		}
+		if (!userInterface.type) {
+			return "Not Viewable";
 		}
 		return userInterface.type === "input"
 			? "Input"
@@ -1057,8 +1071,11 @@ function ParameterRow({
 	};
 
 	const getReadOnlyTooltip = (userInterface: any) => {
+		if (!userInterface) {
+			return "Global parameter - not modifiable";
+		}
 		const type =
-			typeof userInterface === "string" ? userInterface : userInterface.type;
+			typeof userInterface === "string" ? userInterface : userInterface?.type || "not_viewable";
 		if (type === "not_viewable") return "Global parameter - not modifiable";
 		if (type === "static") return "Company parameter - not modifiable";
 		return "Parameter - not modifiable";
@@ -1074,7 +1091,7 @@ function ParameterRow({
 				(editingParameter && !isEditing) || isAddingParameter
 					? "opacity-40 pointer-events-none"
 					: ""
-			}`}
+			} ${isUnused ? "opacity-50" : ""}`}
 			style={{
 				height: isExpanded ? "auto" : "32px",
 				minHeight: "32px",
@@ -1107,6 +1124,18 @@ function ParameterRow({
 						<span className="font-medium text-xs">
 							{highlightSearchTerm(parameter.name, searchQuery)}
 						</span>
+						{isUnused && (
+							<TooltipProvider>
+								<Tooltip>
+									<TooltipTrigger asChild>
+										<Lock className="h-3 w-3 text-muted-foreground ml-1" />
+									</TooltipTrigger>
+									<TooltipContent>
+										<p>Unused parameter</p>
+									</TooltipContent>
+								</Tooltip>
+							</TooltipProvider>
+						)}
 					</div>
 				),
 				"parameterName",
@@ -1132,17 +1161,9 @@ function ParameterRow({
 							{getAllAvailableCategories().length > 0 ? (
 								getAllAvailableCategories().map((category) => (
 									<SelectItem key={category.name} value={category.name}>
-										<div className="flex items-center gap-2">
-											<Badge
-												variant="outline"
-												className="text-xs"
-												style={getCategoryBadgeStyleForDropdownWrapper(
-													category.name
-												)}
-											>
-												{category.name}
-											</Badge>
-										</div>
+										<span style={getCategoryBadgeStyleForDropdownWrapper(category.name)}>
+											{category.name}
+										</span>
 									</SelectItem>
 								))
 							) : (
@@ -1217,7 +1238,7 @@ function ParameterRow({
 						editData.display_type,
 						editData,
 						setEditData,
-						[],
+						parameters, // Pass all parameters instead of empty array
 						() => handleSaveParameter(parameter.id),
 						handleCancelEdit
 					)
@@ -1354,14 +1375,14 @@ function ParameterRow({
 				isEditing ? (
 					<div className="space-y-1">
 						<Select
-							value={editData.user_interface.type}
+							value={editData.user_interface?.type || "input"}
 							onValueChange={(value) =>
 								setEditData((prev) => ({
 									...prev,
 									user_interface: {
 										type: value as "input" | "static" | "not_viewable",
-										category: "",
-										is_advanced: editData.user_interface.is_advanced,
+										category: "Global",
+										is_advanced: editData.user_interface?.is_advanced || false,
 									},
 								}))
 							}
@@ -1371,7 +1392,7 @@ function ParameterRow({
 									<span
 										style={{
 											color: getUserInterfaceBadgeStyle(
-												editData.user_interface.type
+												editData.user_interface?.type || "input"
 											).color,
 										}}
 									>
@@ -1385,9 +1406,9 @@ function ParameterRow({
 								<SelectItem value="not_viewable">Not Viewable</SelectItem>
 							</SelectContent>
 						</Select>
-						{editData.user_interface.type === "input" && (
+						{editData.user_interface?.type === "input" && (
 							<Select
-								value={editData.user_interface.is_advanced ? "true" : "false"}
+								value={editData.user_interface?.is_advanced ? "true" : "false"}
 								onValueChange={(value) =>
 									setEditData((prev) => ({
 										...prev,
@@ -1400,7 +1421,7 @@ function ParameterRow({
 							>
 								<SelectTrigger className="h-6 text-xs">
 									<SelectValue>
-										{editData.user_interface.is_advanced
+										{editData.user_interface?.is_advanced
 											? "Advanced"
 											: "Simple"}
 									</SelectValue>
@@ -1419,7 +1440,7 @@ function ParameterRow({
 							style={getUserInterfaceBadgeStyle(
 								typeof parameter.user_interface === "string"
 									? parameter.user_interface
-									: parameter.user_interface.type
+									: parameter.user_interface?.type || "input"
 							)}
 						>
 							{highlightSearchTerm(
@@ -1428,23 +1449,23 @@ function ParameterRow({
 							)}
 						</Badge>
 						{typeof parameter.user_interface === "object" &&
-							parameter.user_interface.type === "input" && (
+							parameter.user_interface?.type === "input" && (
 								<Badge
 									variant="outline"
 									className="text-xs"
 									style={{
-										backgroundColor: parameter.user_interface.is_advanced
+										backgroundColor: parameter.user_interface?.is_advanced
 											? "#fef3c7"
 											: "#f0f9ff",
-										color: parameter.user_interface.is_advanced
+										color: parameter.user_interface?.is_advanced
 											? "#92400e"
 											: "#1e40af",
-										borderColor: parameter.user_interface.is_advanced
+										borderColor: parameter.user_interface?.is_advanced
 											? "#f59e0b"
 											: "#3b82f6",
 									}}
 								>
-									{parameter.user_interface.is_advanced ? "Advanced" : "Simple"}
+									{parameter.user_interface?.is_advanced ? "Advanced" : "Simple"}
 								</Badge>
 							)}
 					</div>
