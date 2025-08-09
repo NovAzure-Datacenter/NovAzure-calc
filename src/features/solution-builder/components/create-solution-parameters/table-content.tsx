@@ -691,6 +691,7 @@ function AddParameterRow({
 			return (
 				!newParameterData.name.trim() ||
 				!newParameterData.unit.trim() ||
+				!newParameterData.category.trim() ||
 				(newParameterData.user_interface?.type === "static" &&
 					((newParameterData.display_type === "simple" &&
 						!newParameterData.value.trim()) ||
@@ -885,7 +886,7 @@ function AddParameterRow({
 								...prev,
 								user_interface: {
 									type: value as "input" | "static" | "not_viewable",
-									category: "",
+									category: "Global",
 									is_advanced: false,
 								},
 							}))
@@ -1032,6 +1033,7 @@ function ParameterRow({
 		return (
 			!editData.name.trim() ||
 			!editData.unit.trim() ||
+			!editData.category.trim() ||
 			(editData.user_interface?.type === "static" &&
 				((editData.display_type === "simple" && !editData.value.trim()) ||
 					(editData.display_type === "range" &&
@@ -1379,7 +1381,7 @@ function ParameterRow({
 									...prev,
 									user_interface: {
 										type: value as "input" | "static" | "not_viewable",
-										category: "",
+										category: "Global",
 										is_advanced: editData.user_interface?.is_advanced || false,
 									},
 								}))

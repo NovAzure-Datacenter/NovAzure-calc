@@ -422,10 +422,10 @@ function getDefaultParameterEditData(): ParameterEditData {
 		unit: "",
 		description: "",
 		information: "",
-		category: "",
+		category: "Global",
 		user_interface: {
 			type: "input",
-			category: "",
+			category: "Global",
 			is_advanced: false
 		},
 		output: false,
@@ -510,10 +510,10 @@ function convertEditDataToParameter(
  */
 function validateParameterEditData(editData: ParameterEditData, existingParameters: Parameter[] = []): ParameterValidationResult {
 	// Basic validation - check required fields
-	if (!editData.name.trim() || !editData.unit.trim()) {
+	if (!editData.name.trim() || !editData.unit.trim() || !editData.category.trim()) {
 		return {
 			isValid: false,
-			errorMessage: "Name and unit are required fields."
+			errorMessage: "Name, unit, and category are required fields."
 		};
 	}
 

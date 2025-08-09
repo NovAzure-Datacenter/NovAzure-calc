@@ -95,10 +95,10 @@ export function CalculationMain({
 		unit: "",
 		description: "",
 		information: "",
-		category: "",
+		category: "Global",
 		user_interface: {
 			type: "input" as "input" | "static" | "not_viewable",
-			category: "",
+			category: "Global",
 			is_advanced: false,
 		},
 		output: false,
@@ -487,6 +487,11 @@ export function CalculationMain({
 			return;
 		}
 
+		if (!newParameterData.category.trim()) {
+			toast.error("Category is required");
+			return;
+		}
+
 		// Check for duplicate parameter names (case-insensitive)
 		const normalizedNewName = newParameterData.name.trim().toLowerCase();
 		const hasDuplicate = parameters.some(param => 
@@ -566,10 +571,10 @@ export function CalculationMain({
 			unit: "",
 			description: "",
 			information: "",
-			category: "",
+			category: "Global",
 			user_interface: {
 				type: "input",
-				category: "",
+				category: "Global",
 				is_advanced: false,
 			},
 			output: false,
@@ -1200,9 +1205,10 @@ function AddParameterDialog({
 										category: value,
 									}))
 								}
+								required
 							>
-								<SelectTrigger>
-									<SelectValue placeholder="Select category" />
+								<SelectTrigger className={!newParameterData.category ? "border-red-500" : ""}>
+									<SelectValue placeholder="Select category *" />
 								</SelectTrigger>
 								<SelectContent>
 									{getAllAvailableCategories().length > 0 ? (
@@ -1226,6 +1232,9 @@ function AddParameterDialog({
 									)}
 								</SelectContent>
 							</Select>
+							{!newParameterData.category && (
+								<p className="text-sm text-red-500 mt-1">Category is required</p>
+							)}
 						</div>
 					</div>
 
@@ -1496,6 +1505,8 @@ function AddParameterDialog({
 						disabled={
 							!newParameterData.name.trim() ||
 							!newParameterData.unit.trim() ||
+							!newParameterData.category ||
+							!newParameterData.category.trim() ||
 							(newParameterData.user_interface?.type === "static" &&
 								((newParameterData.display_type === "simple" &&
 									!newParameterData.value.trim()) ||
