@@ -1058,6 +1058,15 @@ function StepContent({
 			}
 		});
 
+		// NEW: Mark conditional parameters as used when they are added to calculations
+		// Since conditional parameters don't have formulas but are still part of the solution
+		formData.parameters.forEach((parameter) => {
+			if (parameter.display_type === "conditional") {
+				// Mark conditional parameters as used since they're part of the solution
+				usedIds.add(parameter.id);
+			}
+		});
+
 		return Array.from(usedIds);
 	};
 
