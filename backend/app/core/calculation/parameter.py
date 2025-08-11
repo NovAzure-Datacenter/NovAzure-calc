@@ -32,6 +32,16 @@ class Parameter:
     def resolve_unit(self, context: dict[str, "Parameter"]):
         if self.unit_resolved:
             return self.unit
+        
+        if self.type in ["COMPANY", "GLOBAL", "USER"]:
+            pass
+
+        elif self.type == "CALCULATION":
+            from .unit_calculator import UnitCalculator
+            self.unit = UnitCalculator.calculate_unit(self.ast, context)
+        
+        self.unit_resolved = True
+        return self.unit
 
     def resolve_value(self, context: dict[str, float]):
         if self.evaluated:
