@@ -1,99 +1,23 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 export function useCalculationValidator(
 	groupedParameters: any,
 	newCalculationData: { name: string; formula: string } | null
 ) {
 	const [parameters, setParameters] = useState<any[]>([]);
+	const [isValidating, setIsValidating] = useState(false);
+	const [validationResult, setValidationResult] = useState<any>(null);
 
-	useEffect(() => {
-		const unifiedParameters: any[] = [];
-
-		Object.entries(groupedParameters).forEach(([categoryName, items]) => {
-			if (Array.isArray(items)) {
-				items.forEach((item: any) => {
-					let paramType = "COMPANY";
-
-					if (categoryName.toLowerCase() === "calculations") {
-						paramType = "CALCULATION";
-					} else if (
-						categoryName.toLowerCase() === "global" ||
-						categoryName.toLowerCase() === "general"
-					) {
-						const userInterfaceType =
-							typeof item.user_interface === "string"
-								? item.user_interface
-								: item.user_interface?.type || "input";
-
-						if (
-							userInterfaceType === "static" ||
-							userInterfaceType === "not_viewable"
-						) {
-							paramType = "COMPANY";
-						} else {
-							paramType = "USER";
-						}
-					}
-
-					const parameterObject: any = {
-						name: item.name,
-						type: paramType,
-						originalItem: item,
-						category: categoryName.toLowerCase(),
-					};
-
-					if (paramType === "USER" || paramType === "COMPANY") {
-						if (item.value !== undefined && item.value !== "") {
-							parameterObject.value = item.value;
-						} else if (
-							item.test_value !== undefined &&
-							item.test_value !== ""
-						) {
-							parameterObject.value = item.test_value;
-						}
-					}
-
-					if (paramType === "CALCULATION" && item.formula) {
-						parameterObject.formula = item.formula;
-					}
-
-					unifiedParameters.push(parameterObject);
-				});
-			}
-		});
-
-		if (
-			newCalculationData &&
-			newCalculationData.name &&
-			newCalculationData.formula
-		) {
-			const newCalcObject = {
-				name: newCalculationData.name,
-				type: "CALCULATION",
-				formula: newCalculationData.formula,
-				category: "calculations",
-				originalItem: newCalculationData,
-			};
-			unifiedParameters.push(newCalcObject);
-		}
-
-		setParameters(unifiedParameters);
-
-		if (unifiedParameters.length > 0) {
-			prepareRequestBodyForValidator(unifiedParameters);
-		}
-	}, [groupedParameters, newCalculationData]);
-
-	const cleanParameterName = (name: string): string => {
+	const cleanParameterName = useCallback((name: string): string => {
 		return name
 			.trim()
 			.replace(/\s+/g, "_")
 			.replace(/,/g, "_")
 			.replace(/_+/g, "_")
 			.replace(/^_+|_+$/g, "");
-	};
+	}, []);
 
-	const cleanFormula = (
+	const cleanFormula = useCallback((
 		formula: string,
 		parameterMapping: Map<string, string>
 	): string => {
@@ -113,9 +37,9 @@ export function useCalculationValidator(
 		}
 
 		return cleanedFormula;
-	};
+	}, []);
 
-	const prepareRequestBodyForValidator = (unifiedParams: any[]) => {
+	const prepareRequestBodyForValidator = useCallback((unifiedParams: any[]) => {
 		const inputs: Record<string, any> = {};
 		const requestParameters: any[] = [];
 		const parameterNameMapping = new Map<string, string>();
@@ -301,9 +225,87 @@ export function useCalculationValidator(
 		};
 
 		return requestBody;
-	};
+	}, [newCalculationData, cleanParameterName, cleanFormula]);
 
-	const calculateCalculation = async (unifiedParams: any[]) => {
+	useEffect(() => {
+		const unifiedParameters: any[] = [];
+
+		Object.entries(groupedParameters).forEach(([categoryName, items]) => {
+			if (Array.isArray(items)) {
+				items.forEach((item: any) => {
+					let paramType = "COMPANY";
+
+					if (categoryName.toLowerCase() === "calculations") {
+						paramType = "CALCULATION";
+					} else if (
+						categoryName.toLowerCase() === "global" ||
+						categoryName.toLowerCase() === "general"
+					) {
+						const userInterfaceType =
+							typeof item.user_interface === "string"
+								? item.user_interface
+								: item.user_interface?.type || "input";
+
+						if (
+							userInterfaceType === "static" ||
+							userInterfaceType === "not_viewable"
+						) {
+							paramType = "COMPANY";
+						} else {
+							paramType = "USER";
+						}
+					}
+
+					const parameterObject: any = {
+						name: item.name,
+						type: paramType,
+						originalItem: item,
+						category: categoryName.toLowerCase(),
+					};
+
+					if (paramType === "USER" || paramType === "COMPANY") {
+						if (item.value !== undefined && item.value !== "") {
+							parameterObject.value = item.value;
+						} else if (
+							item.test_value !== undefined &&
+							item.test_value !== ""
+						) {
+							parameterObject.value = item.test_value;
+						}
+					}
+
+					if (paramType === "CALCULATION" && item.formula) {
+						parameterObject.formula = item.formula;
+					}
+
+					unifiedParameters.push(parameterObject);
+				});
+			}
+		});
+
+		if (
+			newCalculationData &&
+			newCalculationData.name &&
+			newCalculationData.formula
+		) {
+			const newCalcObject = {
+				name: newCalculationData.name,
+				type: "CALCULATION",
+				formula: newCalculationData.formula,
+				category: "calculations",
+				originalItem: newCalculationData,
+			};
+			unifiedParameters.push(newCalcObject);
+		}
+
+		setParameters(unifiedParameters);
+
+		if (unifiedParameters.length > 0) {
+			prepareRequestBodyForValidator(unifiedParameters);
+		}
+	}, [groupedParameters, newCalculationData, prepareRequestBodyForValidator]);
+
+	const calculateCalculation = useCallback(async (unifiedParams: any[]) => {
 		const requestBody = prepareRequestBodyForValidator(unifiedParams);
 
 		if (!requestBody) {
@@ -347,7 +349,7 @@ export function useCalculationValidator(
 			console.error("Error calculating parameter:", err);
 			return null;
 		}
-	};
+	}, [prepareRequestBodyForValidator]);
 
 	const [calculationResult, setCalculationResult] = useState<Record<
 		string,
@@ -363,7 +365,7 @@ export function useCalculationValidator(
 		};
 
 		getCalculationResult();
-	}, [parameters]);
+	}, [parameters, calculateCalculation]);
 
 	return calculationResult;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -85,7 +85,7 @@ export function CreateProductStep3({
 		).length, 0
 	);
 
-	const fetchVariants = async () => {
+	const fetchVariants = useCallback(async () => {
 		if (!selectedSolution?.id) {
 			setSolutionVariants([]);
 			return;
@@ -109,11 +109,13 @@ export function CreateProductStep3({
 		} finally {
 			setLoadingVariants(false);
 		}
-	};
+	}, [selectedSolution?.id]);
 
 	useEffect(() => {
-		fetchVariants();
-	}, [selectedSolution?.id]);
+		if (selectedSolution?.id) {
+			fetchVariants();
+		}
+	}, [selectedSolution?.id, fetchVariants]);
 
 	const handleVariantSelect = (variantId: string) => {
 		onFormDataChange({ selectedSolutionVariant: variantId });

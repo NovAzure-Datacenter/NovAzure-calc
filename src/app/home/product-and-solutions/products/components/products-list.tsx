@@ -251,11 +251,11 @@ export function ProductsList({ searchQuery, viewMode }: ProductsListProps) {
 	if (viewMode === "grid") {
 		return (
 			<>
-				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-full">
+				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 w-full">
 					{filteredProducts.map((product) => (
 						<Card
 							key={product.id}
-							className="p-4 hover:shadow-md transition-shadow"
+							className="p-4 hover:shadow-md transition-shadow h-fit"
 						>
 							<div className="flex items-start justify-between mb-3">
 								<div className="flex items-center gap-2">

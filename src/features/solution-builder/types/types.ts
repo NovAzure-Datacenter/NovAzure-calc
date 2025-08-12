@@ -113,12 +113,12 @@ export type CreateSolutionMainProps = Record<string, never>;
 /**
  * Step content props - combines common interfaces
  */
-export interface StepContentProps extends 
-	CommonDataProps,
-	CommonSelectionProps,
-	CommonSelectionHandlers,
-	CommonCreationState,
-	CommonCreationHandlers {
+export interface StepContentProps
+	extends CommonDataProps,
+		CommonSelectionProps,
+		CommonSelectionHandlers,
+		CommonCreationState,
+		CommonCreationHandlers {
 	currentStep: number;
 	formData: CreateSolutionData;
 	isLoadingParameters: boolean;
@@ -132,8 +132,12 @@ export interface StepContentProps extends
 	onCalculationsChange: (calculations: Calculation[]) => void;
 	onSaveAsDraft: () => void;
 	onSubmitForReview: () => void;
-	setCustomParameterCategories: React.Dispatch<React.SetStateAction<Array<{ name: string; color: string }>>>;
-	setCustomCalculationCategories: React.Dispatch<React.SetStateAction<Array<{ name: string; color: string }>>>;
+	setCustomParameterCategories: React.Dispatch<
+		React.SetStateAction<Array<{ name: string; color: string }>>
+	>;
+	setCustomCalculationCategories: React.Dispatch<
+		React.SetStateAction<Array<{ name: string; color: string }>>
+	>;
 	getSelectedIndustryName: () => string;
 	getSelectedTechnologyName: () => string;
 	getSelectedSolutionType: () => any;
@@ -147,12 +151,12 @@ export interface StepContentProps extends
 /**
  * Filter component props
  */
-export interface CreateSolutionFilterProps extends 
-	CommonDataProps,
-	CommonSelectionProps,
-	CommonSelectionHandlers,
-	CommonCreationState,
-	CommonCreationHandlers {
+export interface CreateSolutionFilterProps
+	extends CommonDataProps,
+		CommonSelectionProps,
+		CommonSelectionHandlers,
+		CommonCreationState,
+		CommonCreationHandlers {
 	formData: {
 		solutionName: string;
 		solutionDescription: string;
@@ -208,7 +212,13 @@ export interface CreateVariantDialogProps extends DialogProps {
  * Base section props
  */
 export interface BaseSectionProps {
-	renderSelectionCard: (item: any, itemId: string, isSelected: boolean, onSelect: (id: string) => void, showIcon?: boolean) => React.JSX.Element;
+	renderSelectionCard: (
+		item: any,
+		itemId: string,
+		isSelected: boolean,
+		onSelect: (id: string) => void,
+		showIcon?: boolean
+	) => React.JSX.Element;
 }
 
 export interface IndustrySectionProps extends BaseSectionProps {
@@ -310,7 +320,8 @@ export interface AddCategoryDialogProps extends DialogProps {
 	allCategories: string[];
 }
 
-export interface AddCalculationCategoryDialogProps extends AddCategoryDialogProps {
+export interface AddCalculationCategoryDialogProps
+	extends AddCategoryDialogProps {
 	categoryNameError: string;
 	onCategoryNameChange: (name: string) => void;
 	onDialogClose: () => void;
@@ -339,35 +350,36 @@ export interface ColumnVisibility {
 // ============================================================================
 
 export const RESERVED_CATEGORY_NAMES = [
-	"industry", 
-	"technologies", 
-	"global", 
-	"technologies"
+	"industry",
+	"technologies",
+	"global",
+	"technologies",
 ] as const;
 
 export const HIDDEN_CATEGORIES = [
-	"industry", 
-	"technology", 
-	"technologies", 
-	"high level configuration", 
-	"low level configuration", 
-	"advanced configuration"
+	"industry",
+	"technology",
+	"technologies",
+	"high level configuration",
+	"low level configuration",
+	"advanced configuration",
 ] as const;
 
 export const CALCULATION_RESERVED_CATEGORY_NAMES = [
 	"financial",
-	"performance", 
+	"performance",
 	"efficiency",
-	"operational"
+	"operational",
 ] as const;
 
 export const CALCULATION_HIDDEN_CATEGORIES: string[] = [];
 
 // Type aliases
 export type Step = "industry" | "technology" | "solution";
-export type ReservedCategoryName = typeof RESERVED_CATEGORY_NAMES[number];
-export type HiddenCategory = typeof HIDDEN_CATEGORIES[number];
-export type CalculationReservedCategoryName = typeof CALCULATION_RESERVED_CATEGORY_NAMES[number];
+export type ReservedCategoryName = (typeof RESERVED_CATEGORY_NAMES)[number];
+export type HiddenCategory = (typeof HIDDEN_CATEGORIES)[number];
+export type CalculationReservedCategoryName =
+	(typeof CALCULATION_RESERVED_CATEGORY_NAMES)[number];
 
 // ============================================================================
 // PARAMETER TYPES
@@ -377,7 +389,9 @@ export interface CreateSolutionParametersProps extends CommonSelectionProps {
 	parameters: Parameter[];
 	onParametersChange: (parameters: Parameter[]) => void;
 	customCategories: Array<{ name: string; color: string }>;
-	setCustomCategories: React.Dispatch<React.SetStateAction<Array<{ name: string; color: string }>>>;
+	setCustomCategories: React.Dispatch<
+		React.SetStateAction<Array<{ name: string; color: string }>>
+	>;
 	availableIndustries?: any[];
 	availableTechnologies?: any[];
 	availableSolutionTypes?: any[];
@@ -462,6 +476,7 @@ export interface ColumnFilterProps {
 
 export interface ParameterTableHeaderProps {
 	columnVisibility: ColumnVisibility;
+	calculateColumnWidths: () => Record<string, number>;
 }
 
 export interface ParameterTableBodyProps {
@@ -471,7 +486,9 @@ export interface ParameterTableBodyProps {
 	handleSaveNewParameter: () => void;
 	handleCancelAddParameter: () => void;
 	getAllAvailableCategories: () => Array<{ name: string; color: string }>;
-	getCategoryBadgeStyleForDropdownWrapper: (name: string) => React.CSSProperties;
+	getCategoryBadgeStyleForDropdownWrapper: (
+		name: string
+	) => React.CSSProperties;
 	getUserInterfaceBadgeStyle: (type: string) => React.CSSProperties;
 	filteredParameters: Parameter[];
 	editingParameter: string | null;
@@ -489,6 +506,14 @@ export interface ParameterTableBodyProps {
 	getDisplayTypeBadgeStyle: (displayType: string) => React.CSSProperties;
 	columnVisibility: ColumnVisibility;
 	setColumnVisibility: React.Dispatch<React.SetStateAction<ColumnVisibility>>;
+	renderCell: (
+		isVisible: boolean,
+		children: React.ReactNode,
+		columnKey?: string,
+		isExpanded?: boolean
+	) => React.ReactElement | null;
+	expandedRows: Set<string>;
+	toggleRowExpansion: (parameterId: string) => void;
 }
 
 export interface ParameterRowProps {
@@ -503,13 +528,23 @@ export interface ParameterRowProps {
 	highlightSearchTerm: (text: string, searchTerm: string) => React.ReactNode;
 	searchQuery: string;
 	getCategoryBadgeStyleWrapper: (name: string) => React.CSSProperties;
-	getCategoryBadgeStyleForDropdownWrapper: (name: string) => React.CSSProperties;
+	getCategoryBadgeStyleForDropdownWrapper: (
+		name: string
+	) => React.CSSProperties;
 	getUserInterfaceBadgeStyle: (type: string) => React.CSSProperties;
 	getDisplayTypeBadgeStyle: (displayType: string) => React.CSSProperties;
 	getAllAvailableCategories: () => Array<{ name: string; color: string }>;
 	columnVisibility: ColumnVisibility;
 	editingParameter: string | null;
 	isAddingParameter: boolean;
+	renderCell: (
+		isVisible: boolean,
+		children: React.ReactNode,
+		columnKey?: string,
+		isExpanded?: boolean
+	) => React.ReactElement | null;
+	expandedRows: Set<string>;
+	toggleRowExpansion: (parameterId: string) => void;
 }
 
 export interface AddParameterRowProps {
@@ -519,10 +554,18 @@ export interface AddParameterRowProps {
 	handleSaveNewParameter: () => void;
 	handleCancelAddParameter: () => void;
 	getAllAvailableCategories: () => Array<{ name: string; color: string }>;
-	getCategoryBadgeStyleForDropdownWrapper: (name: string) => React.CSSProperties;
+	getCategoryBadgeStyleForDropdownWrapper: (
+		name: string
+	) => React.CSSProperties;
 	getUserInterfaceBadgeStyle: (type: string) => React.CSSProperties;
 	getDisplayTypeBadgeStyle: (displayType: string) => React.CSSProperties;
 	columnVisibility: ColumnVisibility;
+	renderCell: (
+		isVisible: boolean,
+		children: React.ReactNode,
+		columnKey?: string,
+		isExpanded?: boolean
+	) => React.ReactElement | null;
 }
 
 export interface EmptyStateProps {
@@ -552,7 +595,9 @@ export interface CalculationsConfigurationProps extends CommonSelectionProps {
 	parameters: any[];
 	onParametersChange?: (parameters: any[]) => void;
 	customCategories: Array<{ name: string; color: string }>;
-	setCustomCategories: React.Dispatch<React.SetStateAction<Array<{ name: string; color: string }>>>;
+	setCustomCategories: React.Dispatch<
+		React.SetStateAction<Array<{ name: string; color: string }>>
+	>;
 	availableIndustries?: any[];
 	availableTechnologies?: any[];
 	availableSolutionTypes?: any[];
@@ -587,7 +632,9 @@ export interface CalculationsTableContentProps {
 	groupedParameters: Record<string, any[]>;
 	isAddingCalculation: boolean;
 	newCalculationData: CalculationEditData;
-	setNewCalculationData: React.Dispatch<React.SetStateAction<CalculationEditData>>;
+	setNewCalculationData: React.Dispatch<
+		React.SetStateAction<CalculationEditData>
+	>;
 	handleSaveNewCalculation: () => void;
 	handleCancelAddCalculation: () => void;
 	handleAddCalculation: () => void;
@@ -595,7 +642,9 @@ export interface CalculationsTableContentProps {
 	customCategories: Array<{ name: string; color: string }>;
 }
 
-export type CalculationsTableHeaderProps = Record<string, never>;
+export type CalculationsTableHeaderProps = {
+	calculateColumnWidths: () => Record<string, number>;
+};
 
 export interface CalculationsTableBodyProps {
 	calculations: Calculation[];
@@ -615,13 +664,21 @@ export interface CalculationsTableBodyProps {
 	groupedParameters: Record<string, any[]>;
 	isAddingCalculation: boolean;
 	newCalculationData: CalculationEditData;
-	setNewCalculationData: React.Dispatch<React.SetStateAction<CalculationEditData>>;
+	setNewCalculationData: React.Dispatch<
+		React.SetStateAction<CalculationEditData>
+	>;
 	handleSaveNewCalculation: () => void;
 	handleCancelAddCalculation: () => void;
 	handleAddCalculation: () => void;
 	allCategories: string[];
 	expandedCalculations: Set<string>;
 	setExpandedCalculations: React.Dispatch<React.SetStateAction<Set<string>>>;
+	renderCell: (
+		isVisible: boolean,
+		children: React.ReactNode,
+		columnKey?: string,
+		isExpanded?: boolean
+	) => React.ReactElement | null;
 }
 
 export interface CalculationRowProps {
@@ -644,12 +701,20 @@ export interface CalculationRowProps {
 	editingCalculation: string | null;
 	isFormulaExpanded: boolean;
 	toggleFormulaExpanded: (calculationId: string) => void;
+	renderCell: (
+		isVisible: boolean,
+		children: React.ReactNode,
+		columnKey?: string,
+		isExpanded?: boolean
+	) => React.ReactElement | null;
 }
 
 export interface AddCalculationRowProps {
 	isAddingCalculation: boolean;
 	newCalculationData: CalculationEditData;
-	setNewCalculationData: React.Dispatch<React.SetStateAction<CalculationEditData>>;
+	setNewCalculationData: React.Dispatch<
+		React.SetStateAction<CalculationEditData>
+	>;
 	handleSaveNewCalculation: () => void;
 	handleCancelAddCalculation: () => void;
 	insertIntoFormula: (text: string) => void;
@@ -661,6 +726,12 @@ export interface AddCalculationRowProps {
 	allCategories: string[];
 	isAddFormulaExpanded: boolean;
 	setIsAddFormulaExpanded: React.Dispatch<React.SetStateAction<boolean>>;
+	renderCell: (
+		isVisible: boolean,
+		children: React.ReactNode,
+		columnKey?: string,
+		isExpanded?: boolean
+	) => React.ReactElement | null;
 }
 
 export interface FormulaEditorProps {
@@ -826,7 +897,9 @@ export interface ParameterValueFieldProps {
 	value: string;
 	onChange: (value: string) => void;
 	dropdownOptions: Array<{ key: string; value: string }>;
-	onDropdownOptionsChange: (options: Array<{ key: string; value: string }>) => void;
+	onDropdownOptionsChange: (
+		options: Array<{ key: string; value: string }>
+	) => void;
 	rangeMin: string;
 	rangeMax: string;
 	onRangeMinChange: (value: string) => void;
@@ -899,15 +972,19 @@ export interface ConfigurationItem {
 	category: any;
 	description: string;
 	units?: string;
-	type: 'parameter' | 'calculation';
+	type: "parameter" | "calculation";
 	// Parameter specific fields
 	value?: string;
 	test_value?: string;
-	user_interface?: "input" | "static" | "not_viewable" | {
-		type: "input" | "static" | "not_viewable";
-		category: string;
-		is_advanced: boolean;
-	};
+	user_interface?:
+		| "input"
+		| "static"
+		| "not_viewable"
+		| {
+				type: "input" | "static" | "not_viewable";
+				category: string;
+				is_advanced: boolean;
+		  };
 	// Calculation specific fields
 	formula?: string;
 	result?: any;

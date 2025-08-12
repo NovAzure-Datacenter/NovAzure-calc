@@ -384,7 +384,7 @@ function AddCategoryDialog({
 					<DialogDescription>
 						Create a new parameter category to organize your parameters.
 						<br />
-						<strong>Note:</strong> "Industry", "Technologies", and "Global" are reserved names and cannot be used.
+						<strong>Note:</strong> &ldquo;Industry&rdquo;, &ldquo;Technologies&rdquo;, and &ldquo;Global&rdquo; are reserved names and cannot be used.
 					</DialogDescription>
 				</DialogHeader>
 				<div className="grid gap-4 py-4">

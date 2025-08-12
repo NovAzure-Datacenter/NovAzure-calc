@@ -295,7 +295,7 @@ export function TechnologyList({ technologies, industries, onTechnologyDeleted, 
 							<DialogDescription className="space-y-2">
 								<p>
 									Are you sure you want to remove{" "}
-									<strong>"{selectedTechnology.name}"</strong>?
+									<strong>&ldquo;{selectedTechnology.name}&rdquo;</strong>?
 								</p>
 								<p className="text-sm text-muted-foreground">
 									This will permanently delete the technology

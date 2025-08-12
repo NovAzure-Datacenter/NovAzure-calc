@@ -6,7 +6,7 @@ import { Grid3X3, RefreshCw, Search, Plus } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { List } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useUser } from "@/hooks/useUser";
 import { getClientByUserId } from "@/lib/actions/clients/clients";
 import { getClientSolutions } from "@/lib/actions/clients-solutions/clients-solutions";
@@ -17,26 +17,13 @@ import { useRouter } from "next/navigation";
 export function SolutionsMain() {
 	const { user } = useUser();
 	const router = useRouter();
-	const [searchQuery, setSearchQuery] = useState("");
-	const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
-	const [isLoading, setIsLoading] = useState(false);
 	const [clientData, setClientData] = useState<any>(null);
 	const [clientSolutions, setClientSolutions] = useState<any[]>([]);
+	const [isLoading, setIsLoading] = useState(false);
+	const [searchQuery, setSearchQuery] = useState("");
+	const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
 
-	// Load client data and solutions
-	useEffect(() => {
-		loadData();
-	}, [user]);
-
-	const handleRefresh = () => {
-		loadData();
-	};
-
-	const handleCreateSolution = () => {
-		router.push("/home/product-and-solutions/solutions/create");
-	};
-
-	const loadData = async () => {
+	const loadData = useCallback(async () => {
 		if (!user) return;
 
 		setIsLoading(true);
@@ -66,6 +53,19 @@ export function SolutionsMain() {
 		} finally {
 			setIsLoading(false);
 		}
+	}, [user]);
+
+	// Load client data and solutions
+	useEffect(() => {
+		loadData();
+	}, [user, loadData]);
+
+	const handleRefresh = () => {
+		loadData();
+	};
+
+	const handleCreateSolution = () => {
+		router.push("/home/product-and-solutions/solutions/create");
 	};
 
 	// Filter solutions based on search query

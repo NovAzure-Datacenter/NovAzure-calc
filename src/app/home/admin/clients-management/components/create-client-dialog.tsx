@@ -93,13 +93,33 @@ export function CreateClientDialog({ onCreate }: CreateClientDialogProps) {
 		selected_technologies: [] as string[],
 	});
 
-
-	useEffect(() => {
-		if (open) {
-			loadAvailableIndustries();
-			loadAvailableTechnologies();
-		}
-	}, [open]);
+	const resetForm = useCallback(() => {
+		setFormData({
+			logo: "Building2",
+			company_name: "",
+			website: "",
+			main_contact_first_name: "",
+			main_contact_last_name: "",
+			main_contact_email: "",
+			main_contact_phone: "",
+			tech_contact_first_name: "",
+			tech_contact_last_name: "",
+			tech_contact_email: "",
+			tech_contact_phone: "",
+			company_industry: "",
+			company_size: "",
+			street: "",
+			city: "",
+			state_province: "",
+			zipcode_postal_code: "",
+			country: "",
+			timezone: "",
+			client_status: "prospect",
+			additional_notes: "",
+			selected_industries: [],
+			selected_technologies: [],
+		});
+	}, []);
 
 	const loadAvailableIndustries = useCallback(async () => {
 		try {
@@ -274,36 +294,8 @@ export function CreateClientDialog({ onCreate }: CreateClientDialogProps) {
 				setIsSubmitting(false);
 			}
 		},
-		[formData, onCreate]
+		[formData, onCreate, resetForm]
 	);
-
-	const resetForm = useCallback(() => {
-		setFormData({
-			logo: "Building2",
-			company_name: "",
-			website: "",
-			main_contact_first_name: "",
-			main_contact_last_name: "",
-			main_contact_email: "",
-			main_contact_phone: "",
-			tech_contact_first_name: "",
-			tech_contact_last_name: "",
-			tech_contact_email: "",
-			tech_contact_phone: "",
-			company_industry: "",
-			company_size: "",
-			street: "",
-			city: "",
-			state_province: "",
-			zipcode_postal_code: "",
-			country: "",
-			timezone: "",
-			client_status: "prospect",
-			additional_notes: "",
-			selected_industries: [],
-			selected_technologies: [],
-		});
-	}, []);
 
 	const isFormValid = useMemo(
 		() =>
@@ -397,6 +389,13 @@ export function CreateClientDialog({ onCreate }: CreateClientDialogProps) {
 		}),
 		[formData.timezone, formData.client_status, formData.additional_notes]
 	);
+
+	useEffect(() => {
+		if (open) {
+			loadAvailableIndustries();
+			loadAvailableTechnologies();
+		}
+	}, [open, loadAvailableIndustries, loadAvailableTechnologies,]);
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>

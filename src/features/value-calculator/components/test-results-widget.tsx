@@ -302,7 +302,7 @@ export default function TestResultsWidget({ solutionData }: { solutionData: any 
 			)}
 
 			{/* Widget Grid */}
-			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
 				{widgets.filter(w => w.isVisible).map((widget) => (
 					<div key={widget.id} className="relative">
 						{isEditing && (
@@ -342,7 +342,7 @@ export default function TestResultsWidget({ solutionData }: { solutionData: any 
 						<Grid className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
 						<p className="text-muted-foreground">No widgets configured</p>
 						<p className="text-sm text-gray-500 mt-2">
-							Click "Add Widget" to start building your dashboard
+							Click &ldquo;Add Widget&rdquo; to start building your dashboard
 						</p>
 					</div>
 				</div>

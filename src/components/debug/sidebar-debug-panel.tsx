@@ -387,7 +387,7 @@ export function SidebarDebugPanel({
 										) : (
 											<>
 												<Search className="h-3 w-3 mr-1" />
-												Update {selectedField} from "{fromValue.trim()}" to "{toValue.trim()}"
+												Update {selectedField} from &ldquo;{fromValue.trim()}&rdquo; to &ldquo;{toValue.trim()}&rdquo;
 											</>
 										)}
 									</Button>
