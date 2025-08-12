@@ -136,7 +136,7 @@ export function CalculationMain({
 		});
 		
 		setAvailableCategories(categoryObjects);
-	}, [calculations]);
+	}, [calculations, availableCategories]);
 
 	/**
 	 * Get all available categories including custom ones
@@ -912,7 +912,7 @@ export function CalculationMain({
 
 	useEffect(() => {
 		ensureGlobalCalculations();
-	}, []); 
+	}, [ensureGlobalCalculations]);
 
 	// Combined loading state
 	const isTableLoading = isLoadingCalculations || isLoadingGlobalCalculations || !hasInitialized;

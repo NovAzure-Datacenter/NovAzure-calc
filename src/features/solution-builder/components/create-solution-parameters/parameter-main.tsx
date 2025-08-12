@@ -298,7 +298,7 @@ export function ParameterMain({
 	// Load global parameters when component mounts or parameters change
 	useEffect(() => {
 		loadGlobalParametersIfNeeded();
-	}, [parameters.length]);
+	}, [parameters.length, loadGlobalParametersIfNeeded]);
 
 	return (
 		<div className="flex flex-col h-full">
@@ -701,7 +701,7 @@ function getFilteredParameters(
 			param.test_value.toLowerCase().includes(searchQuery.toLowerCase()) ||
 			param.unit.toLowerCase().includes(searchQuery.toLowerCase()) ||
 			(typeof param.user_interface === "string"
-				? param.user_interface.toLowerCase().includes(searchQuery.toLowerCase())
+				? (param.user_interface as string).toLowerCase().includes(searchQuery.toLowerCase())
 				: param.user_interface.type
 						.toLowerCase()
 						.includes(searchQuery.toLowerCase())) ||

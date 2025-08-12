@@ -268,25 +268,39 @@ function CalculationCategoryTabsList({
 					All
 				</TabsTrigger>
 
-				{/* Show visible categories */}
-				{visibleCategories.map((category) => {
-					const isCustomCategory = customCategories.some(
-						(cat) => cat.name === category
-					);
-					const isActive = activeTab === category;
+				{/* Show "required" tab right after "all" */}
+				{allCategories.includes("required") && (
+					<CalculationCategoryTab
+						category="required"
+						isActive={activeTab === "required"}
+						isCustomCategory={false}
+						onRemove={() => {}} // Required category cannot be removed
+						getCategoryStyle={getCategoryStyleWrapper}
+						getActiveTabStyle={getActiveTabStyleWrapper}
+					/>
+				)}
 
-					return (
-						<CalculationCategoryTab
-							key={category}
-							category={category}
-							isActive={isActive}
-							isCustomCategory={isCustomCategory}
-							onRemove={handleRemoveCategory}
-							getCategoryStyle={getCategoryStyleWrapper}
-							getActiveTabStyle={getActiveTabStyleWrapper}
-						/>
-					);
-				})}
+				{/* Show other visible categories (excluding "required" since it's handled above) */}
+				{visibleCategories
+					.filter(category => category.toLowerCase() !== "required")
+					.map((category) => {
+						const isCustomCategory = customCategories.some(
+							(cat) => cat.name === category
+						);
+						const isActive = activeTab === category;
+
+						return (
+							<CalculationCategoryTab
+								key={category}
+								category={category}
+								isActive={isActive}
+								isCustomCategory={isCustomCategory}
+								onRemove={handleRemoveCategory}
+								getCategoryStyle={getCategoryStyleWrapper}
+								getActiveTabStyle={getActiveTabStyleWrapper}
+							/>
+						);
+					})}
 
 				<Button
 					variant="outline"

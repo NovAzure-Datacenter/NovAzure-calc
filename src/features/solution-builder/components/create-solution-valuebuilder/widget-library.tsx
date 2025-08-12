@@ -37,9 +37,7 @@ import { CogIcon, Settings } from "lucide-react";
 export type WidgetType = "pie" | "bar" | "line" | "area" | "radar" | "table";
 
 // Simple Widget Props
-export interface WidgetProps {
-	// Removed isDemo prop as it's no longer needed
-}
+export type WidgetProps = Record<string, never>;
 
 // Demo Data for each widget type
 const pieData = [

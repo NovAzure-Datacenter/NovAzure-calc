@@ -858,18 +858,20 @@ function CalculationRow({
 							<SelectValue />
 						</SelectTrigger>
 						<SelectContent>
-							{allCategories.map((category) => (
-								<SelectItem key={category} value={category}>
-									<div className="flex items-center gap-2">
-										<Badge
-											variant="outline"
-											className={`text-xs ${getCategoryColor(category)}`}
-										>
-											{category}
-										</Badge>
-									</div>
-								</SelectItem>
-							))}
+							{allCategories
+								.filter(category => category.toLowerCase() !== "required")
+								.map((category) => (
+									<SelectItem key={category} value={category}>
+										<div className="flex items-center gap-2">
+											<Badge
+												variant="outline"
+												className={`text-xs ${getCategoryColor(category)}`}
+											>
+												{category}
+											</Badge>
+										</div>
+									</SelectItem>
+								))}
 						</SelectContent>
 					</Select>
 				) : (
@@ -945,26 +947,36 @@ function CalculationRow({
 			{renderCell(
 				true,
 				<div className="flex items-center gap-2">
-					<Badge
-						className={`text-xs ${
-							calculation.status === "error"
-								? "bg-red-100 text-red-800 border-red-200"
-								: "bg-green-100 text-green-800 border-green-200"
-						}`}
-					>
-						{calculation.status === "error" ? "Error:" : "Valid:"}
-					</Badge>
-					<span
-						className={`text-sm font-mono ${
-							calculation.status === "error" ? "text-red-600" : "text-green-600"
-						}`}
-					>
-						{calculation.status === "error"
-							? "Error"
-							: typeof calculation.result === "number"
-							? calculation.result.toLocaleString()
-							: calculation.result}
-					</span>
+					{/* Check if this is a required calculation AND has no result */}
+					{(calculation.category?.name).toLowerCase() === "required" && 
+					 !calculation.result && calculation.result !== 0 ? (
+						<Badge className="text-xs bg-gray-100 text-gray-700 border-gray-200">
+							Not Calculated
+						</Badge>
+					) : (
+						<>
+							<Badge
+								className={`text-xs ${
+									calculation.status === "error"
+										? "bg-red-100 text-red-800 border-red-200"
+										: "bg-green-100 text-green-800 border-green-200"
+								}`}
+							>
+								{calculation.status === "error" ? "Error:" : "Valid:"}
+							</Badge>
+							<span
+								className={`text-sm font-mono ${
+									calculation.status === "error" ? "text-red-600" : "text-green-600"
+								}`}
+							>
+								{calculation.status === "error"
+									? "Error"
+									: typeof calculation.result === "number"
+									? calculation.result.toLocaleString()
+									: calculation.result}
+							</span>
+						</>
+					)}
 				</div>,
 				"mockResult",
 				isFormulaExpanded
@@ -1253,18 +1265,20 @@ function AddCalculationRow({
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent>
-								{allCategories.map((category) => (
-									<SelectItem key={category} value={category}>
-										<div className="flex items-center gap-2">
-											<Badge
-												variant="outline"
-												className={`text-xs ${getCategoryColor(category)}`}
-											>
-												{category}
-											</Badge>
-										</div>
-									</SelectItem>
-								))}
+								{allCategories
+									.filter(category => category.toLowerCase() !== "required")
+									.map((category) => (
+										<SelectItem key={category} value={category}>
+											<div className="flex items-center gap-2">
+												<Badge
+													variant="outline"
+													className={`text-xs ${getCategoryColor(category)}`}
+												>
+													{category}
+												</Badge>
+											</div>
+										</SelectItem>
+									))}
 							</SelectContent>
 						</Select>,
 						"category"
