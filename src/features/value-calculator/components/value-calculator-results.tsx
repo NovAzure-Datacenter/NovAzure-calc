@@ -100,6 +100,8 @@ export default function ValueCalculatorResults({
 	 */
 	const comparisonRows = transformResultData(resultData, comparisonMode);
 
+
+	console.log(resultData)
 	return (
 		hasCalculated ? (
 			<div className="space-y-6">
@@ -793,6 +795,34 @@ function ChartSystem({
 	const solutionAName = fetchedSolutionA?.solution_name || "Solution A";
 	const solutionBName = fetchedSolutionB?.solution_name || "Solution B";
 
+	// Define consistent color scheme for different metric types
+	const getChartColors = (metricType: 'opex' | 'capex' | 'tco' | 'total' | 'cumulative', solution: 'A' | 'B') => {
+		const colors = {
+			opex: {
+				A: '#3b82f6', // Blue - Solution A
+				B: '#1d4ed8', // Darker Blue - Solution B
+			},
+			capex: {
+				A: '#10b981', // Green - Solution A
+				B: '#059669', // Darker Green - Solution B
+			},
+			tco: {
+				A: '#8b5cf6', // Purple - Solution A
+				B: '#7c3aed', // Darker Purple - Solution B
+			},
+			total: {
+				A: '#f59e0b', // Amber - Solution A
+				B: '#d97706', // Darker Amber - Solution B
+			},
+			cumulative: {
+				A: '#ef4444', // Red - Solution A
+				B: '#dc2626', // Darker Red - Solution B
+			}
+		};
+		
+		return colors[metricType]?.[solution] || colors.opex[solution];
+	};
+
 	const renderChart = () => {
 		switch (selectedChartTab) {
 			case "opex":
@@ -842,22 +872,22 @@ function ChartSystem({
 												<>
 													<Bar
 														dataKey="annualOpexA"
-														fill="#3b82f6"
+														fill={getChartColors('opex', 'A')}
 														name={`${solutionAName} - Annual OPEX`}
 													/>
 													<Bar
 														dataKey="annualOpexB"
-														fill="#10b981"
+														fill={getChartColors('opex', 'B')}
 														name={`${solutionBName} - Annual OPEX`}
 													/>
 													<Bar
 														dataKey="totalYearlyCostA"
-														fill="#f59e0b"
+														fill={getChartColors('total', 'A')}
 														name={`${solutionAName} - Total Yearly`}
 													/>
 													<Bar
 														dataKey="totalYearlyCostB"
-														fill="#8b5cf6"
+														fill={getChartColors('total', 'B')}
 														name={`${solutionBName} - Total Yearly`}
 													/>
 												</>
@@ -865,12 +895,12 @@ function ChartSystem({
 												<>
 													<Bar
 														dataKey="annualOpexA"
-														fill="#3b82f6"
+														fill={getChartColors('opex', 'A')}
 														name="Annual OPEX"
 													/>
 													<Bar
 														dataKey="totalYearlyCostA"
-														fill="#f59e0b"
+														fill={getChartColors('total', 'A')}
 														name="Total Yearly Cost (OPEX + CAPEX)"
 													/>
 												</>
@@ -1135,19 +1165,19 @@ function ChartSystem({
 												<>
 													<Bar 
 														dataKey="value" 
-														fill="#3b82f6" 
+														fill={getChartColors('capex', 'A')} 
 														name={`${solutionAName} CAPEX`}
 														stackId="a"
 													/>
 													<Bar 
 														dataKey="value" 
-														fill="#10b981" 
+														fill={getChartColors('capex', 'B')} 
 														name={`${solutionBName} CAPEX`}
 														stackId="b"
 													/>
 												</>
 											) : (
-												<Bar dataKey="value" fill="#10b981" name="CAPEX Value" />
+												<Bar dataKey="value" fill={getChartColors('capex', 'A')} name="CAPEX Value" />
 											)}
 										</BarChart>
 									</ResponsiveContainer>
@@ -1462,24 +1492,24 @@ function ChartSystem({
 												<>
 													<Bar
 														dataKey="annualOpexA"
-														fill="#3b82f6"
+														fill={getChartColors('opex', 'A')}
 														name={`${solutionAName} - Annual OPEX`}
 													/>
 													<Bar
 														dataKey="annualOpexB"
-														fill="#10b981"
+														fill={getChartColors('opex', 'B')}
 														name={`${solutionBName} - Annual OPEX`}
 													/>
 													{!isTcoWithInitialCapex ? (
 														<>
 															<Bar
 																dataKey="capexAmortizedA"
-																fill="#f59e0b"
+																fill={getChartColors('capex', 'A')}
 																name={`${solutionAName} - Annual CAPEX`}
 															/>
 															<Bar
 																dataKey="capexAmortizedB"
-																fill="#8b5cf6"
+																fill={getChartColors('capex', 'B')}
 																name={`${solutionBName} - Annual CAPEX`}
 															/>
 														</>
@@ -1487,24 +1517,24 @@ function ChartSystem({
 														<>
 															<Bar
 																dataKey="initialCapexA"
-																fill="#f59e0b"
+																fill={getChartColors('capex', 'A')}
 																name={`${solutionAName} - Initial CAPEX`}
 															/>
 															<Bar
 																dataKey="initialCapexB"
-																fill="#8b5cf6"
+																fill={getChartColors('capex', 'B')}
 																name={`${solutionBName} - Initial CAPEX`}
 															/>
 														</>
 													)}
 													<Bar
 														dataKey="cumulativeTotalCostA"
-														fill="#ef4444"
+														fill={getChartColors('cumulative', 'A')}
 														name={`${solutionAName} - Cumulative TCO`}
 													/>
 													<Bar
 														dataKey="cumulativeTotalCostB"
-														fill="#06b6d4"
+														fill={getChartColors('cumulative', 'B')}
 														name={`${solutionBName} - Cumulative TCO`}
 													/>
 												</>
@@ -1512,30 +1542,30 @@ function ChartSystem({
 												<>
 													<Bar
 														dataKey="annualOpexA"
-														fill="#3b82f6"
+														fill={getChartColors('opex', 'A')}
 														name="Annual OPEX"
 													/>
 													{!isTcoWithInitialCapex ? (
 														<Bar
 															dataKey="capexAmortizedA"
-															fill="#10b981"
+															fill={getChartColors('capex', 'A')}
 															name="Annual CAPEX (Amortized)"
 														/>
 													) : (
 														<Bar
 															dataKey="initialCapexA"
-															fill="#10b981"
+															fill={getChartColors('capex', 'A')}
 															name="Initial CAPEX"
 														/>
 													)}
 													<Bar
 														dataKey="totalYearlyCostA"
-														fill="#f59e0b"
+														fill={getChartColors('total', 'A')}
 														name="Total Yearly Cost"
 													/>
 													<Bar
 														dataKey="cumulativeTotalCostA"
-														fill="#8b5cf6"
+														fill={getChartColors('cumulative', 'A')}
 														name="Cumulative TCO"
 													/>
 												</>

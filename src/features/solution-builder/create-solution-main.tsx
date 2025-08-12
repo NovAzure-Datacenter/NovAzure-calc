@@ -106,13 +106,7 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 		Array<{ name: string; color: string }>
 	>([]);
 	const [customCalculationCategories, setCustomCalculationCategories] =
-		useState<Array<{ name: string; color: string }>>([
-			{ name: "Global", color: "gray" },
-			{ name: "financial", color: "blue" },
-			{ name: "performance", color: "green" },
-			{ name: "efficiency", color: "yellow" },
-			{ name: "operational", color: "purple" },
-		]);
+		useState<Array<{ name: string; color: string }>>([]); // Empty array - no hardcoded categories
 
 	// Form data state
 	const [formData, setFormData] = useState<CreateSolutionData>({

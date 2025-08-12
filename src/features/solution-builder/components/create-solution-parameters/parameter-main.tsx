@@ -551,7 +551,7 @@ function convertParameterToEditData(parameter: Parameter): ParameterEditData {
 			is_advanced:
 				typeof parameter.user_interface === "string"
 					? false
-					: parameter.user_interface?.is_advanced, || false
+					: parameter.user_interface?.is_advanced || false
 		},
 		output: parameter.output,
 		display_type: parameter.display_type,
@@ -586,7 +586,7 @@ function convertEditDataToParameter(
 		user_interface: {
 			type: editData.user_interface?.type || "input",
 			category: editData.user_interface?.category || "",
-			is_advanced: editData.user_interface?.is_advanced, || false
+			is_advanced: editData.user_interface?.is_advanced || false
 		},
 		output: editData.output,
 		display_type: editData.display_type,

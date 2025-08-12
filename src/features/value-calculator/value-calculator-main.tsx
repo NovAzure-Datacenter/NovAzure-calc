@@ -514,29 +514,7 @@ function TabContent({
 							comparisonMode={comparisonMode}
 							parameterValues={parameterValues}
 						/>
-						{/* <TestResultsSemantics solutionData={fetchedSolutionA || fetchedSolutionB || {
-								solution_name: "No Solution Selected",
-								solution_description: "Please configure a solution to view results",
-								status: "pending",
-								parameters: [],
-								calculations: []
-							}}/> */}
-							{/* <TestResultsWidget solutionData={fetchedSolutionA || fetchedSolutionB || {
-								solution_name: "No Solution Selected",
-								solution_description: "Please configure a solution to view results",
-								status: "pending",
-								parameters: [],
-								calculations: []
-							}}/> */}
-						{/* <TestResultsAIPowered 
-							solutionData={fetchedSolutionA || fetchedSolutionB || {
-								solution_name: "No Solution Selected",
-								solution_description: "Please configure a solution to view results",
-								status: "pending",
-								parameters: [],
-								calculations: []
-							}}
-						/> */}
+		
 					</CardContent>
 				</Card>
 			</TabsContent>

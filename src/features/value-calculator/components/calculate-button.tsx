@@ -276,67 +276,40 @@ export default function CalculateButton({
 				} else {
 					console.log(`${userInterfaceType === "static" ? "Static" : "Not viewable"} parameter "${param.name}" has no valid value`);
 				}
-			}
 
-			const paramObject: any = {
-				name: cleanName,
-				type:
-					userInterfaceType === "static" || userInterfaceType === "not_viewable"
-						? "COMPANY"
-						: "CALCULATION",
-			};
+				const paramObject: any = {
+					name: cleanName,
+					type: "COMPANY",
+				};
 
-			// Only add non-filter parameters to the parameters array
-			if (param.display_type !== "filter") {
-				// Set value for static and not_viewable parameters
-				if (userInterfaceType === "static" || userInterfaceType === "not_viewable") {
-					let paramValue = null;
-
-					// For static parameters, prioritize test_value over filter-based resolution
-					if (param.test_value !== undefined && param.test_value !== null) {
-						const testValue = parseFloat(param.test_value);
-						if (!isNaN(testValue)) {
-							paramValue = testValue;
-						}
-					}
-
-					// If no test_value or it's invalid, try filter-based resolution
-					if (paramValue === null && param.dropdown_options && param.dropdown_options.length > 0) {
-						paramValue = resolveFilterBasedParameter(
-							param,
-							solution.parameters
-						);
-					}
-
-					// If still no value, try direct value
-					if (paramValue === null && param.value !== undefined) {
-						const directValue = parseFloat(param.value);
-						if (!isNaN(directValue)) {
-							paramValue = directValue;
-						}
-					}
-
-					if (paramValue !== null && !isNaN(paramValue)) {
-						paramObject.value = paramValue;
+				// Only add non-filter parameters to the parameters array
+				if (param.display_type !== "filter") {
+					// Set value for static and not_viewable parameters
+					if (numValue !== null && !isNaN(numValue)) {
+						paramObject.value = numValue;
 					} else {
 						console.log(
 							`Company parameter object "${param.name}" has no valid value`
 						);
 					}
-				}
 
-				if (param.formula) {
-					paramObject.formula = cleanFormula(
-						param.formula,
-						parameterNameMapping
+					if (param.formula) {
+						paramObject.formula = cleanFormula(
+							param.formula,
+							parameterNameMapping
+						);
+					}
+
+					parameters.push(paramObject);
+				} else {
+					console.log(
+						`Filter parameter "${param.name}" excluded from parameters array but can be referenced in formulas`
 					);
 				}
-
-				parameters.push(paramObject);
-			} else {
-				console.log(
-					`Filter parameter "${param.name}" excluded from parameters array but can be referenced in formulas`
-				);
+			}
+			// Handle any other parameter types (should be rare)
+			else {
+				console.log(`Unhandled parameter type: ${userInterfaceType} for parameter: ${param.name}`);
 			}
 		});
 

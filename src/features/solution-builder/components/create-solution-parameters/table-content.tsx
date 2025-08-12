@@ -30,7 +30,7 @@ import {
 	X,
 	Plus,
 	Trash,
-	Lock,
+	Circle,
 	ChevronDown,
 } from "lucide-react";
 import {
@@ -1218,10 +1218,10 @@ function ParameterRow({
 							<TooltipProvider>
 								<Tooltip>
 									<TooltipTrigger asChild>
-										<Lock className="h-3 w-3 text-muted-foreground ml-1" />
+										<Circle className="h-3 w-3 text-muted-foreground ml-1" />
 									</TooltipTrigger>
 									<TooltipContent>
-										<p>Unused parameter</p>
+										<p>This parameter is not currently used in any solution</p>
 									</TooltipContent>
 								</Tooltip>
 							</TooltipProvider>
