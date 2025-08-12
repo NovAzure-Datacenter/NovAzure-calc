@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth/next";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import CustomSidebar from "@/components/sidebar/custom-sidebar";
+import { SidebarInset } from "@/components/ui/sidebar";
 
 export default async function DashboardLayout({
 	children,
@@ -18,10 +19,9 @@ export default async function DashboardLayout({
 
 	return (
 		<DashboardClientWrapper>
-			<div className="flex h-screen overflow-hidden">
-				<CustomSidebar />
+			<SidebarInset className="flex h-screen overflow-x-hidden   bg-gradient-to-br from-blue-50 to-sky-50 relative">
 				{children}
-			</div>
+			</SidebarInset>
 		</DashboardClientWrapper>
 	);
 }

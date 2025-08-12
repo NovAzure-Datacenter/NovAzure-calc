@@ -191,133 +191,125 @@ export default function CalculateButton({
 		};
 
 		solution.parameters.forEach((param: any) => {
+			const userInterfaceType =
+				typeof param.user_interface === "string"
+					? param.user_interface
+					: param.user_interface?.type || "input";
+
 			const cleanName = cleanParameterName(param.name);
-			const userInterfaceType = typeof param.user_interface === "string" 
-				? param.user_interface 
-				: param.user_interface?.type || "input";
+			parameterNameMapping.set(param.name, cleanName);
 
+			// Handle USER parameters
 			if (userInterfaceType === "input") {
-				let value = null;
-
-				if (param.display_type === "dropdown") {
-					// First try to resolve based on filter (country selection)
-					value = resolveFilterBasedParameter(param, solution.parameters);
-
-					// If no filter-based resolution, fall back to direct selection
-					if (value === null) {
-						const selectedKey = parameterValues[param.id];
-						if (selectedKey && param.dropdown_options) {
-							const selectedOption = param.dropdown_options.find(
-								(option: any) => option.key === selectedKey
-							);
-							value = selectedOption ? parseFloat(selectedOption.value) : null;
-						}
-					}
-				} else if (param.display_type === "filter") {
-					// For filter parameters, use the selected value directly
-					const rawValue = parameterValues[param.id];
-					value = rawValue !== null && rawValue !== undefined ? rawValue : null;
-					// Don't add filter parameters to inputs - they're only for filtering
-				
-				} else {
-					const rawValue = parameterValues[param.id];
-					value =
-						rawValue !== null && rawValue !== undefined
-							? parseFloat(rawValue)
-							: null;
-				}
-
-				if (value !== null && !isNaN(value)) {
-					// Only add non-filter parameters to inputs
-					if (param.display_type !== "filter") {
-						inputs[cleanName] = value;
-					
-					}
-				}
-			} else if (userInterfaceType === "static" || userInterfaceType === "not_viewable") {
 				let numValue = null;
 
 				// If parameter has dropdown options, try filter-based resolution first
 				if (param.dropdown_options && param.dropdown_options.length > 0) {
-					
 					numValue = resolveFilterBasedParameter(param, solution.parameters);
-					
 				}
 
-				// If no filter resolution or it failed, try direct value
-				if (numValue === null && param.value !== undefined) {
-					const directValue = parseFloat(param.value);
-					if (!isNaN(directValue)) {
-						numValue = directValue;
-					
+				// If no filter resolution or it failed, try user input
+				if (numValue === null && parameterValues[param.id] !== undefined) {
+					const userValue = parseFloat(parameterValues[param.id]);
+					if (!isNaN(userValue)) {
+						numValue = userValue;
+					}
+				}
+
+				// If no user input, try default value
+				if (numValue === null && param.test_value !== undefined) {
+					const defaultValue = parseFloat(param.test_value);
+					if (!isNaN(defaultValue)) {
+						numValue = defaultValue;
 					}
 				}
 
 				if (numValue !== null && !isNaN(numValue)) {
 					inputs[cleanName] = numValue;
-					
+				}
+
+				const paramObject: any = {
+					name: cleanName,
+					type: "USER",
+				};
+
+				if (numValue !== null && !isNaN(numValue)) {
+					paramObject.value = numValue;
+				}
+
+				// Only add non-filter parameters to the parameters array
+				if (param.display_type !== "filter") {
+					parameters.push(paramObject);
+				} else {
+					console.log(
+						`Filter parameter "${param.name}" excluded from parameters array but can be referenced in formulas`
+					);
+				}
+			}
+			// Handle STATIC and NOT_VIEWABLE parameters
+			else if (userInterfaceType === "static" || userInterfaceType === "not_viewable") {
+				let numValue = null;
+
+				// For static parameters, prioritize test_value over filter-based resolution
+				if (param.test_value !== undefined && param.test_value !== null) {
+					const testValue = parseFloat(param.test_value);
+					if (!isNaN(testValue)) {
+						numValue = testValue;
+					}
+				}
+
+				// If no test_value or it's invalid, try filter-based resolution
+				if (numValue === null && param.dropdown_options && param.dropdown_options.length > 0) {
+					numValue = resolveFilterBasedParameter(param, solution.parameters);
+				}
+
+				// If still no value, try direct value
+				if (numValue === null && param.value !== undefined) {
+					const directValue = parseFloat(param.value);
+					if (!isNaN(directValue)) {
+						numValue = directValue;
+					}
+				}
+
+				if (numValue !== null && !isNaN(numValue)) {
+					inputs[cleanName] = numValue;
 				} else {
 					console.log(`${userInterfaceType === "static" ? "Static" : "Not viewable"} parameter "${param.name}" has no valid value`);
 				}
-			}
 
-			const paramObject: any = {
-				name: cleanName,
-				type:
-					userInterfaceType === "input"
-						? "USER"
-						: userInterfaceType === "static" || userInterfaceType === "not_viewable"
-						? "COMPANY"
-						: "CALCULATION",
-			};
+				const paramObject: any = {
+					name: cleanName,
+					type: "COMPANY",
+				};
 
-			// Only add non-filter parameters to the parameters array
-			if (param.display_type !== "filter") {
-				// Set value for static and not_viewable parameters
-				if (userInterfaceType === "static" || userInterfaceType === "not_viewable") {
-					let paramValue = null;
-
-					// If parameter has dropdown options, try filter-based resolution first
-					if (param.dropdown_options && param.dropdown_options.length > 0) {
-						
-						paramValue = resolveFilterBasedParameter(
-							param,
-							solution.parameters
-						);
-						
-					}
-
-					// If no filter resolution or it failed, try direct value
-					if (paramValue === null && param.value !== undefined) {
-						const directValue = parseFloat(param.value);
-						if (!isNaN(directValue)) {
-							paramValue = directValue;
-						
-						}
-					}
-
-					if (paramValue !== null && !isNaN(paramValue)) {
-						paramObject.value = paramValue;
-						
+				// Only add non-filter parameters to the parameters array
+				if (param.display_type !== "filter") {
+					// Set value for static and not_viewable parameters
+					if (numValue !== null && !isNaN(numValue)) {
+						paramObject.value = numValue;
 					} else {
 						console.log(
 							`Company parameter object "${param.name}" has no valid value`
 						);
 					}
-				}
 
-				if (param.formula) {
-					paramObject.formula = cleanFormula(
-						param.formula,
-						parameterNameMapping
+					if (param.formula) {
+						paramObject.formula = cleanFormula(
+							param.formula,
+							parameterNameMapping
+						);
+					}
+
+					parameters.push(paramObject);
+				} else {
+					console.log(
+						`Filter parameter "${param.name}" excluded from parameters array but can be referenced in formulas`
 					);
 				}
-
-				parameters.push(paramObject);
-			} else {
-				console.log(
-					`Filter parameter "${param.name}" excluded from parameters array`
-				);
+			}
+			// Handle any other parameter types (should be rare)
+			else {
+				console.log(`Unhandled parameter type: ${userInterfaceType} for parameter: ${param.name}`);
 			}
 		});
 
@@ -347,9 +339,6 @@ export default function CalculateButton({
 			.filter((item: any) => item.display_result === true)
 			.map((item: any) => cleanParameterName(item.name));
 
-			console.log("INPUTS:", inputs)
-			console.log("PARAMETERS:", parameters)
-			console.log("TARGET:", targetList)
 		return {
 			inputs,
 			parameters,
@@ -364,6 +353,7 @@ export default function CalculateButton({
 		if (!requestBody) {
 			return null;
 		}
+
 
 		try {
 			const response = await fetch("http://localhost:8000/api/v1/calculate", {
@@ -398,7 +388,6 @@ export default function CalculateButton({
 				{}
 			);
 
-			console.log(cleanData)
 
 			return cleanData;
 		} catch (err) {

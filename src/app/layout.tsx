@@ -3,8 +3,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Providers } from "@/components/providers";
-import { SidebarInset } from "@/components/ui/sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import CustomSidebar from "@/components/sidebar/custom-sidebar";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -25,10 +25,9 @@ export default function RootLayout({
 				className={cn("font-sans antialiased h-auto", inter.variable)}
 			>
 				<Providers>
-					<SidebarProvider className="flex ">
-						<SidebarInset>
-							{children}
-							</SidebarInset>
+					<SidebarProvider className="flex h-screen overflow-x-hidden ">
+						<CustomSidebar />
+						{children}
 					</SidebarProvider>
 				</Providers>
 			</body>

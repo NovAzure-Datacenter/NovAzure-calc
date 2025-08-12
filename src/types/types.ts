@@ -7,7 +7,7 @@ export interface Parameter {
 	unit: string;
 	description: string;
 	information: string;
-	user_interface: "input" | "static" | "not_viewable" | {
+	user_interface: {
 		type: "input" | "static" | "not_viewable";
 		category: string;
 		is_advanced: boolean;

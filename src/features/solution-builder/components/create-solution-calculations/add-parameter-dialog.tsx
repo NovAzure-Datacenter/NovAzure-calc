@@ -124,7 +124,7 @@ export function AddParameterDialog({
 								range_max: value,
 							}))
 						}
-						userInterfaceType={newParameterData.user_interface.type}
+						userInterfaceType={newParameterData.user_interface?.type || "input"}
 					/>
 
 					<ParameterTestValueField
@@ -171,7 +171,7 @@ export function AddParameterDialog({
 					/>
 
 					<ParameterProvidedByField
-						value={newParameterData.user_interface.type}
+						value={newParameterData.user_interface?.type || "input"}
 						onChange={(value) =>
 							setNewParameterData((prev) => ({
 								...prev,
@@ -202,7 +202,7 @@ export function AddParameterDialog({
 						disabled={
 							!newParameterData.name.trim() ||
 							!newParameterData.unit.trim() ||
-							(newParameterData.user_interface.type === "static" &&
+							(newParameterData.user_interface?.type === "static" &&
 								((newParameterData.display_type === "simple" && !newParameterData.value.trim()) ||
 								 (newParameterData.display_type === "range" && (!newParameterData.range_min.trim() || !newParameterData.range_max.trim())) ||
 								 (newParameterData.display_type === "dropdown" && newParameterData.dropdown_options.length === 0) ||

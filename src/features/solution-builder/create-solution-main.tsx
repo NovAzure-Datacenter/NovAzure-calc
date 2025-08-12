@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback } from "react";
+import { useCallback } from "react";
 import { useState, useEffect } from "react";
 import { useUser } from "@/hooks/useUser";
 import {
@@ -39,11 +39,8 @@ import {
 	createNewSolutionVariant,
 	createNewClientSolution,
 	updateExistingClientSolution,
-	fetchClientSelectedData,
-	filterTechnologiesByIndustry,
-	getOtherIndustries,
-	getOtherTechnologies,
 } from "./api";
+import ValueMain from "./components/create-solution-valuebuilder/value-main";
 /**
  * CreateSolutionMain component - Main orchestrator for the solution builder feature
  * Manages state, data fetching, and coordinates between different creation steps
@@ -102,12 +99,14 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 		null
 	);
 
+
+
 	// Category states for parameters and calculations
 	const [customParameterCategories, setCustomParameterCategories] = useState<
 		Array<{ name: string; color: string }>
 	>([]);
 	const [customCalculationCategories, setCustomCalculationCategories] =
-		useState<Array<{ name: string; color: string }>>([]);
+		useState<Array<{ name: string; color: string }>>([]); // Empty array - no hardcoded categories
 
 	// Form data state
 	const [formData, setFormData] = useState<CreateSolutionData>({
@@ -142,11 +141,7 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 				setAvailableIndustries(initialData.industries);
 				setAvailableTechnologies(initialData.technologies);
 
-				// Set global parameters
-				setFormData((prev) => ({
-					...prev,
-					parameters: initialData.globalParameters,
-				}));
+	
 			} else {
 				console.error("Error loading client data");
 				toast.error("Failed to load client data");
@@ -316,6 +311,12 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 		if (variantId.startsWith("new-variant-")) {
 			setIsExistingSolutionLoaded(false);
 			setExistingSolutionId(null);
+
+			setFormData((prev) => ({
+				...prev,
+				parameters: [],
+				calculations: []
+			}));
 		}
 
 		if (variantId && !variantId.startsWith("new-variant-")) {
@@ -342,7 +343,12 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 
 	const handleCreateNewVariant = () => {
 		setIsCreatingNewVariant(true);
-		setFormData((prev) => ({ ...prev, selectedSolutionVariantId: "" }));
+		setFormData((prev) => ({ 
+			...prev, 
+			selectedSolutionVariantId: "",
+			parameters: [], 
+			calculations: [] 
+		}));
 		setIsExistingSolutionLoaded(false);
 		setExistingSolutionId(null);
 	};
@@ -375,6 +381,8 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 		setFormData((prev) => ({ ...prev, calculations }));
 	};
 
+
+
 	const handleAddSolutionVariant = (newVariant: any) => {
 		setAvailableSolutionVariants((prev) => [...prev, newVariant]);
 	};
@@ -386,7 +394,8 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 		if (
 			(currentStep === 1 || currentStep === 2) &&
 			formData.selectedSolutionVariantId &&
-			!isExistingSolutionLoaded
+			!isExistingSolutionLoaded &&
+			!formData.selectedSolutionVariantId.startsWith("new-variant-")
 		) {
 			loadExistingSolutionData(formData.selectedSolutionVariantId);
 		}
@@ -701,6 +710,8 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 			case 3:
 				return "Configure Calculations";
 			case 4:
+				return "Configure Value";
+			case 5:
 				return "Review and Submit";
 			default:
 				return "Create Solution";
@@ -716,6 +727,8 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 			case 3:
 				return "Set up calculations and formulas for your solution";
 			case 4:
+				return "Configure the value that will be used in your solution calculations";
+			case 5:
 				return "Review your solution configuration and submit for approval";
 			default:
 				return "Follow the steps to create your solution";
@@ -774,19 +787,7 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 	}
 
 	return (
-		<div className="w-full h-screen flex flex-col  py-2  ">
-			{/* Header */}
-			{/* <div className="text-center space-y-1 flex-shrink-0 p-4">
-				<h1 className="text-2xl font-bold">Create New Solution</h1>
-				<p className="text-sm text-muted-foreground">
-					Follow the steps below to create a new solution for your organization
-				</p>
-			</div> */}
-
-			{/* Progress Steps */}
-			{/* <div className="flex-shrink-0 px-4">
-				<CreateSolutionProgress currentStep={currentStep} />
-			</div> */}
+		<div className="flex flex-col  py-2 h-full">
 
 			{/* Step Content */}
 			<Card className="flex flex-col h-full mx-2 max-w-full py-0 pt-4">
@@ -796,7 +797,7 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 						{getStepDescription()}
 					</CardDescription>
 				</CardHeader>
-				<CardContent className="flex-1 px-2 bg">
+				<CardContent className="flex-1 px-2 h-full">
 					<StepContent
 						currentStep={currentStep}
 						formData={formData}
@@ -840,9 +841,9 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 						getSelectedTechnologyName={getSelectedTechnologyName}
 						getSelectedSolutionType={getSelectedSolutionType}
 						getSelectedSolutionVariant={getSelectedSolutionVariant}
+
 					/>
 				</CardContent>
-
 				{/* Navigation Buttons */}
 				<CardFooter className="p-4 border-t bg-gray-50">
 					<div className="w-full flex flex-row justify-between flex-shrink-0 ">
@@ -857,7 +858,7 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 							Previous
 						</Button>
 
-						{currentStep < 4 ? (
+						{currentStep < 5 ? (
 							<Button
 								onClick={handleNext}
 								disabled={isNextDisabled()}
@@ -939,9 +940,138 @@ function StepContent({
 	getSelectedTechnologyName,
 	getSelectedSolutionType,
 	getSelectedSolutionVariant,
+
 }: StepContentProps) {
+	// Extract used parameter IDs from calculations and nested parameters
+	const extractUsedParameterIds = () => {
+		const usedIds = new Set<string>();
+
+		// Test case: if no calculations, return empty array
+		if (formData.calculations.length === 0) {
+			return [];
+		}
+
+		// Helper function to extract parameter names from a formula
+		const extractParameterNamesFromFormula = (formula: string): string[] => {
+			// Updated regex to capture parameter names with spaces and numbers
+			const parameterMatches = formula.match(/[a-zA-Z_][a-zA-Z0-9_\s]*/g) || [];
+			return parameterMatches.filter(match => {
+				// Skip common mathematical functions and constants
+				const skipWords = ['Math', 'sin', 'cos', 'tan', 'log', 'exp', 'sqrt', 'abs', 'round', 'floor', 'ceil', 'max', 'min', 'pi', 'e', 'self', 'this', 'conditional'];
+				return !skipWords.includes(match);
+			});
+		};
+
+		// Helper function to find ALL parameters by name (case-insensitive search)
+		const findAllParametersByName = (name: string) => {
+			return formData.parameters.filter((param) => {
+				const paramName = param.name.toLowerCase();
+				const searchName = name.toLowerCase();
+				
+				// Direct match
+				if (paramName === searchName) return true;
+				
+				// Cleaned name match (remove special characters but keep spaces)
+				const cleanedParamName = paramName.replace(/[^a-zA-Z0-9_\s]/g, '');
+				const cleanedSearchName = searchName.replace(/[^a-zA-Z0-9_\s]/g, '');
+				if (cleanedParamName === cleanedSearchName) return true;
+				
+				// Handle spaces and underscores
+				const normalizedParamName = paramName.replace(/[\s_]+/g, '_');
+				const normalizedSearchName = searchName.replace(/[\s_]+/g, '_');
+				if (normalizedParamName === normalizedSearchName) return true;
+				
+				// Trim whitespace and compare
+				if (paramName.trim() === searchName.trim()) return true;
+				
+				return false;
+			});
+		};
+
+		// Helper function to find ALL parameters by partial match
+		const findAllParametersByPartialMatch = (name: string) => {
+			return formData.parameters.filter((param) => {
+				const paramName = param.name.toLowerCase();
+				const searchName = name.toLowerCase();
+				
+				// Direct contains match
+				if (paramName.includes(searchName) || searchName.includes(paramName)) return true;
+				
+				// Cleaned name contains match (keep spaces)
+				const cleanedParamName = paramName.replace(/[^a-zA-Z0-9_\s]/g, '');
+				const cleanedSearchName = searchName.replace(/[^a-zA-Z0-9_\s]/g, '');
+				if (cleanedParamName.includes(cleanedSearchName) || cleanedSearchName.includes(cleanedParamName)) return true;
+				
+				// Normalized contains match
+				const normalizedParamName = paramName.replace(/[\s_]+/g, '_');
+				const normalizedSearchName = searchName.replace(/[\s_]+/g, '_');
+				if (normalizedParamName.includes(normalizedSearchName) || normalizedSearchName.includes(normalizedParamName)) return true;
+				
+				// Trim whitespace and compare
+				if (paramName.trim().includes(searchName.trim()) || searchName.trim().includes(paramName.trim())) return true;
+				
+				return false;
+			});
+		};
+
+		// Extract parameter names from all calculation formulas
+		formData.calculations.forEach((calculation) => {
+			const parameterNames = extractParameterNamesFromFormula(calculation.formula);
+
+			parameterNames.forEach((name) => {
+				const matchingParameters = findAllParametersByName(name);
+				const partialMatchingParameters = findAllParametersByPartialMatch(name);
+
+				// Combine all matching parameters and remove duplicates
+				const allMatchingParameters = [...matchingParameters, ...partialMatchingParameters];
+				const uniqueMatchingParameters = allMatchingParameters.filter((param, index, arr) => 
+					arr.findIndex(p => p.id === param.id) === index
+				);
+
+				// Mark all matching parameters as used
+				uniqueMatchingParameters.forEach(matchingParameter => {
+					usedIds.add(matchingParameter.id);
+				});
+			});
+		});
+
+		// NEW: Mark filter parameters as used if they provide values to conditional parameters
+		formData.parameters.forEach((filterParameter) => {
+			if (filterParameter.display_type === "filter" && filterParameter.dropdown_options && Array.isArray(filterParameter.dropdown_options)) {
+				// Check if any conditional parameter uses values from this filter
+				const isUsedInConditional = formData.parameters.some((conditionalParam) => {
+					if (conditionalParam.display_type === "conditional" && conditionalParam.conditional_rules && Array.isArray(conditionalParam.conditional_rules)) {
+						return conditionalParam.conditional_rules.some((rule) => {
+							// Check if the rule's condition or value matches any of the filter's dropdown options
+							return filterParameter.dropdown_options!.some((filterOption) => {
+								const filterValue = filterOption.value || filterOption.key;
+								return rule.condition === filterValue || rule.value === filterValue;
+							});
+						});
+					}
+					return false;
+				});
+
+				if (isUsedInConditional) {
+					usedIds.add(filterParameter.id);
+				}
+			}
+		});
+
+		// NEW: Mark conditional parameters as used when they are added to calculations
+		// Since conditional parameters don't have formulas but are still part of the solution
+		formData.parameters.forEach((parameter) => {
+			if (parameter.display_type === "conditional") {
+				// Mark conditional parameters as used since they're part of the solution
+				usedIds.add(parameter.id);
+			}
+		});
+
+		return Array.from(usedIds);
+	};
+
 	return (
-		<>
+		<div>
 			{/* Step 1: Industry, Technology & Solution Selection */}
 			{currentStep === 1 && (
 				<CreateSolutionFilter
@@ -995,6 +1125,7 @@ function StepContent({
 					availableTechnologies={availableTechnologies}
 					availableSolutionTypes={availableSolutionTypes}
 					isLoadingParameters={isLoadingParameters}
+					usedParameterIds={extractUsedParameterIds()}
 				/>
 			)}
 
@@ -1018,8 +1149,16 @@ function StepContent({
 				/>
 			)}
 
-			{/* Step 4: Review and Submit */}
+			{/* Step 4: Value Configuration */}
 			{currentStep === 4 && (
+				<ValueMain
+					formData={formData}
+					
+				/>
+			)}
+
+			{/* Step 5: Review and Submit */}
+			{currentStep === 5 && (
 				<CreateSolutionSubmit
 					formData={{
 						solutionName: formData.solutionName,
@@ -1040,8 +1179,11 @@ function StepContent({
 					getSelectedSolutionType={getSelectedSolutionType}
 					getSelectedSolutionVariant={getSelectedSolutionVariant}
 					isExistingSolutionLoaded={isExistingSolutionLoaded}
+					unusedParameterIds={formData.parameters
+						.filter(param => !extractUsedParameterIds().includes(param.id))
+						.map(param => param.id)}
 				/>
 			)}
-		</>
+		</div>
 	);
 }
