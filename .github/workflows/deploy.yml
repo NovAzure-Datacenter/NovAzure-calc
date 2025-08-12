@@ -85,11 +85,12 @@ jobs:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           application_name: novazure-vc-mvp
-          environment_name: novazure-mvp
+          environment_name: Novazure-vc-mvp-env
           region: eu-west-2
           deployment_package: deploy.zip
           version_label: ${{ github.sha }}
           wait_for_environment_recovery: 300
+          use_existing_version_if_available: true
 
       - name: Deployment Status
         run: |

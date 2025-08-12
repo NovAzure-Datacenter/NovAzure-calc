@@ -1,8 +1,7 @@
 services:
 
   frontend:
-    build: .
-    container_name: novazure-frontend
+    image: 290767212636.dkr.ecr.eu-west-2.amazonaws.com/novazure-frontend:latest
     environment:
       - MONGODB_URI=${MONGODB_URI}
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
@@ -12,8 +11,7 @@ services:
       - app-network
 
   backend:
-    build: ./backend
-    container_name: novazure-backend
+    image: 290767212636.dkr.ecr.eu-west-2.amazonaws.com/novazure-backend:latest
     ports:
       - 8000:8000
     networks:
@@ -21,7 +19,6 @@ services:
 
   nginx:
     build: ./nginx
-    container_name: novazure-nginx
     ports:
       - 80:80
     depends_on:
