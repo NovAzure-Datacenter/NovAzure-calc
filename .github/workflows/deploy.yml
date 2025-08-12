@@ -91,6 +91,7 @@ jobs:
           deployment_package: deploy.zip
           version_label: ${{ github.sha }}
           wait_for_environment_recovery: 300
+          use_existing_version_if_available: true
 
       - name: Deployment Status
         run: |
