@@ -39,7 +39,6 @@ export const fetchInitialData = async (userId: string) => {
 				clientData: null,
 				industries: [],
 				technologies: [],
-				globalParameters: []
 			};
 		}
 
@@ -53,15 +52,11 @@ export const fetchInitialData = async (userId: string) => {
 		const technologiesResult = await getTechnologies();
 		const technologies = technologiesResult.success ? (technologiesResult.technologies || []) : [];
 
-		// Load global parameters
-		const globalParams = await getAllGlobalParameters();
-		const globalParamCopies = createGlobalParameterCopies(globalParams, []);
 
 		return {
 			clientData,
 			industries,
-			technologies,
-			globalParameters: globalParamCopies
+			technologies
 		};
 	} catch (error) {
 		console.error("Error loading initial data:", error);
@@ -124,11 +119,11 @@ export const fetchExistingSolutionData = async (solutionVariantId: string, clien
 	try {
 		if (!solutionVariantId.startsWith("new-variant-")) {
 			const existingSolutions = await getClientSolutions(clientData.id);
-
 			if (existingSolutions.solutions) {
 				const existingSolution = existingSolutions.solutions.find(
 					(solution) => solution.id === solutionVariantId
 				);
+				console.log("existingSolution", existingSolution)
 
 				if (existingSolution) {
 					// Load global parameters and merge with existing parameters

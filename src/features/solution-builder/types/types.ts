@@ -366,10 +366,8 @@ export const HIDDEN_CATEGORIES = [
 ] as const;
 
 export const CALCULATION_RESERVED_CATEGORY_NAMES = [
-	"financial",
-	"performance",
-	"efficiency",
-	"operational",
+	"capex",
+	"opex",
 ] as const;
 
 export const CALCULATION_HIDDEN_CATEGORIES: string[] = [];

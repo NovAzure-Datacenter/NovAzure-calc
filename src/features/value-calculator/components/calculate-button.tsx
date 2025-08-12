@@ -237,19 +237,24 @@ export default function CalculateButton({
 			} else if (userInterfaceType === "static" || userInterfaceType === "not_viewable") {
 				let numValue = null;
 
-				// If parameter has dropdown options, try filter-based resolution first
-				if (param.dropdown_options && param.dropdown_options.length > 0) {
-					
-					numValue = resolveFilterBasedParameter(param, solution.parameters);
-					
+				// For static parameters, prioritize test_value over filter-based resolution
+				if (param.test_value !== undefined && param.test_value !== null) {
+					const testValue = parseFloat(param.test_value);
+					if (!isNaN(testValue)) {
+						numValue = testValue;
+					}
 				}
 
-				// If no filter resolution or it failed, try direct value
+				// If no test_value or it's invalid, try filter-based resolution
+				if (numValue === null && param.dropdown_options && param.dropdown_options.length > 0) {
+					numValue = resolveFilterBasedParameter(param, solution.parameters);
+				}
+
+				// If still no value, try direct value
 				if (numValue === null && param.value !== undefined) {
 					const directValue = parseFloat(param.value);
 					if (!isNaN(directValue)) {
 						numValue = directValue;
-					
 					}
 				}
 
@@ -277,22 +282,27 @@ export default function CalculateButton({
 				if (userInterfaceType === "static" || userInterfaceType === "not_viewable") {
 					let paramValue = null;
 
-					// If parameter has dropdown options, try filter-based resolution first
-					if (param.dropdown_options && param.dropdown_options.length > 0) {
-						
+					// For static parameters, prioritize test_value over filter-based resolution
+					if (param.test_value !== undefined && param.test_value !== null) {
+						const testValue = parseFloat(param.test_value);
+						if (!isNaN(testValue)) {
+							paramValue = testValue;
+						}
+					}
+
+					// If no test_value or it's invalid, try filter-based resolution
+					if (paramValue === null && param.dropdown_options && param.dropdown_options.length > 0) {
 						paramValue = resolveFilterBasedParameter(
 							param,
 							solution.parameters
 						);
-						
 					}
 
-					// If no filter resolution or it failed, try direct value
+					// If still no value, try direct value
 					if (paramValue === null && param.value !== undefined) {
 						const directValue = parseFloat(param.value);
 						if (!isNaN(directValue)) {
 							paramValue = directValue;
-						
 						}
 					}
 
@@ -347,9 +357,6 @@ export default function CalculateButton({
 			.filter((item: any) => item.display_result === true)
 			.map((item: any) => cleanParameterName(item.name));
 
-			console.log("INPUTS:", inputs)
-			console.log("PARAMETERS:", parameters)
-			console.log("TARGET:", targetList)
 		return {
 			inputs,
 			parameters,
@@ -364,6 +371,7 @@ export default function CalculateButton({
 		if (!requestBody) {
 			return null;
 		}
+
 
 		try {
 			const response = await fetch("http://localhost:8000/api/v1/calculate", {
@@ -398,7 +406,6 @@ export default function CalculateButton({
 				{}
 			);
 
-			console.log(cleanData)
 
 			return cleanData;
 		} catch (err) {

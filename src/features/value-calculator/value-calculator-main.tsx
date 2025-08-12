@@ -72,7 +72,6 @@ export default function ValueCalculatorMain() {
 	const [parameterValues, setParameterValues] = useState<Record<string, any>>(
 		{}
 	);
-
 	// Calculation state
 	const [hasCalculated, setHasCalculated] = useState<boolean>(false);
 	const [resultData, setResultData] = useState<any>(null);
@@ -500,11 +499,9 @@ function TabContent({
 
 			<TabsContent value="comparison" className="space-y-6">
 				<Card className="w-full">
-					<CardHeader>
-						<CardTitle className="text-lg">Comparison</CardTitle>
-					</CardHeader>
+			
 					<CardContent>
-						{/* <ValueCalculatorResults
+						<ValueCalculatorResults
 							hasCalculated={hasCalculated}
 							selectedIndustry={selectedIndustry}
 							selectedTechnology={selectedTechnology}
@@ -515,7 +512,8 @@ function TabContent({
 							fetchedSolutionB={fetchedSolutionB}
 							resultData={resultData}
 							comparisonMode={comparisonMode}
-						/> */}
+							parameterValues={parameterValues}
+						/>
 						{/* <TestResultsSemantics solutionData={fetchedSolutionA || fetchedSolutionB || {
 								solution_name: "No Solution Selected",
 								solution_description: "Please configure a solution to view results",
@@ -523,13 +521,13 @@ function TabContent({
 								parameters: [],
 								calculations: []
 							}}/> */}
-							<TestResultsWidget solutionData={fetchedSolutionA || fetchedSolutionB || {
+							{/* <TestResultsWidget solutionData={fetchedSolutionA || fetchedSolutionB || {
 								solution_name: "No Solution Selected",
 								solution_description: "Please configure a solution to view results",
 								status: "pending",
 								parameters: [],
 								calculations: []
-							}}/>
+							}}/> */}
 						{/* <TestResultsAIPowered 
 							solutionData={fetchedSolutionA || fetchedSolutionB || {
 								solution_name: "No Solution Selected",
@@ -556,6 +554,9 @@ function TabContent({
 							selectedSolution={selectedSolution}
 							solutionVariantA={solutionVariantA}
 							solutionVariantB={solutionVariantB}
+							fetchedSolutionA={fetchedSolutionA}
+							fetchedSolutionB={fetchedSolutionB}
+							comparisonMode={comparisonMode}
 						/>
 					</CardContent>
 				</Card>

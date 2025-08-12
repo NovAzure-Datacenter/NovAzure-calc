@@ -133,10 +133,8 @@ const vibrantColorMap: Record<string, ColorStyle> = {
 
 // Default calculation categories with their colors
 const defaultCalculationCategories: Record<string, string> = {
-	financial: "green",
-	performance: "blue",
-	efficiency: "yellow",
-	operational: "purple",
+	capex: "blue",
+	opex: "green",
 };
 
 export function getCalculationCategoryColorName(
