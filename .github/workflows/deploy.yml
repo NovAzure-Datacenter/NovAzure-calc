@@ -89,7 +89,7 @@ jobs:
           environment_name: Novazure-vc-mvp-env
           region: eu-west-2
           deployment_package: deploy.zip
-          version_label: ${{ github.sha }}
+          version_label: ${{ github.run_number }}-${{ github.sha }}
           wait_for_environment_recovery: 300
           use_existing_version_if_available: false
 
