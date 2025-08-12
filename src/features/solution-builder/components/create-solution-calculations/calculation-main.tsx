@@ -38,7 +38,8 @@ import {
 import { useCalculationValidator } from "./hooks/useCalculationValidator";
 import { useCalculatorLevelManager } from "./hooks/useCalculatorLevelManager";
 import { groupParametersByCategory } from "../../api";
-import { getAllGlobalCalculations, initializeGlobalCalculations } from "@/lib/actions/global-calculations/global-calculations";
+// Remove the global calculations import
+// import { getAllGlobalCalculations, initializeGlobalCalculations } from "@/lib/actions/global-calculations/global-calculations";
 
 /**
  * CalculationMain component
@@ -73,22 +74,9 @@ export function CalculationMain({
 		output: false,
 		display_result: false,
 	});
-	const [availableCategories, setAvailableCategories] = useState<Array<{
-		name: string;
-		color: string;
-	}>>([
-		{
-			name: "capex",
-			color: "bg-green-50 text-green-700 border-green-200"
-		},
-		{
-			name: "opex",
-			color: "bg-blue-50 text-blue-700 border-blue-200"
-		}
-	]);
 
-	// Extract categories from calculations and update available categories
-	useEffect(() => {
+	// Replace the problematic useEffect with useMemo
+	const availableCategories = useMemo(() => {
 		const extractedCategories = new Set<string>();
 		
 		// Add default categories
@@ -109,12 +97,6 @@ export function CalculationMain({
 		
 		// Create category objects with default colors using full Tailwind classes
 		const categoryObjects = Array.from(extractedCategories).map(name => {
-			// Check if we already have this category with a specific color
-			const existingCategory = availableCategories.find(cat => cat.name.toLowerCase() === name.toLowerCase());
-			if (existingCategory) {
-				return existingCategory;
-			}
-			
 			// Default colors for known categories using full Tailwind classes
 			const defaultColors: Record<string, string> = {
 				capex: "bg-green-50 text-green-700 border-green-200",
@@ -135,8 +117,8 @@ export function CalculationMain({
 			};
 		});
 		
-		setAvailableCategories(categoryObjects);
-	}, [calculations, availableCategories]);
+		return categoryObjects;
+	}, [calculations]); // Only recalculate when calculations change
 
 	/**
 	 * Get all available categories including custom ones
@@ -225,9 +207,6 @@ export function CalculationMain({
 		output: false,
 		display_result: false,
 	});
-	// Add loading state for global calculations
-	const [isLoadingGlobalCalculations, setIsLoadingGlobalCalculations] = useState(true);
-	const [hasInitialized, setHasInitialized] = useState(false);
 
 	// Reset form when dialog opens
 	useEffect(() => {
@@ -885,37 +864,8 @@ export function CalculationMain({
 		return filtered;
 	};
 
-	const ensureGlobalCalculations = async () => {
-		try {
-			setIsLoadingGlobalCalculations(true);
-			await initializeGlobalCalculations();
-			const globalCalculations = await getAllGlobalCalculations();
-			
-			const existingCalculationNames = new Set(calculations.map(calc => calc.name));
-			const missingGlobalCalculations = globalCalculations.filter(
-				globalCalc => !existingCalculationNames.has(globalCalc.name)
-			);
-			
-			if (missingGlobalCalculations.length > 0) {
-				const updatedCalculations = [...calculations, ...missingGlobalCalculations];
-				onCalculationsChange(updatedCalculations);
-			}
-			
-			setHasInitialized(true);
-		} catch (error) {
-			console.error("Error ensuring global calculations:", error);
-			toast.error("Failed to load global calculations");
-		} finally {
-			setIsLoadingGlobalCalculations(false);
-		}
-	};
-
-	useEffect(() => {
-		ensureGlobalCalculations();
-	}, [ensureGlobalCalculations]);
-
-	// Combined loading state
-	const isTableLoading = isLoadingCalculations || isLoadingGlobalCalculations || !hasInitialized;
+	// Simplified loading state - only use the prop from parent
+	const isTableLoading = isLoadingCalculations;
 
 	return (
 		<div className="space-y-6 ">
