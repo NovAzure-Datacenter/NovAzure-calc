@@ -142,6 +142,7 @@ export interface StepContentProps
 	getSelectedTechnologyName: () => string;
 	getSelectedSolutionType: () => any;
 	getSelectedSolutionVariant: () => any;
+	onUsedParametersChange?: (usedParameterIds: string[]) => void;
 }
 
 // ============================================================================
@@ -394,6 +395,7 @@ export interface CreateSolutionParametersProps extends CommonSelectionProps {
 	availableTechnologies?: any[];
 	availableSolutionTypes?: any[];
 	isLoadingParameters?: boolean;
+	usedParameterIds?: string[];
 }
 
 export interface ParameterEditData {
@@ -465,6 +467,7 @@ export interface TableContentProps {
 	activeTab: string;
 	columnVisibility: ColumnVisibility;
 	setColumnVisibility: React.Dispatch<React.SetStateAction<ColumnVisibility>>;
+	usedParameterIds?: string[];
 }
 
 export interface ColumnFilterProps {
@@ -512,6 +515,7 @@ export interface ParameterTableBodyProps {
 	) => React.ReactElement | null;
 	expandedRows: Set<string>;
 	toggleRowExpansion: (parameterId: string) => void;
+	usedParameterIds?: string[];
 }
 
 export interface ParameterRowProps {
@@ -543,6 +547,9 @@ export interface ParameterRowProps {
 	) => React.ReactElement | null;
 	expandedRows: Set<string>;
 	toggleRowExpansion: (parameterId: string) => void;
+	usedParameterIds?: string[];
+	isUnused?: boolean;
+	parameters?: Parameter[];
 }
 
 export interface AddParameterRowProps {
@@ -564,6 +571,8 @@ export interface AddParameterRowProps {
 		columnKey?: string,
 		isExpanded?: boolean
 	) => React.ReactElement | null;
+	usedParameterIds?: string[];
+	parameters?: Parameter[];
 }
 
 export interface EmptyStateProps {
@@ -962,6 +971,7 @@ export interface CreateSolutionSubmitProps {
 	getSelectedSolutionType: () => any;
 	getSelectedSolutionVariant: () => any;
 	isExistingSolutionLoaded?: boolean;
+	unusedParameterIds?: string[];
 }
 
 export interface ConfigurationItem {

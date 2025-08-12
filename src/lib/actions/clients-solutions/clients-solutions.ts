@@ -3,6 +3,38 @@
 import { getClientsSolutionsCollection } from "@/lib/mongoDb/db";
 import { ObjectId } from "mongodb";
 
+/**
+ * Helper function to serialize MongoDB documents for client components
+ * Converts _id fields to strings and Date objects to ISO strings
+ */
+function serializeMongoDocument(doc: any): any {
+	if (doc === null || doc === undefined) {
+		return doc;
+	}
+	
+	if (typeof doc === 'object') {
+		if (Array.isArray(doc)) {
+			return doc.map(serializeMongoDocument);
+		}
+		
+		const serialized: any = {};
+		for (const [key, value] of Object.entries(doc)) {
+			if (key === '_id' && value && typeof value === 'object' && 'toString' in value) {
+				serialized[key] = value.toString();
+			} else if (value instanceof Date) {
+				serialized[key] = value.toISOString();
+			} else if (typeof value === 'object' && value !== null) {
+				serialized[key] = serializeMongoDocument(value);
+			} else {
+				serialized[key] = value;
+			}
+		}
+		return serialized;
+	}
+	
+	return doc;
+}
+
 // Cache for client solutions to avoid multiple database calls
 let clientSolutionsCache: { [clientId: string]: any[] } = {};
 let cacheTimestamp: number = 0;
@@ -91,7 +123,10 @@ export async function getClientSolutions(clientId: string): Promise<{
 		const collection = await getClientsSolutionsCollection();
 		const documents = await collection.find({ client_id: clientId }).toArray();
 
-		const solutions = documents.map((doc) => ({
+		// Serialize MongoDB documents to prevent Next.js warnings
+		const serializedDocuments = documents.map(serializeMongoDocument);
+
+		const solutions = serializedDocuments.map((doc) => ({
 			id: doc._id.toString(),
 			client_id: doc.client_id,
 			solution_name: doc.solution_name,
@@ -142,27 +177,30 @@ export async function getClientSolution(solutionId: string): Promise<{
 			return { error: "Solution not found" };
 		}
 
+		// Serialize MongoDB document to prevent Next.js warnings
+		const serializedDocument = serializeMongoDocument(document);
+
 		const solution: ClientSolution = {
-			id: document._id.toString(),
-			client_id: document.client_id,
-			solution_name: document.solution_name,
-			solution_description: document.solution_description,
-			solution_icon: document.solution_icon,
-			industry_id: document.industry_id,
-			technology_id: document.technology_id,
-			selected_solution_id: document.selected_solution_id,
-			selected_solution_variant_id: document.selected_solution_variant_id,
-			is_creating_new_solution: document.is_creating_new_solution,
-			is_creating_new_variant: document.is_creating_new_variant,
-			new_variant_name: document.new_variant_name,
-			new_variant_description: document.new_variant_description,
-			new_variant_icon: document.new_variant_icon,
-			parameters: document.parameters,
-			calculations: document.calculations,
-			status: document.status,
-			created_by: document.created_by,
-			created_at: document.created_at,
-			updated_at: document.updated_at,
+			id: serializedDocument._id.toString(),
+			client_id: serializedDocument.client_id,
+			solution_name: serializedDocument.solution_name,
+			solution_description: serializedDocument.solution_description,
+			solution_icon: serializedDocument.solution_icon,
+			industry_id: serializedDocument.industry_id,
+			technology_id: serializedDocument.technology_id,
+			selected_solution_id: serializedDocument.selected_solution_id,
+			selected_solution_variant_id: serializedDocument.selected_solution_variant_id,
+			is_creating_new_solution: serializedDocument.is_creating_new_solution,
+			is_creating_new_variant: serializedDocument.is_creating_new_variant,
+			new_variant_name: serializedDocument.new_variant_name,
+			new_variant_description: serializedDocument.new_variant_description,
+			new_variant_icon: serializedDocument.new_variant_icon,
+			parameters: serializedDocument.parameters,
+			calculations: serializedDocument.calculations,
+			status: serializedDocument.status,
+			created_by: serializedDocument.created_by,
+			created_at: serializedDocument.created_at,
+			updated_at: serializedDocument.updated_at,
 		};
 
 		return { solution };

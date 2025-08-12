@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import {
 	Dialog,
 	DialogContent,
@@ -46,6 +47,7 @@ export function ParameterMain({
 	availableTechnologies = [],
 	availableSolutionTypes = [],
 	isLoadingParameters = false,
+	usedParameterIds = [],
 }: CreateSolutionParametersProps) {
 	// State management
 	const [editingParameter, setEditingParameter] = useState<string | null>(null);
@@ -91,8 +93,11 @@ export function ParameterMain({
 	};
 
 	const handleSaveParameter = (parameterId: string) => {
-		const validation = validateParameterEditData(editData);
+		// Exclude the current parameter from duplicate check when editing
+		const otherParameters = parameters.filter(p => p.id !== parameterId);
+		const validation = validateParameterEditData(editData, otherParameters);
 		if (!validation.isValid) {
+			toast.error(validation.errorMessage);
 			return;
 		}
 
@@ -128,8 +133,9 @@ export function ParameterMain({
 	};
 
 	const handleSaveNewParameter = () => {
-		const validation = validateParameterEditData(newParameterData);
+		const validation = validateParameterEditData(newParameterData, parameters);
 		if (!validation.isValid) {
+			toast.error(validation.errorMessage);
 			return;
 		}
 
@@ -370,6 +376,7 @@ export function ParameterMain({
 						activeTab={activeTab}
 						columnVisibility={columnVisibility}
 						setColumnVisibility={setColumnVisibility}
+						usedParameterIds={usedParameterIds}
 					/>
 				</>
 			)}
@@ -505,10 +512,10 @@ function getDefaultParameterEditData(): ParameterEditData {
 		unit: "",
 		description: "",
 		information: "",
-		category: "",
+		category: "Global",
 		user_interface: {
 			type: "input",
-			category: "",
+			category: "Global",
 			is_advanced: false,
 		},
 		output: false,
@@ -536,15 +543,15 @@ function convertParameterToEditData(parameter: Parameter): ParameterEditData {
 			type:
 				typeof parameter.user_interface === "string"
 					? (parameter.user_interface as "input" | "static" | "not_viewable")
-					: parameter.user_interface.type,
+					: parameter.user_interface?.type || "input",
 			category:
 				typeof parameter.user_interface === "string"
 					? parameter.category.name
-					: parameter.user_interface.category,
+					: parameter.user_interface?.category || "",
 			is_advanced:
 				typeof parameter.user_interface === "string"
 					? false
-					: parameter.user_interface.is_advanced,
+					: parameter.user_interface?.is_advanced, || false
 		},
 		output: parameter.output,
 		display_type: parameter.display_type,
@@ -577,9 +584,9 @@ function convertEditDataToParameter(
 			color: categoryColor,
 		},
 		user_interface: {
-			type: editData.user_interface.type,
-			category: editData.user_interface.category,
-			is_advanced: editData.user_interface.is_advanced,
+			type: editData.user_interface?.type || "input",
+			category: editData.user_interface?.category || "",
+			is_advanced: editData.user_interface?.is_advanced, || false
 		},
 		output: editData.output,
 		display_type: editData.display_type,
@@ -596,17 +603,30 @@ function convertEditDataToParameter(
  */
 function validateParameterEditData(
 	editData: ParameterEditData
-): ParameterValidationResult {
+, existingParameters: Parameter[] = []): ParameterValidationResult {
 	// Basic validation - check required fields
-	if (!editData.name.trim() || !editData.unit.trim()) {
+	if (!editData.name.trim() || !editData.unit.trim() || !editData.category.trim()) {
 		return {
 			isValid: false,
-			errorMessage: "Name and unit are required fields.",
+			errorMessage: "Name, unit, and category are required fields."
+		};
+	}
+
+	// Check for duplicate parameter names (case-insensitive)
+	const normalizedNewName = editData.name.trim().toLowerCase();
+	const hasDuplicate = existingParameters.some(param => 
+		param.name.toLowerCase() === normalizedNewName
+	);
+	
+	if (hasDuplicate) {
+		return {
+			isValid: false,
+			errorMessage: `A parameter named "${editData.name.trim()}" already exists.`,
 		};
 	}
 
 	// Additional validation for static parameters
-	if (editData.user_interface.type === "static") {
+		if (editData.user_interface?.type === "static") {
 		if (editData.display_type === "simple" && !editData.value.trim()) {
 			return {
 				isValid: false,
@@ -702,9 +722,9 @@ function getFilteredParameters(
 			param.unit.toLowerCase().includes(searchQuery.toLowerCase()) ||
 			(typeof param.user_interface === "string"
 				? (param.user_interface as string).toLowerCase().includes(searchQuery.toLowerCase())
-				: param.user_interface.type
-						.toLowerCase()
-						.includes(searchQuery.toLowerCase())) ||
+				: param.user_interface?.type
+						?.toLowerCase()
+						.includes(searchQuery.toLowerCase()) || false) ||
 			param.output.toString().toLowerCase().includes(searchQuery.toLowerCase());
 
 		return tabFiltered && searchFiltered;
