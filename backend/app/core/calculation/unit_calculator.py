@@ -9,6 +9,9 @@ class UnitCalculator:
     def __init__(self):
         self.ureg = pint.UnitRegistry()
 
+        self.ureg.define('dollar = [currency] = $')
+        self.ureg.define('euro = [currency] = €')
+
     @staticmethod
     def calculate_unit(ast_node, context: Dict[str, "Parameter"]) -> Optional[str]:
         calculator = UnitCalculator()
@@ -24,6 +27,9 @@ class UnitCalculator:
 
                 if unit_str == None or unit_str == "":
                     return None
+
+                if unit_str == "$":
+                    return "dollar"
 
                 try:
                     unit = self.ureg(unit_str)

@@ -99,6 +99,8 @@ class TestCalculator:
         assert result["result"] == [16.0, 48.0, 3.0]
 
     def test_unit_calculation(self):
+        """Test all types of unit calculations"""
+
         # Test simple same unit addition
         parameter_dicts = [
             {"name": "x", "type": "INPUT", "unit": "MW"},
@@ -129,6 +131,23 @@ class TestCalculator:
 
         with pytest.raises(ValueError, match="Incompatible units for add: 'MW' and 'kWh'"):
             calculator.param_map["result"].resolve_unit(calculator.param_map)
+
+        # Test
+        parameter_dicts = [
+            {"name": "nameplate", "type": "INPUT", "unit": "kW"},
+            {"name": "cooler_capacity", "type": "COMPANY", "value": "800", "unit": "kW"},
+            {"name": "cooler_capex", "type": "COMPANY", "value": "131100","unit": "$"},
+            {"name": "result", "type": "CALCULATION", "formula": "((nameplate/cooler_capacity)+1)*cooler_capex/nameplate"},
+        ]
+
+        parameters = [Parameter(param) for param in parameter_dicts]
+        inputs = {"nameplate": 5000.0}
+        calculator = Calculator(parameters, inputs)
+
+        calculator.param_map["result"].resolve_unit(calculator.param_map)
+        result = calculator.evaluate(["result"])
+
+        assert result["result"] == [190.095]
 
     def test_error_handling(self):
         # Test undefined Parameter dependency

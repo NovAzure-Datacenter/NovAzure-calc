@@ -32,14 +32,14 @@ class Parameter:
     def resolve_unit(self, context: dict[str, "Parameter"]):
         if self.unit_resolved:
             return self.unit
-        
+
         if self.type in ["COMPANY", "GLOBAL", "USER"]:
             pass
 
         elif self.type == "CALCULATION":
             from .unit_calculator import UnitCalculator
             self.unit = UnitCalculator.calculate_unit(self.ast, context)
-        
+
         self.unit_resolved = True
         return self.unit
 
@@ -84,6 +84,8 @@ class Parameter:
         op_type = node["type"]
 
         if op_type == "Add":
+            print("left: ", node["left"], context)
+            print("left: ", node["right"], context)
             return self._evaluate_ast(node["left"], context) + self._evaluate_ast(node["right"], context)
 
         elif op_type == "Subtract":
