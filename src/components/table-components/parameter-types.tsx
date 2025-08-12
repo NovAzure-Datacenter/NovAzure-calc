@@ -447,24 +447,29 @@ export function RangeInputEditor({
 }) {
 	return (
 		<div className="space-y-2">
-			<div className="flex items-center gap-2">
-				<Input
-					value={rangeMin}
-					onChange={(e) => onRangeChange("range_min", e.target.value)}
-					className="h-7 text-xs"
-					placeholder="Min"
-					type="number"
-					step="any"
-				/>
-				<span className="text-xs text-muted-foreground">to</span>
-				<Input
-					value={rangeMax}
-					onChange={(e) => onRangeChange("range_max", e.target.value)}
-					className="h-7 text-xs"
-					placeholder="Max"
-					type="number"
-					step="any"
-				/>
+			<div className="space-y-1">
+				<div className="flex items-center gap-2">
+					<span className="text-xs text-muted-foreground font-medium">Min:</span>
+					<Input
+						value={rangeMin}
+						onChange={(e) => onRangeChange("range_min", e.target.value)}
+						className="h-8 text-sm flex-1"
+						placeholder="Min"
+						type="number"
+						step="any"
+					/>
+				</div>
+				<div className="flex items-center gap-2">
+					<span className="text-xs text-muted-foreground font-medium">Max:</span>
+					<Input
+						value={rangeMax}
+						onChange={(e) => onRangeChange("range_max", e.target.value)}
+						className="h-8 text-sm flex-1"
+						placeholder="Max"
+						type="number"
+						step="any"
+					/>
+				</div>
 			</div>
 		</div>
 	);

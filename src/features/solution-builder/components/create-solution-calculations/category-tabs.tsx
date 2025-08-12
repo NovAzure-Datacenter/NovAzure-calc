@@ -31,6 +31,65 @@ import {
 	CALCULATION_HIDDEN_CATEGORIES,
 } from "../../types/types";
 
+// Import the vibrant color map for the color selector
+const vibrantColorMap: Record<string, { backgroundColor: string; color: string; borderColor: string }> = {
+	red: {
+		backgroundColor: "#dc2626",
+		color: "#ffffff",
+		borderColor: "#dc2626",
+	},
+	blue: {
+		backgroundColor: "#2563eb",
+		color: "#ffffff",
+		borderColor: "#2563eb",
+	},
+	green: {
+		backgroundColor: "#16a34a",
+		color: "#ffffff",
+		borderColor: "#16a34a",
+	},
+	yellow: {
+		backgroundColor: "#ca8a04",
+		color: "#ffffff",
+		borderColor: "#ca8a04",
+	},
+	purple: {
+		backgroundColor: "#9333ea",
+		color: "#ffffff",
+		borderColor: "#9333ea",
+	},
+	orange: {
+		backgroundColor: "#ea580c",
+		color: "#ffffff",
+		borderColor: "#ea580c",
+	},
+	pink: {
+		backgroundColor: "#db2777",
+		color: "#ffffff",
+		borderColor: "#db2777",
+	},
+	teal: {
+		backgroundColor: "#0d9488",
+		color: "#ffffff",
+		borderColor: "#0d9488",
+	},
+	indigo: {
+		backgroundColor: "#4f46e5",
+		color: "#ffffff",
+		borderColor: "#4f46e5",
+	},
+	cyan: {
+		backgroundColor: "#0891b2",
+		color: "#ffffff",
+		borderColor: "#0891b2",
+	},
+	gray: {
+		backgroundColor: "#6b7280",
+		color: "#ffffff",
+		borderColor: "#6b7280",
+	},
+};
+
 /**
  * CalculationCategoryTabs component - Main component for calculation category management
  * Provides tabs for different calculation categories with add/remove functionality
@@ -194,9 +253,9 @@ function CalculationCategoryTabsList({
 		);
 	};
 
-	// Filter categories to exclude hidden ones
+	// Filter categories to exclude hidden ones and "all" category
 	const visibleCategories = allCategories.filter(
-		(category) => !isHiddenCategory(category)
+		(category) => !isHiddenCategory(category) && category !== "all"
 	);
 
 	return (
@@ -209,25 +268,39 @@ function CalculationCategoryTabsList({
 					All
 				</TabsTrigger>
 
-				{/* Show visible categories */}
-				{visibleCategories.map((category) => {
-					const isCustomCategory = customCategories.some(
-						(cat) => cat.name === category
-					);
-					const isActive = activeTab === category;
+				{/* Show "required" tab right after "all" */}
+				{allCategories.includes("required") && (
+					<CalculationCategoryTab
+						category="required"
+						isActive={activeTab === "required"}
+						isCustomCategory={false}
+						onRemove={() => {}} // Required category cannot be removed
+						getCategoryStyle={getCategoryStyleWrapper}
+						getActiveTabStyle={getActiveTabStyleWrapper}
+					/>
+				)}
 
-					return (
-						<CalculationCategoryTab
-							key={category}
-							category={category}
-							isActive={isActive}
-							isCustomCategory={isCustomCategory}
-							onRemove={handleRemoveCategory}
-							getCategoryStyle={getCategoryStyleWrapper}
-							getActiveTabStyle={getActiveTabStyleWrapper}
-						/>
-					);
-				})}
+				{/* Show other visible categories (excluding "required" since it's handled above) */}
+				{visibleCategories
+					.filter(category => category.toLowerCase() !== "required")
+					.map((category) => {
+						const isCustomCategory = customCategories.some(
+							(cat) => cat.name === category
+						);
+						const isActive = activeTab === category;
+
+						return (
+							<CalculationCategoryTab
+								key={category}
+								category={category}
+								isActive={isActive}
+								isCustomCategory={isCustomCategory}
+								onRemove={handleRemoveCategory}
+								getCategoryStyle={getCategoryStyleWrapper}
+								getActiveTabStyle={getActiveTabStyleWrapper}
+							/>
+						);
+					})}
 
 				<Button
 					variant="outline"
@@ -387,8 +460,7 @@ function AddCalculationCategoryDialog({
 					<DialogDescription>
 						Create a new calculation category to organize your calculations.
 						<br />
-						<strong>Note:</strong> &ldquo;Financial&rdquo;, &ldquo;Performance&rdquo;, &ldquo;Efficiency&rdquo;,
-						and &ldquo;Operational&rdquo; are reserved names and cannot be used.
+						<strong>Note:</strong> &ldquo;CAPEX&rdquo; and &ldquo;OPEX&rdquo; are reserved names and cannot be used.
 					</DialogDescription>
 				</DialogHeader>
 				<div className="grid gap-4 py-4">
@@ -420,6 +492,9 @@ function AddCalculationCategoryDialog({
 								}
 								availableColors={categoryColors}
 							/>
+							<p className="text-xs text-muted-foreground mt-2">
+								Selected: <span className="font-medium capitalize">{newCategoryData.color}</span>
+							</p>
 						</div>
 					</div>
 				</div>
@@ -473,19 +548,28 @@ function CategoryColorSelector({
 	availableColors,
 }: CategoryColorSelectorProps) {
 	return (
-		<div className="flex gap-2">
-			{availableColors.map((color) => (
-				<button
-					key={color}
-					type="button"
-					onClick={() => onColorSelect(color)}
-					className={`w-6 h-6 rounded-full bg-${color}-500 transition-all duration-200 hover:scale-110 ${
-						selectedColor === color
-							? "ring-2 ring-black ring-offset-2"
-							: ""
-					}`}
-				/>
-			))}
+		<div className="flex gap-2 flex-wrap">
+			{availableColors.map((color) => {
+				const colorStyle = vibrantColorMap[color] || vibrantColorMap.gray;
+				const isSelected = selectedColor === color;
+				
+				return (
+					<button
+						key={color}
+						type="button"
+						onClick={() => onColorSelect(color)}
+						className={`w-8 h-8 rounded-full transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+							isSelected ? 'ring-2 ring-black ring-offset-2' : ''
+						}`}
+						style={{
+							backgroundColor: colorStyle.backgroundColor,
+							border: isSelected ? "3px solid #000000" : "2px solid transparent",
+							boxShadow: isSelected ? "0 0 0 2px #ffffff" : "none",
+						}}
+						title={`${color.charAt(0).toUpperCase() + color.slice(1)}${isSelected ? ' (Selected)' : ''}`}
+					/>
+				);
+			})}
 		</div>
 	);
 }

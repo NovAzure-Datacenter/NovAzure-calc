@@ -255,7 +255,7 @@ export default function CalculateButton({
 					numValue = resolveFilterBasedParameter(param, solution.parameters);
 				}
 
-				// If no filter resolution or it failed, try direct value
+				// If still no value, try direct value
 				if (numValue === null && param.value !== undefined) {
 					const directValue = parseFloat(param.value);
 					if (!isNaN(directValue)) {
@@ -302,17 +302,24 @@ export default function CalculateButton({
 
 					if (paramValue !== null && !isNaN(paramValue)) {
 						paramObject.value = paramValue;
+
 					} else {
 						console.log(
 							`Company parameter object "${param.name}" has no valid value`
 						);
 					}
-				}
 
-				if (param.formula) {
-					paramObject.formula = cleanFormula(
-						param.formula,
-						parameterNameMapping
+					if (param.formula) {
+						paramObject.formula = cleanFormula(
+							param.formula,
+							parameterNameMapping
+						);
+					}
+
+					parameters.push(paramObject);
+				} else {
+					console.log(
+						`Filter parameter "${param.name}" excluded from parameters array but can be referenced in formulas`
 					);
 				}
 
@@ -350,9 +357,6 @@ export default function CalculateButton({
 			.filter((item: any) => item.display_result === true)
 			.map((item: any) => cleanParameterName(item.name));
 
-			console.log("INPUTS:", inputs)
-			console.log("PARAMETERS:", parameters)
-			console.log("TARGET:", targetList)
 		return {
 			inputs,
 			parameters,
@@ -367,6 +371,7 @@ export default function CalculateButton({
 		if (!requestBody) {
 			return null;
 		}
+
 
 		try {
 			const response = await fetch("http://localhost:8000/api/v1/calculate", {
@@ -401,7 +406,6 @@ export default function CalculateButton({
 				{}
 			);
 
-			console.log(cleanData)
 
 			return cleanData;
 		} catch (err) {

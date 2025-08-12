@@ -19,6 +19,14 @@ import {
 	ColorVariant,
 	SolutionVariantSelectorProps,
 } from "../types/types";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
+import { Info } from "lucide-react";
 
 /**
  * ValueCalculatorConfiguration component - Main configuration interface for the value calculator
@@ -809,18 +817,395 @@ function GlobalConfigurationSection({
 	parameterValues: Record<string, any>;
 	handleParameterValueChange: (parameterId: string, value: any) => void;
 }) {
+	// Get parameters from the fetched solutions
+	const getParameters = () => {
+		if (comparisonMode === "single" && fetchedSolutionA) {
+			return fetchedSolutionA.parameters || [];
+		} else if (comparisonMode === "compare" && fetchedSolutionA && fetchedSolutionB) {
+			// For comparison mode, combine parameters from both solutions
+			const paramsA = fetchedSolutionA.parameters || [];
+			const paramsB = fetchedSolutionB.parameters || [];
+			// Merge parameters, avoiding duplicates
+			const allParams = [...paramsA];
+			paramsB.forEach(paramB => {
+				if (!allParams.find(paramA => paramA.id === paramB.id)) {
+					allParams.push(paramB);
+				}
+			});
+			return allParams;
+		}
+		return [];
+	};
+
+	const parameters = getParameters();
+	
+	// Filter parameters that are provided by user (input) or static
+	const userParameters = parameters.filter(param => 
+		param.user_interface?.type === "input" || param.user_interface?.type === "static"
+	);
+
+
+	/**
+	 * Handle parameter value changes with unit conversion
+	 */
+	const handleParameterValueChangeWithConversion = (parameterId: string, value: any) => {
+		// Find the parameter to check if it has percentage unit
+		const parameter = parameters.find((p: any) => p.id === parameterId);
+		
+		let convertedValue = value;
+		
+		// If parameter has percentage unit, convert from display value (0-100) to calculation value (0-1)
+		if (parameter?.unit === "%" && value !== "") {
+			convertedValue = parseFloat(value) / 100;
+		}
+		
+		handleParameterValueChange(parameterId, convertedValue);
+	};
+
+	/**
+	 * Get display value for parameter (converts calculation value to display value for percentage units)
+	 */
+	const getDisplayValue = (parameterId: string) => {
+		const parameter = parameters.find((p: any) => p.id === parameterId);
+		const currentValue = parameterValues[parameterId];
+		
+		// If parameter has percentage unit and has a value, convert from calculation value (0-1) to display value (0-100)
+		if (parameter?.unit === "%" && currentValue !== undefined && currentValue !== "") {
+			return (parseFloat(currentValue) * 100).toString();
+		}
+		
+		return currentValue || "";
+	};
+
 	return (
 		<div className="space-y-6">
-			<GlobalConfigCard
-				comparisonMode={comparisonMode}
-				solutionVariantA={solutionVariantA}
-				solutionVariantB={solutionVariantB}
-				clientSolutions={clientSolutions}
-				fetchedSolutionA={fetchedSolutionA}
-				fetchedSolutionB={fetchedSolutionB}
-				parameterValues={parameterValues}
-				handleParameterValueChange={handleParameterValueChange}
-			/>
+			{/* Basic Parameters Configuration */}
+			<Card className="w-full border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200">
+				<CardHeader className="pb-4 pt-6 px-6">
+					<CardTitle className="text-lg font-medium text-gray-900">Basic Parameters Configuration</CardTitle>
+				</CardHeader>
+				<CardContent className="px-6 pb-6">
+					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+						{userParameters
+							.filter(param => !param.user_interface?.is_advanced)
+							.map((parameter) => (
+							<div key={parameter.id} className="space-y-3">
+								<div className="flex items-center gap-2">
+									<Label className="text-sm font-medium text-gray-700">{parameter.name}</Label>
+									{parameter.information && (
+										<TooltipProvider>
+											<Tooltip>
+												<TooltipTrigger asChild>
+													<Badge variant="outline" className="h-5 px-2 text-xs cursor-help border-gray-300 text-gray-600 hover:bg-gray-50">
+														<Info className="h-3 w-3" />
+													</Badge>
+												</TooltipTrigger>
+												<TooltipContent className="max-w-xs">
+													<p className="text-sm">{parameter.information}</p>
+												</TooltipContent>
+											</Tooltip>
+										</TooltipProvider>
+									)}
+								</div>
+								<div className="space-y-2">
+									{parameter.user_interface?.type === "static" ? (
+										<div className="space-y-2">
+											<Label className="text-xs text-gray-500">
+												{parameter.description || parameter.name}
+											</Label>
+											<div className="w-full p-3 border border-gray-300 rounded-lg text-sm bg-gray-50 text-gray-600 select-none pointer-events-none">
+												{parameter.test_value || parameter.default_value || "No value set"}
+											</div>
+										</div>
+									) : parameter.display_type === "dropdown" || parameter.display_type === "filter" ? (
+										<div className="space-y-2">
+											<Label className="text-xs text-gray-500">
+												Select {parameter.name}{parameter.unit === "%" ? " (%)" : ""}:
+											</Label>
+											<Select 
+												value={getDisplayValue(parameter.id)} 
+												onValueChange={(value) => handleParameterValueChangeWithConversion(parameter.id, value)}
+											>
+												<SelectTrigger className="w-full h-10 border-gray-300 bg-white text-gray-900 hover:border-gray-400 focus:border-gray-500">
+													<SelectValue placeholder={`Select an option for ${parameter.name}`} />
+												</SelectTrigger>
+												<SelectContent>
+													{parameter.dropdown_options && parameter.dropdown_options.map((option: any, index: number) => (
+														<SelectItem key={index} value={option.value || option.key || `option-${index}`}>
+															{option.value || option.key || `Option ${index + 1}`}
+														</SelectItem>
+													))}
+												</SelectContent>
+											</Select>
+										</div>
+									) : parameter.display_type === "range" ? (
+										<div className="space-y-2">
+											<Label className="text-xs text-gray-500">
+												{parameter.description || `Enter ${parameter.name}`}{parameter.unit === "%" ? " (%)" : ""}
+											</Label>
+											<input 
+												type="number" 
+												className="w-full p-3 border border-gray-300 rounded-lg text-sm h-10 bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 focus:border-gray-500"
+												placeholder={`Enter value between ${parameter.unit === "%" ? (parameter.range_min ? (parseFloat(parameter.range_min) * 100) : '0') : parameter.range_min || '0'} and ${parameter.unit === "%" ? (parameter.range_max ? (parseFloat(parameter.range_max) * 100) : '∞') : parameter.range_max || '∞'}${parameter.unit === "%" ? "%" : ""}`}
+												min={parameter.unit === "%" ? (parameter.range_min ? parseFloat(parameter.range_min) * 100 : 0) : parameter.range_min}
+												max={parameter.unit === "%" ? (parameter.range_max ? parseFloat(parameter.range_max) * 100 : 100) : parameter.range_max}
+												step="any"
+												value={getDisplayValue(parameter.id)}
+												onChange={(e) => handleParameterValueChangeWithConversion(parameter.id, e.target.value)}
+												onKeyDown={(e) => {
+													// Prevent typing if the value would exceed min/max
+													const input = e.target as HTMLInputElement;
+													const value = input.value;
+													const key = e.key;
+													
+													// Allow navigation keys
+													if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter'].includes(key)) {
+														return;
+													}
+													
+													// Allow decimal point only once
+													if (key === '.' && !value.includes('.')) {
+														return;
+													}
+													
+													// Allow only numbers
+													if (!/^\d$/.test(key)) {
+														e.preventDefault();
+														return;
+													}
+													
+													// Check if adding this digit would exceed max
+													const newValue = value + key;
+													const maxValue = parameter.unit === "%" ? (parameter.range_max ? parseFloat(parameter.range_max) * 100 : 100) : parameter.range_max;
+													if (maxValue !== undefined && parseFloat(newValue) > parseFloat(maxValue.toString())) {
+														e.preventDefault();
+													}
+												}}
+												onBlur={(e) => {
+													// Enforce min/max on blur
+													const input = e.target as HTMLInputElement;
+													const value = parseFloat(input.value);
+													const minValue = parameter.unit === "%" ? (parameter.range_min ? parseFloat(parameter.range_min) * 100 : 0) : parameter.range_min;
+													const maxValue = parameter.unit === "%" ? (parameter.range_max ? parseFloat(parameter.range_max) * 100 : 100) : parameter.range_max;
+													
+													if (minValue !== undefined && value < parseFloat(minValue.toString())) {
+														input.value = minValue.toString();
+														handleParameterValueChangeWithConversion(parameter.id, minValue.toString());
+													} else if (maxValue !== undefined && value > parseFloat(maxValue.toString())) {
+														input.value = maxValue.toString();
+														handleParameterValueChangeWithConversion(parameter.id, maxValue.toString());
+													}
+												}}
+											/>
+											{parameter.range_min && parameter.range_max && (
+												<div className="text-xs text-gray-500">
+													Range: {parameter.unit === "%" ? (parseFloat(parameter.range_min) * 100) : parameter.range_min} - {parameter.unit === "%" ? (parseFloat(parameter.range_max) * 100) : parameter.range_max}{parameter.unit === "%" ? "%" : ""}
+												</div>
+											)}
+										</div>
+									) : parameter.display_type === "simple" ? (
+										<div className="space-y-2">
+											<Label className="text-xs text-gray-500">
+												{parameter.description || `Enter ${parameter.name}`}{parameter.unit === "%" ? " (%)" : ""}
+											</Label>
+											<input 
+												type="text" 
+												className="w-full p-3 border border-gray-300 rounded-lg text-sm h-10 bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 focus:border-gray-500"
+												placeholder={`Enter ${parameter.name}${parameter.unit === "%" ? " (%)" : ""}`}
+												value={getDisplayValue(parameter.id)}
+												onChange={(e) => handleParameterValueChangeWithConversion(parameter.id, e.target.value)}
+											/>
+										</div>
+									) : (
+										<div className="space-y-2">
+											<Label className="text-xs text-gray-500">
+												{parameter.description || `Enter ${parameter.name}`}{parameter.unit === "%" ? " (%)" : ""}
+											</Label>
+											<input 
+												type="number" 
+												className="w-full p-3 border border-gray-300 rounded-lg text-sm h-10 bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 focus:border-gray-500"
+												placeholder={`Enter ${parameter.name}${parameter.unit === "%" ? " (%)" : ""}`}
+												value={getDisplayValue(parameter.id)}
+												onChange={(e) => handleParameterValueChangeWithConversion(parameter.id, e.target.value)}
+											/>
+										</div>
+									)}
+								</div>
+							</div>
+						))}
+					</div>
+					
+					{userParameters.filter(param => !param.user_interface?.is_advanced).length === 0 && (
+						<div className="text-center py-8 text-gray-500">
+							<p>No basic parameters to configure</p>
+						</div>
+					)}
+				</CardContent>
+			</Card>
+
+			{/* Advanced Parameters Configuration */}
+			{userParameters.some(param => param.user_interface?.is_advanced) && (
+				<Card className="w-full border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200">
+					<CardHeader className="pb-4 pt-6 px-6">
+						<CardTitle className="text-lg font-medium text-gray-900">Advanced Parameters Configuration</CardTitle>
+					</CardHeader>
+					<CardContent className="px-6 pb-6">
+						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+							{userParameters
+								.filter(param => param.user_interface?.is_advanced)
+								.map((parameter) => (
+								<div key={parameter.id} className="space-y-3">
+									<div className="flex items-center gap-2">
+										<Label className="text-sm font-medium text-gray-700">{parameter.name}</Label>
+										{parameter.information && (
+											<TooltipProvider>
+												<Tooltip>
+													<TooltipTrigger asChild>
+														<Badge variant="outline" className="h-5 px-2 text-xs cursor-help border-gray-300 text-gray-600 hover:bg-gray-50">
+															<Info className="h-3 w-3" />
+														</Badge>
+													</TooltipTrigger>
+													<TooltipContent>
+														<p>{parameter.information}</p>
+													</TooltipContent>
+												</Tooltip>
+											</TooltipProvider>
+										)}
+									</div>
+									<div className="space-y-2">
+										{parameter.user_interface?.type === "static" ? (
+											<div className="space-y-2">
+												<Label className="text-xs text-gray-500">
+													{parameter.description || parameter.name}
+												</Label>
+												<div className="w-full p-3 border border-gray-300 rounded-lg text-sm bg-gray-50 text-gray-600 select-none pointer-events-none">
+													{parameter.test_value || parameter.default_value || "No value set"}
+												</div>
+											</div>
+										) : parameter.display_type === "dropdown" || parameter.display_type === "filter" ? (
+											<div className="space-y-2">
+												<Label className="text-xs text-gray-500">Select {parameter.name}{parameter.unit === "%" ? " (%)" : ""}:</Label>
+												<Select 
+													value={getDisplayValue(parameter.id)} 
+													onValueChange={(value) => handleParameterValueChangeWithConversion(parameter.id, value)}
+												>
+													<SelectTrigger className="w-full h-10 border-gray-300 bg-white text-gray-900 hover:border-gray-400 focus:border-gray-500">
+														<SelectValue placeholder={`Select an option for ${parameter.name}`} />
+													</SelectTrigger>
+													<SelectContent>
+														{parameter.dropdown_options && parameter.dropdown_options.map((option: any, index: number) => (
+															<SelectItem key={index} value={option.value || option.key || `option-${index}`}>
+																{option.value || option.key || `Option ${index + 1}`}
+															</SelectItem>
+														))}
+													</SelectContent>
+												</Select>
+											</div>
+										) : parameter.display_type === "range" ? (
+											<div className="space-y-2">
+												<Label className="text-xs text-gray-500">
+													{parameter.description || `Enter ${parameter.name}`}{parameter.unit === "%" ? " (%)" : ""}
+												</Label>
+												<input 
+													type="number" 
+													className="w-full p-3 border border-gray-300 rounded-lg text-sm h-10 bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 focus:border-gray-500"
+													placeholder={`Enter value between ${parameter.unit === "%" ? (parameter.range_min ? (parseFloat(parameter.range_min) * 100) : '0') : parameter.range_min || '0'} and ${parameter.unit === "%" ? (parameter.range_max ? (parseFloat(parameter.range_max) * 100) : '∞') : parameter.range_max || '∞'}${parameter.unit === "%" ? "%" : ""}`}
+													min={parameter.unit === "%" ? (parameter.range_min ? parseFloat(parameter.range_min) * 100 : 0) : parameter.range_min}
+													max={parameter.unit === "%" ? (parameter.range_max ? parseFloat(parameter.range_max) * 100 : 100) : parameter.range_max}
+													step="any"
+													value={getDisplayValue(parameter.id)}
+													onChange={(e) => handleParameterValueChangeWithConversion(parameter.id, e.target.value)}
+													onKeyDown={(e) => {
+														// Prevent typing if the value would exceed min/max
+														const input = e.target as HTMLInputElement;
+														const value = input.value;
+														const key = e.key;
+														
+														// Allow navigation keys
+														if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter'].includes(key)) {
+															return;
+														}
+														
+														// Allow decimal point only once
+														if (key === '.' && !value.includes('.')) {
+															return;
+														}
+														
+														// Allow only numbers
+														if (!/^\d$/.test(key)) {
+															e.preventDefault();
+															return;
+														}
+														
+														// Check if adding this digit would exceed max
+														const newValue = value + key;
+														const maxValue = parameter.unit === "%" ? (parameter.range_max ? parseFloat(parameter.range_max) * 100 : 100) : parameter.range_max;
+														if (maxValue !== undefined && parseFloat(newValue) > parseFloat(maxValue.toString())) {
+															e.preventDefault();
+														}
+													}}
+													onBlur={(e) => {
+														// Enforce min/max on blur
+														const input = e.target as HTMLInputElement;
+														const value = parseFloat(input.value);
+														const minValue = parameter.unit === "%" ? (parameter.range_min ? parseFloat(parameter.range_min) * 100 : 0) : parameter.range_min;
+														const maxValue = parameter.unit === "%" ? (parameter.range_max ? parseFloat(parameter.range_max) * 100 : 100) : parameter.range_max;
+														
+														if (minValue !== undefined && value < parseFloat(minValue.toString())) {
+															input.value = minValue.toString();
+															handleParameterValueChangeWithConversion(parameter.id, minValue.toString());
+														} else if (maxValue !== undefined && value > parseFloat(maxValue.toString())) {
+															input.value = maxValue.toString();
+															handleParameterValueChangeWithConversion(parameter.id, maxValue.toString());
+														}
+													}}
+												/>
+												{parameter.range_min && parameter.range_max && (
+													<div className="text-xs text-gray-500">
+														Range: {parameter.unit === "%" ? (parseFloat(parameter.range_min) * 100) : parameter.range_min} - {parameter.unit === "%" ? (parseFloat(parameter.range_max) * 100) : parameter.range_max}{parameter.unit === "%" ? "%" : ""}
+													</div>
+												)}
+											</div>
+										) : parameter.display_type === "simple" ? (
+											<div className="space-y-2">
+												<Label className="text-xs text-gray-500">
+													{parameter.description || `Enter ${parameter.name}`}{parameter.unit === "%" ? " (%)" : ""}
+												</Label>
+												<input 
+													type="text" 
+													className="w-full p-3 border border-gray-300 rounded-lg text-sm h-10 bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 focus:border-gray-500"
+													placeholder={`Enter ${parameter.name}${parameter.unit === "%" ? " (%)" : ""}`}
+													value={getDisplayValue(parameter.id)}
+													onChange={(e) => handleParameterValueChangeWithConversion(parameter.id, e.target.value)}
+												/>
+											</div>
+										) : (
+											<div className="space-y-2">
+												<Label className="text-xs text-gray-500">
+													{parameter.description || `Enter ${parameter.name}`}{parameter.unit === "%" ? " (%)" : ""}
+												</Label>
+												<input 
+													type="number" 
+													className="w-full p-3 border border-gray-300 rounded-lg text-sm h-10 bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 focus:border-gray-500"
+													placeholder={`Enter ${parameter.name}${parameter.unit === "%" ? " (%)" : ""}`}
+													value={getDisplayValue(parameter.id)}
+													onChange={(e) => handleParameterValueChangeWithConversion(parameter.id, e.target.value)}
+												/>
+											</div>
+										)}
+									</div>
+								</div>
+							))}
+						</div>
+						
+						{userParameters.filter(param => param.user_interface?.is_advanced).length === 0 && (
+							<div className="text-center py-8 text-gray-500">
+								<p>No advanced parameters to configure</p>
+							</div>
+						)}
+					</CardContent>
+				</Card>
+			)}
 		</div>
 	);
 }
@@ -843,6 +1228,7 @@ function CalculationSection({
 	onCalculate?: () => void;
 	setResultData: Dispatch<SetStateAction<any>>;
 }) {
+
 	return (
 		<div className="flex justify-center gap-4">
 			<CalculateButton

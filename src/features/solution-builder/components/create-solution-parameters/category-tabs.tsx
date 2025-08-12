@@ -116,6 +116,7 @@ export default function CategoryTabs({
 			<Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
 				<TabsList className="flex w-auto bg-muted/50 space-x-1 justify-start">
 					<AllParametersTab />
+					<RequiredParametersTab />
 					<GlobalParametersTab 
 						visibleCategories={visibleCategories}
 						activeTab={activeTab}
@@ -176,6 +177,20 @@ function AllParametersTab() {
 }
 
 /**
+ * RequiredParametersTab component - Renders the "Required" tab for viewing required parameters
+ */
+function RequiredParametersTab() {
+	return (
+		<TabsTrigger
+			value="required"
+			className="text-muted-foreground bg-background/80 hover:bg-background border-backdrop h-8 data-[state=active]:!bg-primary data-[state=active]:!text-primary-foreground"
+		>
+			Required
+		</TabsTrigger>
+	);
+}
+
+/**
  * GlobalParametersTab component - Renders the "Global Parameters" tab
  */
 function GlobalParametersTab({
@@ -225,7 +240,8 @@ function CustomCategoryTabs({
 	const customCategories = visibleCategories.filter(
 		(category) =>
 			!HIDDEN_CATEGORIES.includes(category.toLowerCase() as any) &&
-			category !== "Global"
+			category !== "Global" &&
+			category.toLowerCase() !== "required"
 	);
 
 	return (
@@ -288,13 +304,17 @@ function ParametersHeader({
 	setIsPreviewDialogOpen: (open: boolean) => void;
 }) {
 	const getHeaderTitle = () => {
-		return activeTab === "all" ? "All Parameters" : activeTab;
+		if (activeTab === "all") return "All Parameters";
+		if (activeTab === "required") return "Required Parameters";
+		return activeTab;
 	};
 
 	const getHeaderDescription = () => {
 		switch (activeTab) {
 			case "all":
 				return "View and manage all parameters across all categories";
+			case "required":
+				return "View and manage required parameters that must be configured";
 			case "High Level Configuration":
 				return "Parameters for high-level configuration settings";
 			case "Low Level Configuration":

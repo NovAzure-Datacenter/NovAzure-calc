@@ -1,0 +1,97 @@
+name: Deploy to AWS Elastic Beanstalk
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+      - name: Install dependencies
+        run: |
+          cd backend
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install -r requirements.txt
+      - name: Run tests
+        run: |
+          cd backend
+          source .venv/bin/activate
+          pytest tests/
+
+  lint-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+      - name: Install dependencies
+        run: |
+          cd backend
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install -r requirements.txt
+      - name: Run linting
+        run: |
+          cd backend
+          source .venv/bin/activate
+          ruff check . --fix
+          ruff format --check .
+  lint-frontend:
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v3
+        - name: Install dependencies
+          run: |
+            npm install
+        - name: Run linting
+          run: |
+            npm run lint
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [test-backend, lint-backend, lint-frontend]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Create deployment Package
+        run: |
+          zip -r deploy.zip . \
+            -x "*.git*" \
+            -x "node_modules/*" \
+            -x "*/__pycache__/*" \
+            -x "*.pyc" \
+            -x ".pytest_cache/*" \
+            -x "*/.venv/*" \
+            -x "*/venv/*" \
+        
+      - name: Deploy to AWS Elastic Beanstalk
+        uses: einaregilsson/beanstalk-deploy@v22
+        with: 
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          application_name: novazure-vc-mvp
+          environment_name: novazure-mvp
+          region: eu-west-2
+          deployment_package: deploy.zip
+          version_label: ${{ github.sha }}
+          wait_for_environment_recovery: 300
+
+      - name: Deployment Status
+        run: |
+          echo "Deployment complete"
+        

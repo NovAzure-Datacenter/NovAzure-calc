@@ -35,9 +35,7 @@ class FormulaParser:
         else:
             raise ValueError(f"Unsupported node type: {type(node)}")
 
-    def extract_variables(
-        self, node: ast.AST, vars_set: Optional[Set[str]] = None
-    ) -> Set[str]:
+    def extract_variables(self, node: ast.AST, vars_set: Optional[Set[str]] = None) -> Set[str]:
         if vars_set is None:
             vars_set = set()
 
