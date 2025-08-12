@@ -81,7 +81,7 @@ jobs:
             -x "*/venv/*" \
         
       - name: Deploy to AWS Elastic Beanstalk
-        uses: einaregilsson/beanstalk-deploy@v23
+        uses: einaregilsson/beanstalk-deploy@v22
         with: 
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -91,7 +91,7 @@ jobs:
           deployment_package: deploy.zip
           version_label: ${{ github.sha }}
           wait_for_environment_recovery: 300
-          use_existing_version_if_available: true
+          use_existing_version_if_available: false
 
       - name: Deployment Status
         run: |
