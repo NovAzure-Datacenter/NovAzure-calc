@@ -88,6 +88,7 @@ jobs:
           environment_name: novazure-mvp
           region: eu-west-2
           deployment_package: deploy.zip
+          version_label: ${{ github.sha }}
           wait_for_environment_recovery: 300
 
       - name: Deployment Status
