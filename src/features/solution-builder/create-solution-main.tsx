@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import { ParameterMain } from "./create-solution-parameters/parameter-main";
 import { CalculationMain } from "./components/create-solution-calculations/calculation-main";
 import { CreateSolutionProgress } from "./components/create-solution-progress";
-import { CreateSolutionFilter } from "./create-solution-filter";
+import { CreateSolutionFilter } from "./create-solution-filter/create-solution-filter";
 import { CreateSolutionSubmit } from "./create-solution-submit";
 import { SubmissionDialog } from "./components/submission-dialog";
 import { DraftDialog } from "./components/draft-dialog";
@@ -41,6 +41,7 @@ import {
 	updateExistingClientSolution,
 } from "./api";
 import ValueMain from "./components/create-solution-valuebuilder/value-main";
+
 /**
  * CreateSolutionMain component - Main orchestrator for the solution builder feature
  * Manages state, data fetching, and coordinates between different creation steps
@@ -73,6 +74,10 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 		any[]
 	>([]);
 
+	// Newly created items state - persisted at this level
+	const [newlyCreatedSolutions, setNewlyCreatedSolutions] = useState<any[]>([]);
+	const [newlyCreatedVariants, setNewlyCreatedVariants] = useState<any[]>([]);
+
 	// Creation mode state
 	const [isCreatingNewSolution, setIsCreatingNewSolution] = useState(false);
 	const [isCreatingNewVariant, setIsCreatingNewVariant] = useState(false);
@@ -99,8 +104,6 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 		null
 	);
 
-
-
 	// Category states for parameters and calculations
 	const [customParameterCategories, setCustomParameterCategories] = useState<
 		Array<{ name: string; color: string }>
@@ -120,6 +123,7 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 		newVariantName: "",
 		newVariantDescription: "",
 		newVariantIcon: "",
+		newVariantProductBadge: false, // Add product badge support
 		parameters: [],
 		calculations: [],
 	});
@@ -140,8 +144,6 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 				setClientData(initialData.clientData);
 				setAvailableIndustries(initialData.industries);
 				setAvailableTechnologies(initialData.technologies);
-
-	
 			} else {
 				console.error("Error loading client data");
 				toast.error("Failed to load client data");
@@ -245,6 +247,20 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 		setAvailableSolutionVariants([]);
 		setIsExistingSolutionLoaded(false);
 		setExistingSolutionId(null);
+
+		// Clear newly created solutions and variants when industry changes since they are industry-specific
+		setNewlyCreatedSolutions([]);
+		setNewlyCreatedVariants([]);
+
+		setFormData((prev) => ({
+			...prev,
+			solutionName: "",
+			solutionDescription: "",
+			solutionIcon: "",
+			newVariantName: "",
+			newVariantDescription: "",
+			newVariantIcon: "",
+		}));
 	};
 
 	/**
@@ -260,6 +276,10 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 		setAvailableSolutionVariants([]);
 		setIsExistingSolutionLoaded(false);
 		setExistingSolutionId(null);
+
+		// Clear newly created solutions and variants when technology changes since they are technology-specific
+		setNewlyCreatedSolutions([]);
+		setNewlyCreatedVariants([]);
 
 		if (formData.selectedIndustry && technologyId) {
 			loadSolutionTypes(formData.selectedIndustry, technologyId);
@@ -288,6 +308,7 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 			newVariantName: "",
 			newVariantDescription: "",
 			newVariantIcon: "",
+			newVariantProductBadge: false, // Clear product badge
 		}));
 
 		if (solutionTypeId) {
@@ -306,6 +327,7 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 			newVariantName: "",
 			newVariantDescription: "",
 			newVariantIcon: "",
+			newVariantProductBadge: false, // Clear product badge
 		}));
 
 		if (variantId.startsWith("new-variant-")) {
@@ -315,7 +337,7 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 			setFormData((prev) => ({
 				...prev,
 				parameters: [],
-				calculations: []
+				calculations: [],
 			}));
 		}
 
@@ -343,11 +365,11 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 
 	const handleCreateNewVariant = () => {
 		setIsCreatingNewVariant(true);
-		setFormData((prev) => ({ 
-			...prev, 
+		setFormData((prev) => ({
+			...prev,
 			selectedSolutionVariantId: "",
-			parameters: [], 
-			calculations: [] 
+			parameters: [],
+			calculations: [],
 		}));
 		setIsExistingSolutionLoaded(false);
 		setExistingSolutionId(null);
@@ -361,6 +383,7 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 			newVariantName: "",
 			newVariantDescription: "",
 			newVariantIcon: "",
+			newVariantProductBadge: false, // Clear product badge
 		}));
 		setIsExistingSolutionLoaded(false);
 		setExistingSolutionId(null);
@@ -381,10 +404,19 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 		setFormData((prev) => ({ ...prev, calculations }));
 	};
 
-
-
 	const handleAddSolutionVariant = (newVariant: any) => {
 		setAvailableSolutionVariants((prev) => [...prev, newVariant]);
+	};
+
+	/**
+	 * Handle adding newly created solutions and variants to persistent lists
+	 */
+	const handleAddNewlyCreatedSolution = (newSolution: any) => {
+		setNewlyCreatedSolutions((prev) => [...prev, newSolution]);
+	};
+
+	const handleAddNewlyCreatedVariant = (newVariant: any) => {
+		setNewlyCreatedVariants((prev) => [...prev, newVariant]);
 	};
 
 	/**
@@ -786,9 +818,10 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 		return <Loading />;
 	}
 
+
+	console.log("formData", formData);
 	return (
 		<div className="flex flex-col  py-2 h-full">
-
 			{/* Step Content */}
 			<Card className="flex flex-col h-full mx-2 max-w-full py-0 pt-4">
 				<CardHeader className="">
@@ -806,6 +839,8 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 						availableTechnologies={availableTechnologies}
 						availableSolutionTypes={availableSolutionTypes}
 						availableSolutionVariants={availableSolutionVariants}
+						newlyCreatedSolutions={newlyCreatedSolutions}
+						newlyCreatedVariants={newlyCreatedVariants}
 						isLoadingIndustries={isLoadingIndustries}
 						isLoadingTechnologies={isLoadingTechnologies}
 						isLoadingSolutionTypes={isLoadingSolutionTypes}
@@ -831,6 +866,8 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 						onCreateNewVariant={handleCreateNewVariant}
 						onNoVariantSelect={handleNoVariantSelect}
 						onAddSolutionVariant={handleAddSolutionVariant}
+						onAddNewlyCreatedSolution={handleAddNewlyCreatedSolution}
+						onAddNewlyCreatedVariant={handleAddNewlyCreatedVariant}
 						onParametersChange={handleParametersChange}
 						onCalculationsChange={handleCalculationsChange}
 						onSaveAsDraft={handleSaveAsDraft}
@@ -841,7 +878,6 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 						getSelectedTechnologyName={getSelectedTechnologyName}
 						getSelectedSolutionType={getSelectedSolutionType}
 						getSelectedSolutionVariant={getSelectedSolutionVariant}
-
 					/>
 				</CardContent>
 				{/* Navigation Buttons */}
@@ -905,6 +941,8 @@ function StepContent({
 	availableTechnologies,
 	availableSolutionTypes,
 	availableSolutionVariants,
+	newlyCreatedSolutions,
+	newlyCreatedVariants,
 	isLoadingIndustries,
 	isLoadingTechnologies,
 	isLoadingSolutionTypes,
@@ -930,6 +968,8 @@ function StepContent({
 	onCreateNewVariant,
 	onNoVariantSelect,
 	onAddSolutionVariant,
+	onAddNewlyCreatedSolution,
+	onAddNewlyCreatedVariant,
 	onParametersChange,
 	onCalculationsChange,
 	onSaveAsDraft,
@@ -940,7 +980,6 @@ function StepContent({
 	getSelectedTechnologyName,
 	getSelectedSolutionType,
 	getSelectedSolutionVariant,
-
 }: StepContentProps) {
 	// Extract used parameter IDs from calculations and nested parameters
 	const extractUsedParameterIds = () => {
@@ -955,9 +994,28 @@ function StepContent({
 		const extractParameterNamesFromFormula = (formula: string): string[] => {
 			// Updated regex to capture parameter names with spaces and numbers
 			const parameterMatches = formula.match(/[a-zA-Z_][a-zA-Z0-9_\s]*/g) || [];
-			return parameterMatches.filter(match => {
+			return parameterMatches.filter((match) => {
 				// Skip common mathematical functions and constants
-				const skipWords = ['Math', 'sin', 'cos', 'tan', 'log', 'exp', 'sqrt', 'abs', 'round', 'floor', 'ceil', 'max', 'min', 'pi', 'e', 'self', 'this', 'conditional'];
+				const skipWords = [
+					"Math",
+					"sin",
+					"cos",
+					"tan",
+					"log",
+					"exp",
+					"sqrt",
+					"abs",
+					"round",
+					"floor",
+					"ceil",
+					"max",
+					"min",
+					"pi",
+					"e",
+					"self",
+					"this",
+					"conditional",
+				];
 				return !skipWords.includes(match);
 			});
 		};
@@ -967,23 +1025,23 @@ function StepContent({
 			return formData.parameters.filter((param) => {
 				const paramName = param.name.toLowerCase();
 				const searchName = name.toLowerCase();
-				
+
 				// Direct match
 				if (paramName === searchName) return true;
-				
+
 				// Cleaned name match (remove special characters but keep spaces)
-				const cleanedParamName = paramName.replace(/[^a-zA-Z0-9_\s]/g, '');
-				const cleanedSearchName = searchName.replace(/[^a-zA-Z0-9_\s]/g, '');
+				const cleanedParamName = paramName.replace(/[^a-zA-Z0-9_\s]/g, "");
+				const cleanedSearchName = searchName.replace(/[^a-zA-Z0-9_\s]/g, "");
 				if (cleanedParamName === cleanedSearchName) return true;
-				
+
 				// Handle spaces and underscores
-				const normalizedParamName = paramName.replace(/[\s_]+/g, '_');
-				const normalizedSearchName = searchName.replace(/[\s_]+/g, '_');
+				const normalizedParamName = paramName.replace(/[\s_]+/g, "_");
+				const normalizedSearchName = searchName.replace(/[\s_]+/g, "_");
 				if (normalizedParamName === normalizedSearchName) return true;
-				
+
 				// Trim whitespace and compare
 				if (paramName.trim() === searchName.trim()) return true;
-				
+
 				return false;
 			});
 		};
@@ -993,43 +1051,62 @@ function StepContent({
 			return formData.parameters.filter((param) => {
 				const paramName = param.name.toLowerCase();
 				const searchName = name.toLowerCase();
-				
+
 				// Direct contains match
-				if (paramName.includes(searchName) || searchName.includes(paramName)) return true;
-				
+				if (paramName.includes(searchName) || searchName.includes(paramName))
+					return true;
+
 				// Cleaned name contains match (keep spaces)
-				const cleanedParamName = paramName.replace(/[^a-zA-Z0-9_\s]/g, '');
-				const cleanedSearchName = searchName.replace(/[^a-zA-Z0-9_\s]/g, '');
-				if (cleanedParamName.includes(cleanedSearchName) || cleanedSearchName.includes(cleanedParamName)) return true;
-				
+				const cleanedParamName = paramName.replace(/[^a-zA-Z0-9_\s]/g, "");
+				const cleanedSearchName = searchName.replace(/[^a-zA-Z0-9_\s]/g, "");
+				if (
+					cleanedParamName.includes(cleanedSearchName) ||
+					cleanedSearchName.includes(cleanedParamName)
+				)
+					return true;
+
 				// Normalized contains match
-				const normalizedParamName = paramName.replace(/[\s_]+/g, '_');
-				const normalizedSearchName = searchName.replace(/[\s_]+/g, '_');
-				if (normalizedParamName.includes(normalizedSearchName) || normalizedSearchName.includes(normalizedParamName)) return true;
-				
+				const normalizedParamName = paramName.replace(/[\s_]+/g, "_");
+				const normalizedSearchName = searchName.replace(/[\s_]+/g, "_");
+				if (
+					normalizedParamName.includes(normalizedSearchName) ||
+					normalizedSearchName.includes(normalizedParamName)
+				)
+					return true;
+
 				// Trim whitespace and compare
-				if (paramName.trim().includes(searchName.trim()) || searchName.trim().includes(paramName.trim())) return true;
-				
+				if (
+					paramName.trim().includes(searchName.trim()) ||
+					searchName.trim().includes(paramName.trim())
+				)
+					return true;
+
 				return false;
 			});
 		};
 
 		// Extract parameter names from all calculation formulas
 		formData.calculations.forEach((calculation) => {
-			const parameterNames = extractParameterNamesFromFormula(calculation.formula);
+			const parameterNames = extractParameterNamesFromFormula(
+				calculation.formula
+			);
 
 			parameterNames.forEach((name) => {
 				const matchingParameters = findAllParametersByName(name);
 				const partialMatchingParameters = findAllParametersByPartialMatch(name);
 
 				// Combine all matching parameters and remove duplicates
-				const allMatchingParameters = [...matchingParameters, ...partialMatchingParameters];
-				const uniqueMatchingParameters = allMatchingParameters.filter((param, index, arr) => 
-					arr.findIndex(p => p.id === param.id) === index
+				const allMatchingParameters = [
+					...matchingParameters,
+					...partialMatchingParameters,
+				];
+				const uniqueMatchingParameters = allMatchingParameters.filter(
+					(param, index, arr) =>
+						arr.findIndex((p) => p.id === param.id) === index
 				);
 
 				// Mark all matching parameters as used
-				uniqueMatchingParameters.forEach(matchingParameter => {
+				uniqueMatchingParameters.forEach((matchingParameter) => {
 					usedIds.add(matchingParameter.id);
 				});
 			});
@@ -1037,20 +1114,35 @@ function StepContent({
 
 		// NEW: Mark filter parameters as used if they provide values to conditional parameters
 		formData.parameters.forEach((filterParameter) => {
-			if (filterParameter.display_type === "filter" && filterParameter.dropdown_options && Array.isArray(filterParameter.dropdown_options)) {
+			if (
+				filterParameter.display_type === "filter" &&
+				filterParameter.dropdown_options &&
+				Array.isArray(filterParameter.dropdown_options)
+			) {
 				// Check if any conditional parameter uses values from this filter
-				const isUsedInConditional = formData.parameters.some((conditionalParam) => {
-					if (conditionalParam.display_type === "conditional" && conditionalParam.conditional_rules && Array.isArray(conditionalParam.conditional_rules)) {
-						return conditionalParam.conditional_rules.some((rule) => {
-							// Check if the rule's condition or value matches any of the filter's dropdown options
-							return filterParameter.dropdown_options!.some((filterOption) => {
-								const filterValue = filterOption.value || filterOption.key;
-								return rule.condition === filterValue || rule.value === filterValue;
+				const isUsedInConditional = formData.parameters.some(
+					(conditionalParam) => {
+						if (
+							conditionalParam.display_type === "conditional" &&
+							conditionalParam.conditional_rules &&
+							Array.isArray(conditionalParam.conditional_rules)
+						) {
+							return conditionalParam.conditional_rules.some((rule) => {
+								// Check if the rule's condition or value matches any of the filter's dropdown options
+								return filterParameter.dropdown_options!.some(
+									(filterOption) => {
+										const filterValue = filterOption.value || filterOption.key;
+										return (
+											rule.condition === filterValue ||
+											rule.value === filterValue
+										);
+									}
+								);
 							});
-						});
+						}
+						return false;
 					}
-					return false;
-				});
+				);
 
 				if (isUsedInConditional) {
 					usedIds.add(filterParameter.id);
@@ -1080,6 +1172,8 @@ function StepContent({
 					availableTechnologies={availableTechnologies}
 					availableSolutionTypes={availableSolutionTypes}
 					availableSolutionVariants={availableSolutionVariants}
+					newlyCreatedSolutions={newlyCreatedSolutions}
+					newlyCreatedVariants={newlyCreatedVariants}
 					isLoadingIndustries={isLoadingIndustries}
 					isLoadingTechnologies={isLoadingTechnologies}
 					isLoadingSolutionTypes={isLoadingSolutionTypes}
@@ -1097,6 +1191,8 @@ function StepContent({
 					onCreateNewVariant={onCreateNewVariant}
 					onNoVariantSelect={onNoVariantSelect}
 					onAddSolutionVariant={onAddSolutionVariant}
+					onAddNewlyCreatedSolution={onAddNewlyCreatedSolution}
+					onAddNewlyCreatedVariant={onAddNewlyCreatedVariant}
 					formData={{
 						solutionName: formData.solutionName,
 						solutionDescription: formData.solutionDescription,
@@ -1104,6 +1200,7 @@ function StepContent({
 						newVariantName: formData.newVariantName,
 						newVariantDescription: formData.newVariantDescription,
 						newVariantIcon: formData.newVariantIcon,
+						newVariantProductBadge: formData.newVariantProductBadge,
 					}}
 					isCreatingNewSolution={isCreatingNewSolution}
 					isCreatingNewVariant={isCreatingNewVariant}
@@ -1150,12 +1247,7 @@ function StepContent({
 			)}
 
 			{/* Step 4: Value Configuration */}
-			{currentStep === 4 && (
-				<ValueMain
-					formData={formData}
-					
-				/>
-			)}
+			{currentStep === 4 && <ValueMain formData={formData} />}
 
 			{/* Step 5: Review and Submit */}
 			{currentStep === 5 && (
@@ -1180,8 +1272,8 @@ function StepContent({
 					getSelectedSolutionVariant={getSelectedSolutionVariant}
 					isExistingSolutionLoaded={isExistingSolutionLoaded}
 					unusedParameterIds={formData.parameters
-						.filter(param => !extractUsedParameterIds().includes(param.id))
-						.map(param => param.id)}
+						.filter((param) => !extractUsedParameterIds().includes(param.id))
+						.map((param) => param.id)}
 				/>
 			)}
 		</div>

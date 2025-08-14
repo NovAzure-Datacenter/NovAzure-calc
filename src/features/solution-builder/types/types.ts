@@ -22,6 +22,7 @@ export interface CreateSolutionData {
 	newVariantName: string;
 	newVariantDescription: string;
 	newVariantIcon: string;
+	newVariantProductBadge: boolean; // Add product badge support
 	parameters: Parameter[];
 	calculations: Calculation[];
 }
@@ -35,6 +36,8 @@ export interface CommonDataProps {
 	availableTechnologies: any[];
 	availableSolutionTypes: any[];
 	availableSolutionVariants: any[];
+	newlyCreatedSolutions: any[];
+	newlyCreatedVariants: any[];
 	isLoadingIndustries: boolean;
 	isLoadingTechnologies: boolean;
 	isLoadingSolutionTypes: boolean;
@@ -77,6 +80,8 @@ export interface CommonCreationHandlers {
 	onCreateNewVariant: () => void;
 	onNoVariantSelect: () => void;
 	onAddSolutionVariant: (variant: any) => void;
+	onAddNewlyCreatedSolution: (solution: any) => void;
+	onAddNewlyCreatedVariant: (variant: any) => void;
 }
 
 /**
@@ -165,6 +170,7 @@ export interface CreateSolutionFilterProps
 		newVariantName: string;
 		newVariantDescription: string;
 		newVariantIcon: string;
+		newVariantProductBadge: boolean; // Add product badge support
 	};
 	onFormDataChange: (updates: any) => void;
 }
@@ -178,31 +184,26 @@ export interface StepContentStep1Props extends CreateSolutionFilterProps {
 	openAccordion: string | undefined;
 	setOpenAccordion: (value: string | undefined) => void;
 	handleCreateNewVariant: () => void;
+	handleCreateNewSolution: () => void;
+	onAddNewlyCreatedSolution: (solution: any) => void;
+	onAddNewlyCreatedVariant: (variant: any) => void;
+	selectedSolutionId: string; // Add this to pass to variant section
 }
 
 /**
- * Icon selector dialog props
+ * Create item dialog props - Unified interface for creating solutions or variants
  */
-export interface IconSelectorDialogProps extends DialogProps {
-	selectedIcon: string;
-	onIconSelect: (icon: string) => void;
-	title: string;
-	description: string;
-}
-
-/**
- * Create variant dialog props
- */
-export interface CreateVariantDialogProps extends DialogProps {
+export interface CreateItemDialogProps extends DialogProps {
 	formData: {
-		newVariantName: string;
-		newVariantDescription: string;
-		newVariantIcon: string;
+		name: string;
+		description: string;
+		icon: string;
 	};
-	onFormDataChange: (updates: any) => void;
-	onCreateVariant: () => void;
-	isVariantIconSelectorOpen: boolean;
-	setIsVariantIconSelectorOpen: (open: boolean) => void;
+	onFormDataChange: (
+		data: Partial<{ name: string; description: string; icon: string }>
+	) => void;
+	onCreate: () => void;
+	type: "solution" | "variant";
 }
 
 // ============================================================================
@@ -248,18 +249,23 @@ export interface TechnologySectionProps extends BaseSectionProps {
 
 export interface SolutionSectionProps extends BaseSectionProps {
 	selectedSolutionId: string;
-	selectedSolutionVariantId: string;
 	availableSolutionTypes: any[];
 	canSelectSolution: boolean;
 	isLoadingSolutionTypes: boolean;
 	isCreatingNewSolution: boolean;
 	onSolutionTypeSelect: (solutionTypeId: string) => void;
-	onSolutionVariantSelect: (variantId: string) => void;
-	onCreateNewSolution: () => void;
 	getSelectedIndustry: () => any;
 	getSelectedTechnology: () => any;
 	getSelectedSolutionCategory: () => any;
-	renderSolutionCategoryCard: (solutionCategory: any) => React.JSX.Element;
+	handleCreateNewSolution: () => void;
+	onFormDataChange: (updates: any) => void;
+	onAddNewlyCreatedSolution: (solution: any) => void;
+	newlyCreatedSolutions: any[];
+}
+
+export interface VariantSectionProps extends BaseSectionProps {
+	selectedSolutionVariantId: string;
+	selectedSolutionId: string; // Add this to filter variants by solution
 	existingSolutions: any[];
 	isLoadingExistingSolutions: boolean;
 	isCreatingNewVariant: boolean;
@@ -267,10 +273,14 @@ export interface SolutionSectionProps extends BaseSectionProps {
 		newVariantName: string;
 		newVariantDescription: string;
 		newVariantIcon: string;
+		newVariantProductBadge: boolean; // Add product badge support
 	};
 	onFormDataChange: (updates: any) => void;
 	handleCreateNewVariant: () => void;
+	onSolutionVariantSelect: (variantId: string) => void;
 	onAddSolutionVariant: (variant: any) => void;
+	onAddNewlyCreatedVariant: (variant: any) => void;
+	newlyCreatedVariants: any[];
 }
 
 // ============================================================================
@@ -365,10 +375,7 @@ export const HIDDEN_CATEGORIES = [
 	"advanced configuration",
 ] as const;
 
-export const CALCULATION_RESERVED_CATEGORY_NAMES = [
-	"capex",
-	"opex",
-] as const;
+export const CALCULATION_RESERVED_CATEGORY_NAMES = ["capex", "opex"] as const;
 
 export const CALCULATION_HIDDEN_CATEGORIES: string[] = [];
 
@@ -546,8 +553,6 @@ export interface ParameterRowProps {
 	expandedRows: Set<string>;
 	toggleRowExpansion: (parameterId: string) => void;
 	usedParameterIds?: string[];
-	isUnused?: boolean;
-	parameters?: Parameter[];
 }
 
 export interface AddParameterRowProps {
