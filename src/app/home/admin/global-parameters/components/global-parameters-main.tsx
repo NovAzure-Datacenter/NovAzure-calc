@@ -25,7 +25,7 @@ import {
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { getActiveTabStyle, getCategoryStyle } from "@/utils/color-utils";
-import Searchbar from "@/features/solution-builder/components/create-solution-parameters/search-bar";
+import { SearchBar } from "@/features/solution-builder/create-solution-parameters/components/common";
 
 
 export default function GlobalParametersMain() {
@@ -186,7 +186,6 @@ export default function GlobalParametersMain() {
 				test_value: editData.test_value,
 				unit: editData.unit,
 				description: editData.description,
-				information: "",
 				category: { name: editData.category, color: "blue" },
 				user_interface: {
 					type: "not_viewable",
@@ -291,7 +290,6 @@ export default function GlobalParametersMain() {
 				test_value: newParameterData.test_value,
 				unit: newParameterData.unit,
 				description: newParameterData.description,
-				information: "",
 				category: { name: newParameterData.category, color: "blue" },
 				user_interface: {
 					type: "not_viewable",
@@ -466,7 +464,7 @@ export default function GlobalParametersMain() {
 						</div>
 
 						{/* Search Bar */}
-						<Searchbar
+						<SearchBar
 							searchQuery={searchQuery}
 							setSearchQuery={setSearchQuery}
 							filteredParameters={filteredParameters}

@@ -340,7 +340,6 @@ export interface ColumnVisibility {
 	testValue: boolean;
 	unit: boolean;
 	description: boolean;
-	information: boolean;
 	userInterface: boolean;
 	output: boolean;
 	actions: boolean;
@@ -404,7 +403,6 @@ export interface ParameterEditData {
 	test_value: string;
 	unit: string;
 	description: string;
-	information: string;
 	category: string;
 	user_interface: {
 		type: "input" | "static" | "not_viewable";
@@ -931,12 +929,6 @@ export interface ParameterDescriptionFieldProps {
 	placeholder?: string;
 }
 
-export interface ParameterInformationFieldProps {
-	value: string;
-	onChange: (value: string) => void;
-	placeholder?: string;
-}
-
 export interface ParameterProvidedByFieldProps {
 	value: string;
 	onChange: (value: string) => void;
@@ -1146,3 +1138,13 @@ export interface ParameterValidationProps {
 export interface CalculationValidationProps {
 	calculationData: CalculationEditData;
 }
+export type {
+	// ============================================================================
+	// CORE TYPES
+	// ============================================================================
+	/**
+	 * Main solution data structure
+	 */
+	Parameter
+};
+
