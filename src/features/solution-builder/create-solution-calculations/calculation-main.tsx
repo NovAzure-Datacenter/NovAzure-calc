@@ -24,20 +24,20 @@ import { toast } from "sonner";
 import { X, Plus } from "lucide-react";
 
 import CalculationCategoryTabs from "./category-tabs";
-import { CustomCalculationCategory } from "../../utils/calculation-color-utils";
+import { CustomCalculationCategory } from "../utils/calculation-color-utils";
 import { Calculation } from "@/types/types";
-import { TableContent } from "./table-content";
-import Searchbar from "./search-bar";
-import PreviewDialog from "../create-solution-calculations/preview-dialog";
+import { CalculationTable } from "./components/table";
+import { SearchBar } from "@/features/solution-builder/components/common";
+import PreviewDialog from "./preview-dialog";
 import {
 	CalculationsConfigurationProps,
 	CalculationEditData,
 	FilterOptionsEditorProps,
 	DropdownOptionsEditorProps,
-} from "../../types/types";
+} from "../types/types";
 import { useCalculationValidator } from "./hooks/useCalculationValidator";
 import { useCalculatorLevelManager } from "./hooks/useCalculatorLevelManager";
-import { groupParametersByCategory } from "../../api";
+import { groupParametersByCategory } from "../api";
 // Remove the global calculations import
 // import { getAllGlobalCalculations, initializeGlobalCalculations } from "@/lib/actions/global-calculations/global-calculations";
 
@@ -901,15 +901,16 @@ export function CalculationMain({
 
 			<LoadingIndicator isLoading={isTableLoading} />
 
-			<Searchbar
+			<SearchBar
 				searchQuery={searchQuery}
 				setSearchQuery={setSearchQuery}
-				filteredCalculations={getFilteredCalculations()}
+				filteredItems={getFilteredCalculations()}
+				placeholder="Search calculations by name, category, description, formula, units, or status..."
 			/>
 
 			{/* Only render table when not loading */}
 			{!isTableLoading && (
-				<TableContent
+				<CalculationTable
 					calculations={getFilteredCalculations()}
 					editingCalculation={editingCalculation}
 					editData={editData}

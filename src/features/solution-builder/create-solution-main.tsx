@@ -16,7 +16,7 @@ import { ArrowRight, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
 import { ParameterMain } from "./create-solution-parameters/parameter-main";
-import { CalculationMain } from "./components/create-solution-calculations/calculation-main";
+import { CalculationMain } from "./create-solution-calculations/calculation-main";
 import { CreateSolutionProgress } from "./components/create-solution-progress";
 import { CreateSolutionFilter } from "./create-solution-filter";
 import { CreateSolutionSubmit } from "./create-solution-submit";

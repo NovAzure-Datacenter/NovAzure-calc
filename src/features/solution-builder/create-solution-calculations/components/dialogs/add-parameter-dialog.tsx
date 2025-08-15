@@ -34,7 +34,7 @@ import {
 	ParameterOutputFieldProps,
 	FilterOptionsEditorProps,
 	DropdownOptionsEditorProps,
-} from "../../types/types";
+} from "../../../types/types";
 
 /**
  * AddParameterDialog component - Dialog for adding new parameters

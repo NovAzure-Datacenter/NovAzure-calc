@@ -16,7 +16,7 @@ import {
 	getCalculationCategoryStyle,
 	getCalculationActiveTabStyle,
 	getAvailableColors,
-} from "../../utils/calculation-color-utils";
+} from "../utils/calculation-color-utils";
 import { useState } from "react";
 import {
 	CalculationCategoryTabsProps,
@@ -29,7 +29,7 @@ import {
 	CategoryValidationResult,
 	CALCULATION_RESERVED_CATEGORY_NAMES,
 	CALCULATION_HIDDEN_CATEGORIES,
-} from "../../types/types";
+} from "../types/types";
 
 // Import the vibrant color map for the color selector
 const vibrantColorMap: Record<string, { backgroundColor: string; color: string; borderColor: string }> = {
