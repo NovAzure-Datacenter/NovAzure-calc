@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback } from "react";
-import { useCallback } from "react";
 import { useState, useEffect } from "react";
 import { useUser } from "@/hooks/useUser";
 import {
@@ -112,7 +111,6 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 		Array<{ name: string; color: string }>
 	>([]);
 	const [customCalculationCategories, setCustomCalculationCategories] =
-		useState<Array<{ name: string; color: string }>>([]); // Empty array - no hardcoded categories
 		useState<Array<{ name: string; color: string }>>([]); // Empty array - no hardcoded categories
 
 	// Form data state
@@ -448,8 +446,6 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 			formData.selectedSolutionVariantId &&
 			!isExistingSolutionLoaded &&
 			!formData.selectedSolutionVariantId.startsWith("new-variant-")
-			!isExistingSolutionLoaded &&
-			!formData.selectedSolutionVariantId.startsWith("new-variant-")
 		) {
 			loadExistingSolutionData(formData.selectedSolutionVariantId);
 		}
@@ -766,8 +762,6 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 			case 4:
 				return "Configure Value";
 			case 5:
-				return "Configure Value";
-			case 5:
 				return "Review and Submit";
 			default:
 				return "Create Solution";
@@ -783,8 +777,6 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 			case 3:
 				return "Set up calculations and formulas for your solution";
 			case 4:
-				return "Configure the value that will be used in your solution calculations";
-			case 5:
 				return "Configure the value that will be used in your solution calculations";
 			case 5:
 				return "Review your solution configuration and submit for approval";
@@ -845,12 +837,7 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 	}
 
 	return (
-		<div className="flex flex-col  py-2 h-full">
-
-
-	console.log("formData", formData);
-	return (
-		<div className="flex flex-col  py-2 h-full">
+		<div className="flex flex-col py-2 h-full">
 			{/* Step Content */}
 			<Card className="flex flex-col h-full mx-2 max-w-full py-0 pt-4">
 				<CardHeader className="">
@@ -859,7 +846,6 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 						{getStepDescription()}
 					</CardDescription>
 				</CardHeader>
-				<CardContent className="flex-1 px-2 h-full">
 				<CardContent className="flex-1 px-2 h-full">
 					<StepContent
 						currentStep={currentStep}
@@ -908,7 +894,6 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 						getSelectedTechnologyName={getSelectedTechnologyName}
 						getSelectedSolutionType={getSelectedSolutionType}
 						getSelectedSolutionVariant={getSelectedSolutionVariant}
-
 					/>
 				</CardContent>
 				{/* Navigation Buttons */}
@@ -925,7 +910,6 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 							Previous
 						</Button>
 
-						{currentStep < 5 ? (
 						{currentStep < 5 ? (
 							<Button
 								onClick={handleNext}
@@ -1256,7 +1240,6 @@ function StepContent({
 					availableSolutionTypes={availableSolutionTypes}
 					isLoadingParameters={isLoadingParameters}
 					usedParameterIds={extractUsedParameterIds()}
-					usedParameterIds={extractUsedParameterIds()}
 				/>
 			)}
 
@@ -1311,6 +1294,6 @@ function StepContent({
 				/>
 			)}
 		</div>
-		</div>
+	
 	);
 }
