@@ -818,10 +818,8 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 		return <Loading />;
 	}
 
-
-	console.log("formData", formData);
 	return (
-		<div className="flex flex-col  py-2 h-full">
+		<div className="flex flex-col py-2 h-full">
 			{/* Step Content */}
 			<Card className="flex flex-col h-full mx-2 max-w-full py-0 pt-4">
 				<CardHeader className="">
@@ -1277,5 +1275,6 @@ function StepContent({
 				/>
 			)}
 		</div>
+	
 	);
 }
