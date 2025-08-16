@@ -119,11 +119,15 @@ export default function TechnologySection(props: TechnologySectionProps) {
 										(t) => t.id === technologyId
 									);
 									if (!technology) return null;
-									return renderSelectionCard(
-										technology,
-										technologyId,
-										selectedTechnology === technologyId,
-										onTechnologySelect
+									return (
+										<React.Fragment key={technologyId}>
+											{renderSelectionCard(
+												technology,
+												technologyId,
+												selectedTechnology === technologyId,
+												onTechnologySelect
+											)}
+										</React.Fragment>
 									);
 								})}
 							</div>

@@ -100,11 +100,15 @@ export default function IndustrySection(props: IndustrySectionProps) {
 										(i) => i.id === industryId
 									);
 									if (!industry) return null;
-									return renderSelectionCard(
-										industry,
-										industryId,
-										selectedIndustry === industryId,
-										onIndustrySelect
+									return (
+										<React.Fragment key={industryId}>
+											{renderSelectionCard(
+												industry,
+												industryId,
+												selectedIndustry === industryId,
+												onIndustrySelect
+											)}
+										</React.Fragment>
 									);
 								})}
 							</div>
