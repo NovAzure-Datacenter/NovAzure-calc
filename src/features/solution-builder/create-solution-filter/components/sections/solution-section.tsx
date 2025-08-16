@@ -208,24 +208,23 @@ export default function SolutionSection(props: SolutionSectionProps) {
 										{/* Solution Categories Grid */}
 										<div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-60 overflow-y-auto">
 											{/* Create New Solution Card - Only show if not creating new solution */}
-											{!currentNewlyCreatedSolution ? (
-												<div
-													className="p-3 border rounded-md cursor-pointer transition-colors bg-white hover:border-primary/50"
-													onClick={() => setIsCreateSolutionDialogOpen(true)}
-												>
+											<div
+												className="p-3 border rounded-md cursor-pointer transition-colors bg-white hover:border-primary/50"
+												onClick={() => setIsCreateSolutionDialogOpen(true)}
+											>
+												<div className="flex items-center gap-2">
 													<div className="flex items-center gap-2">
-														<div className="flex items-center gap-2">
-															<Plus className="h-4 w-4" />
-															<span className="font-medium text-sm">
-																Create New
-															</span>
-														</div>
+														<Plus className="h-4 w-4" />
+														<span className="font-medium text-sm">
+															Create New
+														</span>
 													</div>
-													<p className="text-xs text-muted-foreground mt-1 ml-6">
-														Create a new solution category
-													</p>
 												</div>
-											) : (
+												<p className="text-xs text-muted-foreground mt-1 ml-6">
+													Create a new solution category
+												</p>
+											</div>
+											{currentNewlyCreatedSolution && (
 												<div
 													className="p-3 border-2 border-primary rounded-md bg-primary/5 cursor-pointer transition-colors"
 													onClick={() =>
@@ -255,7 +254,6 @@ export default function SolutionSection(props: SolutionSectionProps) {
 													</p>
 												</div>
 											)}
-
 											{/* Existing solution categories */}
 											{availableSolutionTypes.map((solutionCategory) => (
 												<div key={solutionCategory.id}>

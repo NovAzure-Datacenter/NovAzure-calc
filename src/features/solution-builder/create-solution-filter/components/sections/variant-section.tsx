@@ -22,7 +22,7 @@ export default function VariantSection(props: VariantSectionProps) {
 		onAddSolutionVariant,
 		onAddNewlyCreatedVariant,
 		newlyCreatedVariants,
-		selectedSolutionId, 
+		selectedSolutionId,
 		formData,
 	} = props;
 
@@ -58,7 +58,7 @@ export default function VariantSection(props: VariantSectionProps) {
 			solution_description: variantFormData.description,
 			solution_icon: variantFormData.icon,
 			solution_id: selectedSolutionId,
-			product_badge: variantFormData.product_badge, 
+			product_badge: variantFormData.product_badge,
 			status: "New",
 			created_at: new Date().toISOString(),
 			parameters: [],
@@ -83,13 +83,18 @@ export default function VariantSection(props: VariantSectionProps) {
 	};
 
 	const handleVariantFormDataChange = (
-		data: Partial<{ name: string; description: string; icon: string; product_badge: boolean }>
+		data: Partial<{
+			name: string;
+			description: string;
+			icon: string;
+			product_badge: boolean;
+		}>
 	) => {
 		setVariantFormData((prev) => ({ ...prev, ...data }));
 	};
 
 	/**
-	 * Specialized renderer for variant cards 
+	 * Specialized renderer for variant cards
 	 */
 	const renderVariantCard = (
 		solution: any,
@@ -286,37 +291,36 @@ export default function VariantSection(props: VariantSectionProps) {
 									) : (
 										<div className="grid grid-cols-1 md:grid-cols-2 gap-2">
 											{/* Create New Variant Card - Only show if not creating new variant */}
-											{!currentNewlyCreatedVariant ? (
-												<div
-													className={`p-2 border rounded-md cursor-pointer transition-colors ${
-														selectedSolutionVariantId === "create-new"
-															? "border-primary bg-primary/5"
-															: "bg-white hover:border-primary/50"
-													}`}
-													onClick={() => setIsCreateVariantDialogOpen(true)}
-												>
-													<div className="flex items-center justify-between mb-1">
-														<div className="flex items-center gap-1.5 min-w-0">
-															<Plus className="h-3.5 w-3.5 flex-shrink-0" />
-															<span className="font-medium text-xs truncate">
-																Create New Variant
-															</span>
-														</div>
-														<Badge
-															variant="outline"
-															className="text-xs flex-shrink-0 px-1.5 py-0.5"
-														>
-															New
-														</Badge>
+
+											<div
+												className={`p-2 border rounded-md cursor-pointer transition-colors ${
+													selectedSolutionVariantId === "create-new"
+														? "border-primary bg-primary/5"
+														: "bg-white hover:border-primary/50"
+												}`}
+												onClick={() => setIsCreateVariantDialogOpen(true)}
+											>
+												<div className="flex items-center justify-between mb-1">
+													<div className="flex items-center gap-1.5 min-w-0">
+														<Plus className="h-3.5 w-3.5 flex-shrink-0" />
+														<span className="font-medium text-xs truncate">
+															Create New Variant
+														</span>
 													</div>
-													<div className="space-y-0.5 min-w-0">
-														<p className="text-xs text-muted-foreground line-clamp-1">
-															Add a new variant to your selected solution
-															category
-														</p>
-													</div>
+													<Badge
+														variant="outline"
+														className="text-xs flex-shrink-0 px-1.5 py-0.5"
+													>
+														New
+													</Badge>
 												</div>
-											) : (
+												<div className="space-y-0.5 min-w-0">
+													<p className="text-xs text-muted-foreground line-clamp-1">
+														Add a new variant to your selected solution category
+													</p>
+												</div>
+											</div>
+											{currentNewlyCreatedVariant && (
 												<div
 													className={`p-2 border rounded-md cursor-pointer transition-colors ${
 														selectedSolutionVariantId ===
@@ -371,6 +375,7 @@ export default function VariantSection(props: VariantSectionProps) {
 													</div>
 												</div>
 											)}
+
 											{/* Existing Solutions using specialized variant card renderer */}
 											{existingSolutions.map((solution: any) =>
 												renderVariantCard(
