@@ -30,7 +30,6 @@ import {
 	ParameterTestValueFieldProps,
 	ParameterUnitFieldProps,
 	ParameterDescriptionFieldProps,
-	ParameterInformationFieldProps,
 	ParameterProvidedByFieldProps,
 	ParameterOutputFieldProps,
 	FilterOptionsEditorProps,
@@ -159,16 +158,7 @@ export function AddParameterDialog({
 						placeholder="Description"
 					/>
 
-					<ParameterInformationField
-						value={newParameterData.information}
-						onChange={(value) =>
-							setNewParameterData((prev) => ({
-								...prev,
-								information: value,
-							}))
-						}
-						placeholder="Information"
-					/>
+
 
 					<ParameterProvidedByField
 						value={newParameterData.user_interface?.type || "input"}
@@ -436,21 +426,6 @@ function ParameterDescriptionField({ value, onChange, placeholder }: ParameterDe
 	);
 }
 
-/**
- * ParameterInformationField component - Information input
- */
-function ParameterInformationField({ value, onChange, placeholder }: ParameterInformationFieldProps) {
-	return (
-		<ParameterFormField label="Information">
-			<Input
-				id="parameter-information"
-				value={value}
-				onChange={(e) => onChange(e.target.value)}
-				placeholder={placeholder}
-			/>
-		</ParameterFormField>
-	);
-}
 
 /**
  * ParameterProvidedByField component - Provided by selection

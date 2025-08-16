@@ -6,7 +6,6 @@ export interface Parameter {
 	test_value: string;
 	unit: string;
 	description: string;
-	information: string;
 	user_interface: {
 		type: "input" | "static" | "not_viewable";
 		category: string;

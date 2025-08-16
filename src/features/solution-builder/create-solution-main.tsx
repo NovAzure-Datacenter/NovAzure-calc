@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
+import { useCallback } from "react";
 import { useState, useEffect } from "react";
 import { useUser } from "@/hooks/useUser";
 import {
@@ -15,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
-import { ParameterMain } from "./components/create-solution-parameters/parameter-main";
+import { ParameterMain } from "./create-solution-parameters/parameter-main";
 import { CalculationMain } from "./components/create-solution-calculations/calculation-main";
 import { CreateSolutionProgress } from "./components/create-solution-progress";
 import { CreateSolutionFilter } from "./create-solution-filter/create-solution-filter";
@@ -104,11 +105,14 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 		null
 	);
 
+
+
 	// Category states for parameters and calculations
 	const [customParameterCategories, setCustomParameterCategories] = useState<
 		Array<{ name: string; color: string }>
 	>([]);
 	const [customCalculationCategories, setCustomCalculationCategories] =
+		useState<Array<{ name: string; color: string }>>([]); // Empty array - no hardcoded categories
 		useState<Array<{ name: string; color: string }>>([]); // Empty array - no hardcoded categories
 
 	// Form data state
@@ -144,6 +148,8 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 				setClientData(initialData.clientData);
 				setAvailableIndustries(initialData.industries);
 				setAvailableTechnologies(initialData.technologies);
+
+	
 			} else {
 				console.error("Error loading client data");
 				toast.error("Failed to load client data");
@@ -337,6 +343,12 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 			setFormData((prev) => ({
 				...prev,
 				parameters: [],
+				calculations: []
+			}));
+
+			setFormData((prev) => ({
+				...prev,
+				parameters: [],
 				calculations: [],
 			}));
 		}
@@ -365,6 +377,12 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 
 	const handleCreateNewVariant = () => {
 		setIsCreatingNewVariant(true);
+		setFormData((prev) => ({ 
+			...prev, 
+			selectedSolutionVariantId: "",
+			parameters: [], 
+			calculations: [] 
+		}));
 		setFormData((prev) => ({
 			...prev,
 			selectedSolutionVariantId: "",
@@ -404,6 +422,8 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 		setFormData((prev) => ({ ...prev, calculations }));
 	};
 
+
+
 	const handleAddSolutionVariant = (newVariant: any) => {
 		setAvailableSolutionVariants((prev) => [...prev, newVariant]);
 	};
@@ -426,6 +446,8 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 		if (
 			(currentStep === 1 || currentStep === 2) &&
 			formData.selectedSolutionVariantId &&
+			!isExistingSolutionLoaded &&
+			!formData.selectedSolutionVariantId.startsWith("new-variant-")
 			!isExistingSolutionLoaded &&
 			!formData.selectedSolutionVariantId.startsWith("new-variant-")
 		) {
@@ -744,6 +766,8 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 			case 4:
 				return "Configure Value";
 			case 5:
+				return "Configure Value";
+			case 5:
 				return "Review and Submit";
 			default:
 				return "Create Solution";
@@ -759,6 +783,8 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 			case 3:
 				return "Set up calculations and formulas for your solution";
 			case 4:
+				return "Configure the value that will be used in your solution calculations";
+			case 5:
 				return "Configure the value that will be used in your solution calculations";
 			case 5:
 				return "Review your solution configuration and submit for approval";
@@ -818,6 +844,9 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 		return <Loading />;
 	}
 
+	return (
+		<div className="flex flex-col  py-2 h-full">
+
 
 	console.log("formData", formData);
 	return (
@@ -830,6 +859,7 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 						{getStepDescription()}
 					</CardDescription>
 				</CardHeader>
+				<CardContent className="flex-1 px-2 h-full">
 				<CardContent className="flex-1 px-2 h-full">
 					<StepContent
 						currentStep={currentStep}
@@ -878,6 +908,7 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 						getSelectedTechnologyName={getSelectedTechnologyName}
 						getSelectedSolutionType={getSelectedSolutionType}
 						getSelectedSolutionVariant={getSelectedSolutionVariant}
+
 					/>
 				</CardContent>
 				{/* Navigation Buttons */}
@@ -894,6 +925,7 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 							Previous
 						</Button>
 
+						{currentStep < 5 ? (
 						{currentStep < 5 ? (
 							<Button
 								onClick={handleNext}
@@ -980,6 +1012,7 @@ function StepContent({
 	getSelectedTechnologyName,
 	getSelectedSolutionType,
 	getSelectedSolutionVariant,
+
 }: StepContentProps) {
 	// Extract used parameter IDs from calculations and nested parameters
 	const extractUsedParameterIds = () => {
@@ -1223,6 +1256,7 @@ function StepContent({
 					availableSolutionTypes={availableSolutionTypes}
 					isLoadingParameters={isLoadingParameters}
 					usedParameterIds={extractUsedParameterIds()}
+					usedParameterIds={extractUsedParameterIds()}
 				/>
 			)}
 
@@ -1276,6 +1310,7 @@ function StepContent({
 						.map((param) => param.id)}
 				/>
 			)}
+		</div>
 		</div>
 	);
 }

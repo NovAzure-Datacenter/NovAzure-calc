@@ -3,15 +3,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, X } from "lucide-react";
 
-export default function Searchbar({
-	searchQuery,
-	setSearchQuery,
-	filteredParameters,
-}: {
+interface SearchBarProps {
 	searchQuery: string;
 	setSearchQuery: (query: string) => void;
 	filteredParameters: Parameter[];
-}) {
+	placeholder?: string;
+}
+
+export function SearchBar({
+	searchQuery,
+	setSearchQuery,
+	filteredParameters,
+	placeholder = "Search parameters by name, category, description, value, unit, provider, or input type...",
+}: SearchBarProps) {
 	const handleKeyDown = (e: React.KeyboardEvent) => {
 		if (e.key === "Escape") {
 			setSearchQuery("");
@@ -22,7 +26,7 @@ export default function Searchbar({
 		<div className="mb-4">
 			<div className="relative">
 				<Input
-					placeholder="Search parameters by name, category, description, value, unit, provider, or input type..."
+					placeholder={placeholder}
 					value={searchQuery}
 					onChange={(e) => setSearchQuery(e.target.value)}
 					onKeyDown={handleKeyDown}
@@ -63,4 +67,4 @@ export default function Searchbar({
 			)}
 		</div>
 	);
-}
+} 

@@ -1,9 +1,5 @@
 # Parameter model
-import re
-from typing import List
 from .parser import FormulaParser
-
-VARIABLES_REGEX = re.compile(r"\b[a-zA-Z_][a-zA-Z0-9_]*\b")
 
 
 class Parameter:
@@ -19,6 +15,7 @@ class Parameter:
         self.ast = None
         self.evaluated = False
         self.result = None
+        self.unit_resolved = False
 
         self.validate()
 
@@ -28,17 +25,13 @@ class Parameter:
 
         if self.type == "CALCULATION":
             if not self.formula:
-                raise ValueError(
-                    f"{self.type} parameter '{self.name}' requires formula"
-                )
-            self.dependencies = self.extract_dependencies()
+                raise ValueError(f"{self.type} parameter '{self.name}' requires formula")
+            self.ast, variables = FormulaParser().parse_formula_to_ast(self.formula)
+            self.dependencies = list(variables)
 
-    def extract_dependencies(self) -> List[str]:
-        if not self.formula:
-            return []
-
-        variables = set(VARIABLES_REGEX.findall(self.formula))
-        return list(variables)
+    def resolve_unit(self, context: dict[str, "Parameter"]):
+        if self.unit_resolved:
+            return self.unit
 
     def resolve_value(self, context: dict[str, float]):
         if self.evaluated:
@@ -61,39 +54,51 @@ class Parameter:
         if not self.formula:
             raise ValueError(f"No formula available for parameter {self.name}")
 
-        self.ast, variables = FormulaParser().parse_formula_to_ast(self.formula)
+        return self._evaluate_ast(self.ast, context)
 
-        def evaluate_ast(node) -> float:
-            if isinstance(node, (float, int)):
-                return float(node)
-            if isinstance(node, str):
-                if node in context:
-                    return context[node]
-                raise ValueError(f"Variable '{node}' not found in context.")
-            if isinstance(node, dict):
-                op_type = node["type"]
-                if op_type == "Add":
-                    left = evaluate_ast(node["left"])
-                    right = evaluate_ast(node["right"])
-                    return left + right
-                elif op_type == "Subtract":
-                    left = evaluate_ast(node["left"])
-                    right = evaluate_ast(node["right"])
-                    return left - right
-                elif op_type == "Multiply":
-                    left = evaluate_ast(node["left"])
-                    right = evaluate_ast(node["right"])
-                    return left * right
-                elif op_type == "Divide":
-                    left = evaluate_ast(node["left"])
-                    right = evaluate_ast(node["right"])
-                    return left / right
-                elif op_type == "Power":
-                    left = evaluate_ast(node["left"])
-                    right = evaluate_ast(node["right"])
-                    return left**right
-                elif op_type.startswith("Unary"):
-                    return -evaluate_ast(node["operand"])
-            raise ValueError(f"Unsupported AST node structure: {node}")
+    def _evaluate_ast(self, node, context: dict[str, float]) -> float:
+        if isinstance(node, (float, int)):
+            return float(node)
 
-        return evaluate_ast(self.ast)
+        if isinstance(node, str):
+            if node in context:
+                return context[node]
+            raise ValueError(f"Variable '{node}' not found in context.")
+
+        if isinstance(node, dict):
+            return self._evaluate_operation(node, context)
+
+        raise ValueError(f"Unsupported AST node structure: {node}")
+
+    def _evaluate_operation(self, node, context: dict[str, float]) -> float:
+        op_type = node["type"]
+
+        if op_type == "Add":
+            return self._evaluate_ast(node["left"], context) + self._evaluate_ast(
+                node["right"], context
+            )
+
+        if op_type == "Subtract":
+            return self._evaluate_ast(node["left"], context) - self._evaluate_ast(
+                node["right"], context
+            )
+
+        if op_type == "Multiply":
+            return self._evaluate_ast(node["left"], context) * self._evaluate_ast(
+                node["right"], context
+            )
+
+        if op_type == "Divide":
+            return self._evaluate_ast(node["left"], context) / self._evaluate_ast(
+                node["right"], context
+            )
+
+        elif op_type == "Power":
+            return self._evaluate_ast(node["left"], context) ** self._evaluate_ast(
+                node["right"], context
+            )
+
+        elif op_type.startswith("Unary"):
+            return -self._evaluate_ast(node["operand"], context)
+
+        raise ValueError(f"Unsupported AST node structure: {node}")

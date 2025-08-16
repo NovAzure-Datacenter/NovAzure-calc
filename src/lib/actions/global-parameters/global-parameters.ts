@@ -44,7 +44,6 @@ function convertToParameter(doc: any): Parameter {
 		dropdown_options: doc.dropdown_options || [],
 		range_min: doc.range_min || "",
 		range_max: doc.range_max || "",
-		information: doc.information || "",
 	};
 }
 
@@ -56,7 +55,6 @@ function convertToMongoDoc(parameter: Omit<Parameter, "id">): any {
 		test_value: parameter.test_value,
 		unit: parameter.unit,
 		description: parameter.description,
-		information: parameter.information,
 		user_interface: parameter.user_interface,
 		output: parameter.output,
 		level: parameter.level,
