@@ -45,57 +45,16 @@ export function CreateSolutionFilter(props: CreateSolutionFilterProps) {
 	const [openAccordion, setOpenAccordion] = useState<string | undefined>(
 		undefined
 	);
-	const [existingSolutions, setExistingSolutions] = useState<any[]>([]);
-	const [isLoadingExistingSolutions, setIsLoadingExistingSolutions] =
-		useState(false);
-
-	/**
-	 * Fetch existing solutions that match the current criteria
-	 */
-	const fetchExistingSolutions = useCallback(async () => {
-		if (
-			!selectedIndustry ||
-			!selectedTechnology ||
-			!selectedSolutionId ||
-			!clientData?.id
-		) {
-			setExistingSolutions([]);
-			return;
-		}
-
-		setIsLoadingExistingSolutions(true);
-		try {
-			const result = await getClientSolutions(clientData.id);
-			if (result.solutions) {
-				const matchingSolutions = result.solutions.filter(
-					(solution: any) =>
-						solution.industry_id === selectedIndustry &&
-						solution.technology_id === selectedTechnology &&
-						solution.selected_solution_id === selectedSolutionId
-				);
-				setExistingSolutions(matchingSolutions);
-			}
-		} catch (error) {
-			console.error("Error fetching existing solutions:", error);
-			setExistingSolutions([]);
-		} finally {
-			setIsLoadingExistingSolutions(false);
-		}
-	}, [
-		selectedIndustry,
-		selectedTechnology,
-		selectedSolutionId,
-		clientData?.id,
-	]);
 
 	/**
 	 * Handle create new variant action
 	 */
 	const handleCreateNewVariant = () => {
 		onFormDataChange({
-			newVariantName: "",
-			newVariantDescription: "",
-			newVariantIcon: "",
+			solution_variant_name: formData.solution_variant_name,
+			solution_variant_description: formData.solution_variant_description,
+			solution_variant_icon: formData.solution_variant_icon,
+			solution_variant_product_badge: formData.solution_variant_product_badge,
 		});
 	};
 
@@ -104,21 +63,23 @@ export function CreateSolutionFilter(props: CreateSolutionFilterProps) {
 	 */
 	const handleCreateNewSolution = () => {
 		onFormDataChange({
-			solutionName: "",
-			solutionDescription: "",
-			solutionIcon: "",
+			solution_name: formData.solution_name,
+			solution_description: formData.solution_description,
+			solution_icon: formData.solution_icon,
 		});
 	};
 
-	useEffect(() => {
-		fetchExistingSolutions();
-	}, [
-		selectedIndustry,
-		selectedTechnology,
-		selectedSolutionId,
-		clientData?.id,
-		fetchExistingSolutions,
-	]);
+	/**
+	 * Handle industry selection change - clear dependent selections
+	 */
+	const handleIndustrySelect = (industryId: string) => {
+		onIndustrySelect(industryId);
+		if (industryId !== selectedIndustry) {
+			onTechnologySelect("");
+			onSolutionTypeSelect("");
+			onSolutionVariantSelect("");
+		}
+	};
 
 	return (
 		<div className="w-full">
@@ -139,7 +100,7 @@ export function CreateSolutionFilter(props: CreateSolutionFilterProps) {
 				selectedTechnology={selectedTechnology}
 				selectedSolutionId={selectedSolutionId}
 				selectedSolutionVariantId={selectedSolutionVariantId}
-				onIndustrySelect={onIndustrySelect}
+				onIndustrySelect={handleIndustrySelect}
 				onTechnologySelect={onTechnologySelect}
 				onSolutionTypeSelect={onSolutionTypeSelect}
 				onSolutionVariantSelect={onSolutionVariantSelect}
@@ -153,12 +114,11 @@ export function CreateSolutionFilter(props: CreateSolutionFilterProps) {
 				formData={formData}
 				isCreatingNewSolution={isCreatingNewSolution}
 				isCreatingNewVariant={isCreatingNewVariant}
-				existingSolutions={existingSolutions}
-				isLoadingExistingSolutions={isLoadingExistingSolutions}
 				openAccordion={openAccordion}
 				setOpenAccordion={setOpenAccordion}
 				handleCreateNewVariant={handleCreateNewVariant}
 				handleCreateNewSolution={handleCreateNewSolution}
+				handleSolutionTypeSelectLocal={onSolutionTypeSelect}
 			/>
 		</div>
 	);

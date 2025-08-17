@@ -4,7 +4,7 @@ import IndustrySection from "./sections/industry-section";
 import TechnologySection from "./sections/technology-section";
 import SolutionSection from "./sections/solution-section";
 import VariantSection from "./sections/variant-section";
-import SelectionCard from "./sections/selection-card";
+import SelectionCard from "./sections/selection-cards";
 
 /**
  * StepContent component - Renders the main step content with industry, technology, and solution selection
@@ -32,15 +32,15 @@ export default function SectionMain(props: StepContentStep1Props) {
 		formData,
 		isCreatingNewSolution,
 		isCreatingNewVariant,
-		existingSolutions,
-		isLoadingExistingSolutions,
 		openAccordion,
-		setOpenAccordion,
+		setOpenAccordion,	
 		handleCreateNewVariant,
 		onAddNewlyCreatedSolution,
 		onAddNewlyCreatedVariant,
 		newlyCreatedVariants,
 		newlyCreatedSolutions,
+		availableSolutionVariants,
+		handleSolutionTypeSelectLocal,
 	} = props;
 
 	/**
@@ -98,7 +98,8 @@ export default function SectionMain(props: StepContentStep1Props) {
 		itemId: string,
 		isSelected: boolean,
 		onSelect: (id: string) => void,
-		showIcon = true
+		showIcon = true,
+		cardType: "solution" | "variant" | "default" = "default"
 	) => (
 		<SelectionCard
 			item={item}
@@ -106,6 +107,7 @@ export default function SectionMain(props: StepContentStep1Props) {
 			isSelected={isSelected}
 			onSelect={onSelect}
 			showIcon={showIcon}
+			cardType={cardType}
 		/>
 	);
 
@@ -150,7 +152,7 @@ export default function SectionMain(props: StepContentStep1Props) {
 						canSelectSolution={canSelectSolution}
 						isLoadingSolutionTypes={isLoadingSolutionTypes}
 						isCreatingNewSolution={isCreatingNewSolution}
-						onSolutionTypeSelect={onSolutionTypeSelect}
+						handleSolutionTypeSelectLocal={handleSolutionTypeSelectLocal}
 						handleCreateNewSolution={handleCreateNewSolution}
 						getSelectedIndustry={getSelectedIndustry}
 						getSelectedTechnology={getSelectedTechnology}
@@ -159,6 +161,7 @@ export default function SectionMain(props: StepContentStep1Props) {
 						onFormDataChange={onFormDataChange}
 						onAddNewlyCreatedSolution={onAddNewlyCreatedSolution}
 						newlyCreatedSolutions={newlyCreatedSolutions}
+						onSolutionTypeSelect={onSolutionTypeSelect}
 					/>
 
 					{/* Variant Section - Only show if solution is selected */}
@@ -166,8 +169,6 @@ export default function SectionMain(props: StepContentStep1Props) {
 						<VariantSection
 							selectedSolutionVariantId={selectedSolutionVariantId}
 							selectedSolutionId={selectedSolutionId}
-							existingSolutions={existingSolutions}
-							isLoadingExistingSolutions={isLoadingExistingSolutions}
 							isCreatingNewVariant={isCreatingNewVariant}
 							formData={formData}
 							onFormDataChange={onFormDataChange}
@@ -177,6 +178,7 @@ export default function SectionMain(props: StepContentStep1Props) {
 							onAddNewlyCreatedVariant={onAddNewlyCreatedVariant}
 							newlyCreatedVariants={newlyCreatedVariants}
 							renderSelectionCard={renderSelectionCard}
+							availableSolutionVariants={availableSolutionVariants}
 						/>
 					)}
 				</>

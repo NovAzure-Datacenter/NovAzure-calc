@@ -17,13 +17,24 @@ interface CreateItemDialogProps {
 	isOpen: boolean;
 	onOpenChange: (open: boolean) => void;
 	formData: {
-		name: string;
-		description: string;
-		icon: string;
-		product_badge?: boolean
+		solution_name: string;
+		solution_description: string;
+		solution_icon: string;
+		solution_variant_name?: string;
+		solution_variant_description?: string;
+		solution_variant_icon?: string;
+		solution_variant_product_badge?: boolean;
 	};
 	onFormDataChange: (
-		data: Partial<{ name: string; description: string; icon: string; product_badge: boolean }>
+		data: Partial<{
+			solution_name: string;
+			solution_description: string;
+			solution_icon: string;
+			solution_variant_name?: string;
+			solution_variant_description?: string;
+			solution_variant_icon?: string;
+			solution_variant_product_badge?: boolean;
+		}>
 	) => void;
 	onCreate: () => void;
 	type: "solution" | "variant";
@@ -40,19 +51,25 @@ export default function CreateItemDialog({
 	onCreate,
 	type,
 }: CreateItemDialogProps) {
-	const [isProductBadgeActive, setIsProductBadgeActive] = useState(formData.product_badge || false);
+	const [isProductBadgeActive, setIsProductBadgeActive] = useState(
+		formData.solution_variant_product_badge || false
+	);
 	const [isIconSelectorOpen, setIsIconSelectorOpen] = useState(false);
 
 	const isVariant = type === "variant";
 
+	const nameValue = isVariant
+		? formData.solution_variant_name || ""
+		: formData.solution_name || "";
+	const descriptionValue = isVariant
+		? formData.solution_variant_description || ""
+		: formData.solution_description || "";
+	const iconValue = isVariant
+		? formData.solution_variant_icon || ""
+		: formData.solution_icon || "";
+
 	const handleClose = () => {
 		onOpenChange(false);
-		onFormDataChange({
-			name: "",
-			description: "",
-			icon: "",
-			product_badge: false,
-		});
 		if (isVariant) {
 			setIsProductBadgeActive(false);
 		}
@@ -65,7 +82,11 @@ export default function CreateItemDialog({
 	};
 
 	const handleIconSelect = (iconName: string) => {
-		onFormDataChange({ icon: iconName });
+		if (isVariant) {
+			onFormDataChange({ solution_variant_icon: iconName });
+		} else {
+			onFormDataChange({ solution_icon: iconName });
+		}
 		setIsIconSelectorOpen(false);
 	};
 
@@ -98,6 +119,22 @@ export default function CreateItemDialog({
 
 	const content = getDialogContent();
 
+	const handleNameChange = (value: string) => {
+		if (isVariant) {
+			onFormDataChange({ solution_variant_name: value });
+		} else {
+			onFormDataChange({ solution_name: value });
+		}
+	};
+
+	const handleDescriptionChange = (value: string) => {
+		if (isVariant) {
+			onFormDataChange({ solution_variant_description: value });
+		} else {
+			onFormDataChange({ solution_description: value });
+		}
+	};
+
 	return (
 		<>
 			<Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -127,8 +164,8 @@ export default function CreateItemDialog({
 									onClick={() => setIsIconSelectorOpen(true)}
 									className="h-10 w-10 p-0 border-2 border-dashed hover:border-solid hover:border-primary/50 transition-colors"
 								>
-									{formData.icon ? (
-										React.createElement(stringToIconComponent(formData.icon), {
+									{iconValue ? (
+										React.createElement(stringToIconComponent(iconValue), {
 											className: "h-4 w-4 text-muted-foreground",
 										})
 									) : (
@@ -141,8 +178,8 @@ export default function CreateItemDialog({
 							<div className="flex-1">
 								<Input
 									id="item-name"
-									value={formData.name}
-									onChange={(e) => onFormDataChange({ name: e.target.value })}
+									value={nameValue}
+									onChange={(e) => handleNameChange(e.target.value)}
 									placeholder={content.namePlaceholder}
 									className="h-10"
 								/>
@@ -160,8 +197,11 @@ export default function CreateItemDialog({
 										}`}
 										onClick={() => {
 											const newValue = !isProductBadgeActive;
+
 											setIsProductBadgeActive(newValue);
-											onFormDataChange({ product_badge: newValue });
+											onFormDataChange({
+												solution_variant_product_badge: newValue,
+											});
 										}}
 									>
 										Product
@@ -174,12 +214,8 @@ export default function CreateItemDialog({
 						<div className="space-y-2">
 							<Textarea
 								id="item-description"
-								value={formData.description}
-								onChange={(e) =>
-									onFormDataChange({
-										description: e.target.value,
-									})
-								}
+								value={descriptionValue}
+								onChange={(e) => handleDescriptionChange(e.target.value)}
 								placeholder={content.descriptionPlaceholder}
 								rows={3}
 								className="resize-none"
@@ -194,7 +230,7 @@ export default function CreateItemDialog({
 						</Button>
 						<Button
 							onClick={handleCreate}
-							disabled={!formData.name.trim() || !formData.description.trim()}
+							disabled={!nameValue.trim() || !descriptionValue.trim()}
 						>
 							{content.buttonText}
 						</Button>
@@ -208,12 +244,13 @@ export default function CreateItemDialog({
 					<DialogHeader>
 						<DialogTitle>Select Icon</DialogTitle>
 						<DialogDescription>
-							Choose an icon that best represents this {type === "solution" ? "solution" : "variant"}
+							Choose an icon that best represents this{" "}
+							{type === "solution" ? "solution" : "variant"}
 						</DialogDescription>
 					</DialogHeader>
 					<div className="grid grid-cols-6 gap-3 max-h-[300px] overflow-y-auto">
 						{iconOptions.map((option) => {
-							const isSelected = option.value === formData.icon;
+							const isSelected = option.value === iconValue;
 							return (
 								<button
 									key={option.value}

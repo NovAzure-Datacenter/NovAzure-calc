@@ -12,19 +12,25 @@ export type { Calculation };
  * Main solution data structure
  */
 export interface CreateSolutionData {
-	selectedIndustry: string;
-	selectedTechnology: string;
-	selectedSolutionId: string;
-	selectedSolutionVariantId: string;
-	solutionName: string;
-	solutionDescription: string;
-	solutionIcon: string;
-	newVariantName: string;
-	newVariantDescription: string;
-	newVariantIcon: string;
-	newVariantProductBadge: boolean; // Add product badge support
+	// Selection fields (IDs from MongoDB)
+	industry: string;
+	technology: string;
+	solution: string; // ID or "new" for creation mode
+	solution_variant: string; // ID or "new" for creation mode
+
+	// Creation fields (only populated when creating new)
+	solution_name: string;
+	solution_description: string;
+	solution_icon: string;
+	solution_variant_name: string;
+	solution_variant_description: string;
+	solution_variant_icon: string;
+	solution_variant_product_badge: boolean;
+
+	// Data arrays
 	parameters: Parameter[];
 	calculations: Calculation[];
+	categories: any[]; // Add your category type here
 }
 
 /**
@@ -148,6 +154,12 @@ export interface StepContentProps
 	getSelectedSolutionType: () => any;
 	getSelectedSolutionVariant: () => any;
 	onUsedParametersChange?: (usedParameterIds: string[]) => void;
+	handleSolutionTypeSelectLocal: (
+		solutionTypeId: string,
+		solutionName: string,
+		solutionDescription: string,
+		solutionIcon: string
+	) => void;
 }
 
 // ============================================================================
@@ -164,30 +176,40 @@ export interface CreateSolutionFilterProps
 		CommonCreationState,
 		CommonCreationHandlers {
 	formData: {
-		solutionName: string;
-		solutionDescription: string;
-		solutionIcon: string;
-		newVariantName: string;
-		newVariantDescription: string;
-		newVariantIcon: string;
-		newVariantProductBadge: boolean; // Add product badge support
+		solution_name: string;
+		solution_description: string;
+		solution_icon: string;
+		solution_variant_name: string;
+		solution_variant_description: string;
+		solution_variant_icon: string;
+		solution_variant_product_badge: boolean;
 	};
 	onFormDataChange: (updates: any) => void;
+	handleSolutionTypeSelectLocal: (
+		solutionTypeId: string,
+		solutionName: string,
+		solutionDescription: string,
+		solutionIcon: string
+	) => void;
 }
 
 /**
  * Step 1 content props
  */
 export interface StepContentStep1Props extends CreateSolutionFilterProps {
-	existingSolutions: any[];
-	isLoadingExistingSolutions: boolean;
 	openAccordion: string | undefined;
 	setOpenAccordion: (value: string | undefined) => void;
 	handleCreateNewVariant: () => void;
 	handleCreateNewSolution: () => void;
 	onAddNewlyCreatedSolution: (solution: any) => void;
 	onAddNewlyCreatedVariant: (variant: any) => void;
-	selectedSolutionId: string; // Add this to pass to variant section
+	selectedSolutionId: string;
+	handleSolutionTypeSelectLocal: (
+		solutionTypeId: string,
+		solutionName: string,
+		solutionDescription: string,
+		solutionIcon: string
+	) => void;
 }
 
 /**
@@ -195,12 +217,24 @@ export interface StepContentStep1Props extends CreateSolutionFilterProps {
  */
 export interface CreateItemDialogProps extends DialogProps {
 	formData: {
-		name: string;
-		description: string;
-		icon: string;
+		solution_name: string;
+		solution_description: string;
+		solution_icon: string;
+		solution_variant_name: string;
+		solution_variant_description: string;
+		solution_variant_icon: string;
+		solution_variant_product_badge: boolean;
 	};
 	onFormDataChange: (
-		data: Partial<{ name: string; description: string; icon: string }>
+		data: Partial<{
+			solution_name: string;
+			solution_description: string;
+			solution_icon: string;
+			solution_variant_name: string;
+			solution_variant_description: string;
+			solution_variant_icon: string;
+			solution_variant_product_badge: boolean;
+		}>
 	) => void;
 	onCreate: () => void;
 	type: "solution" | "variant";
@@ -219,7 +253,8 @@ export interface BaseSectionProps {
 		itemId: string,
 		isSelected: boolean,
 		onSelect: (id: string) => void,
-		showIcon?: boolean
+		showIcon?: boolean,
+		cardType?: "solution" | "variant" | "default"
 	) => React.JSX.Element;
 }
 
@@ -261,19 +296,26 @@ export interface SolutionSectionProps extends BaseSectionProps {
 	onFormDataChange: (updates: any) => void;
 	onAddNewlyCreatedSolution: (solution: any) => void;
 	newlyCreatedSolutions: any[];
+	handleSolutionTypeSelectLocal: (
+		solutionTypeId: string,
+		solutionName: string,
+		solutionDescription: string,
+		solutionIcon: string
+	) => void;
 }
 
 export interface VariantSectionProps extends BaseSectionProps {
 	selectedSolutionVariantId: string;
-	selectedSolutionId: string; // Add this to filter variants by solution
-	existingSolutions: any[];
-	isLoadingExistingSolutions: boolean;
+	selectedSolutionId: string;
 	isCreatingNewVariant: boolean;
 	formData: {
-		newVariantName: string;
-		newVariantDescription: string;
-		newVariantIcon: string;
-		newVariantProductBadge: boolean; // Add product badge support
+		solution_name: string;
+		solution_description: string;
+		solution_icon: string;
+		solution_variant_name: string;
+		solution_variant_description: string;
+		solution_variant_icon: string;
+		solution_variant_product_badge: boolean;
 	};
 	onFormDataChange: (updates: any) => void;
 	handleCreateNewVariant: () => void;
@@ -281,6 +323,7 @@ export interface VariantSectionProps extends BaseSectionProps {
 	onAddSolutionVariant: (variant: any) => void;
 	onAddNewlyCreatedVariant: (variant: any) => void;
 	newlyCreatedVariants: any[];
+	availableSolutionVariants: any[];
 }
 
 // ============================================================================
@@ -950,11 +993,11 @@ export interface ParameterOutputFieldProps {
 
 export interface CreateSolutionSubmitProps {
 	formData: {
-		solutionName: string;
-		solutionDescription: string;
-		solutionVariant: string;
-		customSolutionVariant: string;
-		customSolutionVariantDescription: string;
+		solution_name: string;
+		solution_description: string;
+		solution_variant: string;
+		solution_variant_name: string;
+		solution_variant_description: string;
 		parameters: Parameter[];
 		calculations: Calculation[];
 	};
@@ -1000,11 +1043,11 @@ export interface ConfigurationItem {
 
 export interface SolutionSummaryProps {
 	formData: {
-		solutionName: string;
-		solutionDescription: string;
-		solutionVariant: string;
-		customSolutionVariant: string;
-		customSolutionVariantDescription: string;
+		solution_name: string;
+		solution_description: string;
+		solution_variant: string;
+		solution_variant_name: string;
+		solution_variant_description: string;
 	};
 	showCustomSolutionType: boolean;
 	showCustomSolutionVariant: boolean;
@@ -1026,10 +1069,9 @@ export interface AdditionalDetailsProps {
 	showCustomSolutionType: boolean;
 	showCustomSolutionVariant: boolean;
 	formData: {
-		solutionName: string;
-		solutionDescription: string;
-		customSolutionVariant: string;
-		customSolutionVariantDescription: string;
+		solution_name: string;
+		solution_variant_name: string;
+		solution_variant_description: string;
 	};
 }
 
@@ -1150,6 +1192,5 @@ export type {
 	/**
 	 * Main solution data structure
 	 */
-	Parameter
+	Parameter,
 };
-

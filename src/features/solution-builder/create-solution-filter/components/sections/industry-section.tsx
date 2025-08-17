@@ -2,12 +2,6 @@ import { IndustrySectionProps } from "@/features/solution-builder/types/types";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import {
-	Accordion,
-	AccordionContent,
-	AccordionItem,
-	AccordionTrigger,
-} from "@/components/ui/accordion";
 import { stringToIconComponent } from "@/lib/icons/lucide-icons";
 import React from "react";
 
@@ -106,7 +100,9 @@ export default function IndustrySection(props: IndustrySectionProps) {
 												industry,
 												industryId,
 												selectedIndustry === industryId,
-												onIndustrySelect
+												onIndustrySelect,
+												true,
+												"default"
 											)}
 										</React.Fragment>
 									);

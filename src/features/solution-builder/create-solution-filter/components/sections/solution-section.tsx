@@ -21,18 +21,18 @@ export default function SolutionSection(props: SolutionSectionProps) {
 		getSelectedTechnology,
 		getSelectedSolutionCategory,
 		renderSelectionCard,
-		handleCreateNewSolution,
 		onFormDataChange,
 		onAddNewlyCreatedSolution,
 		newlyCreatedSolutions,
+		handleSolutionTypeSelectLocal,
 	} = props;
 
 	const [isCreateSolutionDialogOpen, setIsCreateSolutionDialogOpen] =
 		useState(false);
 	const [solutionFormData, setSolutionFormData] = useState({
-		name: "",
-		description: "",
-		icon: "",
+		solution_name: "",
+		solution_description: "",
+		solution_icon: "",
 	});
 
 	const currentNewlyCreatedSolution =
@@ -40,35 +40,45 @@ export default function SolutionSection(props: SolutionSectionProps) {
 			? newlyCreatedSolutions[newlyCreatedSolutions.length - 1]
 			: null;
 
+	const selectedSolution =
+		selectedSolutionId && !isCreatingNewSolution
+			? availableSolutionTypes.find(
+					(solution) => solution.id === selectedSolutionId
+			  )
+			: null;
+
 	const handleCreateSolution = () => {
-		const tempId = `temp-${Date.now()}`;
 		const newSolution = {
-			id: tempId,
-			name: solutionFormData.name,
-			description: solutionFormData.description,
-			icon: solutionFormData.icon,
-			solution_id: tempId,
+			id: "new",
+			solution_name: solutionFormData.solution_name,
+			solution_description: solutionFormData.solution_description,
+			solution_icon: solutionFormData.solution_icon,
+			solution_id: "new",
 		};
 
 		onAddNewlyCreatedSolution(newSolution);
 
 		onFormDataChange({
-			solutionName: solutionFormData.name,
-			solutionDescription: solutionFormData.description,
-			solutionIcon: solutionFormData.icon,
+			solution: "new",
+			solution_name: solutionFormData.solution_name,
+			solution_description: solutionFormData.solution_description,
+			solution_icon: solutionFormData.solution_icon,
 		});
 
-		handleCreateNewSolution();
 		setIsCreateSolutionDialogOpen(false);
 		setSolutionFormData({
-			name: "",
-			description: "",
-			icon: "",
+			solution_name: "",
+			solution_description: "",
+			solution_icon: "",
 		});
 	};
 
 	const handleSolutionFormDataChange = (
-		data: Partial<{ name: string; description: string; icon: string }>
+		data: Partial<{
+			solution_name: string;
+			solution_description: string;
+			solution_icon: string;
+		}>
 	) => {
 		setSolutionFormData((prev) => ({ ...prev, ...data }));
 	};
@@ -110,7 +120,7 @@ export default function SolutionSection(props: SolutionSectionProps) {
 
 				{/* Collapsed State - When solution is selected */}
 				{selectedSolutionId ||
-				(currentNewlyCreatedSolution && isCreatingNewSolution) ? (
+				(newlyCreatedSolutions.length > 0 && isCreatingNewSolution) ? (
 					<div className="space-y-4">
 						<div className="p-3 border-2 border-green-200 rounded-md bg-green-50">
 							<div className="flex items-center justify-between">
@@ -118,24 +128,43 @@ export default function SolutionSection(props: SolutionSectionProps) {
 									<Check className="h-4 w-4 text-green-600" />
 									<div className="flex items-center gap-2">
 										{/* Check if the selected solution is the newly created one */}
-										{currentNewlyCreatedSolution &&
+										{newlyCreatedSolutions.length > 0 &&
 										(selectedSolutionId === currentNewlyCreatedSolution.id ||
 											isCreatingNewSolution) ? (
 											<>
-												{currentNewlyCreatedSolution.icon ? (
+												{currentNewlyCreatedSolution.solution_icon ? (
 													React.createElement(
-														typeof currentNewlyCreatedSolution.icon === "string"
+														typeof currentNewlyCreatedSolution.solution_icon ===
+															"string"
 															? stringToIconComponent(
-																	currentNewlyCreatedSolution.icon
+																	currentNewlyCreatedSolution.solution_icon
 															  )
-															: currentNewlyCreatedSolution.icon,
+															: currentNewlyCreatedSolution.solution_icon,
 														{ className: "h-4 w-4" }
 													)
 												) : (
 													<div className="h-4 w-4 bg-muted rounded"></div>
 												)}
 												<span className="font-medium text-sm">
-													{currentNewlyCreatedSolution.name}
+													{currentNewlyCreatedSolution.solution_name}
+												</span>
+											</>
+										) : selectedSolution ? (
+											<>
+												{selectedSolution.solution_icon ? (
+													React.createElement(
+														typeof selectedSolution.solution_icon === "string"
+															? stringToIconComponent(
+																	selectedSolution.solution_icon
+															  )
+															: selectedSolution.solution_icon,
+														{ className: "h-4 w-4" }
+													)
+												) : (
+													<div className="h-4 w-4 bg-muted rounded"></div>
+												)}
+												<span className="font-medium text-sm">
+													{selectedSolution.solution_name}
 												</span>
 											</>
 										) : (
@@ -232,25 +261,25 @@ export default function SolutionSection(props: SolutionSectionProps) {
 													}
 												>
 													<div className="flex items-center gap-2">
-														{currentNewlyCreatedSolution.icon ? (
+														{currentNewlyCreatedSolution.solution_icon ? (
 															React.createElement(
-																typeof currentNewlyCreatedSolution.icon ===
+																typeof currentNewlyCreatedSolution.solution_icon ===
 																	"string"
 																	? stringToIconComponent(
-																			currentNewlyCreatedSolution.icon
+																			currentNewlyCreatedSolution.solution_icon
 																	  )
-																	: currentNewlyCreatedSolution.icon,
+																	: currentNewlyCreatedSolution.solution_icon,
 																{ className: "h-4 w-4" }
 															)
 														) : (
 															<div className="h-4 w-4 bg-muted rounded"></div>
 														)}
 														<span className="font-medium text-sm">
-															{currentNewlyCreatedSolution.name}
+															{currentNewlyCreatedSolution.solution_name}
 														</span>
 													</div>
 													<p className="text-xs text-muted-foreground mt-1 ml-6">
-														{currentNewlyCreatedSolution.description}
+														{currentNewlyCreatedSolution.solution_description}
 													</p>
 												</div>
 											)}
@@ -261,7 +290,9 @@ export default function SolutionSection(props: SolutionSectionProps) {
 														solutionCategory,
 														solutionCategory.id,
 														selectedSolutionId === solutionCategory.id,
-														onSolutionTypeSelect
+														onSolutionTypeSelect,
+														true,
+														"solution"
 													)}
 												</div>
 											))}
