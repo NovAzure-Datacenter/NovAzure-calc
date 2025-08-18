@@ -30,6 +30,16 @@ class UnitCalculator:
         formatted = formatted.replace(" / ", "/")
         return formatted
 
+    def _parse_compound_unit(self, unit_str: str) -> str:
+        if not unit_str or '/' not in unit_str:
+            return unit_str
+        
+        parsed = unit_str
+        for symbol, unit_name in self.currency_symbols.items():
+            parsed = parsed.replace(symbol, unit_name)
+        
+        return parsed
+
     @staticmethod
     def calculate_unit(ast_node, context: Dict[str, "Parameter"]) -> Optional[str]:
         calculator = UnitCalculator()
@@ -51,6 +61,9 @@ class UnitCalculator:
 
                 if unit_str in self.currency_symbols:
                     return self.currency_symbols[unit_str]
+
+                if '/' in unit_str:
+                    return self._parse_compound_unit(unit_str)
 
                 try:
                     unit = self.ureg(unit_str)
