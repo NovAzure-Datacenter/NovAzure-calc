@@ -596,6 +596,8 @@ export interface ParameterRowProps {
 	expandedRows: Set<string>;
 	toggleRowExpansion: (parameterId: string) => void;
 	usedParameterIds?: string[];
+	isUnused?: boolean;
+	parameters?: Parameter[];
 }
 
 export interface AddParameterRowProps {

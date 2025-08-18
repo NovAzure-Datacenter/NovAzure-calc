@@ -11,7 +11,10 @@ import { UserInterfaceCell } from "./cells/user-interface-cell";
 import { OutputCell } from "./cells/output-cell";
 import { ActionsCell } from "./cells/actions-cell";
 export function ParameterRow(props: ParameterRowProps) {
-    const { parameter, isEditing, editData, setEditData, handleEditParameter, handleSaveParameter, handleCancelEdit, handleDeleteParameter, highlightSearchTerm, searchQuery, getCategoryBadgeStyleWrapper, getCategoryBadgeStyleForDropdownWrapper, getUserInterfaceBadgeStyle, getDisplayTypeBadgeStyle, getAllAvailableCategories, columnVisibility, editingParameter, isAddingParameter, renderCell, expandedRows, toggleRowExpansion, isUnused, parameters } = props;
+    const { parameter, isEditing, editData, setEditData, handleEditParameter, handleSaveParameter, handleCancelEdit, handleDeleteParameter, highlightSearchTerm, searchQuery, getCategoryBadgeStyleWrapper, getCategoryBadgeStyleForDropdownWrapper, getUserInterfaceBadgeStyle, getDisplayTypeBadgeStyle, getAllAvailableCategories, columnVisibility, editingParameter, isAddingParameter, renderCell, expandedRows, toggleRowExpansion, usedParameterIds, parameters } = props;
+    
+    // Calculate if parameter is unused
+    const isUnused = usedParameterIds ? !usedParameterIds.includes(parameter.id) : false;
 	const handleKeyDown = (e: React.KeyboardEvent) => {
 		if (e.key === "Enter") {
 			handleSaveParameter(parameter.id);
