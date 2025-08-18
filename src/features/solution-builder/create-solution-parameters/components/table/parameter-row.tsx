@@ -53,7 +53,7 @@ export function ParameterRow(props: ParameterRowProps) {
 				(editingParameter && !isEditing) || isAddingParameter
 					? "opacity-40 pointer-events-none"
 					: ""
-			} ${isUnused ? "opacity-50" : ""}`}
+			}`}
 			style={{
 				height: isExpanded ? "auto" : "32px",
 				minHeight: "32px",
