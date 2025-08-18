@@ -41,21 +41,18 @@ export function NameCell({
 			/>
 		) : (
 			<div className="flex items-center gap-2">
+				{isUnused ? (
+					<svg className="h-3 w-3 ml-1" viewBox="0 0 24 24" fill="none">
+						<circle cx="12" cy="12" r="10" fill="#ef4444" />
+					</svg>
+				) : (
+					<svg className="h-3 w-3 ml-1" viewBox="0 0 24 24" fill="none">
+						<circle cx="12" cy="12" r="10" fill="#22c55e" />
+					</svg>
+				)}
 				<span className="font-medium text-xs">
 					{highlightSearchTerm(parameter.name, searchQuery)}
 				</span>
-				{isUnused && (
-					<TooltipProvider>
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<Circle className="h-3 w-3 text-muted-foreground ml-1" onClick={(e) => e.stopPropagation()} />
-							</TooltipTrigger>
-							<TooltipContent>
-								<p>This parameter is not currently used in any solution</p>
-							</TooltipContent>
-						</Tooltip>
-					</TooltipProvider>
-				)}
 			</div>
 		),
 		"parameterName",
