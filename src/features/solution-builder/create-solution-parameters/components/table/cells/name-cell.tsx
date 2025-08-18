@@ -40,17 +40,26 @@ export function NameCell({
 				onKeyDown={handleKeyDown}
 			/>
 		) : (
-			<div className="flex items-center gap-2">
+			<div className="flex items-center gap-2 min-w-0">
 				{isUnused ? (
-					<svg className="h-3 w-3 ml-1" viewBox="0 0 24 24" fill="none">
-						<circle cx="12" cy="12" r="10" fill="#ef4444" />
-					</svg>
+					<TooltipProvider>
+						<Tooltip>
+							<TooltipTrigger>
+							<svg className="h-2.5 w-2.5 flex-shrink-0 min-w-[10px] min-h-[10px]" viewBox="0 0 24 24" fill="none">
+								<circle cx="12" cy="12" r="8" fill="#ef4444" />
+							</svg>
+							</TooltipTrigger>
+							<TooltipContent>
+								<p>This parameter is not used in the solution</p>
+							</TooltipContent>
+						</Tooltip>
+					</TooltipProvider>
 				) : (
-					<svg className="h-3 w-3 ml-1" viewBox="0 0 24 24" fill="none">
-						<circle cx="12" cy="12" r="10" fill="#22c55e" />
+					<svg className="h-2.5 w-2.5 flex-shrink-0 min-w-[10px] min-h-[10px]" viewBox="0 0 24 24" fill="none">
+						<circle cx="12" cy="12" r="8" fill="#22c55e" />
 					</svg>
 				)}
-				<span className="font-medium text-xs">
+				<span className="font-medium text-xs truncate">
 					{highlightSearchTerm(parameter.name, searchQuery)}
 				</span>
 			</div>
