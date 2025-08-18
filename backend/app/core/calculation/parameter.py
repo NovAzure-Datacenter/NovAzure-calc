@@ -48,9 +48,14 @@ class Parameter:
             return self.result
 
         if self.type in ["COMPANY", "GLOBAL"]:
-            self.result = self.value
+            if isinstance(self.value, str):
+                try:
+                    self.result = float(self.value)
+                except ValueError:
+                    raise ValueError(f"Parameter '{self.name}' has invalid numeric value: {self.value}")
+            else:
+                self.result = self.value
 
-        # User value can only be a number ?!?
         elif self.type == "USER":
             self.result = context[self.name]
 
@@ -84,8 +89,6 @@ class Parameter:
         op_type = node["type"]
 
         if op_type == "Add":
-            print("left: ", node["left"], context)
-            print("left: ", node["right"], context)
             return self._evaluate_ast(node["left"], context) + self._evaluate_ast(node["right"], context)
 
         elif op_type == "Subtract":

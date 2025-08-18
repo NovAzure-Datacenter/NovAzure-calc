@@ -9,13 +9,34 @@ class UnitCalculator:
     def __init__(self):
         self.ureg = pint.UnitRegistry()
 
-        self.ureg.define('dollar = [currency] = $')
-        self.ureg.define('euro = [currency] = €')
+        self.ureg.define("USD = [currency]")
+        self.ureg.define("EUR = 1.1 * USD")
+        self.ureg.define("GBP = 1.3 * USD")
+        
+        self.currency_symbols = {
+            "$": "USD",
+            "€": "EUR", 
+            "£": "GBP"
+        }
+    
+    def _format_unit(self, unit_str: str) -> str:
+        if not unit_str:
+            return unit_str
+        
+        formatted = unit_str
+        for symbol, unit_name in self.currency_symbols.items():
+            formatted = formatted.replace(unit_name, symbol)
+        
+        formatted = formatted.replace(" / ", "/")
+        return formatted
 
     @staticmethod
     def calculate_unit(ast_node, context: Dict[str, "Parameter"]) -> Optional[str]:
         calculator = UnitCalculator()
-        return calculator._calculate_with_pint(ast_node, context)
+        result = calculator._calculate_with_pint(ast_node, context)
+        if result:
+            return calculator._format_unit(result)
+        return result
 
     def _calculate_with_pint(self, ast_node, context: Dict[str, "Parameter"]) -> Optional[str]:
         if isinstance(ast_node, (float, int)):
@@ -28,8 +49,8 @@ class UnitCalculator:
                 if unit_str == None or unit_str == "":
                     return None
 
-                if unit_str == "$":
-                    return "dollar"
+                if unit_str in self.currency_symbols:
+                    return self.currency_symbols[unit_str]
 
                 try:
                     unit = self.ureg(unit_str)

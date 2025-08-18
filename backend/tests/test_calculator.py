@@ -20,6 +20,8 @@ class TestCalculator:
         result = calculator.evaluate(["result"])
         assert result["result"] == [20.0]
 
+
+
     def test_parameter_types(self):
         """Tests if all parameter types will work together"""
 
@@ -40,6 +42,8 @@ class TestCalculator:
 
         result = calculator.evaluate(["result"])
         assert result["result"] == [75.0]
+
+
 
     def test_dependency_chain(self):
         """Nested calculations and more complex formulas"""
@@ -81,6 +85,8 @@ class TestCalculator:
         result = calculator.evaluate(["result"])
         assert result["result"] == [-6.0]
 
+
+
     def test_multiple_targets(self):
         """Test calculating multiple targets at once"""
         parameter_dicts = [
@@ -97,6 +103,8 @@ class TestCalculator:
 
         result = calculator.evaluate(["sum", "product", "ratio"])
         assert result["result"] == [16.0, 48.0, 3.0]
+
+
 
     def test_unit_calculation(self):
         """Test all types of unit calculations"""
@@ -148,6 +156,8 @@ class TestCalculator:
         result = calculator.evaluate(["result"])
 
         assert result["result"] == [190.095]
+        assert calculator.param_map["result"].unit == "$/kW"
+
 
     def test_error_handling(self):
         # Test undefined Parameter dependency
