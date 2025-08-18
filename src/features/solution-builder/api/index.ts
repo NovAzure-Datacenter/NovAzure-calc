@@ -15,7 +15,8 @@ import {
 import { 
 	getClientSolutions, 
 	createClientSolution, 
-	updateClientSolution 
+	updateClientSolution,
+	getClientSolutionsByIndustryAndTechnology
 } from "@/lib/actions/clients-solutions/clients-solutions";
 import { getAllGlobalParameters } from "@/lib/actions/global-parameters/global-parameters";
 import { Parameter } from "@/types/types";
@@ -66,41 +67,28 @@ export const fetchInitialData = async (userId: string) => {
 
 /**
  * Fetch solution types based on selected industry and technology
- * Retrieves solution types available for the industry/technology combination
+ * Retrieves client solutions available for the industry/technology combination
  * Used when user selects industry and technology to populate solution options
  */
-export const fetchSolutionTypes = async (industryId: string, technologyId: string) => {
-	if (!industryId || !technologyId) {
+export const fetchSolutionTypes = async (industryId: string, technologyId: string, clientId: string) => {
+	if (!industryId || !technologyId || !clientId) {
 		return [];
 	}
 
 	try {
-		const result = await getSolutionTypesByIndustryAndTechnology(industryId, technologyId);
-		return result.success ? (result.solutionTypes || []) : [];
+		const result = await getClientSolutionsByIndustryAndTechnology(clientId, industryId, technologyId);
+		
+		// Transform client solutions to match expected format
+
+
+		return result;
 	} catch (error) {
 		console.error("Error fetching solution types:", error);
 		throw new Error("Failed to load solution types");
 	}
 };
 
-/**
- * Fetch solution variants for the selected solution type
- * Retrieves all variants available for a specific solution type
- * Used when user selects a solution type to populate variant options
- */
-export const fetchSolutionVariants = async (solutionId: string) => {
-	if (!solutionId) {
-		return [];
-	}
 
-	try {
-		const result = await getSolutionVariantsBySolutionId(solutionId);
-		return result.success ? (result.solutionVariants || []) : [];
-	} catch (error) {
-		console.error("Error fetching solution variants:", error);
-		throw new Error("Failed to load solution variants");
-	}
-};
 
 /**
  * Fetch existing solution data (parameters and calculations)
@@ -117,7 +105,7 @@ export const fetchExistingSolutionData = async (solutionVariantId: string, clien
 	}
 
 	try {
-		if (!solutionVariantId.startsWith("new-variant-")) {
+		if (!solutionVariantId.startsWith("new-variant-") && solutionVariantId !== "new") {
 			const existingSolutions = await getClientSolutions(clientData.id);
 			if (existingSolutions.solutions) {
 				const existingSolution = existingSolutions.solutions.find(
@@ -224,17 +212,17 @@ export const createNewClientSolution = async (clientSolutionData: {
 	solution_name: string;
 	solution_description: string;
 	solution_icon: string;
-	industry_id: string;
-	technology_id: string;
-	selected_solution_id: string;
-	selected_solution_variant_id?: string;
-	is_creating_new_solution: boolean;
-	is_creating_new_variant: boolean;
-	new_variant_name: string;
-	new_variant_description: string;
-	new_variant_icon: string;
+	industry: string;
+	technology: string;
+	solution: string;
+	solution_variant: string;
+	solution_variant_name: string;
+	solution_variant_description: string;
+	solution_variant_icon: string;
+	solution_variant_product_badge: boolean;
 	parameters: Parameter[];
 	calculations: Calculation[];
+	categories: any[];
 	status: "draft" | "pending" | "approved" | "rejected";
 	created_by: string;
 }) => {
@@ -360,7 +348,7 @@ export const fetchCalculationData = async (solutionVariantId: string, clientData
 	}
 
 	try {
-		if (!solutionVariantId.startsWith("new-variant-")) {
+		if (!solutionVariantId.startsWith("new-variant-") && solutionVariantId !== "new") {
 			const existingSolutions = await getClientSolutions(clientData.id);
 
 			if (existingSolutions.solutions) {
@@ -585,4 +573,48 @@ export const filterCalculationsByCategory = (calculations: any[], activeTab: str
 		
 		return categoryName?.toLowerCase() === activeTab.toLowerCase();
 	});
+};
+
+/**
+ * Fetch solution variants for the selected solution type
+ * Retrieves all client solutions where the solution field matches the selected solution type ID
+ * Used when user selects a solution type to populate variant options
+ */
+export const fetchSolutionVariants = async (solutionId: string, clientId: string) => {
+	if (!solutionId || !clientId) {
+		console.log("fetchSolutionVariants: Missing solutionId or clientId", { solutionId, clientId });
+		return [];
+	}
+
+	try {
+		console.log("fetchSolutionVariants: Starting with", { solutionId, clientId });
+		
+		// Get all client solutions for this client
+		const allSolutions = await getClientSolutions(clientId);
+		
+		if (allSolutions.error || !allSolutions.solutions) {
+			console.log("fetchSolutionVariants: Error getting client solutions", allSolutions.error);
+			return [];
+		}
+
+		console.log("fetchSolutionVariants: Got all client solutions", allSolutions.solutions.length);
+
+		// The solutionId passed here is actually the ID from availableSolutionTypes
+		// which contains client solutions with their id field set to the solution ID (for variants)
+		// or the document ID (for solutions)
+		
+		// Find all client solutions where the solution field matches the selected solutionId
+		// This means we're looking for variants that reference this solution type
+		const solutionVariants = allSolutions.solutions.filter(
+			(clientSolution) => clientSolution.solution === solutionId
+		);
+
+		console.log("fetchSolutionVariants: Found variants for solution", solutionId, solutionVariants.length, solutionVariants);
+
+		// Return the variants found
+		return solutionVariants;
+	} catch (error) {
+		console.error("Error fetching solution variants:", error);
+		throw new Error("Failed to load solution variants");
+	}
 };
