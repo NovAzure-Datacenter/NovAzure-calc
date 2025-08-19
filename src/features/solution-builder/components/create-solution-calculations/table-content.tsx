@@ -353,9 +353,10 @@ function CalculationsTableHeader({
 			label: "Level",
 			hasTooltip: true,
 			tooltip: {
-				title: 'The calculation dependency level',
-				content: '• Level 1: Static parameters (Company/User/Global)\n• Level 2+: Calculations that depend on other calculations\n• Higher levels depend on lower level calculations'
-			}
+				title: "The calculation dependency level",
+				content:
+					"• Level 1: Static parameters (Company/User/Global)\n• Level 2+: Calculations that depend on other calculations\n• Higher levels depend on lower level calculations",
+			},
 		},
 		{ key: "name", label: "Name", hasTooltip: false },
 		{ key: "category", label: "Category", hasTooltip: false },
@@ -481,21 +482,37 @@ function CalculationsTableBody({
 }: CalculationsTableBodyProps) {
 	const sortedCalculations = useMemo(() => {
 		return [...calculations].sort((a, b) => {
+			// First sort by priority (Global/Required calculations first)
+			const categoryA = (a.category?.name).toLowerCase();
+			const categoryB = (b.category?.name).toLowerCase();
+
+			const isAPriority = categoryA === "global" || categoryA === "required";
+			const isBPriority = categoryB === "global" || categoryB === "required";
+
+			if (isAPriority !== isBPriority) {
+				return isAPriority ? -1 : 1;
+			}
+
+			// Then sort by level within each priority group
 			const levelA = a.level || 1;
 			const levelB = b.level || 1;
 			return levelB - levelA;
 		});
 	}, [calculations]);
 
-	const [isAddFormulaExpanded, setIsAddFormulaExpanded] = useState(false);
+	// Find the index where priority calculations end
+	const priorityEndIndex = sortedCalculations.findIndex((calc) => {
+		const category = (calc.category?.name).toLowerCase();
+		return category !== "global" && category !== "required";
+	});
 
+	const [isAddFormulaExpanded, setIsAddFormulaExpanded] = useState(false);
 
 	React.useEffect(() => {
 		if (!isAddingCalculation) {
 			setIsAddFormulaExpanded(false);
 		}
 	}, [isAddingCalculation]);
-
 
 	const toggleFormulaExpanded = (calculationId: string) => {
 		setExpandedCalculations((prev) => {
@@ -547,7 +564,7 @@ function CalculationsTableBody({
 			{/* Empty state when no calculations are found */}
 			{calculations.length === 0 && !isAddingCalculation && (
 				<TableRow>
-					<TableCell colSpan={9} className="text-center py-8">
+					<TableCell colSpan={10} className="text-center py-8">
 						<div className="flex flex-col items-center gap-2 text-muted-foreground">
 							<Info className="h-8 w-8" />
 							<p className="text-sm font-medium">No calculations found</p>
@@ -558,34 +575,74 @@ function CalculationsTableBody({
 			)}
 
 			{/* Calculation rows */}
-			{sortedCalculations.map((calculation) => {
+			{sortedCalculations.map((calculation, index) => {
 				const isEditing = editingCalculation === calculation.id;
 				const isFormulaExpanded = expandedCalculations.has(calculation.id);
+				const category = (calculation.category?.name).toLowerCase();
+				const isPriority = category === "global" || category === "required";
 
 				return (
-					<CalculationRow
-						key={calculation.id}
-						calculation={calculation}
-						isEditing={isEditing}
-						editData={editData}
-						setEditData={setEditData}
-						handleEditCalculation={handleEditCalculation}
-						handleSaveCalculation={handleSaveCalculation}
-						handleCancelEdit={handleCancelEdit}
-						handleDeleteCalculation={handleDeleteCalculation}
-						insertIntoFormula={insertIntoFormula}
-						resetFormula={resetFormula}
-						rewindFormula={rewindFormula}
-						getColorCodedFormula={getColorCodedFormula}
-						getCategoryColor={getCategoryColor}
-						getStatusColor={getStatusColor}
-						groupedParameters={groupedParameters}
-						allCategories={allCategories}
-						editingCalculation={editingCalculation}
-						isFormulaExpanded={isFormulaExpanded}
-						toggleFormulaExpanded={toggleFormulaExpanded}
-						renderCell={renderCell}
-					/>
+					<React.Fragment key={calculation.id}>
+						{/* Add "Required Calculations" header at the beginning of priority calculations */}
+						{index === 0 && priorityEndIndex > 0 && (
+							<TableRow>
+								<TableCell
+									colSpan={10}
+									className="py-2 px-3 bg-gray-50 border-b border-gray-200"
+								>
+									<div className="flex items-center justify-center gap-2">
+										<span className="text-xs font-semibold uppercase tracking-wide">
+											Required Calculations
+										</span>
+									</div>
+								</TableCell>
+							</TableRow>
+						)}
+
+						{/* Add separator bar between priority and non-priority calculations */}
+						{index === priorityEndIndex && priorityEndIndex > 0 && (
+							<>
+								<TableRow>
+									<TableCell colSpan={10} className="h-5 p-0 border-none" />
+								</TableRow>
+								<TableRow>
+									<TableCell
+										colSpan={10}
+										className="py-2 px-3 bg-gray-50 border-b border-gray-200"
+									>
+										<div className="flex items-center justify-center gap-2">
+											<span className="text-xs font-semibold uppercase tracking-wide">
+												User Created
+											</span>
+										</div>
+									</TableCell>
+								</TableRow>
+							</>
+						)}
+
+						<CalculationRow
+							calculation={calculation}
+							isEditing={isEditing}
+							editData={editData}
+							setEditData={setEditData}
+							handleEditCalculation={handleEditCalculation}
+							handleSaveCalculation={handleSaveCalculation}
+							handleCancelEdit={handleCancelEdit}
+							handleDeleteCalculation={handleDeleteCalculation}
+							insertIntoFormula={insertIntoFormula}
+							resetFormula={resetFormula}
+							rewindFormula={rewindFormula}
+							getColorCodedFormula={getColorCodedFormula}
+							getCategoryColor={getCategoryColor}
+							getStatusColor={getStatusColor}
+							groupedParameters={groupedParameters}
+							allCategories={allCategories}
+							editingCalculation={editingCalculation}
+							isFormulaExpanded={isFormulaExpanded}
+							toggleFormulaExpanded={toggleFormulaExpanded}
+							renderCell={renderCell}
+						/>
+					</React.Fragment>
 				);
 			})}
 
@@ -642,6 +699,10 @@ function CalculationRow({
 			: category?.name || "Unknown";
 	};
 
+	// Check if this is a priority calculation (Global/Required)
+	const category = (calculation.category?.name).toLowerCase();
+	const isPriority = category === "global" || category === "required";
+
 	// If formula is expanded, render expanded formula editor
 	// But don't show expanded formula editor when editing starts
 	if (isFormulaExpanded && !isEditing) {
@@ -678,9 +739,7 @@ function CalculationRow({
 			<TableRow className="transition-all duration-200 bg-blue-50 border-2 border-blue-200 shadow-md">
 				{/* Level */}
 				<TableCell>
-					<span className="text-xs font-mono">
-						{ calculation.level || 1}
-					</span>
+					<span className="text-xs font-mono">{calculation.level || 1}</span>
 				</TableCell>
 
 				{/* Formula - Expanded mode (spans all remaining columns) */}
@@ -709,9 +768,7 @@ function CalculationRow({
 			<TableRow className="transition-all duration-200 bg-blue-50 border-2 border-blue-200 shadow-md">
 				{/* Level */}
 				<TableCell>
-					<span className="text-xs font-mono">
-						{calculation.level || 1}
-					</span>
+					<span className="text-xs font-mono">{calculation.level || 1}</span>
 				</TableCell>
 
 				{/* Formula - Expanded mode (spans all remaining columns) */}
@@ -750,7 +807,7 @@ function CalculationRow({
 			<TableCell>
 				<span className="text-sm font-mono">{calculation.level || 1}</span>
 			</TableCell>
-			
+
 			{/* Name */}
 			{renderCell(
 				true,
@@ -759,19 +816,22 @@ function CalculationRow({
 						value={editData.name}
 						onChange={(e) => {
 							const originalValue = e.target.value;
-							const filteredValue = originalValue.replace(/[()+=\-*/]/g, '');
-							
+							const filteredValue = originalValue.replace(/[()+=\-*/]/g, "");
+
 							if (originalValue !== filteredValue) {
-								toast.error("Characters ()+-*/ are not allowed in calculation names");
+								toast.error(
+									"Characters ()+-*/ are not allowed in calculation names"
+								);
 							}
-							
+
 							setEditData((prev) => ({
 								...prev,
 								name: filteredValue,
 							}));
 						}}
-						className="h-8 text-sm"
+						className={`h-8 text-sm ${isPriority ? "bg-gray-100 cursor-not-allowed" : ""}`}
 						placeholder="Calculation name"
+						disabled={isPriority}
 					/>
 				) : (
 					<span className="font-medium text-xs">{calculation.name}</span>
@@ -792,23 +852,26 @@ function CalculationRow({
 								category: value,
 							}))
 						}
+						disabled={isPriority}
 					>
-						<SelectTrigger className="h-7 text-xs">
+						<SelectTrigger className={`h-7 text-xs ${isPriority ? "bg-gray-100 cursor-not-allowed" : ""}`}>
 							<SelectValue />
 						</SelectTrigger>
 						<SelectContent>
-							{allCategories.map((category) => (
-								<SelectItem key={category} value={category}>
-									<div className="flex items-center gap-2">
-										<Badge
-											variant="outline"
-											className={`text-xs ${getCategoryColor(category)}`}
-										>
-											{category}
-										</Badge>
-									</div>
-								</SelectItem>
-							))}
+							{allCategories
+								.filter(category => category.toLowerCase() !== "required")
+								.map((category) => (
+									<SelectItem key={category} value={category}>
+										<div className="flex items-center gap-2">
+											<Badge
+												variant="outline"
+												className={`text-xs ${getCategoryColor(category)}`}
+											>
+												{category}
+											</Badge>
+										</div>
+									</SelectItem>
+								))}
 						</SelectContent>
 					</Select>
 				) : (
@@ -867,8 +930,9 @@ function CalculationRow({
 								description: e.target.value,
 							}))
 						}
-						className="h-7 text-xs"
+						className={`h-7 text-xs ${isPriority ? "bg-gray-100 cursor-not-allowed" : ""}`}
 						placeholder="Description"
+						disabled={isPriority}
 					/>
 				) : (
 					<span className="text-sm text-muted-foreground">
@@ -883,26 +947,36 @@ function CalculationRow({
 			{renderCell(
 				true,
 				<div className="flex items-center gap-2">
-					<Badge
-						className={`text-xs ${
-							calculation.status === "error"
-								? "bg-red-100 text-red-800 border-red-200"
-								: "bg-green-100 text-green-800 border-green-200"
-						}`}
-					>
-						{calculation.status === "error" ? "Error:" : "Valid:"}
-					</Badge>
-					<span
-						className={`text-sm font-mono ${
-							calculation.status === "error" ? "text-red-600" : "text-green-600"
-						}`}
-					>
-						{calculation.status === "error"
-							? "Error"
-							: typeof calculation.result === "number"
-							? calculation.result.toLocaleString()
-							: calculation.result}
-					</span>
+					{/* Check if this is a required calculation AND has no result */}
+					{(calculation.category?.name).toLowerCase() === "required" && 
+					 !calculation.result && calculation.result !== 0 ? (
+						<Badge className="text-xs bg-gray-100 text-gray-700 border-gray-200">
+							Not Calculated
+						</Badge>
+					) : (
+						<>
+							<Badge
+								className={`text-xs ${
+									calculation.status === "error"
+										? "bg-red-100 text-red-800 border-red-200"
+										: "bg-green-100 text-green-800 border-green-200"
+								}`}
+							>
+								{calculation.status === "error" ? "Error:" : "Valid:"}
+							</Badge>
+							<span
+								className={`text-sm font-mono ${
+									calculation.status === "error" ? "text-red-600" : "text-green-600"
+								}`}
+							>
+								{calculation.status === "error"
+									? "Error"
+									: typeof calculation.result === "number"
+									? calculation.result.toLocaleString()
+									: calculation.result}
+							</span>
+						</>
+					)}
 				</div>,
 				"mockResult",
 				isFormulaExpanded
@@ -1056,15 +1130,19 @@ function CalculationRow({
 							>
 								<Edit className="h-3 w-3" />
 							</Button>
-							<Button
-								size="sm"
-								variant="ghost"
-								onClick={() => handleDeleteCalculation(calculation.id)}
-								className="h-5 w-5 p-0 text-red-600 hover:text-red-700"
-								disabled={editingCalculation !== null}
-							>
-								<Trash className="h-3 w-3" />
-							</Button>
+							{/* Only show delete button if category is not "Global" or "Required" */}
+							{(calculation.category?.name).toLowerCase() !== "global" &&
+								(calculation.category?.name).toLowerCase() !== "required" && (
+									<Button
+										size="sm"
+										variant="ghost"
+										onClick={() => handleDeleteCalculation(calculation.id)}
+										className="h-5 w-5 p-0 text-red-600 hover:text-red-700"
+										disabled={editingCalculation !== null}
+									>
+										<Trash className="h-3 w-3" />
+									</Button>
+								)}
 						</>
 					) : (
 						<>
@@ -1129,7 +1207,7 @@ function AddCalculationRow({
 
 			{/* If formula is expanded, only render level and formula columns */}
 			{isAddFormulaExpanded ? (
-					<TableCell colSpan={9} className="p-0">
+				<TableCell colSpan={9} className="p-0">
 					<ExpandedFormulaEditor
 						title="Formula Editor - New Calculation"
 						formula={newCalculationData.formula}
@@ -1149,24 +1227,26 @@ function AddCalculationRow({
 					{/* Name */}
 					{renderCell(
 						true,
-											<Input
-						value={newCalculationData.name}
-						onChange={(e) => {
-							const originalValue = e.target.value;
-							const filteredValue = originalValue.replace(/[()+=\-*/]/g, '');
-							
-							if (originalValue !== filteredValue) {
-								toast.error("Characters ()+-*/ are not allowed in calculation names");
-							}
-							
-							setNewCalculationData((prev) => ({
-								...prev,
-								name: filteredValue,
-							}));
-						}}
-						className="h-7 text-xs"
-						placeholder="Calculation name"
-					/>,
+						<Input
+							value={newCalculationData.name}
+							onChange={(e) => {
+								const originalValue = e.target.value;
+								const filteredValue = originalValue.replace(/[()+=\-*/]/g, "");
+
+								if (originalValue !== filteredValue) {
+									toast.error(
+										"Characters ()+-*/ are not allowed in calculation names"
+									);
+								}
+
+								setNewCalculationData((prev) => ({
+									...prev,
+									name: filteredValue,
+								}));
+							}}
+							className="h-7 text-xs"
+							placeholder="Calculation name"
+						/>,
 						"name"
 					)}
 					{/* Category */}
@@ -1185,18 +1265,20 @@ function AddCalculationRow({
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent>
-								{allCategories.map((category) => (
-									<SelectItem key={category} value={category}>
-										<div className="flex items-center gap-2">
-											<Badge
-												variant="outline"
-												className={`text-xs ${getCategoryColor(category)}`}
-											>
-												{category}
-											</Badge>
-										</div>
-									</SelectItem>
-								))}
+								{allCategories
+									.filter(category => category.toLowerCase() !== "required")
+									.map((category) => (
+										<SelectItem key={category} value={category}>
+											<div className="flex items-center gap-2">
+												<Badge
+													variant="outline"
+													className={`text-xs ${getCategoryColor(category)}`}
+												>
+													{category}
+												</Badge>
+											</div>
+										</SelectItem>
+									))}
 							</SelectContent>
 						</Select>,
 						"category"

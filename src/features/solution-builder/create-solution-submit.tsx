@@ -21,50 +21,53 @@ export function CreateSolutionSubmit({
 	getSelectedSolutionType,
 	getSelectedSolutionVariant,
 	isExistingSolutionLoaded,
+	unusedParameterIds = [],
 }: CreateSolutionSubmitProps) {
 	return (
 		<div className="w-full h-full overflow-y-auto space-y-4 p-4">
 			{/* Solution Summary Section */}
 			<div className="space-y-3">
 				<h3 className="text-lg font-semibold">Solution Summary</h3>
-				{/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-					<SummaryCard
-						icon={<div className="w-4 h-4 bg-blue-500 rounded" />}
-						title="Industry"
-						value={getSelectedIndustryName()}
-						bgColor="bg-blue-50"
-						iconColor="text-blue-600"
-					/>
-					<SummaryCard
-						icon={<div className="w-4 h-4 bg-green-500 rounded" />}
-						title="Technology"
-						value={getSelectedTechnologyName()}
-						bgColor="bg-green-50"
-						iconColor="text-green-600"
-					/>
-				</div> */}
 			</div>
 
 			{/* Configuration Summary */}
 			<div className="space-y-3">
 				<h3 className="text-lg font-semibold">Configuration</h3>
-				{/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-					<SummaryCard
-						icon={<div className="w-4 h-4 bg-purple-500 rounded" />}
-						title="Parameters"
-						value={`${formData.parameters.length} configured`}
-						bgColor="bg-purple-50"
-						iconColor="text-purple-600"
-					/>
-					<SummaryCard
-						icon={<div className="w-4 h-4 bg-orange-500 rounded" />}
-						title="Calculations"
-						value={`${formData.calculations.length} configured`}
-						bgColor="bg-orange-50"
-						iconColor="text-orange-600"
-					/>
-				</div> */}
 			</div>
+
+			{/* Unused Parameters Warning */}
+			{unusedParameterIds.length > 0 && (
+				<div className="space-y-3">
+					<div className="flex items-center gap-2 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+						<AlertTriangle className="w-5 h-5 text-yellow-600" />
+						<div className="flex-1">
+							<h4 className="font-medium text-yellow-800">
+								Unused Parameters Warning
+							</h4>
+							<p className="text-sm text-yellow-700">
+								The following {unusedParameterIds.length} parameter
+								{unusedParameterIds.length === 1 ? "" : "s"}{" "}
+								{unusedParameterIds.length === 1 ? "is" : "are"} not used in any
+								calculations:
+							</p>
+							<div className="mt-2">
+								<ul className="text-sm text-yellow-700 list-disc list-inside space-y-1">
+									{unusedParameterIds.map((paramId) => {
+										const param = formData.parameters.find(
+											(p) => p.id === paramId
+										);
+										return (
+											<li key={paramId}>
+												{param ? param.name : `Parameter ${paramId}`}
+											</li>
+										);
+									})}
+								</ul>
+							</div>
+						</div>
+					</div>
+				</div>
+			)}
 
 			{/* Action Cards */}
 			<ActionCards
@@ -77,39 +80,6 @@ export function CreateSolutionSubmit({
 			{/* Warning Message */}
 			<WarningMessage />
 		</div>
-	);
-}
-
-/**
- * SummaryCard component - Displays summary information
- */
-function SummaryCard({
-	icon,
-	title,
-	value,
-	bgColor,
-	iconColor,
-}: {
-	icon: React.ReactNode;
-	title: string;
-	value: string;
-	bgColor: string;
-	iconColor: string;
-}) {
-	return (
-		<Card className="border">
-			<CardContent className="p-4">
-				<div className="flex items-center gap-3">
-					<div className={`p-2 ${bgColor} rounded-lg`}>
-						<div className={iconColor}>{icon}</div>
-					</div>
-					<div className="flex-1">
-						<h4 className="font-medium text-sm text-muted-foreground">{title}</h4>
-						<p className="font-semibold text-sm">{value}</p>
-					</div>
-				</div>
-			</CardContent>
-		</Card>
 	);
 }
 

@@ -7,19 +7,21 @@ import _CaseStudies from "./_landing/components/case-studies/case-studies";
 import _Stats from "./_landing/components/stats/stats";
 import _Testimonials from "./_landing/components/testimonials/testimonials";
 import Navbar from "@/components/navbar/navbar";
+import UnderConstruction from "@/components/under-construction";
 
 export default function Home() {
 	return (
 		<div className="flex flex-col items-center w-full">
-			<Navbar />
-			<Hero />
+			{/* <Navbar />
+			<Hero /> */}
 			{/* <Features />
 			<DataSecurity />
 			<Stats />
 			<CaseStudies />
 			<Testimonials />
 			<CTA /> */}
-			<Footer />
+			{/* <Footer /> */}
+			<UnderConstruction/>
 		</div>
 	);
 }

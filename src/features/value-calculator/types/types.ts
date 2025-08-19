@@ -165,6 +165,7 @@ export interface ValueCalculatorResultsProps {
 	fetchedSolutionB?: any | null;
 	resultData?: any | null;
 	comparisonMode?: "single" | "compare" | null;
+	parameterValues: Record<string, any>;
 }
 
 /**
@@ -332,7 +333,7 @@ export interface ConfigurationSummaryProps {
 /**
  * Results table props
  */
-export interface ResultsTableProps {
+export interface 	ResultsTableProps {
 	comparisonMode?: ComparisonMode;
 	comparisonRows: any[];
 	fetchedSolutionA?: any | null;
@@ -341,6 +342,7 @@ export interface ResultsTableProps {
 	getDifferenceColor: (difference: number) => string;
 	getPercentChangeColor: (percentChange: string) => string;
 	formatPercentage: (percentChange: string) => string;
+	resultData: any;
 }
 
 /**

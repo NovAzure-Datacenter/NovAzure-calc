@@ -3,6 +3,43 @@
 import { getClientsSolutionsCollection } from "@/lib/mongoDb/db";
 import { ObjectId } from "mongodb";
 
+/**
+ * Helper function to serialize MongoDB documents for client components
+ * Converts _id fields to strings and Date objects to ISO strings
+ */
+function serializeMongoDocument(doc: any): any {
+	if (doc === null || doc === undefined) {
+		return doc;
+	}
+
+	if (typeof doc === "object") {
+		if (Array.isArray(doc)) {
+			return doc.map(serializeMongoDocument);
+		}
+
+		const serialized: any = {};
+		for (const [key, value] of Object.entries(doc)) {
+			if (
+				key === "_id" &&
+				value &&
+				typeof value === "object" &&
+				"toString" in value
+			) {
+				serialized[key] = value.toString();
+			} else if (value instanceof Date) {
+				serialized[key] = value.toISOString();
+			} else if (typeof value === "object" && value !== null) {
+				serialized[key] = serializeMongoDocument(value);
+			} else {
+				serialized[key] = value;
+			}
+		}
+		return serialized;
+	}
+
+	return doc;
+}
+
 // Cache for client solutions to avoid multiple database calls
 let clientSolutionsCache: { [clientId: string]: any[] } = {};
 let cacheTimestamp: number = 0;
@@ -25,17 +62,17 @@ export interface ClientSolution {
 	solution_name: string;
 	solution_description: string;
 	solution_icon?: string;
-	industry_id: string;
-	technology_id: string;
-	selected_solution_id?: string;
-	selected_solution_variant_id?: string;
-	is_creating_new_solution: boolean;
-	is_creating_new_variant: boolean;
-	new_variant_name?: string;
-	new_variant_description?: string;
-	new_variant_icon?: string;
+	industry: string;
+	technology: string;
+	solution: string;
+	solution_variant: string;
+	solution_variant_name: string;
+	solution_variant_description: string;
+	solution_variant_icon: string;
+	solution_variant_product_badge: boolean;
 	parameters: any[];
 	calculations: any[];
+	categories: any[];
 	status: "draft" | "pending" | "approved" | "rejected";
 	created_by: string;
 	created_at?: Date;
@@ -91,23 +128,26 @@ export async function getClientSolutions(clientId: string): Promise<{
 		const collection = await getClientsSolutionsCollection();
 		const documents = await collection.find({ client_id: clientId }).toArray();
 
-		const solutions = documents.map((doc) => ({
+		// Serialize MongoDB documents to prevent Next.js warnings
+		const serializedDocuments = documents.map(serializeMongoDocument);
+
+		const solutions = serializedDocuments.map((doc) => ({
 			id: doc._id.toString(),
 			client_id: doc.client_id,
 			solution_name: doc.solution_name,
 			solution_description: doc.solution_description,
 			solution_icon: doc.solution_icon,
-			industry_id: doc.industry_id,
-			technology_id: doc.technology_id,
-			selected_solution_id: doc.selected_solution_id,
-			selected_solution_variant_id: doc.selected_solution_variant_id,
-			is_creating_new_solution: doc.is_creating_new_solution,
-			is_creating_new_variant: doc.is_creating_new_variant,
-			new_variant_name: doc.new_variant_name,
-			new_variant_description: doc.new_variant_description,
-			new_variant_icon: doc.new_variant_icon,
+			industry: doc.industry,
+			technology: doc.technology,
+			solution: doc.solution,
+			solution_variant: doc.solution_variant,
+			solution_variant_name: doc.solution_variant_name,
+			solution_variant_description: doc.solution_variant_description,
+			solution_variant_icon: doc.solution_variant_icon,
+			solution_variant_product_badge: doc.solution_variant_product_badge,
 			parameters: doc.parameters,
 			calculations: doc.calculations,
+			categories: doc.categories,
 			status: doc.status,
 			created_by: doc.created_by,
 			created_at: doc.created_at,
@@ -142,27 +182,32 @@ export async function getClientSolution(solutionId: string): Promise<{
 			return { error: "Solution not found" };
 		}
 
+		// Serialize MongoDB document to prevent Next.js warnings
+		const serializedDocument = serializeMongoDocument(document);
+
 		const solution: ClientSolution = {
-			id: document._id.toString(),
-			client_id: document.client_id,
-			solution_name: document.solution_name,
-			solution_description: document.solution_description,
-			solution_icon: document.solution_icon,
-			industry_id: document.industry_id,
-			technology_id: document.technology_id,
-			selected_solution_id: document.selected_solution_id,
-			selected_solution_variant_id: document.selected_solution_variant_id,
-			is_creating_new_solution: document.is_creating_new_solution,
-			is_creating_new_variant: document.is_creating_new_variant,
-			new_variant_name: document.new_variant_name,
-			new_variant_description: document.new_variant_description,
-			new_variant_icon: document.new_variant_icon,
-			parameters: document.parameters,
-			calculations: document.calculations,
-			status: document.status,
-			created_by: document.created_by,
-			created_at: document.created_at,
-			updated_at: document.updated_at,
+			id: serializedDocument._id.toString(),
+			client_id: serializedDocument.client_id,
+			solution_name: serializedDocument.solution_name,
+			solution_description: serializedDocument.solution_description,
+			solution_icon: serializedDocument.solution_icon,
+			industry: serializedDocument.industry,
+			technology: serializedDocument.technology,
+			solution: serializedDocument.solution,
+			solution_variant: serializedDocument.solution_variant,
+			solution_variant_name: serializedDocument.solution_variant_name,
+			solution_variant_description:
+				serializedDocument.solution_variant_description,
+			solution_variant_icon: serializedDocument.solution_variant_icon,
+			solution_variant_product_badge:
+				serializedDocument.solution_variant_product_badge,
+			parameters: serializedDocument.parameters,
+			calculations: serializedDocument.calculations,
+			categories: serializedDocument.categories,
+			status: serializedDocument.status,
+			created_by: serializedDocument.created_by,
+			created_at: serializedDocument.created_at,
+			updated_at: serializedDocument.updated_at,
 		};
 
 		return { solution };
@@ -261,6 +306,97 @@ export async function getClientSolutionsByStatus(
 	} catch (error) {
 		console.error("Error fetching client solutions by status:", error);
 		return { error: "Failed to fetch solutions by status" };
+	}
+}
+
+/**
+ * Get client solutions filtered by industry and technology
+ * Retrieves solutions that match the client_id, industry, and technology combination
+ * This function should return only actual solutions, not variants
+ */
+export async function getClientSolutionsByIndustryAndTechnology(
+	clientId: string,
+	industryId: string,
+	technologyId: string
+): Promise<{
+	solutions?: ClientSolution[];
+	error?: string;
+}> {
+	try {
+		const collection = await getClientsSolutionsCollection();
+
+		const documents = await collection
+			.find({
+				client_id: clientId,
+				industry: industryId,
+				technology: technologyId,
+			})
+			.toArray();
+
+		const serializedDocuments = documents.map(serializeMongoDocument);
+
+		const solutions = serializedDocuments.map((doc) => {
+			if (doc.solution) {
+				return {
+					id: doc.solution,
+					client_id: doc.client_id,
+					solution_name: doc.solution_name,
+					solution_description: doc.solution_description,
+					solution_icon: doc.solution_icon,
+					industry: doc.industry,
+					technology: doc.technology,
+					solution: doc.solution,
+					solution_variant: doc.solution_variant,
+					solution_variant_name: doc.solution_variant_name,
+					solution_variant_description: doc.solution_variant_description,
+					solution_variant_icon: doc.solution_variant_icon,
+					solution_variant_product_badge: doc.solution_variant_product_badge,
+					parameters: doc.parameters,
+					calculations: doc.calculations,
+					categories: doc.categories,
+					status: doc.status,
+					created_by: doc.created_by,
+					created_at: doc.created_at,
+					updated_at: doc.updated_at,
+				};
+			} else {
+				return {
+					id: doc._id.toString(),
+					client_id: doc.client_id,
+					solution_name: doc.solution_name,
+					solution_description: doc.solution_description,
+					solution_icon: doc.solution_icon,
+					industry: doc.industry,
+					technology: doc.technology,
+					solution: doc.solution,
+					solution_variant: doc.solution_variant,
+					solution_variant_name: doc.solution_variant_name,
+					solution_variant_description: doc.solution_variant_description,
+					solution_variant_icon: doc.solution_variant_icon,
+					solution_variant_product_badge: doc.solution_variant_product_badge,
+					parameters: doc.parameters,
+					calculations: doc.calculations,
+					categories: doc.categories,
+					status: doc.status,
+					created_by: doc.created_by,
+					created_at: doc.created_at,
+					updated_at: doc.updated_at,
+				};
+			}
+		});
+
+		const uniqueSolutions = solutions.filter(
+			(solution, index, self) =>
+				index === self.findIndex((s) => s.id === solution.id)
+		);
+
+		return { solutions: uniqueSolutions };
+	} catch (error) {
+		console.error(
+			"Error fetching client solutions by industry and technology:",
+			error
+		);
+		return { error: "Failed to fetch solutions by industry and technology" };
 	}
 }
 

@@ -11,7 +11,8 @@ export function CreateSolutionProgress({ currentStep }: CreateSolutionProgressPr
 		{ number: 1, label: "Industry, Technology & Solution" },
 		{ number: 2, label: "Parameters" },
 		{ number: 3, label: "Calculations" },
-		{ number: 4, label: "Review & Submit" },
+		{ number: 4, label: "Value" },
+		{ number: 5, label: "Review & Submit" },
 	];
 
 	return (

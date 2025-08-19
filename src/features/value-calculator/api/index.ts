@@ -72,8 +72,8 @@ export const fetchAvailableClientSolutions = async (
 
 	// Filter solutions by industry and technology
 	const filteredSolutions = result.solutions.filter((solution) => {
-		const matchesIndustry = solution.industry_id === industryId;
-		const matchesTechnology = solution.technology_id === technologyId;
+		const matchesIndustry = solution.industry === industryId;
+		const matchesTechnology = solution.technology === technologyId;
 		return matchesIndustry && matchesTechnology;
 	});
 

@@ -20,6 +20,7 @@ app.add_middleware(
 app.include_router(calculation_router, prefix="/api/v1", tags=["calculations"])
 
 
+@app.get("/")
 async def root():
     return {"message": "Parameter Calculator API is running"}
 

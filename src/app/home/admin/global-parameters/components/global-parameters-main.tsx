@@ -25,7 +25,7 @@ import {
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { getActiveTabStyle, getCategoryStyle } from "@/utils/color-utils";
-import Searchbar from "@/features/solution-builder/components/create-solution-parameters/search-bar";
+import { SearchBar } from "@/features/solution-builder/create-solution-parameters/components/common";
 
 
 export default function GlobalParametersMain() {
@@ -44,7 +44,7 @@ export default function GlobalParametersMain() {
 		test_value: "",
 		unit: "",
 		description: "",
-		category: "",
+		category: "Global",
 		is_modifiable: true,
 		display_type: "simple" as "simple" | "dropdown" | "range" | "filter" | "conditional",
 		dropdown_options: [] as Array<{ key: string; value: string }>,
@@ -60,7 +60,7 @@ export default function GlobalParametersMain() {
 		test_value: "",
 		unit: "",
 		description: "",
-		category: "",
+		category: "Global",
 		is_modifiable: true,
 		display_type: "simple" as "simple" | "dropdown" | "range" | "filter" | "conditional",
 		dropdown_options: [] as Array<{ key: string; value: string }>,
@@ -186,9 +186,12 @@ export default function GlobalParametersMain() {
 				test_value: editData.test_value,
 				unit: editData.unit,
 				description: editData.description,
-				information: "",
 				category: { name: editData.category, color: "blue" },
-				user_interface: "not_viewable",
+				user_interface: {
+					type: "not_viewable",
+					category: editData.category,
+					is_advanced: false,
+				},
 				output: true,
 				level: "L1",
 				is_modifiable: editData.is_modifiable,
@@ -213,7 +216,7 @@ export default function GlobalParametersMain() {
 				test_value: "",
 				unit: "",
 				description: "",
-				category: "",
+				category: "Global",
 				is_modifiable: true,
 				display_type: "simple",
 				dropdown_options: [],
@@ -237,7 +240,7 @@ export default function GlobalParametersMain() {
 			test_value: "",
 			unit: "",
 			description: "",
-			category: "",
+			category: "Global",
 			is_modifiable: true,
 			display_type: "simple",
 			dropdown_options: [],
@@ -287,9 +290,12 @@ export default function GlobalParametersMain() {
 				test_value: newParameterData.test_value,
 				unit: newParameterData.unit,
 				description: newParameterData.description,
-				information: "",
 				category: { name: newParameterData.category, color: "blue" },
-				user_interface: "not_viewable",
+				user_interface: {
+					type: "not_viewable",
+					category: newParameterData.category,
+					is_advanced: false,
+				},
 				output: true,
 				level: "L1",
 				is_modifiable: newParameterData.is_modifiable,
@@ -310,7 +316,7 @@ export default function GlobalParametersMain() {
 				test_value: "",
 				unit: "",
 				description: "",
-				category: "",
+				category: "Global",
 				is_modifiable: true,
 				display_type: "simple",
 				dropdown_options: [],
@@ -334,7 +340,7 @@ export default function GlobalParametersMain() {
 			test_value: "",
 			unit: "",
 			description: "",
-			category: "",
+			category: "Global",
 			is_modifiable: true,
 			display_type: "simple",
 			dropdown_options: [],
@@ -458,7 +464,7 @@ export default function GlobalParametersMain() {
 						</div>
 
 						{/* Search Bar */}
-						<Searchbar
+						<SearchBar
 							searchQuery={searchQuery}
 							setSearchQuery={setSearchQuery}
 							filteredParameters={filteredParameters}
