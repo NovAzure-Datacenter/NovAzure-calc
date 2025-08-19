@@ -447,6 +447,8 @@ export interface CreateSolutionParametersProps extends CommonSelectionProps {
 	isLoadingParameters?: boolean;
 	usedParameterIds?: string[];
 	selectedSolutionVariantData: any;
+	categories: CategoryData[];
+	setCategories: React.Dispatch<React.SetStateAction<CategoryData[]>>;
 }
 
 export interface ParameterEditData {

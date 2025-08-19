@@ -15,6 +15,7 @@ import { getSortedCategories, getFilteredParameters } from "./services";
 import { useParameterState, useCategoryState, useUIState } from "./hooks";
 import { CreateSolutionParametersProps } from "@/features/solution-builder/types/types";
 import { loadGlobalParametersIfNeeded } from "./services/global-parameters";
+import CategorySystem from "../components/category-system/category-system";
 
 /**
  * CreateSolutionParameters component - Main component for managing solution parameters
@@ -28,6 +29,8 @@ export function ParameterMain({
 	setCustomCategories,
 	isLoadingParameters = false,
 	usedParameterIds = [],
+	categories,
+	setCategories,
 }: CreateSolutionParametersProps) {
 	const [localParameters, setLocalParameters] = useState(initialParameters);
 	const [hasLoadedGlobalParams, setHasLoadedGlobalParams] = useState(false);
@@ -96,9 +99,11 @@ export function ParameterMain({
 		searchQuery
 	);
 
+
+
 	return (
 		<div className="flex flex-col h-full">
-			<CategoryTabs
+			{/* <CategoryTabs
 				activeTab={activeTab}
 				setActiveTab={setActiveTab}
 				allCategories={allCategories}
@@ -117,7 +122,8 @@ export function ParameterMain({
 				setIsPreviewDialogOpen={setIsPreviewDialogOpen}
 				columnVisibility={columnVisibility}
 				setColumnVisibility={setColumnVisibility}
-			/>
+			/> */}
+			<CategorySystem categories={categories} setCategories={setCategories}/>
 
 			<ConfirmCategoryRemovalDialog
 				isConfirmDialogOpen={categoryState.isConfirmDialogOpen}

@@ -1,9 +1,10 @@
+import { useEffect, useState } from "react";
 import { CalculationMain } from "../../components/create-solution-calculations/calculation-main";
 import ValueMain from "../../components/create-solution-valuebuilder/value-main";
 import { CreateSolutionFilter } from "../../create-solution-filter/create-solution-filter";
 import { ParameterMain } from "../../create-solution-parameters/parameter-main";
 import { CreateSolutionSubmit } from "../../create-solution-submit";
-import { StepContentProps } from "../../types/types";
+import { CategoryData, StepContentProps } from "../../types/types";
 
 /**
  * StepContent component - Renders the appropriate content based on current step
@@ -56,7 +57,11 @@ export default function StepContent(props: StepContentProps) {
 		selectedSolutionVariantData	
 	} = props;
 
+	const [categories, setCategories] = useState<CategoryData[]>([]);
 
+	useEffect(() => {
+		setCategories(formData.categories)
+	}, [formData.categories])
 
 	// Extract used parameter IDs from calculations and nested parameters
 	const extractUsedParameterIds = () => {
@@ -305,6 +310,8 @@ export default function StepContent(props: StepContentProps) {
 					isLoadingParameters={isLoadingParameters}
 					usedParameterIds={extractUsedParameterIds()}
 					selectedSolutionVariantData={selectedSolutionVariantData}
+					categories={categories}
+					setCategories={setCategories}
 				/>
 			)}
 
