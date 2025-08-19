@@ -51,18 +51,21 @@ export default function CategorySystem(props: CategorySystemProps) {
 							className="flex-1 min-w-0 text-muted-foreground text-sm bg-background/80 hover:bg-background border-backdrop truncate px-2 relative group"
 						>
 							{categoriesWithAll[categoryKey].name}
-							{categoryKey !== "all" && (
-								<button
-									onClick={(e) => {
-										e.stopPropagation();
-										handleRemoveCategory(categoryKey);
-									}}
-									className="absolute -top-0 right-1 w-4 h-4 text-red-500"
-									title="Remove category"
-								>
-									<X className="w-3 h-3" />
-								</button>
-							)}
+							{categoryKey !== "all" &&
+								categoryKey !== "Use Case" &&
+								categoryKey !== "Capital Expenditure" &&
+								categoryKey !== "Operational Expenditure" &&(
+									<button
+										onClick={(e) => {
+											e.stopPropagation();
+											handleRemoveCategory(categoryKey);
+										}}
+										className="absolute -top-0 right-1 w-4 h-4 text-red-500"
+										title="Remove category"
+									>
+										<X className="w-3 h-3" />
+									</button>
+								)}
 						</TabsTrigger>
 					))}
 					<AddCategoryButton
