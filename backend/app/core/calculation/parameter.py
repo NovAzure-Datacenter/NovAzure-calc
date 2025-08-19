@@ -33,14 +33,30 @@ class Parameter:
         if self.unit_resolved:
             return self.unit
 
+        if self.type in ["COMPANY", "GLOBAL", "USER"]:
+            pass
+
+        elif self.type == "CALCULATION":
+            from .unit_calculator import UnitCalculator
+
+            self.unit = UnitCalculator.calculate_unit(self.ast, context)
+
+        self.unit_resolved = True
+        return self.unit
+
     def resolve_value(self, context: dict[str, float]):
         if self.evaluated:
             return self.result
 
         if self.type in ["COMPANY", "GLOBAL"]:
-            self.result = self.value
+            if isinstance(self.value, str):
+                try:
+                    self.result = float(self.value)
+                except ValueError:
+                    raise ValueError(f"Parameter '{self.name}' has invalid numeric value: {self.value}")
+            else:
+                self.result = self.value
 
-        # User value can only be a number ?!?
         elif self.type == "USER":
             self.result = context[self.name]
 
@@ -74,29 +90,19 @@ class Parameter:
         op_type = node["type"]
 
         if op_type == "Add":
-            return self._evaluate_ast(node["left"], context) + self._evaluate_ast(
-                node["right"], context
-            )
+            return self._evaluate_ast(node["left"], context) + self._evaluate_ast(node["right"], context)
 
-        if op_type == "Subtract":
-            return self._evaluate_ast(node["left"], context) - self._evaluate_ast(
-                node["right"], context
-            )
+        elif op_type == "Subtract":
+            return self._evaluate_ast(node["left"], context) - self._evaluate_ast(node["right"], context)
 
-        if op_type == "Multiply":
-            return self._evaluate_ast(node["left"], context) * self._evaluate_ast(
-                node["right"], context
-            )
+        elif op_type == "Multiply":
+            return self._evaluate_ast(node["left"], context) * self._evaluate_ast(node["right"], context)
 
-        if op_type == "Divide":
-            return self._evaluate_ast(node["left"], context) / self._evaluate_ast(
-                node["right"], context
-            )
+        elif op_type == "Divide":
+            return self._evaluate_ast(node["left"], context) / self._evaluate_ast(node["right"], context)
 
         elif op_type == "Power":
-            return self._evaluate_ast(node["left"], context) ** self._evaluate_ast(
-                node["right"], context
-            )
+            return self._evaluate_ast(node["left"], context) ** self._evaluate_ast(node["right"], context)
 
         elif op_type.startswith("Unary"):
             return -self._evaluate_ast(node["operand"], context)

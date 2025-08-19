@@ -1,6 +1,6 @@
 # DAG construction and topological sort
-from typing import Dict, List
 from collections import deque
+from typing import Dict, List
 
 from .parameter import Parameter
 
@@ -26,9 +26,7 @@ class DependencyGraph:
         for param_name, deps in self.graph.items():
             for dep in deps:
                 if dep not in self.param_names:
-                    raise ValueError(
-                        f"Parameter {param_name} depends on undefined parameter '{dep}'"
-                    )
+                    raise ValueError(f"Parameter {param_name} depends on undefined parameter '{dep}'")
 
     def topological_sort(self) -> List[str]:
         in_degree = {node: 0 for node in self.graph}
