@@ -38,6 +38,7 @@ class Parameter:
 
         elif self.type == "CALCULATION":
             from .unit_calculator import UnitCalculator
+
             self.unit = UnitCalculator.calculate_unit(self.ast, context)
 
         self.unit_resolved = True

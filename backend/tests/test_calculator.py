@@ -20,8 +20,6 @@ class TestCalculator:
         result = calculator.evaluate(["result"])
         assert result["result"] == [20.0]
 
-
-
     def test_parameter_types(self):
         """Tests if all parameter types will work together"""
 
@@ -42,8 +40,6 @@ class TestCalculator:
 
         result = calculator.evaluate(["result"])
         assert result["result"] == [75.0]
-
-
 
     def test_dependency_chain(self):
         """Nested calculations and more complex formulas"""
@@ -85,8 +81,6 @@ class TestCalculator:
         result = calculator.evaluate(["result"])
         assert result["result"] == [-6.0]
 
-
-
     def test_multiple_targets(self):
         """Test calculating multiple targets at once"""
         parameter_dicts = [
@@ -103,8 +97,6 @@ class TestCalculator:
 
         result = calculator.evaluate(["sum", "product", "ratio"])
         assert result["result"] == [16.0, 48.0, 3.0]
-
-
 
     def test_unit_calculation(self):
         """Test all types of unit calculations"""
@@ -144,8 +136,12 @@ class TestCalculator:
         parameter_dicts = [
             {"name": "nameplate", "type": "INPUT", "unit": "kW"},
             {"name": "cooler_capacity", "type": "COMPANY", "value": "800", "unit": "kW"},
-            {"name": "cooler_capex", "type": "COMPANY", "value": "131100","unit": "$"},
-            {"name": "result", "type": "CALCULATION", "formula": "((nameplate/cooler_capacity)+1)*cooler_capex/nameplate"},
+            {"name": "cooler_capex", "type": "COMPANY", "value": "131100", "unit": "$"},
+            {
+                "name": "result",
+                "type": "CALCULATION",
+                "formula": "((nameplate/cooler_capacity)+1)*cooler_capex/nameplate",
+            },
         ]
 
         parameters = [Parameter(param) for param in parameter_dicts]
@@ -160,9 +156,9 @@ class TestCalculator:
 
         # Test compounded units e.g. L/kWh and $/L
         parameter_dicts = [
-            {"name": "fluid_quantity", "type": "COMPANY","value": "1", "unit": "L/kWh"},
+            {"name": "fluid_quantity", "type": "COMPANY", "value": "1", "unit": "L/kWh"},
             {"name": "system_size", "type": "COMPANY", "value": "1000", "unit": "kWh"},
-            {"name": "fluid_unit_cost", "type": "COMPANY", "value": "2.03","unit": "$/L"},
+            {"name": "fluid_unit_cost", "type": "COMPANY", "value": "2.03", "unit": "$/L"},
             {"name": "result", "type": "CALCULATION", "formula": "fluid_quantity * system_size * fluid_unit_cost"},
         ]
 
@@ -175,7 +171,6 @@ class TestCalculator:
 
         assert result["result"] == pytest.approx([2030])
         assert calculator.param_map["result"].unit == "$"
-
 
     def test_error_handling(self):
         # Test undefined Parameter dependency

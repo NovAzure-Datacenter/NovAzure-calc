@@ -1,6 +1,6 @@
-import pint
-
 from typing import Dict, Optional
+
+import pint
 
 from .parameter import Parameter
 
@@ -12,32 +12,28 @@ class UnitCalculator:
         self.ureg.define("USD = [currency]")
         self.ureg.define("EUR = 1.1 * USD")
         self.ureg.define("GBP = 1.3 * USD")
-        
-        self.currency_symbols = {
-            "$": "USD",
-            "€": "EUR", 
-            "£": "GBP"
-        }
-    
+
+        self.currency_symbols = {"$": "USD", "€": "EUR", "£": "GBP"}
+
     def _format_unit(self, unit_str: str) -> str:
         if not unit_str:
             return unit_str
-        
+
         formatted = unit_str
         for symbol, unit_name in self.currency_symbols.items():
             formatted = formatted.replace(unit_name, symbol)
-        
+
         formatted = formatted.replace(" / ", "/")
         return formatted
 
     def _parse_compound_unit(self, unit_str: str) -> str:
-        if not unit_str or '/' not in unit_str:
+        if not unit_str or "/" not in unit_str:
             return unit_str
-        
+
         parsed = unit_str
         for symbol, unit_name in self.currency_symbols.items():
             parsed = parsed.replace(symbol, unit_name)
-        
+
         return parsed
 
     @staticmethod
@@ -56,19 +52,19 @@ class UnitCalculator:
             if ast_node in context:
                 unit_str = context[ast_node].unit
 
-                if unit_str == None or unit_str == "":
+                if unit_str is None or unit_str == "":
                     return None
 
                 if unit_str in self.currency_symbols:
                     return self.currency_symbols[unit_str]
 
-                if '/' in unit_str:
+                if "/" in unit_str:
                     return self._parse_compound_unit(unit_str)
 
                 try:
                     unit = self.ureg(unit_str)
                     return f"{unit.units:~}"
-                except:
+                except Exception:
                     return unit_str
 
             return None
@@ -96,16 +92,16 @@ class UnitCalculator:
                     left_pint = self.ureg(left_unit)
                     right_pint = self.ureg(right_unit)
 
-                    left_quantity = 1*left_pint
-                    right_quantity = 1*right_pint
+                    left_quantity = 1 * left_pint
+                    right_quantity = 1 * right_pint
 
                     if op_type == "Add":
                         result = left_quantity + right_quantity
                     else:
                         result = left_quantity - right_quantity
 
-                    return f"{result.units:~}" # type: ignore
-                except:
+                    return f"{result.units:~}"  # type: ignore
+                except Exception:
                     raise ValueError(f"Incompatible units for {op_type.lower()}: '{left_unit}' and '{right_unit}'")
 
         elif op_type == "Multiply":
