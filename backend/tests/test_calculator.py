@@ -1,4 +1,5 @@
 import pytest
+
 from app.core.calculation.calculator import Calculator
 from app.core.calculation.parameter import Parameter
 
@@ -96,6 +97,80 @@ class TestCalculator:
 
         result = calculator.evaluate(["sum", "product", "ratio"])
         assert result["result"] == [16.0, 48.0, 3.0]
+
+    def test_unit_calculation(self):
+        """Test all types of unit calculations"""
+
+        # Test simple same unit addition
+        parameter_dicts = [
+            {"name": "x", "type": "INPUT", "unit": "MW"},
+            {"name": "y", "type": "INPUT", "unit": "MW"},
+            {"name": "result", "type": "CALCULATION", "formula": "x + y"},
+        ]
+
+        parameters = [Parameter(param) for param in parameter_dicts]
+        inputs = {"x": 12.0, "y": 4.0}
+
+        calculator = Calculator(parameters, inputs)
+        calculator.param_map["result"].resolve_unit(calculator.param_map)
+        result = calculator.evaluate(["result"])
+
+        assert result["result"] == [16.0]
+        assert calculator.param_map["result"].unit == "MW"
+
+        # Test different unit addition
+        parameter_dicts = [
+            {"name": "x", "type": "INPUT", "unit": "MW"},
+            {"name": "y", "type": "INPUT", "unit": "kWh"},
+            {"name": "result", "type": "CALCULATION", "formula": "x + y"},
+        ]
+
+        parameters = [Parameter(param) for param in parameter_dicts]
+        inputs = {"x": 12.0, "y": 4.0}
+        calculator = Calculator(parameters, inputs)
+
+        with pytest.raises(ValueError, match="Incompatible units for add: 'MW' and 'kWh'"):
+            calculator.param_map["result"].resolve_unit(calculator.param_map)
+
+        # Test semi complex formula for unit validation
+        parameter_dicts = [
+            {"name": "nameplate", "type": "INPUT", "unit": "kW"},
+            {"name": "cooler_capacity", "type": "COMPANY", "value": "800", "unit": "kW"},
+            {"name": "cooler_capex", "type": "COMPANY", "value": "131100", "unit": "$"},
+            {
+                "name": "result",
+                "type": "CALCULATION",
+                "formula": "((nameplate/cooler_capacity)+1)*cooler_capex/nameplate",
+            },
+        ]
+
+        parameters = [Parameter(param) for param in parameter_dicts]
+        inputs = {"nameplate": 5000.0}
+        calculator = Calculator(parameters, inputs)
+
+        calculator.param_map["result"].resolve_unit(calculator.param_map)
+        result = calculator.evaluate(["result"])
+
+        assert result["result"] == [190.095]
+        assert calculator.param_map["result"].unit == "$/kW"
+
+        # Test compounded units e.g. L/kWh and $/L
+        parameter_dicts = [
+            {"name": "fluid_quantity", "type": "COMPANY", "value": "1", "unit": "L/kWh"},
+            {"name": "system_size", "type": "COMPANY", "value": "1000", "unit": "kWh"},
+            {"name": "fluid_unit_cost", "type": "COMPANY", "value": "2.03", "unit": "$/L"},
+            {"name": "result", "type": "CALCULATION", "formula": "fluid_quantity * system_size * fluid_unit_cost"},
+        ]
+
+        parameters = [Parameter(param) for param in parameter_dicts]
+        inputs = {}
+        calculator = Calculator(parameters, inputs)
+
+        calculator.param_map["result"].resolve_unit(calculator.param_map)
+        result = calculator.evaluate(["result"])
+
+        assert result["result"] == pytest.approx([2030])
+        assert calculator.param_map["result"].unit == "$"
 
     def test_error_handling(self):
         # Test undefined Parameter dependency
