@@ -4,6 +4,7 @@ import {
 	createNewSolutionVariant,
 	createNewClientSolution,
 	updateExistingClientSolution,
+	getClientSolutions,
 } from "../../api";
 import { CreateSolutionData } from "../../types/types";
 
@@ -18,34 +19,64 @@ export async function handleSaveAsDraft(
 	existingSolutionId: string | null,
 	isCreatingNewSolution: boolean,
 	isCreatingNewVariant: boolean,
-	loadExistingSolutionData: (variantId: string) => void,
 	getSelectedSolutionType: () => any,
 	getSelectedSolutionVariant: () => any
 ) {
 	try {
-		if (isExistingSolutionLoaded && existingSolutionId) {
-			const updateResult = await updateExistingClientSolution(
-				existingSolutionId,
-				{
-					parameters: formData.parameters,
-					calculations: formData.calculations,
-					status: "draft",
-					updated_at: new Date(),
-				}
-			);
+		// Check if we're working with an existing variant and need to find/update existing client solution
+		if (!isCreatingNewVariant && formData.solution_variant && 
+			formData.solution_variant !== "new" && 
+			formData.solution_variant.length === 24) {
+			
+		
+			
+			// Try to find existing client solution for this variant
+			try {
+				const existingSolutionsResult = await getClientSolutions(clientData.id);
+				
+			
+				
+				if (existingSolutionsResult.solutions) {
+					// Find the client solution that uses this variant
+					const existingClientSolution = existingSolutionsResult.solutions.find(
+						(solution) => solution.solution_variant === formData.solution_variant
+					);
+					
+				
+					
+					if (existingClientSolution && existingClientSolution.id) {
+					
+						
+						// Update the existing client solution
+						const updateResult = await updateExistingClientSolution(
+							existingClientSolution.id,
+							{
+								parameters: formData.parameters,
+								calculations: formData.calculations,
+								status: "draft",
+								updated_at: new Date(),
+							}
+						);
 
-			if (updateResult.success) {
-				return {
-					success: true,
-					status: "success" as const,
-					message: "Solution updated and saved as draft successfully!",
-					solutionName: "Updated Solution",
-				};
-			} else {
-				throw new Error(updateResult.error || "Failed to update solution");
+						if (updateResult.success) {
+							
+							return {
+								success: true,
+								status: "success" as const,
+								message: "Solution updated and saved as draft successfully!",
+								solutionName: existingClientSolution.solution_name || "Updated Solution",
+							};
+						}
+					} 
+				}
+			} catch (error) {
+				console.warn("⚠️ Failed to find/update existing client solution, creating new one:", error);
 			}
 		}
 
+		// If we reach here, we need to create a new client solution
+		// This handles both new solutions/variants and existing solutions/variants that need new client entries
+		
 		let finalSolutionId = formData.solution;
 
 		if (isCreatingNewSolution || formData.solution === "new") {
@@ -69,8 +100,9 @@ export async function handleSaveAsDraft(
 				throw new Error("Failed to create new solution");
 			}
 		} else {
-			if (isCreatingNewVariant && finalSolutionId === "new") {
-				throw new Error("Cannot create variant for non-existent solution");
+			// Validate existing solution ID
+			if (finalSolutionId && finalSolutionId !== "new" && finalSolutionId.length !== 24) {
+				throw new Error("Invalid solution ID format");
 			}
 		}
 
@@ -89,6 +121,11 @@ export async function handleSaveAsDraft(
 				finalVariantId = newVariant.solution_variant_id;
 			} else {
 				throw new Error("Failed to create new solution variant");
+			}
+		} else {
+			// Validate existing variant ID
+			if (finalVariantId && finalVariantId !== "new" && finalVariantId.length !== 24) {
+				throw new Error("Invalid variant ID format");
 			}
 		}
 
@@ -121,6 +158,7 @@ export async function handleSaveAsDraft(
 			}
 		}
 
+		// Create new client solution entry
 		await createNewClientSolution({
 			client_id: clientData.id,
 			solution_name: finalSolutionName,
@@ -173,29 +211,60 @@ export async function handleSubmitForReview(
 	getSelectedSolutionVariant: () => any
 ) {
 	try {
-		if (isExistingSolutionLoaded && existingSolutionId) {
-			const updateResult = await updateExistingClientSolution(
-				existingSolutionId,
-				{
-					parameters: formData.parameters,
-					calculations: formData.calculations,
-					status: "pending",
-					updated_at: new Date(),
-				}
-			);
+		// Check if we're working with an existing variant and need to find/update existing client solution
+		if (!isCreatingNewVariant && formData.solution_variant && 
+			formData.solution_variant !== "new" && 
+			formData.solution_variant.length === 24) {
+			
+		
+			
+			// Try to find existing client solution for this variant
+			try {
+				const existingSolutionsResult = await getClientSolutions(clientData.id);
+				
+				
+				
+				if (existingSolutionsResult.solutions) {
+					// Find the client solution that uses this variant
+					const existingClientSolution = existingSolutionsResult.solutions.find(
+						(solution) => solution.solution_variant === formData.solution_variant
+					);
+					
+					
+					
+					if (existingClientSolution && existingClientSolution.id) {
+					
+						
+						// Update the existing client solution
+						const updateResult = await updateExistingClientSolution(
+							existingClientSolution.id,
+							{
+								parameters: formData.parameters,
+								calculations: formData.calculations,
+								status: "pending",
+								updated_at: new Date(),
+							}
+						);
 
-			if (updateResult.success) {
-				return {
-					success: true,
-					status: "success" as const,
-					message: "Solution updated and submitted for review successfully!",
-					solutionName: "Updated Solution",
-				};
-			} else {
-				throw new Error(updateResult.error || "Failed to update solution");
+						if (updateResult.success) {
+							
+							return {
+								success: true,
+								status: "success" as const,
+								message: "Solution updated and submitted for review successfully!",
+								solutionName: existingClientSolution.solution_name || "Updated Solution",
+							};
+						}
+					} 
+				}
+			} catch (error) {
+				console.warn("⚠️ Failed to find/update existing client solution, creating new one:", error);
 			}
 		}
 
+		// If we reach here, we need to create a new client solution
+		// This handles both new solutions/variants and existing solutions/variants that need new client entries
+		
 		let finalSolutionId = formData.solution;
 
 		if (isCreatingNewSolution || formData.solution === "new") {
@@ -219,13 +288,9 @@ export async function handleSubmitForReview(
 				throw new Error("Failed to create new solution");
 			}
 		} else {
-			if (isCreatingNewVariant && finalSolutionId === "new") {
-				throw new Error("Cannot create variant for non-existent solution");
-			}
-
-			if (isCreatingNewVariant && finalSolutionId) {
-				if (finalSolutionId.length !== 24) {
-				}
+			// Validate existing solution ID
+			if (finalSolutionId && finalSolutionId !== "new" && finalSolutionId.length !== 24) {
+				throw new Error("Invalid solution ID format");
 			}
 		}
 
@@ -244,6 +309,11 @@ export async function handleSubmitForReview(
 				finalVariantId = newVariant.solution_variant_id;
 			} else {
 				throw new Error("Failed to create new solution variant");
+			}
+		} else {
+			// Validate existing variant ID
+			if (finalVariantId && finalVariantId !== "new" && finalVariantId.length !== 24) {
+				throw new Error("Invalid variant ID format");
 			}
 		}
 
@@ -276,6 +346,7 @@ export async function handleSubmitForReview(
 			}
 		}
 
+		// Create new client solution entry
 		await createNewClientSolution({
 			client_id: clientData.id,
 			solution_name: finalSolutionName,

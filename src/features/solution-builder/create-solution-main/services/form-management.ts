@@ -86,10 +86,25 @@ export function handleSolutionTypeSelect(
 		solution_icon: solutionData?.solution_icon || "",
 	}));
 
-	setIsCreatingNewSolution(false);
-	setIsCreatingNewVariant(false);
-	setIsExistingSolutionLoaded(false);
-	setExistingSolutionId(null);
+	// Determine if this is an existing solution or a new one
+	const isExistingSolution = solutionId && 
+		solutionId !== "new" && 
+		!solutionId.startsWith("new-solution-") && 
+		solutionId.length === 24; // MongoDB ObjectId length
+
+	if (isExistingSolution) {
+		// This is an existing solution - set flags for updating
+		setIsCreatingNewSolution(false);
+		setIsCreatingNewVariant(false);
+		setIsExistingSolutionLoaded(true);
+		setExistingSolutionId(solutionId);
+	} else {
+		// This is a new solution or no solution selected
+		setIsCreatingNewSolution(false);
+		setIsCreatingNewVariant(false);
+		setIsExistingSolutionLoaded(false);
+		setExistingSolutionId(null);
+	}
 
 	if (solutionId) {
 		loadSolutionVariants(solutionId);
@@ -105,8 +120,7 @@ export function handleSolutionVariantSelect(
 	setFormData: React.Dispatch<React.SetStateAction<CreateSolutionData>>,
 	setIsCreatingNewVariant: React.Dispatch<React.SetStateAction<boolean>>,
 	setIsExistingSolutionLoaded: React.Dispatch<React.SetStateAction<boolean>>,
-	setExistingSolutionId: React.Dispatch<React.SetStateAction<string | null>>,
-	loadExistingSolutionData: (variantId: string) => void
+	setExistingSolutionId: React.Dispatch<React.SetStateAction<string | null>>
 ) {
 	let variantName = "";
 	let variantDescription = "";
@@ -114,38 +128,90 @@ export function handleSolutionVariantSelect(
 	let variantProductBadge = false;
 
 	if (variantData) {
+		// Try to extract variant information from various possible property names
+		// Priority order: solution_variant_* > variant_* > solution_* > direct properties
 		if (variantData.solution_variant_name !== undefined) {
 			variantName = variantData.solution_variant_name || "";
 			variantDescription = variantData.solution_variant_description || "";
 			variantIcon = variantData.solution_variant_icon || "";
 			variantProductBadge = variantData.solution_variant_product_badge || false;
+		} else if (variantData.variant_name !== undefined) {
+			variantName = variantData.variant_name || "";
+			variantDescription = variantData.variant_description || "";
+			variantIcon = variantData.variant_icon || "";
+			variantProductBadge = variantData.variant_product_badge || false;
 		} else if (variantData.solution_name !== undefined) {
 			variantName = variantData.solution_name || "";
 			variantDescription = variantData.solution_description || "";
 			variantIcon = variantData.solution_icon || "";
 			variantProductBadge = variantData.product_badge || false;
+		} else if (variantData.name !== undefined) {
+			variantName = variantData.name || "";
+			variantDescription = variantData.description || "";
+			variantIcon = variantData.icon || "";
+			variantProductBadge = variantData.product_badge || false;
+		}
+
+		// If we still don't have the data, try to extract from the variantData object structure
+		if (!variantName && variantData.variant) {
+			const variant = variantData.variant;
+			variantName =
+				variant.name ||
+				variant.solution_variant_name ||
+				variant.variant_name ||
+				"";
+			variantDescription =
+				variant.description ||
+				variant.solution_variant_description ||
+				variant.variant_description ||
+				"";
+			variantIcon =
+				variant.icon ||
+				variant.solution_variant_icon ||
+				variant.variant_icon ||
+				"";
+			variantProductBadge =
+				variant.product_badge ||
+				variant.solution_variant_product_badge ||
+				variant.variant_product_badge ||
+				false;
 		}
 	}
 
-	setFormData((prev) => ({
-		...prev,
-		solution_variant: variantId,
-		solution_variant_name: variantName,
-		solution_variant_description: variantDescription,
-		solution_variant_icon: variantIcon,
-		solution_variant_product_badge: variantProductBadge,
-	}));
+	setFormData((prev) => {
+		const newFormData = {
+			...prev,
+			solution_variant: variantId,
+			solution_variant_name: variantName,
+			solution_variant_description: variantDescription,
+			solution_variant_icon: variantIcon,
+			solution_variant_product_badge: variantProductBadge,
+			// Copy parameters and calculations from the selected variant if available
+			parameters: variantData?.parameters || prev.parameters || [],
+			calculations: variantData?.calculations || prev.calculations || [],
+			categories: variantData?.categories || prev.categories || [],
+		};
 
-	setIsCreatingNewVariant(false);
-	setIsExistingSolutionLoaded(false);
-	setExistingSolutionId(null);
+		return newFormData;
+	});
 
-	if (
-		variantId &&
-		!variantId.startsWith("new-variant-") &&
-		variantId !== "new"
-	) {
-		loadExistingSolutionData(variantId);
+	// Determine if this is an existing variant or a new one
+	const isExistingVariant = variantId && 
+		variantId !== "new" && 
+		!variantId.startsWith("new-variant-") && 
+		variantId.length === 24; // MongoDB ObjectId length
+
+
+	if (isExistingVariant) {
+
+		setIsCreatingNewVariant(false);
+		setIsExistingSolutionLoaded(false);
+		setExistingSolutionId(null);
+	} else {
+
+		setIsCreatingNewVariant(false);
+		setIsExistingSolutionLoaded(false);
+		setExistingSolutionId(null);
 	}
 }
 

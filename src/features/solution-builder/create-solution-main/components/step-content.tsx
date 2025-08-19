@@ -53,10 +53,15 @@ export default function StepContent(props: StepContentProps) {
 		customCalculationCategories,
 		setCustomCalculationCategories,
 		handleSolutionTypeSelectLocal,
+		selectedSolutionVariantData	
 	} = props;
+
+
 
 	// Extract used parameter IDs from calculations and nested parameters
 	const extractUsedParameterIds = () => {
+
+		
 		const usedIds = new Set<string>();
 
 		// Test case: if no calculations, return empty array
@@ -284,9 +289,9 @@ export default function StepContent(props: StepContentProps) {
 			)}
 
 			{/* Step 2: Parameters Configuration */}
-			{currentStep === 2 && (
+			{currentStep === 2  && (
 				<ParameterMain
-					parameters={formData.parameters}
+					parameters={selectedSolutionVariantData ? selectedSolutionVariantData.parameters : []}
 					onParametersChange={onParametersChange}
 					customCategories={customParameterCategories}
 					setCustomCategories={setCustomParameterCategories}
@@ -299,13 +304,14 @@ export default function StepContent(props: StepContentProps) {
 					availableSolutionTypes={availableSolutionTypes}
 					isLoadingParameters={isLoadingParameters}
 					usedParameterIds={extractUsedParameterIds()}
+					selectedSolutionVariantData={selectedSolutionVariantData}
 				/>
 			)}
 
 			{/* Step 3: Calculations Configuration */}
-			{currentStep === 3 && (
+			{currentStep === 3  && (
 				<CalculationMain
-					calculations={formData.calculations}
+					calculations={selectedSolutionVariantData ? selectedSolutionVariantData.calculations : []}
 					onCalculationsChange={onCalculationsChange}
 					parameters={formData.parameters}
 					onParametersChange={onParametersChange}
@@ -326,17 +332,27 @@ export default function StepContent(props: StepContentProps) {
 			{currentStep === 4 && <ValueMain formData={formData} />}
 
 			{/* Step 5: Review and Submit */}
-			{currentStep === 5 && (
+			{currentStep === 5  && (
 				<CreateSolutionSubmit
-					formData={{
-						solution_name: formData.solution_name,
-						solution_description: formData.solution_description,
-						solution_variant: formData.solution_variant,
-						solution_variant_name: formData.solution_variant_name,
-						solution_variant_description: formData.solution_variant_description,
-						parameters: formData.parameters as any,
-						calculations: formData.calculations,
-					}}
+					formData={selectedSolutionVariantData ? {
+						industry: selectedSolutionVariantData.industry || formData.industry,
+						technology: selectedSolutionVariantData.technology || formData.technology,
+						solution: selectedSolutionVariantData.solution || formData.solution,
+						solution_variant: selectedSolutionVariantData.solution_variant || formData.solution_variant,
+
+						solution_name: selectedSolutionVariantData.solution_name || formData.solution_name,
+						solution_description: selectedSolutionVariantData.solution_description || formData.solution_description,
+						solution_icon: selectedSolutionVariantData.solution_icon || formData.solution_icon,
+
+						solution_variant_name: selectedSolutionVariantData.solution_variant_name || formData.solution_variant_name,
+						solution_variant_description: selectedSolutionVariantData.solution_variant_description || formData.solution_variant_description,
+						solution_variant_icon: selectedSolutionVariantData.solution_variant_icon || formData.solution_variant_icon,
+						solution_variant_product_badge: selectedSolutionVariantData.solution_variant_product_badge || formData.solution_variant_product_badge,
+
+						parameters: selectedSolutionVariantData.parameters || formData.parameters,
+						calculations: selectedSolutionVariantData.calculations || formData.calculations,
+						categories: selectedSolutionVariantData.categories || formData.categories,
+					} : formData}
 					showCustomSolutionType={isCreatingNewSolution}
 					showCustomSolutionVariant={isCreatingNewVariant}
 					isSubmitting={isSubmitting}

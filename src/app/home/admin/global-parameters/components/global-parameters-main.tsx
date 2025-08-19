@@ -46,6 +46,7 @@ export default function GlobalParametersMain() {
 		description: "",
 		category: "Global",
 		is_modifiable: true,
+		is_unified: false,
 		display_type: "simple" as "simple" | "dropdown" | "range" | "filter" | "conditional",
 		dropdown_options: [] as Array<{ key: string; value: string }>,
 		range_min: "",
@@ -62,6 +63,7 @@ export default function GlobalParametersMain() {
 		description: "",
 		category: "Global",
 		is_modifiable: true,
+		is_unified: false,
 		display_type: "simple" as "simple" | "dropdown" | "range" | "filter" | "conditional",
 		dropdown_options: [] as Array<{ key: string; value: string }>,
 		range_min: "",
@@ -170,6 +172,7 @@ export default function GlobalParametersMain() {
 			description: parameter.description,
 			category: parameter.category.name,
 			is_modifiable: parameter.is_modifiable,
+			is_unified: parameter.is_unified,
 			display_type: parameter.display_type,
 			dropdown_options: parameter.dropdown_options || [],
 			range_min: parameter.range_min || "",
@@ -200,6 +203,7 @@ export default function GlobalParametersMain() {
 				range_min: editData.range_min,
 				range_max: editData.range_max,
 				conditional_rules: editData.conditional_rules,
+				is_unified: editData.is_unified,
 			});
 
 			// Update local state
@@ -218,6 +222,7 @@ export default function GlobalParametersMain() {
 				description: "",
 				category: "Global",
 				is_modifiable: true,
+				is_unified: false,
 				display_type: "simple",
 				dropdown_options: [],
 				range_min: "",
@@ -242,6 +247,7 @@ export default function GlobalParametersMain() {
 			description: "",
 			category: "Global",
 			is_modifiable: true,
+			is_unified: false,
 			display_type: "simple",
 			dropdown_options: [],
 			range_min: "",
@@ -274,6 +280,7 @@ export default function GlobalParametersMain() {
 			description: "",
 			category: activeTab === "All" ? "Global" : activeTab,
 			is_modifiable: true,
+			is_unified: false,
 			display_type: "simple",
 			dropdown_options: [],
 			range_min: "",
@@ -304,6 +311,7 @@ export default function GlobalParametersMain() {
 				range_min: newParameterData.range_min,
 				range_max: newParameterData.range_max,
 				conditional_rules: newParameterData.conditional_rules,
+				is_unified: newParameterData.is_unified,
 			});
 
 			// Update local state
@@ -318,6 +326,7 @@ export default function GlobalParametersMain() {
 				description: "",
 				category: "Global",
 				is_modifiable: true,
+				is_unified: false,
 				display_type: "simple",
 				dropdown_options: [],
 				range_min: "",
@@ -342,6 +351,7 @@ export default function GlobalParametersMain() {
 			description: "",
 			category: "Global",
 			is_modifiable: true,
+			is_unified: false,
 			display_type: "simple",
 			dropdown_options: [],
 			range_min: "",

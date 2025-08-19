@@ -157,4 +157,6 @@ export type ActionsCellProps = ParameterCellCommonProps &
 		| "isAddingParameter"
 	> & {
 	isSaveDisabled: () => boolean;
+	handleSaveNewParameter?: () => void;
+	handleCancelAddParameter?: () => void;
 };

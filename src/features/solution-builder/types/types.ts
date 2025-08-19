@@ -160,6 +160,7 @@ export interface StepContentProps
 		solutionDescription: string,
 		solutionIcon: string
 	) => void;
+	selectedSolutionVariantData: any;
 }
 
 // ============================================================================
@@ -445,6 +446,7 @@ export interface CreateSolutionParametersProps extends CommonSelectionProps {
 	availableSolutionTypes?: any[];
 	isLoadingParameters?: boolean;
 	usedParameterIds?: string[];
+	selectedSolutionVariantData: any;
 }
 
 export interface ParameterEditData {
@@ -465,6 +467,8 @@ export interface ParameterEditData {
 	range_min: string;
 	range_max: string;
 	conditional_rules: Array<{ condition: string; value: string }>;
+	is_unified: boolean;
+	is_modifiable: boolean;
 }
 
 export interface ConfirmDialogProps extends DialogProps {
@@ -575,6 +579,8 @@ export interface ParameterRowProps {
 	handleSaveParameter: (parameterId: string) => void;
 	handleCancelEdit: () => void;
 	handleDeleteParameter: (parameterId: string) => void;
+	handleSaveNewParameter?: () => void;
+	handleCancelAddParameter?: () => void;
 	highlightSearchTerm: (text: string, searchTerm: string) => React.ReactNode;
 	searchQuery: string;
 	getCategoryBadgeStyleWrapper: (name: string) => React.CSSProperties;
@@ -598,6 +604,7 @@ export interface ParameterRowProps {
 	usedParameterIds?: string[];
 	isUnused?: boolean;
 	parameters?: Parameter[];
+	isUnified?: boolean;
 }
 
 export interface AddParameterRowProps {
@@ -995,13 +1002,23 @@ export interface ParameterOutputFieldProps {
 
 export interface CreateSolutionSubmitProps {
 	formData: {
+		industry: string;
+		technology: string;
+		solution: string;
+		solution_variant: string;
+		
 		solution_name: string;
 		solution_description: string;
-		solution_variant: string;
+		solution_icon: string;
+		
 		solution_variant_name: string;
 		solution_variant_description: string;
+		solution_variant_icon: string;
+		solution_variant_product_badge: boolean;
+
 		parameters: Parameter[];
 		calculations: Calculation[];
+		categories: any[];
 	};
 	showCustomSolutionType: boolean;
 	showCustomSolutionVariant: boolean;

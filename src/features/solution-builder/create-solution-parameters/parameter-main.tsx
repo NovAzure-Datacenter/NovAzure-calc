@@ -1,22 +1,20 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 import CategoryTabs from "./category-tabs";
 import TableContent from "./table-content";
-import {
-	getLevelColor,
-	getCategoryTailwindClasses,
-} from "@/utils/color-utils";
+import { getLevelColor, getCategoryTailwindClasses } from "@/utils/color-utils";
 import { LoadingIndicator, SearchBar } from "./components/common";
-import { 
-	ConfirmCategoryRemovalDialog, 
-	ConfirmParameterRemovalDialog, 
-	PreviewDialog 
+import {
+	ConfirmCategoryRemovalDialog,
+	ConfirmParameterRemovalDialog,
+	PreviewDialog,
 } from "./components/dialogs";
 import { getSortedCategories, getFilteredParameters } from "./services";
-import { useParameterState, useCategoryState, useUIState, useGlobalParameters } from "./hooks";
+import { useParameterState, useCategoryState, useUIState } from "./hooks";
 import { CreateSolutionParametersProps } from "@/features/solution-builder/types/types";
+import { loadGlobalParametersIfNeeded } from "./services/global-parameters";
 
 /**
  * CreateSolutionParameters component - Main component for managing solution parameters
@@ -24,53 +22,76 @@ import { CreateSolutionParametersProps } from "@/features/solution-builder/types
  * Handles parameter validation, category management, and parameter filtering
  */
 export function ParameterMain({
-	parameters,
+	parameters: initialParameters,
 	onParametersChange,
 	customCategories,
 	setCustomCategories,
-	selectedIndustry,
-	selectedTechnology,
-	selectedSolutionId,
-	availableIndustries = [],
-	availableTechnologies = [],
-	availableSolutionTypes = [],
 	isLoadingParameters = false,
 	usedParameterIds = [],
 }: CreateSolutionParametersProps) {
+	const [localParameters, setLocalParameters] = useState(initialParameters);
+	const [hasLoadedGlobalParams, setHasLoadedGlobalParams] = useState(false);
+
+	useEffect(() => {
+		if (!hasLoadedGlobalParams) {
+			setLocalParameters(initialParameters);
+		}
+	}, [initialParameters, hasLoadedGlobalParams]);
+
+	const handleLocalParametersChange = (newParameters: any[]) => {
+		setLocalParameters(newParameters);
+		onParametersChange(newParameters);
+	};
+
+	useEffect(() => {
+		if (localParameters.length === 0 && !hasLoadedGlobalParams) {
+			loadGlobalParametersIfNeeded(localParameters, (newParams) => {
+				handleLocalParametersChange(newParams);
+				setHasLoadedGlobalParams(true);
+			});
+		}
+	}, []);
+
 	const uiState = useUIState();
-	const { activeTab, setActiveTab, searchQuery, setSearchQuery, isPreviewDialogOpen, setIsPreviewDialogOpen, columnVisibility, setColumnVisibility } = uiState;
-	
+	const {
+		activeTab,
+		setActiveTab,
+		searchQuery,
+		setSearchQuery,
+		isPreviewDialogOpen,
+		setIsPreviewDialogOpen,
+		columnVisibility,
+		setColumnVisibility,
+	} = uiState;
+
 	const parameterState = useParameterState({
-		parameters,
-		onParametersChange,
+		parameters: localParameters,
+		onParametersChange: handleLocalParametersChange,
 		customCategories,
 		activeTab,
 	});
-	
+
 	const categoryState = useCategoryState({
-		parameters,
-		onParametersChange,
+		parameters: localParameters,
+		onParametersChange: handleLocalParametersChange,
 		customCategories,
 		setCustomCategories,
 		activeTab,
 		setActiveTab,
 	});
-	
-	useGlobalParameters({ parameters, onParametersChange });
-
 
 
 	const getCategoryColor = (categoryName: string) => {
 		return getCategoryTailwindClasses(
 			categoryName,
-			parameters,
+			localParameters,
 			customCategories
 		);
 	};
 
-	const allCategories = getSortedCategories(parameters, customCategories);
+	const allCategories = getSortedCategories(localParameters, customCategories);
 	const filteredParameters = getFilteredParameters(
-		parameters,
+		localParameters,
 		activeTab,
 		searchQuery
 	);
@@ -91,7 +112,7 @@ export function ParameterMain({
 				handleCancelAddParameter={parameterState.handleCancelAddParameter}
 				isAddingParameter={parameterState.isAddingParameter}
 				editingParameter={parameterState.editingParameter}
-				parameters={parameters}
+				parameters={localParameters}
 				customCategories={customCategories}
 				setIsPreviewDialogOpen={setIsPreviewDialogOpen}
 				columnVisibility={columnVisibility}
@@ -103,21 +124,23 @@ export function ParameterMain({
 				setIsConfirmDialogOpen={categoryState.setIsConfirmDialogOpen}
 				confirmCategory={categoryState.confirmCategory || ""}
 				handleConfirmRemoveCategory={categoryState.handleConfirmRemoveCategory}
-				parameters={parameters}
+				parameters={localParameters}
 			/>
 
 			<ConfirmParameterRemovalDialog
 				isConfirmDialogOpen={parameterState.isParameterConfirmDialogOpen}
 				setIsConfirmDialogOpen={parameterState.setIsParameterConfirmDialogOpen}
 				confirmParameter={parameterState.confirmParameter || ""}
-				handleConfirmRemoveParameter={parameterState.handleConfirmRemoveParameter}
-				parameters={parameters}
+				handleConfirmRemoveParameter={
+					parameterState.handleConfirmRemoveParameter
+				}
+				parameters={localParameters}
 			/>
 
 			{activeTab !== "add-new-category" && (
 				<>
-					<LoadingIndicator 
-						isLoading={isLoadingParameters} 
+					<LoadingIndicator
+						isLoading={isLoadingParameters}
 						message="Loading existing solution parameters..."
 					/>
 					<SearchBar
@@ -144,7 +167,7 @@ export function ParameterMain({
 						handleAddParameter={parameterState.handleAddParameter}
 						customCategories={customCategories}
 						searchQuery={searchQuery}
-						parameters={parameters}
+						parameters={localParameters}
 						activeTab={activeTab}
 						columnVisibility={columnVisibility}
 						setColumnVisibility={setColumnVisibility}
@@ -153,21 +176,17 @@ export function ParameterMain({
 				</>
 			)}
 
-			<PreviewDialog
+			{/* <PreviewDialog
 				isOpen={isPreviewDialogOpen}
 				onOpenChange={setIsPreviewDialogOpen}
-				parameters={parameters}
+				parameters={localParameters}
 				selectedIndustry={selectedIndustry}
 				selectedTechnology={selectedTechnology}
 				selectedSolutionId={selectedSolutionId}
 				availableIndustries={availableIndustries}
 				availableTechnologies={availableTechnologies}
 				availableSolutionTypes={availableSolutionTypes}
-			/>
+			/> */}
 		</div>
 	);
 }
-
-
-
-
