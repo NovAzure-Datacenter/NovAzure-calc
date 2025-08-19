@@ -30,7 +30,7 @@ export function ParameterMain({
 	isLoadingParameters = false,
 	usedParameterIds = [],
 	categories,
-	setCategories,
+	setCategories
 }: CreateSolutionParametersProps) {
 	const [localParameters, setLocalParameters] = useState(initialParameters);
 	const [hasLoadedGlobalParams, setHasLoadedGlobalParams] = useState(false);
