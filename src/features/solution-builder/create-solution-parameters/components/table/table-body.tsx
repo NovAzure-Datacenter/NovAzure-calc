@@ -4,6 +4,7 @@ import { TableBody as UITableBody } from "@/components/ui/table";
 import { ParameterRow } from "./parameter-row";
 import type { ParameterTableBodyProps } from "@/features/solution-builder/types/types";
 import type { Parameter } from "@/types/types";
+import { AddParameterRow } from "./add-parameter-row";
 
 export function TableBody({
 	filteredParameters,
@@ -41,7 +42,7 @@ export function TableBody({
 		<UITableBody>
 			{/* Render editable row for adding new parameter */}
 			{isAddingParameter && (
-				<ParameterRow
+				<AddParameterRow
 					key="new-parameter-placeholder"
 					parameter={placeholderParameter}
 					isUnused={true}
@@ -52,6 +53,9 @@ export function TableBody({
 					handleCancelAddParameter={handleCancelAddParameter}
 					{...(rowProps as any)}
 					isAddingParameter={true}
+					newParameterData={newParameterData}
+					setNewParameterData={setNewParameterData}
+					
 				/>
 			)}
 
