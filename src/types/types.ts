@@ -23,6 +23,7 @@ export interface Parameter {
 		color: string;
 	};
 	is_modifiable: boolean;
+	is_unified: boolean;
 }
 
 export interface Calculation {

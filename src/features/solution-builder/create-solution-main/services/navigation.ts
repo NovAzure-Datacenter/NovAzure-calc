@@ -95,7 +95,6 @@ export function handleNext(
 	setCurrentStep: React.Dispatch<React.SetStateAction<number>>,
 	formData: CreateSolutionData,
 	isExistingSolutionLoaded: boolean,
-	loadExistingSolutionData: (variantId: string) => void
 ) {
 	if (
 		(currentStep === 1 || currentStep === 2) &&
@@ -104,7 +103,6 @@ export function handleNext(
 		!formData.solution_variant.startsWith("new-variant-") &&
 		formData.solution_variant !== "new"
 	) {
-		loadExistingSolutionData(formData.solution_variant);
 	}
 	setCurrentStep((prev) => prev + 1);
 }

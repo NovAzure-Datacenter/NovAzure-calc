@@ -26,7 +26,7 @@ export default function ActionButtons(props: {
 			{currentStep < 5 ? (
 				<Button
 					onClick={handleNext}
-					disabled={isNextDisabled()}
+					// disabled={isNextDisabled()}
 					className="flex items-center gap-2"
 					size="sm"
 				>

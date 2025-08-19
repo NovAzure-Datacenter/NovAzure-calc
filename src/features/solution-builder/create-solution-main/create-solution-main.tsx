@@ -125,6 +125,8 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 		null
 	);
 
+	const [selectedSolutionVariantData, setSelectedSolutionVariantData] = useState<any>(null);
+
 	// Category states for parameters and calculations
 	const [customParameterCategories, setCustomParameterCategories] = useState<
 		Array<{ name: string; color: string }>
@@ -267,48 +269,6 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 	};
 
 	/**
-	 * Load existing solution data (parameters and calculations)
-	 */
-	const loadClientsSolutionParametersAndCalculations = async (
-		solutionVariantId: string
-	) => {
-		try {
-			setIsLoadingParameters(true);
-			setIsLoadingCalculations(true);
-
-			const result = await loadSolutionParametersAndCalculationsData(
-				solutionVariantId,
-				clientData,
-				formData.parameters
-			);
-
-			if (result.existingSolution) {
-				setFormData((prev) => ({
-					...prev,
-					parameters: result.parameters,
-					calculations: result.calculations,
-				}));
-				setIsExistingSolutionLoaded(true);
-				setExistingSolutionId(result.existingSolution.id || null);
-			} else {
-				setFormData((prev) => ({
-					...prev,
-					parameters: result.parameters,
-				}));
-				toast.warning(
-					"Existing solution not found. Starting with global parameters."
-				);
-			}
-		} catch (error) {
-			console.error("Error loading existing solution data:", error);
-			toast.error("Failed to load existing solution data");
-		} finally {
-			setIsLoadingParameters(false);
-			setIsLoadingCalculations(false);
-		}
-	};
-
-	/**
 	 * Handle industry selection change
 	 */
 	const handleIndustrySelectLocal = (industryId: string) => {
@@ -322,6 +282,9 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 			setNewlyCreatedSolutions,
 			setNewlyCreatedVariants
 		);
+		
+		// Clear selected variant data when industry changes
+		setSelectedSolutionVariantData(null);
 	};
 
 	/**
@@ -336,6 +299,9 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 			setExistingSolutionId,
 			setNewlyCreatedVariants
 		);
+		
+		// Clear selected variant data when technology changes
+		setSelectedSolutionVariantData(null);
 
 		if (formData.industry && technologyId && clientData?.id) {
 			loadClientSolutions(formData.industry, technologyId);
@@ -377,6 +343,9 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 		// Store the current variant ID to verify it doesn't get corrupted
 		const currentVariantId = formData.solution_variant;
 
+		// Clear selected variant data when solution type changes
+		setSelectedSolutionVariantData(null);
+		
 		handleSolutionTypeSelect(
 			solutionId,
 			selectedSolution, // Pass the solution data
@@ -413,7 +382,7 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 		let selectedVariant = availableSolutionVariants.find(
 			(variant) => variant.solution_variant === variantId
 		);
-
+		
 		// If not found in available variants, check newly created variants
 		if (!selectedVariant) {
 			selectedVariant = newlyCreatedVariants.find(
@@ -421,6 +390,17 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 			);
 		}
 
+		// Set the selected variant data BEFORE calling the service function
+		if (selectedVariant) {
+		
+			// Simply set the variant data - the service function will handle the rest
+			setSelectedSolutionVariantData(selectedVariant);
+		} else {
+			console.warn("No variant found for ID:", variantId);
+			setSelectedSolutionVariantData(null);
+		}
+
+		// Restore the service function call to handle variant selection
 		handleSolutionVariantSelect(
 			variantId,
 			selectedVariant, // Pass the variant data
@@ -428,8 +408,12 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 			setIsCreatingNewVariant,
 			setIsExistingSolutionLoaded,
 			setExistingSolutionId,
-			loadClientsSolutionParametersAndCalculations
 		);
+
+		// Debug: Log the form data after variant selection
+		setTimeout(() => {
+			
+		}, 100);
 
 		// Verify the solution field wasn't corrupted
 		setTimeout(() => {
@@ -453,6 +437,25 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 		setAvailableSolutionVariants([]);
 		setIsExistingSolutionLoaded(false);
 		setExistingSolutionId(null);
+		
+		// Create a mock solution data structure for new solutions
+		const mockNewSolutionData = {
+			id: "new",
+			solution: "new",
+			solution_name: formData.solution_name || "",
+			solution_description: formData.solution_description || "",
+			solution_icon: formData.solution_icon || "",
+			// Empty arrays for new solutions - user will configure these
+			parameters: [],
+			calculations: [],
+			categories: [],
+			// Copy industry and technology data
+			industry: formData.industry,
+			technology: formData.technology,
+		};
+		
+		// Set the mock data instead of null
+		setSelectedSolutionVariantData(mockNewSolutionData);
 
 		// Set formData.solution to "new" to indicate new solution creation
 		setFormData((prev) => ({
@@ -468,6 +471,31 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 		setAvailableSolutionVariants([]);
 		setIsExistingSolutionLoaded(false);
 		setExistingSolutionId(null);
+		
+		// Create a mock variant data structure for new variants
+		// This allows the parameters and calculations steps to render
+		const mockNewVariantData = {
+			id: "new",
+			solution_variant: "new",
+			solution_variant_name: formData.solution_variant_name || "",
+			solution_variant_description: formData.solution_variant_description || "",
+			solution_variant_icon: formData.solution_variant_icon || "",
+			solution_variant_product_badge: formData.solution_variant_product_badge || false,
+			// Empty arrays for new variants - user will configure these
+			parameters: [],
+			calculations: [],
+			categories: [],
+			// Copy solution-level data
+			solution: formData.solution,
+			solution_name: formData.solution_name,
+			solution_description: formData.solution_description,
+			solution_icon: formData.solution_icon,
+			industry: formData.industry,
+			technology: formData.technology,
+		};
+		
+		// Set the mock data instead of null
+		setSelectedSolutionVariantData(mockNewVariantData);
 
 		// Set formData.solution_variant to "new" to indicate new variant creation
 		setFormData((prev) => ({
@@ -489,6 +517,9 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 	};
 
 	const handleNoVariantSelectLocal = () => {
+		// Clear selected variant data when no variant is selected
+		setSelectedSolutionVariantData(null);
+		
 		handleNoVariantSelect(
 			setFormData,
 			setIsCreatingNewVariant,
@@ -580,7 +611,6 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 			setCurrentStep,
 			formData,
 			isExistingSolutionLoaded,
-			loadClientsSolutionParametersAndCalculations
 		);
 	};
 
@@ -603,7 +633,6 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 				existingSolutionId,
 				isCreatingNewSolution,
 				isCreatingNewVariant,
-				loadClientsSolutionParametersAndCalculations,
 				() => {
 					const selected = getSelectedSolutionType(
 						availableSolutionTypes,
@@ -727,6 +756,7 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 		}));
 	};
 
+
 	/**
 	 * Load initial data when user is available
 	 */
@@ -735,6 +765,9 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 			loadInitialData();
 		}
 	}, [user, loadInitialData]);
+
+
+
 
 	if (isLoading) {
 		return <Loading />;
@@ -813,6 +846,7 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 							)
 						}
 						handleSolutionTypeSelectLocal={handleSolutionTypeSelectLocal}
+						selectedSolutionVariantData={selectedSolutionVariantData}
 					/>
 				</CardContent>
 				{/* Navigation Buttons */}

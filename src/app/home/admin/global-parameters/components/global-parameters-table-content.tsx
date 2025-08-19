@@ -69,6 +69,7 @@ export default function GlobalParametersTableContent({
 		description: string;
 		category: string;
 		is_modifiable: boolean;
+		is_unified: boolean;
 		display_type: "simple" | "dropdown" | "range" | "filter" | "conditional";
 		dropdown_options: Array<{ key: string; value: string }>;
 		range_min: string;
@@ -84,6 +85,7 @@ export default function GlobalParametersTableContent({
 			description: string;
 			category: string;
 			is_modifiable: boolean;
+			is_unified: boolean;
 			display_type: "simple" | "dropdown" | "range" | "filter" | "conditional";
 			dropdown_options: Array<{ key: string; value: string }>;
 			range_min: string;
@@ -106,6 +108,7 @@ export default function GlobalParametersTableContent({
 		description: string;
 		category: string;
 		is_modifiable: boolean;
+		is_unified: boolean;
 		display_type: "simple" | "dropdown" | "range" | "filter" | "conditional";
 		dropdown_options: Array<{ key: string; value: string }>;
 		range_min: string;
@@ -121,6 +124,7 @@ export default function GlobalParametersTableContent({
 			description: string;
 			category: string;
 			is_modifiable: boolean;
+			is_unified: boolean;
 			display_type: "simple" | "dropdown" | "range" | "filter" | "conditional";
 			dropdown_options: Array<{ key: string; value: string }>;
 			range_min: string;
