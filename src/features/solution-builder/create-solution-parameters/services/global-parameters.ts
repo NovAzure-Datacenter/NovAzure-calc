@@ -33,6 +33,7 @@ export function createGlobalParameterCopies(
 		existingParameters.map((param) => param.name)
 	);
 
+
 	const standardParameters = {
 		name: "Planned years of operation",
 		value: "10",
@@ -49,6 +50,7 @@ export function createGlobalParameterCopies(
 		},
 		is_modifiable: false,
 		is_unified: false,
+		is_mandatory: false,
 		output: false,
 		display_type: "range",
 		dropdown_options: [],
@@ -59,15 +61,16 @@ export function createGlobalParameterCopies(
 
 	return globalParams
 		.filter((globalParam) => !existingParamNames.has(globalParam.name))
-		.map((globalParam) => ({
-			...globalParam,
-			id: `param-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-			user_interface: {
-				type: "not_viewable",
-				category: globalParam.category?.name || "Global",
-				is_advanced: false,
-			},
-			is_modifiable: globalParam.is_modifiable || false,
-			is_unified: globalParam.is_unified || false,
-		}));
+		.map((globalParam) => {
+			const transformedParam = {
+				...globalParam,
+				id: `param-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+				user_interface: {
+					type: "not_viewable",
+					category: globalParam.category?.name || "Global",
+					is_advanced: false,
+				},
+			};
+			return transformedParam;
+		});
 }

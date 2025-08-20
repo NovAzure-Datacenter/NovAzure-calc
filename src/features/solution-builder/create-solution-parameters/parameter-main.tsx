@@ -16,6 +16,8 @@ import { useParameterState, useCategoryState, useUIState } from "./hooks";
 import { CreateSolutionParametersProps } from "@/features/solution-builder/types/types";
 import { loadGlobalParametersIfNeeded } from "./services/global-parameters";
 import CategorySystem from "../components/category-system/category-system";
+import AddParameterSystem from "./components/common/add-parameter-system";
+import ColumnVisibilitySystem from "./components/common/column-visibility-system";
 
 /**
  * CreateSolutionParameters component - Main component for managing solution parameters
@@ -30,7 +32,7 @@ export function ParameterMain({
 	isLoadingParameters = false,
 	usedParameterIds = [],
 	categories,
-	setCategories
+	setCategories,
 }: CreateSolutionParametersProps) {
 	const [localParameters, setLocalParameters] = useState(initialParameters);
 	const [hasLoadedGlobalParams, setHasLoadedGlobalParams] = useState(false);
@@ -83,7 +85,6 @@ export function ParameterMain({
 		setActiveTab,
 	});
 
-
 	const getCategoryColor = (categoryName: string) => {
 		return getCategoryTailwindClasses(
 			categoryName,
@@ -98,8 +99,6 @@ export function ParameterMain({
 		activeTab,
 		searchQuery
 	);
-
-
 
 	return (
 		<div className="flex flex-col h-full">
@@ -123,7 +122,7 @@ export function ParameterMain({
 				columnVisibility={columnVisibility}
 				setColumnVisibility={setColumnVisibility}
 			/> */}
-			<CategorySystem categories={categories} setCategories={setCategories}/>
+			<CategorySystem categories={categories} setCategories={setCategories} />
 
 			<ConfirmCategoryRemovalDialog
 				isConfirmDialogOpen={categoryState.isConfirmDialogOpen}
@@ -149,11 +148,21 @@ export function ParameterMain({
 						isLoading={isLoadingParameters}
 						message="Loading existing solution parameters..."
 					/>
-					<SearchBar
-						searchQuery={searchQuery}
-						setSearchQuery={setSearchQuery}
-						filteredParameters={filteredParameters}
-					/>
+					<div className="flex items-center justify-between gap-4 mb-6">
+						<SearchBar
+							searchQuery={searchQuery}
+							setSearchQuery={setSearchQuery}
+							filteredParameters={filteredParameters}
+						/>
+						<AddParameterSystem
+							handleAddParameter={parameterState.handleAddParameter}
+							handleCancelAddParameter={parameterState.handleCancelAddParameter}
+						/>
+						<ColumnVisibilitySystem
+							columnVisibility={columnVisibility}
+							setColumnVisibility={setColumnVisibility}
+						/>
+					</div>
 					<TableContent
 						filteredParameters={filteredParameters}
 						editingParameter={parameterState.editingParameter}

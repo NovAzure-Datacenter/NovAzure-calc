@@ -36,6 +36,7 @@ export function TableBody({
 		level: "1",
 		is_modifiable: true,
 		is_unified: false,
+		is_mandatory: false,
 	};
 
 	return (

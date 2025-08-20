@@ -23,7 +23,7 @@ export function SearchBar({
 	};
 
 	return (
-		<div className="mb-4">
+		<div className=" w-full">
 			<div className="relative">
 				<Input
 					placeholder={placeholder}
