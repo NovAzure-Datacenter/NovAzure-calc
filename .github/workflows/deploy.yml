@@ -1,0 +1,130 @@
+name: Deploy to AWS ECS
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  AWS_REGION: eu-west-2
+  ECR_REGISTRY: 290767212636.dkr.ecr.eu-west-2.amazonaws.com
+  ECS_CLUSTER: novazure-staging-cluster
+
+jobs:
+  deploy:
+    name: Deploy to ECS
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Build, tag, and push Frontend image
+      env:
+        ECR_REPOSITORY: novazure-frontend
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        # Build frontend image from root directory
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+        echo "frontend_image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+    - name: Build, tag, and push Backend image
+      env:
+        ECR_REPOSITORY: novazure-backend
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        # Build backend image from backend directory
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./backend
+        docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+        echo "backend_image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+    - name: Build, tag, and push Nginx image
+      env:
+        ECR_REPOSITORY: novazure-nginx
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        # Build nginx image from nginx directory
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./nginx
+        docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+        echo "nginx_image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+    - name: Update Frontend ECS service
+      run: |
+        aws ecs update-service \
+          --cluster ${{ env.ECS_CLUSTER }} \
+          --service novazure-frontend-service \
+          --force-new-deployment \
+          --region ${{ env.AWS_REGION }}
+
+    - name: Update Backend ECS service
+      run: |
+        aws ecs update-service \
+          --cluster ${{ env.ECS_CLUSTER }} \
+          --service novazure-backend-service \
+          --force-new-deployment \
+          --region ${{ env.AWS_REGION }}
+
+    - name: Scale up and update Nginx ECS service
+      run: |
+        # Scale nginx service to 1 if it's at 0
+        aws ecs update-service \
+          --cluster ${{ env.ECS_CLUSTER }} \
+          --service novazure-nginx-service \
+          --desired-count 1 \
+          --force-new-deployment \
+          --region ${{ env.AWS_REGION }}
+
+    - name: Wait for deployments to stabilize
+      run: |
+        echo "Waiting for services to stabilize..."
+        
+        aws ecs wait services-stable \
+          --cluster ${{ env.ECS_CLUSTER }} \
+          --services novazure-frontend-service \
+          --region ${{ env.AWS_REGION }}
+        
+        aws ecs wait services-stable \
+          --cluster ${{ env.ECS_CLUSTER }} \
+          --services novazure-backend-service \
+          --region ${{ env.AWS_REGION }}
+        
+        aws ecs wait services-stable \
+          --cluster ${{ env.ECS_CLUSTER }} \
+          --services novazure-nginx-service \
+          --region ${{ env.AWS_REGION }}
+
+    - name: Get service endpoints
+      run: |
+        echo "Deployment completed! Getting service endpoints..."
+        
+        # Get task ARNs
+        TASKS=$(aws ecs list-tasks --cluster ${{ env.ECS_CLUSTER }} --region ${{ env.AWS_REGION }} --query 'taskArns[*]' --output text)
+        
+        # Get public IPs
+        aws ecs describe-tasks \
+          --cluster ${{ env.ECS_CLUSTER }} \
+          --tasks $TASKS \
+          --region ${{ env.AWS_REGION }} \
+          --query 'tasks[*].{Service:group,PublicIP:attachments[0].details[?name==`networkInterfaceId`].value | [0]}' \
+          --output table
+        
+        echo "Services are now running with the latest images!"
