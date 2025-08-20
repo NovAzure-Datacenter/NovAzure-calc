@@ -17,6 +17,7 @@ import { loadGlobalParametersIfNeeded } from "./services/global-parameters";
 import CategorySystem from "../components/category-system/category-system";
 import AddParameterSystem from "./components/common/add-parameter-system";
 import ColumnVisibilitySystem from "./components/common/column-visibility-system";
+import { Button } from "@/components/ui/button";
 
 /**
  * CreateSolutionParameters component - Main component for managing solution parameters
@@ -101,7 +102,6 @@ export function ParameterMain({
 		activeCategories
 	);
 
-
 	return (
 		<div className="flex flex-col h-full">
 			<CategorySystem
@@ -142,6 +142,15 @@ export function ParameterMain({
 						columnVisibility={columnVisibility}
 						setColumnVisibility={setColumnVisibility}
 					/>
+
+					<Button
+						variant="outline"
+						size="sm"
+						className="text-xs"
+						onClick={() => setIsPreviewDialogOpen(true)}
+					>
+						Preview
+					</Button>
 				</div>
 				<TableContent
 					filteredParameters={filteredParameters}
@@ -171,17 +180,11 @@ export function ParameterMain({
 				/>
 			</>
 
-			{/* <PreviewDialog
+			<PreviewDialog
 				isOpen={isPreviewDialogOpen}
 				onOpenChange={setIsPreviewDialogOpen}
 				parameters={localParameters}
-				selectedIndustry={selectedIndustry}
-				selectedTechnology={selectedTechnology}
-				selectedSolutionId={selectedSolutionId}
-				availableIndustries={availableIndustries}
-				availableTechnologies={availableTechnologies}
-				availableSolutionTypes={availableSolutionTypes}
-			/> */}
+			/>
 		</div>
 	);
 }
