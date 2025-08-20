@@ -35,7 +35,53 @@ export function AddParameterRow({
 		{ name: "none", description: "No category selected", color: "#6B7280" },
 		...categories.filter(
 			(category) => !CATEGORIES_TO_EXCLUDE.includes(category.name)
-		)
+		),
+	];
+	const PARAMTER_LIST = [
+		{
+			unit: "$",
+			description: "US Dollar",
+		},
+		{
+			unit: "£",
+			description: "British Pound",
+		},
+		{
+			unit: "€",
+			description: "Euro",
+		},
+		{
+			unit: "mWh",
+			description: "Milliwatt-hour",
+		},
+		{
+			unit: "kWh",
+			description: "Kilowatt-hour",
+		},
+		{
+			unit: "%",
+			description: "Percentage",
+		},
+		{
+			unit: "L",
+			description: "Litres",
+		},
+		{
+			unit: "$/kWh",
+			description: "US Dollar per Kilowatt-hour",
+		},
+		{
+			unit: "£/kWh",
+			description: "British Pound per Kilowatt-hour",
+		},
+		{
+			unit: "€/kWh",
+			description: "Euro per Kilowatt-hour",
+		},
+		{
+			unit: "litres/kWh",
+			description: "Litres per Kilowatt-hour",
+		},
 	];
 
 	const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -60,7 +106,6 @@ export function AddParameterRow({
 						newParameterData.dropdown_options.length === 0)))
 		);
 	};
-
 
 	return (
 		<TableRow className="bg-green-50 border-2 border-green-200 shadow-md">
@@ -182,15 +227,35 @@ export function AddParameterRow({
 
 			{renderCell(
 				columnVisibility.unit,
-				<Input
+				<Select
 					value={newParameterData.unit}
-					onChange={(e) =>
-						setNewParameterData((prev) => ({ ...prev, unit: e.target.value }))
+					onValueChange={(value) =>
+						setNewParameterData((prev) => ({
+							...prev,
+							unit: value,
+						}))
 					}
-					className="h-7 text-xs"
-					placeholder="Unit"
-					onKeyDown={handleKeyDown}
-				/>,
+				>
+					<SelectTrigger className={`h-7 text-xs`}>
+						<SelectValue>{newParameterData.unit || "Select unit"}</SelectValue>
+					</SelectTrigger>
+					<SelectContent>
+						{PARAMTER_LIST.map((unit) => (
+							<SelectItem
+								key={unit.unit}
+								value={unit.unit}
+								onClick={() => {
+									setNewParameterData((prev) => ({
+										...prev,
+										unit: unit.unit,
+									}));
+								}}
+							>
+								{unit.unit}
+							</SelectItem>
+						))}
+					</SelectContent>
+				</Select>,
 				"unit"
 			)}
 
