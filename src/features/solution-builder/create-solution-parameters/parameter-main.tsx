@@ -124,13 +124,13 @@ export function ParameterMain({
 			/> */}
 			<CategorySystem categories={categories} setCategories={setCategories} />
 
-			<ConfirmCategoryRemovalDialog
+			{/* <ConfirmCategoryRemovalDialog
 				isConfirmDialogOpen={categoryState.isConfirmDialogOpen}
 				setIsConfirmDialogOpen={categoryState.setIsConfirmDialogOpen}
 				confirmCategory={categoryState.confirmCategory || ""}
 				handleConfirmRemoveCategory={categoryState.handleConfirmRemoveCategory}
 				parameters={localParameters}
-			/>
+			/> */}
 
 			<ConfirmParameterRemovalDialog
 				isConfirmDialogOpen={parameterState.isParameterConfirmDialogOpen}
@@ -187,6 +187,7 @@ export function ParameterMain({
 						columnVisibility={columnVisibility}
 						setColumnVisibility={setColumnVisibility}
 						usedParameterIds={usedParameterIds}
+						categories={categories}
 					/>
 				</>
 			)}

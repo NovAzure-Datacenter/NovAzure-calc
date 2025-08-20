@@ -21,7 +21,6 @@ export function AddParameterRow({
 	setNewParameterData,
 	handleSaveNewParameter,
 	handleCancelAddParameter,
-	getAllAvailableCategories,
 	getCategoryBadgeStyleForDropdownWrapper,
 	getUserInterfaceBadgeStyle,
 	getDisplayTypeBadgeStyle,
@@ -29,7 +28,13 @@ export function AddParameterRow({
 	renderCell,
 	usedParameterIds,
 	parameters,
+	categories,
 }: AddParameterRowProps) {
+	const CATEGORIES_TO_EXCLUDE = ["Use Case"];
+	const availableCategories = categories.filter(
+		(category) => !CATEGORIES_TO_EXCLUDE.includes(category.name)
+	);
+
 	const handleKeyDown = (e: React.KeyboardEvent) => {
 		if (e.key === "Enter") handleSaveNewParameter();
 		else if (e.key === "Escape") handleCancelAddParameter();
@@ -52,6 +57,8 @@ export function AddParameterRow({
 						newParameterData.dropdown_options.length === 0)))
 		);
 	};
+
+
 	return (
 		<TableRow className="bg-green-50 border-2 border-green-200 shadow-md">
 			{renderCell(
@@ -89,23 +96,15 @@ export function AddParameterRow({
 						<SelectValue placeholder="Select category" />
 					</SelectTrigger>
 					<SelectContent>
-						{getAllAvailableCategories().length > 0 ? (
-							getAllAvailableCategories().map((category) => (
-								<SelectItem key={category.name} value={category.name}>
-									<span
-										style={getCategoryBadgeStyleForDropdownWrapper(
-											category.name
-										)}
-									>
-										{category.name}
-									</span>
-								</SelectItem>
-							))
-						) : (
-							<div className="px-2 py-1.5 text-xs text-muted-foreground">
-								No categories available.
-							</div>
-						)}
+						{availableCategories.map((category) => (
+							<SelectItem key={category.name} value={category.name}>
+								<span
+									style={getCategoryBadgeStyleForDropdownWrapper(category.name)}
+								>
+									{category.name}
+								</span>
+							</SelectItem>
+						))}
 					</SelectContent>
 				</Select>,
 				"category"

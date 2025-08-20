@@ -522,6 +522,7 @@ export interface TableContentProps {
 	columnVisibility: ColumnVisibility;
 	setColumnVisibility: React.Dispatch<React.SetStateAction<ColumnVisibility>>;
 	usedParameterIds?: string[];
+	categories: CategoryData[];
 }
 
 export interface ColumnFilterProps {
@@ -540,7 +541,8 @@ export interface ParameterTableBodyProps {
 	setNewParameterData: React.Dispatch<React.SetStateAction<ParameterEditData>>;
 	handleSaveNewParameter: () => void;
 	handleCancelAddParameter: () => void;
-	getAllAvailableCategories: () => Array<{ name: string; color: string }>;
+	categories: CategoryData[]
+	// getAllAvailableCategories: () => Array<{ name: string; color: string }>;
 	getCategoryBadgeStyleForDropdownWrapper: (
 		name: string
 	) => React.CSSProperties;
@@ -630,6 +632,7 @@ export interface AddParameterRowProps {
 	) => React.ReactElement | null;
 	usedParameterIds?: string[];
 	parameters?: Parameter[];
+	categories: CategoryData[]
 }
 
 export interface EmptyStateProps {

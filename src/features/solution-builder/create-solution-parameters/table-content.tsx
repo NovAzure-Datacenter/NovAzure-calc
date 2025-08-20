@@ -38,6 +38,7 @@ export default function TableContent(props: TableContentProps) {
 		columnVisibility,
 		setColumnVisibility,
 		usedParameterIds = [],
+		categories
 	} = props;
 
 	const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
@@ -176,17 +177,17 @@ export default function TableContent(props: TableContentProps) {
 		);
 	}
 
-	function getAllAvailableCategories() {
-		const systemManaged = ["Global", "Industry", "Technology", "Technologies"];
-		const existing = Array.from(
-			new Set(parameters.map((p) => p.category.name))
-		).filter((c) => !systemManaged.includes(c));
-		const existingObjects = existing.map((c) => {
-			const param = parameters.find((p) => p.category.name === c);
-			return { name: c, color: param?.category.color || "gray" };
-		});
-		return [...existingObjects, ...customCategories];
-	}
+	// function getAllAvailableCategories() {
+	// 	const systemManaged = ["Global", "Industry", "Technology", "Technologies"];
+	// 	const existing = Array.from(
+	// 		new Set(parameters.map((p) => p.category.name))
+	// 	).filter((c) => !systemManaged.includes(c));
+	// 	const existingObjects = existing.map((c) => {
+	// 		const param = parameters.find((p) => p.category.name === c);
+	// 		return { name: c, color: param?.category.color || "gray" };
+	// 	});
+	// 	return [...existingObjects, ...customCategories];
+	// }
 
 	function getCategoryBadgeStyleWrapper(categoryName: string) {
 		return getCategoryBadgeStyle(categoryName, parameters, customCategories);
@@ -218,7 +219,8 @@ export default function TableContent(props: TableContentProps) {
 							setNewParameterData={setNewParameterData}
 							handleSaveNewParameter={handleSaveNewParameter}
 							handleCancelAddParameter={handleCancelAddParameter}
-							getAllAvailableCategories={getAllAvailableCategories}
+							categories={categories}
+							// getAllAvailableCategories={getAllAvailableCategories}
 							getCategoryBadgeStyleForDropdownWrapper={
 								getCategoryBadgeStyleForDropdownWrapper
 							}

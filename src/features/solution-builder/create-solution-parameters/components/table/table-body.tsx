@@ -15,6 +15,7 @@ export function TableBody({
 	setNewParameterData,
 	handleSaveNewParameter,
 	handleCancelAddParameter,
+	categories,
 	...rowProps
 }: ParameterTableBodyProps) {
 	// Create a placeholder parameter for the new row
@@ -56,7 +57,7 @@ export function TableBody({
 					isAddingParameter={true}
 					newParameterData={newParameterData}
 					setNewParameterData={setNewParameterData}
-					
+					categories={categories}
 				/>
 			)}
 

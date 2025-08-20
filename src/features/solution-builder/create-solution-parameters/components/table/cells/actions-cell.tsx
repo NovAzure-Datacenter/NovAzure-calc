@@ -39,7 +39,7 @@ export function ActionsCell({
 						<Edit className="h-3 w-3" />
 					</Button>
 
-					{NON_REMOVAL_PARAMETERS.includes(parameter.category.name.toLowerCase()) && (
+					{!NON_REMOVAL_PARAMETERS.includes(parameter.category.name) && (
 							<Button
 								size="sm"
 								variant="ghost"
