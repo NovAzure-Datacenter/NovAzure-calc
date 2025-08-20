@@ -7,8 +7,8 @@ on:
   workflow_dispatch:
 
 env:
-  AWS_REGION: eu-west-2
-  ECR_REGISTRY: 290767212636.dkr.ecr.eu-west-2.amazonaws.com
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
   ECS_CLUSTER: novazure-staging-cluster
 
 jobs:
