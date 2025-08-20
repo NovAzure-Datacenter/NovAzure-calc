@@ -608,7 +608,8 @@ export interface ParameterRowProps {
 	usedParameterIds?: string[];
 	isUnused?: boolean;
 	parameters?: Parameter[];
-	isUnified?: boolean;
+	isUnified?: boolean;	
+	categories: CategoryData[]
 }
 
 export interface AddParameterRowProps {

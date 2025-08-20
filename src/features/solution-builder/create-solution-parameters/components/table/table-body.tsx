@@ -40,6 +40,7 @@ export function TableBody({
 		is_mandatory: false,
 	};
 
+
 	return (
 		<UITableBody>
 			{/* Render editable row for adding new parameter */}
@@ -75,6 +76,7 @@ export function TableBody({
 						handleSaveNewParameter={handleSaveNewParameter}
 						handleCancelAddParameter={handleCancelAddParameter}
 						{...(rowProps as any)}
+						categories={categories}
 					/>
 				);
 			})}

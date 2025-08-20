@@ -38,6 +38,7 @@ export function ParameterRow(props: ParameterRowProps) {
 		toggleRowExpansion,
 		usedParameterIds,
 		parameters,
+		categories
 	} = props;
 	// Calculate if parameter is unused
 	const isUnused = usedParameterIds
@@ -123,6 +124,7 @@ export function ParameterRow(props: ParameterRowProps) {
 					getCategoryBadgeStyleForDropdownWrapper
 				}
 				isPriority={isPriority}
+				categories={categories}
 			/>
 			<DisplayTypeCell
 				columnVisibility={columnVisibility}

@@ -31,9 +31,12 @@ export function AddParameterRow({
 	categories,
 }: AddParameterRowProps) {
 	const CATEGORIES_TO_EXCLUDE = ["Use Case"];
-	const availableCategories = categories.filter(
-		(category) => !CATEGORIES_TO_EXCLUDE.includes(category.name)
-	);
+	const availableCategories = [
+		{ name: "none", description: "No category selected", color: "#6B7280" },
+		...categories.filter(
+			(category) => !CATEGORIES_TO_EXCLUDE.includes(category.name)
+		)
+	];
 
 	const handleKeyDown = (e: React.KeyboardEvent) => {
 		if (e.key === "Enter") handleSaveNewParameter();
