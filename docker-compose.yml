@@ -1,10 +1,10 @@
 services:
-
   frontend:
     image: 290767212636.dkr.ecr.eu-west-2.amazonaws.com/novazure-frontend:latest
     environment:
       - MONGODB_URI=${MONGODB_URI}
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - NEXT_PUBLIC_API_URL=http://<backend-public-ip>:8000
     ports:
       - 3000:3000
     networks:
@@ -14,16 +14,6 @@ services:
     image: 290767212636.dkr.ecr.eu-west-2.amazonaws.com/novazure-backend:latest
     ports:
       - 8000:8000
-    networks:
-      - app-network
-
-  nginx:
-    build: ./nginx
-    ports:
-      - 80:80
-    depends_on:
-      - frontend
-      - backend
     networks:
       - app-network
 
