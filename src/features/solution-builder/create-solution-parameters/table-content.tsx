@@ -45,6 +45,8 @@ export default function TableContent(props: TableContentProps) {
 	const [tableWidth, setTableWidth] = useState<number>(0);
 	const containerRef = useRef<HTMLDivElement>(null);
 
+	// console.log(filteredParameters)
+
 	useEffect(() => {
 		const updateTableWidth = () => {
 			if (containerRef.current) setTableWidth(containerRef.current.offsetWidth);

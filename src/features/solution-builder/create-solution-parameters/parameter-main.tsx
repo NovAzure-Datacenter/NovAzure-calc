@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 
-import CategoryTabs from "./category-tabs";
 import TableContent from "./table-content";
 import { getLevelColor, getCategoryTailwindClasses } from "@/utils/color-utils";
 import { LoadingIndicator, SearchBar } from "./components/common";
@@ -61,6 +60,8 @@ export function ParameterMain({
 	const {
 		activeTab,
 		setActiveTab,
+		activeCategories,
+		setActiveCategories,
 		searchQuery,
 		setSearchQuery,
 		isPreviewDialogOpen,
@@ -93,45 +94,24 @@ export function ParameterMain({
 		);
 	};
 
-	const allCategories = getSortedCategories(localParameters, customCategories);
 	const filteredParameters = getFilteredParameters(
 		localParameters,
 		activeTab,
-		searchQuery
+		searchQuery,
+		activeCategories
 	);
+
 
 	return (
 		<div className="flex flex-col h-full">
-			{/* <CategoryTabs
+			<CategorySystem
+				categories={categories}
+				setCategories={setCategories}
 				activeTab={activeTab}
 				setActiveTab={setActiveTab}
-				allCategories={allCategories}
-				handleRemoveCategory={categoryState.handleRemoveCategory}
-				setIsAddCategoryDialogOpen={categoryState.setIsAddCategoryDialogOpen}
-				newCategoryData={categoryState.newCategoryData}
-				setNewCategoryData={categoryState.setNewCategoryData}
-				handleAddCategory={categoryState.handleAddCategory}
-				isAddCategoryDialogOpen={categoryState.isAddCategoryDialogOpen}
-				handleAddParameter={parameterState.handleAddParameter}
-				handleCancelAddParameter={parameterState.handleCancelAddParameter}
-				isAddingParameter={parameterState.isAddingParameter}
-				editingParameter={parameterState.editingParameter}
-				parameters={localParameters}
-				customCategories={customCategories}
-				setIsPreviewDialogOpen={setIsPreviewDialogOpen}
-				columnVisibility={columnVisibility}
-				setColumnVisibility={setColumnVisibility}
-			/> */}
-			<CategorySystem categories={categories} setCategories={setCategories} />
-
-			{/* <ConfirmCategoryRemovalDialog
-				isConfirmDialogOpen={categoryState.isConfirmDialogOpen}
-				setIsConfirmDialogOpen={categoryState.setIsConfirmDialogOpen}
-				confirmCategory={categoryState.confirmCategory || ""}
-				handleConfirmRemoveCategory={categoryState.handleConfirmRemoveCategory}
-				parameters={localParameters}
-			/> */}
-
+				activeCategories={activeCategories}
+				setActiveCategories={setActiveCategories}
+			/>
 			<ConfirmParameterRemovalDialog
 				isConfirmDialogOpen={parameterState.isParameterConfirmDialogOpen}
 				setIsConfirmDialogOpen={parameterState.setIsParameterConfirmDialogOpen}
@@ -142,55 +122,53 @@ export function ParameterMain({
 				parameters={localParameters}
 			/>
 
-			{activeTab !== "add-new-category" && (
-				<>
-					<LoadingIndicator
-						isLoading={isLoadingParameters}
-						message="Loading existing solution parameters..."
-					/>
-					<div className="flex items-center justify-between gap-4 mb-6">
-						<SearchBar
-							searchQuery={searchQuery}
-							setSearchQuery={setSearchQuery}
-							filteredParameters={filteredParameters}
-						/>
-						<AddParameterSystem
-							handleAddParameter={parameterState.handleAddParameter}
-							handleCancelAddParameter={parameterState.handleCancelAddParameter}
-						/>
-						<ColumnVisibilitySystem
-							columnVisibility={columnVisibility}
-							setColumnVisibility={setColumnVisibility}
-						/>
-					</div>
-					<TableContent
-						filteredParameters={filteredParameters}
-						editingParameter={parameterState.editingParameter}
-						editData={parameterState.editData}
-						setEditData={parameterState.setEditData}
-						handleEditParameter={parameterState.handleEditParameter}
-						handleSaveParameter={parameterState.handleSaveParameter}
-						handleCancelEdit={parameterState.handleCancelEdit}
-						handleDeleteParameter={parameterState.handleDeleteParameter}
-						getLevelColor={getLevelColor}
-						getCategoryColor={getCategoryColor}
-						isAddingParameter={parameterState.isAddingParameter}
-						newParameterData={parameterState.newParameterData}
-						setNewParameterData={parameterState.setNewParameterData}
-						handleSaveNewParameter={parameterState.handleSaveNewParameter}
-						handleCancelAddParameter={parameterState.handleCancelAddParameter}
-						handleAddParameter={parameterState.handleAddParameter}
-						customCategories={customCategories}
+			<>
+				<LoadingIndicator
+					isLoading={isLoadingParameters}
+					message="Loading existing solution parameters..."
+				/>
+				<div className="flex items-center justify-between gap-4 mb-6">
+					<SearchBar
 						searchQuery={searchQuery}
-						parameters={localParameters}
-						activeTab={activeTab}
+						setSearchQuery={setSearchQuery}
+						filteredParameters={filteredParameters}
+					/>
+					<AddParameterSystem
+						handleAddParameter={parameterState.handleAddParameter}
+						handleCancelAddParameter={parameterState.handleCancelAddParameter}
+					/>
+					<ColumnVisibilitySystem
 						columnVisibility={columnVisibility}
 						setColumnVisibility={setColumnVisibility}
-						usedParameterIds={usedParameterIds}
-						categories={categories}
 					/>
-				</>
-			)}
+				</div>
+				<TableContent
+					filteredParameters={filteredParameters}
+					editingParameter={parameterState.editingParameter}
+					editData={parameterState.editData}
+					setEditData={parameterState.setEditData}
+					handleEditParameter={parameterState.handleEditParameter}
+					handleSaveParameter={parameterState.handleSaveParameter}
+					handleCancelEdit={parameterState.handleCancelEdit}
+					handleDeleteParameter={parameterState.handleDeleteParameter}
+					getLevelColor={getLevelColor}
+					getCategoryColor={getCategoryColor}
+					isAddingParameter={parameterState.isAddingParameter}
+					newParameterData={parameterState.newParameterData}
+					setNewParameterData={parameterState.setNewParameterData}
+					handleSaveNewParameter={parameterState.handleSaveNewParameter}
+					handleCancelAddParameter={parameterState.handleCancelAddParameter}
+					handleAddParameter={parameterState.handleAddParameter}
+					customCategories={customCategories}
+					searchQuery={searchQuery}
+					parameters={localParameters}
+					activeTab={activeTab}
+					columnVisibility={columnVisibility}
+					setColumnVisibility={setColumnVisibility}
+					usedParameterIds={usedParameterIds}
+					categories={categories}
+				/>
+			</>
 
 			{/* <PreviewDialog
 				isOpen={isPreviewDialogOpen}

@@ -26,43 +26,29 @@ export function getSortedCategories(
  * Filters parameters based on active tab and search query
  */
 export function getFilteredParameters(
-	parameters: Parameter[],
+	parameters: any[],
 	activeTab: string,
-	searchQuery: string
-): Parameter[] {
-	return parameters.filter((param) => {
-		// Filter by active tab
-		let tabFiltered = false;
+	searchQuery: string,
+	activeCategories: string[] = []
+) {
+	let filtered = parameters;
 
-		if (activeTab === "all") {
-			tabFiltered = true;
-		} else if (activeTab === "Global") {
-			tabFiltered = [
-				"Global",
-				"Industry",
-				"Technology",
-				"Technologies",
-			].includes(param.category.name);
-		} else {
-			tabFiltered = param.category.name === activeTab;
-		}
+	// Filter by active categories
+	if (activeCategories.length > 0 && !activeCategories.includes("all")) {
+		filtered = filtered.filter((param) =>
+			activeCategories.includes(param.category.name)
+		);
+	}
 
-		// Filter by search query
-		const searchFiltered =
-			searchQuery.trim() === "" ||
-			param.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-			param.category.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-			param.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-			param.value.toLowerCase().includes(searchQuery.toLowerCase()) ||
-			param.test_value.toLowerCase().includes(searchQuery.toLowerCase()) ||
-			param.unit.toLowerCase().includes(searchQuery.toLowerCase()) ||
-			(typeof param.user_interface === "string"
-				? (param.user_interface as string).toLowerCase().includes(searchQuery.toLowerCase())
-				: param.user_interface?.type
-						?.toLowerCase()
-						.includes(searchQuery.toLowerCase()) || false) ||
-			param.output.toString().toLowerCase().includes(searchQuery.toLowerCase());
+	// Filter by search query
+	if (searchQuery.trim()) {
+		const query = searchQuery.toLowerCase();
+		filtered = filtered.filter((param) =>
+			param.parameterName.toLowerCase().includes(query) ||
+			param.description.toLowerCase().includes(query) ||
+			param.category.name.toLowerCase().includes(query)
+		);
+	}
 
-		return tabFiltered && searchFiltered;
-	});
-} 
+	return filtered;
+}
