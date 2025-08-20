@@ -1,22 +1,19 @@
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
 
 export default function AddParameterSystem({
 	handleAddParameter,
 	handleCancelAddParameter,
+	isAddingParameter,
 }: {
 	handleAddParameter: () => void;
 	handleCancelAddParameter: () => void;
+	isAddingParameter: boolean;
 }) {
-	const [isAddingParameter, setIsAddingParameter] = useState(false);
-
 	const handleAddParameterClick = () => {
-		setIsAddingParameter(true);
 		handleAddParameter();
 	};
 
 	const handleCancelClick = () => {
-		setIsAddingParameter(false);
 		handleCancelAddParameter();
 	};
 

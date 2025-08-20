@@ -136,6 +136,7 @@ export function ParameterMain({
 					<AddParameterSystem
 						handleAddParameter={parameterState.handleAddParameter}
 						handleCancelAddParameter={parameterState.handleCancelAddParameter}
+						isAddingParameter={parameterState.isAddingParameter}
 					/>
 					<ColumnVisibilitySystem
 						columnVisibility={columnVisibility}
