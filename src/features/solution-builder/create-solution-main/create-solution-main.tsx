@@ -560,7 +560,16 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 	};
 
 	const handleParametersChangeLocal = (parameters: Parameter[]) => {
-		handleParametersChange(parameters, setFormData);
+		// Update both local state and form data
+		setFormData(prev => ({ ...prev, parameters }));
+		
+		// If we have selectedSolutionVariantData, update it too
+		if (selectedSolutionVariantData) {
+			setSelectedSolutionVariantData((prev: typeof selectedSolutionVariantData) => ({
+				...prev,
+				parameters
+			}));
+		}
 	};
 
 	const handleCalculationsChangeLocal = (calculations: Calculation[]) => {
@@ -765,7 +774,6 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 			loadInitialData();
 		}
 	}, [user, loadInitialData]);
-
 
 
 

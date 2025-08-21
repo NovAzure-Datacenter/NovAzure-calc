@@ -18,6 +18,9 @@ export function ActionsCell({
 	handleSaveNewParameter,
 	handleCancelAddParameter,
 }: ActionsCellProps) {
+
+	const NON_REMOVAL_PARAMETERS = ['NovAzure Provided', "Global", "Required"]	
+
 	return renderCell(
 		columnVisibility.actions,
 		<div className="flex items-center gap-1">
@@ -36,8 +39,7 @@ export function ActionsCell({
 						<Edit className="h-3 w-3" />
 					</Button>
 
-					{parameter.category.name.toLowerCase() !== "global" &&
-						parameter.category.name.toLowerCase() !== "required" && (
+					{!NON_REMOVAL_PARAMETERS.includes(parameter.category.name) && (
 							<Button
 								size="sm"
 								variant="ghost"

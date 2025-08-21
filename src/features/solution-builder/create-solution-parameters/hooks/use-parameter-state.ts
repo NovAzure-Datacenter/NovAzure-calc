@@ -75,8 +75,6 @@ export function useParameterState({
 	};
 
 	const handleSaveNewParameter = () => {
-
-		console.log(newParameterData)
 		const validation = validateParameterEditData(newParameterData, parameters);
 		if (!validation.isValid) {
 			toast.error(validation.errorMessage);

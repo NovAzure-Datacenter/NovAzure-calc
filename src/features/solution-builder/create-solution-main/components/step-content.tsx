@@ -262,6 +262,7 @@ export default function StepContent(props: StepContentProps) {
 		return Array.from(usedIds);
 	};
 
+
 	return (
 		<div>
 			{/* Step 1: Industry, Technology & Solution Selection */}

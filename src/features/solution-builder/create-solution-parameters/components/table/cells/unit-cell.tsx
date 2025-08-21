@@ -1,5 +1,11 @@
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { UnitCellProps } from "./types";
-import { Input } from "@/components/ui/input";
 
 export function UnitCell({
 	columnVisibility,
@@ -13,21 +19,94 @@ export function UnitCell({
 	renderCell,
 	isPriority,
 }: UnitCellProps) {
+
+	const PARAMTER_LIST = [
+		{
+			unit: "none",
+			description: "No unit",
+		},
+		{
+			unit: "$",
+			description: "US Dollar",
+		},
+		{
+			unit: "£",
+			description: "British Pound",
+		},
+		{
+			unit: "€",
+			description: "Euro",
+		},
+		{
+			unit: "mWh",
+			description: "Milliwatt-hour",
+		},
+		{
+			unit: "kWh",
+			description: "Kilowatt-hour",
+		},
+		{
+			unit: "%",
+			description: "Percentage",
+		},
+		{
+			unit: "L",
+			description: "Litres",
+		},
+		{
+			unit: "$/kWh",
+			description: "US Dollar per Kilowatt-hour",
+		},
+		{
+			unit: "£/kWh",
+			description: "British Pound per Kilowatt-hour",
+		},
+		{
+			unit: "€/kWh",
+			description: "Euro per Kilowatt-hour",
+		},
+		{
+			unit: "litres/kWh",
+			description: "Litres per Kilowatt-hour",
+		},
+	];
+
 	return renderCell(
 		columnVisibility.unit,
 		isEditing ? (
-			<Input
+			<Select
 				value={editData.unit}
-				onChange={(e) =>
+				onValueChange={(value) =>
 					setEditData((prev) => ({
 						...prev,
-						unit: e.target.value,
+						unit: value,
 					}))
 				}
-				className={`h-7 text-xs ${isPriority ? "bg-gray-100 cursor-not-allowed" : ""}`}
-				placeholder="Unit"
-				disabled={isPriority}
-			/>
+			>
+				<SelectTrigger
+					className={`h-7 text-xs ${
+						isPriority ? "bg-gray-100 cursor-not-allowed" : ""
+					}`}
+				>
+					<SelectValue>{editData.unit || "Select unit"}</SelectValue>
+				</SelectTrigger>
+				<SelectContent>
+					{PARAMTER_LIST.map((unit) => (
+						<SelectItem
+							key={unit.unit}
+							value={unit.unit}
+							onClick={() => {
+								setEditData((prev) => ({
+									...prev,
+									unit: unit.unit,
+								}));
+							}}
+						>
+							{unit.unit}
+						</SelectItem>
+					))}
+				</SelectContent>
+			</Select>
 		) : (
 			<span className="text-xs text-muted-foreground">
 				{highlightSearchTerm(parameter.unit, searchQuery)}
@@ -36,4 +115,4 @@ export function UnitCell({
 		"unit",
 		isExpanded
 	);
-} 
+}

@@ -470,7 +470,8 @@ export interface ParameterEditData {
 	range_max: string;
 	conditional_rules: Array<{ condition: string; value: string }>;
 	is_unified: boolean;
-	is_modifiable: boolean;
+	is_modifiable: boolean;	
+	is_mandatory: boolean;
 }
 
 export interface ConfirmDialogProps extends DialogProps {
@@ -522,6 +523,7 @@ export interface TableContentProps {
 	columnVisibility: ColumnVisibility;
 	setColumnVisibility: React.Dispatch<React.SetStateAction<ColumnVisibility>>;
 	usedParameterIds?: string[];
+	categories: CategoryData[];
 }
 
 export interface ColumnFilterProps {
@@ -540,7 +542,8 @@ export interface ParameterTableBodyProps {
 	setNewParameterData: React.Dispatch<React.SetStateAction<ParameterEditData>>;
 	handleSaveNewParameter: () => void;
 	handleCancelAddParameter: () => void;
-	getAllAvailableCategories: () => Array<{ name: string; color: string }>;
+	categories: CategoryData[]
+	// getAllAvailableCategories: () => Array<{ name: string; color: string }>;
 	getCategoryBadgeStyleForDropdownWrapper: (
 		name: string
 	) => React.CSSProperties;
@@ -606,7 +609,8 @@ export interface ParameterRowProps {
 	usedParameterIds?: string[];
 	isUnused?: boolean;
 	parameters?: Parameter[];
-	isUnified?: boolean;
+	isUnified?: boolean;	
+	categories: CategoryData[]
 }
 
 export interface AddParameterRowProps {
@@ -630,6 +634,7 @@ export interface AddParameterRowProps {
 	) => React.ReactElement | null;
 	usedParameterIds?: string[];
 	parameters?: Parameter[];
+	categories: CategoryData[]
 }
 
 export interface EmptyStateProps {

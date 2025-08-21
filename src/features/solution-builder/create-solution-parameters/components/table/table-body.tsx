@@ -15,6 +15,7 @@ export function TableBody({
 	setNewParameterData,
 	handleSaveNewParameter,
 	handleCancelAddParameter,
+	categories,
 	...rowProps
 }: ParameterTableBodyProps) {
 	// Create a placeholder parameter for the new row
@@ -36,7 +37,9 @@ export function TableBody({
 		level: "1",
 		is_modifiable: true,
 		is_unified: false,
+		is_mandatory: false,
 	};
+
 
 	return (
 		<UITableBody>
@@ -55,7 +58,7 @@ export function TableBody({
 					isAddingParameter={true}
 					newParameterData={newParameterData}
 					setNewParameterData={setNewParameterData}
-					
+					categories={categories}
 				/>
 			)}
 
@@ -73,6 +76,7 @@ export function TableBody({
 						handleSaveNewParameter={handleSaveNewParameter}
 						handleCancelAddParameter={handleCancelAddParameter}
 						{...(rowProps as any)}
+						categories={categories}
 					/>
 				);
 			})}

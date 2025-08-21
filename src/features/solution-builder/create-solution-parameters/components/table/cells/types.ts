@@ -38,6 +38,7 @@ export type CategoryCellProps = ParameterCellCommonProps &
 		| "getAllAvailableCategories"
 		| "getCategoryBadgeStyleWrapper"
 		| "getCategoryBadgeStyleForDropdownWrapper"
+		| "categories"
 	> & {
 	isPriority: boolean;
 };

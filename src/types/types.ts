@@ -24,6 +24,7 @@ export interface Parameter {
 	};
 	is_modifiable: boolean;
 	is_unified: boolean;
+	is_mandatory: boolean;
 }
 
 export interface Calculation {

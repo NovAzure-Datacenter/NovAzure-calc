@@ -19,10 +19,21 @@ import { CategoryData } from "@/features/solution-builder/types/types";
 interface CategorySystemProps {
 	categories: CategoryData[];
 	setCategories: React.Dispatch<React.SetStateAction<CategoryData[]>>;
+	activeTab: string;
+	setActiveTab: (tab: string) => void;
+	activeCategories: string[];
+	setActiveCategories: (categories: string[]) => void;
 }
 
 export default function CategorySystem(props: CategorySystemProps) {
-	const { categories, setCategories } = props;
+	const {
+		categories,
+		setCategories,
+		activeTab,
+		setActiveTab,
+		activeCategories,
+		setActiveCategories,
+	} = props;
 	const [isAddCategoryDialogOpen, setIsAddCategoryDialogOpen] = useState(false);
 
 	const categoriesWithAll: Record<string, CategoryData> = {
@@ -40,6 +51,24 @@ export default function CategorySystem(props: CategorySystemProps) {
 		setCategories((prev) => prev.filter((cat) => cat.name !== categoryName));
 	};
 
+	const handleSetActiveTab = (categoryKey: string) => {
+		const MATCHERS: Record<string, string[]> = {
+			"Use Case": ["NovAzure Provided", "Global", "Required"],
+			"Capital Expenditure": ["Capital Expenditure"],
+			"Operational Expenditure": ["Operational Expenditure"],
+		};
+
+		setActiveTab(categoryKey);
+
+		if (categoryKey === "all") {
+			setActiveCategories(["all"]);
+		} else if (MATCHERS[categoryKey]) {
+			setActiveCategories(MATCHERS[categoryKey]);
+		} else {
+			setActiveCategories([categoryKey]);
+		}
+
+	};
 	return (
 		<div className="w-full pb-6">
 			<Tabs defaultValue={defaultTab} className="w-full">
@@ -49,12 +78,13 @@ export default function CategorySystem(props: CategorySystemProps) {
 							key={categoryKey}
 							value={categoryKey}
 							className="flex-1 min-w-0 text-muted-foreground text-sm bg-background/80 hover:bg-background border-backdrop truncate px-2 relative group"
+							onClick={() => handleSetActiveTab(categoryKey)}
 						>
 							{categoriesWithAll[categoryKey].name}
 							{categoryKey !== "all" &&
 								categoryKey !== "Use Case" &&
 								categoryKey !== "Capital Expenditure" &&
-								categoryKey !== "Operational Expenditure" &&(
+								categoryKey !== "Operational Expenditure" && (
 									<button
 										onClick={(e) => {
 											e.stopPropagation();
