@@ -776,7 +776,6 @@ export default function CreateSolutionMain({}: CreateSolutionMainProps) {
 	}, [user, loadInitialData]);
 
 
-	console.log("formData", formData);
 
 	if (isLoading) {
 		return <Loading />;
