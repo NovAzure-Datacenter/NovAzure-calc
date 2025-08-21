@@ -31,7 +31,6 @@ export function CategoryCell({
 			(category) => !CATEGORIES_TO_EXCLUDE.includes(category.name)
 		)
 	];
-	console.log("category", parameter.name);
 	return renderCell(
 		columnVisibility.category,
 		isEditing ? (
