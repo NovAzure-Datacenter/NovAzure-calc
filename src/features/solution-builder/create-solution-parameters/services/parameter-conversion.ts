@@ -25,6 +25,7 @@ export function getDefaultParameterEditData(): ParameterEditData {
 		conditional_rules: [],
 		is_unified: false,
 		is_modifiable: true,
+		is_mandatory: false,
 	};
 }
 
@@ -61,6 +62,7 @@ export function convertParameterToEditData(parameter: Parameter): ParameterEditD
 		conditional_rules: parameter.conditional_rules || [],
 		is_unified: parameter.is_unified || false,
 		is_modifiable: parameter.is_modifiable || false,
+		is_mandatory: parameter.is_mandatory || false,
 	};
 }
 
@@ -97,5 +99,6 @@ export function convertEditDataToParameter(
 		conditional_rules: editData.conditional_rules,
 		is_modifiable: editData.is_modifiable || false,
 		is_unified: editData.is_unified || false,
+		is_mandatory: editData.is_mandatory || false,
 	};
 } 

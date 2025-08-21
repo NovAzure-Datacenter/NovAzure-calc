@@ -75,6 +75,7 @@ export default function GlobalParametersTableContent({
 		range_min: string;
 		range_max: string;
 		conditional_rules: Array<{ condition: string; value: string }>;
+		is_mandatory: boolean;
 	};
 	setEditData: React.Dispatch<
 		React.SetStateAction<{
@@ -91,6 +92,7 @@ export default function GlobalParametersTableContent({
 			range_min: string;
 			range_max: string;
 			conditional_rules: Array<{ condition: string; value: string }>;
+			is_mandatory: boolean;
 		}>
 	>;
 	handleEditParameter: (parameter: Parameter) => void;
@@ -114,6 +116,7 @@ export default function GlobalParametersTableContent({
 		range_min: string;
 		range_max: string;
 		conditional_rules: Array<{ condition: string; value: string }>;
+		is_mandatory: boolean;
 	};
 	setNewParameterData: React.Dispatch<
 		React.SetStateAction<{
@@ -130,6 +133,7 @@ export default function GlobalParametersTableContent({
 			range_min: string;
 			range_max: string;
 			conditional_rules: Array<{ condition: string; value: string }>;
+			is_mandatory: boolean;
 		}>
 	>;
 	handleSaveNewParameter: () => void;

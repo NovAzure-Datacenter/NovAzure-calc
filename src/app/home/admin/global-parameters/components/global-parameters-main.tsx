@@ -52,6 +52,7 @@ export default function GlobalParametersMain() {
 		range_min: "",
 		range_max: "",
 		conditional_rules: [] as Array<{ condition: string; value: string }>,
+		is_mandatory: false,
 	});
 
 	// New parameter data state
@@ -69,6 +70,7 @@ export default function GlobalParametersMain() {
 		range_min: "",
 		range_max: "",
 		conditional_rules: [] as Array<{ condition: string; value: string }>,
+		is_mandatory: false,
 	});
 
 	// Custom categories for each tab
@@ -178,6 +180,7 @@ export default function GlobalParametersMain() {
 			range_min: parameter.range_min || "",
 			range_max: parameter.range_max || "",
 			conditional_rules: parameter.conditional_rules || [],
+			is_mandatory: parameter.is_mandatory,
 		});
 	};
 
@@ -204,6 +207,7 @@ export default function GlobalParametersMain() {
 				range_max: editData.range_max,
 				conditional_rules: editData.conditional_rules,
 				is_unified: editData.is_unified,
+				is_mandatory: editData.is_mandatory,
 			});
 
 			// Update local state
@@ -228,6 +232,7 @@ export default function GlobalParametersMain() {
 				range_min: "",
 				range_max: "",
 				conditional_rules: [],
+				is_mandatory: false,
 			});
 
 			toast.success("Parameter updated successfully");
@@ -253,6 +258,7 @@ export default function GlobalParametersMain() {
 			range_min: "",
 			range_max: "",
 			conditional_rules: [],
+			is_mandatory: false,
 		});
 	};
 
@@ -286,6 +292,7 @@ export default function GlobalParametersMain() {
 			range_min: "",
 			range_max: "",
 			conditional_rules: [],
+			is_mandatory: false,
 		});
 	};
 
@@ -312,6 +319,7 @@ export default function GlobalParametersMain() {
 				range_max: newParameterData.range_max,
 				conditional_rules: newParameterData.conditional_rules,
 				is_unified: newParameterData.is_unified,
+				is_mandatory: newParameterData.is_mandatory,
 			});
 
 			// Update local state
@@ -332,6 +340,7 @@ export default function GlobalParametersMain() {
 				range_min: "",
 				range_max: "",
 				conditional_rules: [],
+				is_mandatory: false,
 			});
 
 			toast.success("Parameter added successfully");
@@ -357,6 +366,7 @@ export default function GlobalParametersMain() {
 			range_min: "",
 			range_max: "",
 			conditional_rules: [],
+			is_mandatory: false,
 		});
 	};
 

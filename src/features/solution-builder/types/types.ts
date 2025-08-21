@@ -470,7 +470,8 @@ export interface ParameterEditData {
 	range_max: string;
 	conditional_rules: Array<{ condition: string; value: string }>;
 	is_unified: boolean;
-	is_modifiable: boolean;
+	is_modifiable: boolean;	
+	is_mandatory: boolean;
 }
 
 export interface ConfirmDialogProps extends DialogProps {
