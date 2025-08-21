@@ -51,34 +51,20 @@ jobs:
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
-    - name: Update Frontend ECS service
+    - name: Update Combined ECS service  
       run: |
         aws ecs update-service \
           --cluster ${{ env.ECS_CLUSTER }} \
-          --service novazure-frontend-service \
+          --service novazure-combined-service \
           --force-new-deployment \
           --region ${{ env.AWS_REGION }}
 
-    - name: Update Backend ECS service
+    - name: Wait for deployment to stabilize
       run: |
-        aws ecs update-service \
-          --cluster ${{ env.ECS_CLUSTER }} \
-          --service novazure-backend-service \
-          --force-new-deployment \
-          --region ${{ env.AWS_REGION }}
-
-    - name: Wait for deployments to stabilize
-      run: |
-        echo "Waiting for services to stabilize..."
-        
+        echo "Waiting for combined service to stabilize..."
         aws ecs wait services-stable \
           --cluster ${{ env.ECS_CLUSTER }} \
-          --services novazure-frontend-service \
-          --region ${{ env.AWS_REGION }}
-        
-        aws ecs wait services-stable \
-          --cluster ${{ env.ECS_CLUSTER }} \
-          --services novazure-backend-service \
+          --services novazure-combined-service \
           --region ${{ env.AWS_REGION }}
 
     - name: Get service endpoints
