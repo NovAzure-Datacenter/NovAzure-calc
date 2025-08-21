@@ -76,6 +76,7 @@ export default function GlobalParametersMain() {
 		{ name: "Global", color: "blue" },
 		{ name: "Industry", color: "green" },
 		{ name: "Technology", color: "purple" },
+		{ name: "Mandatory", color: "red" },
 	];
 
 	// Load parameters from MongoDB
@@ -110,6 +111,8 @@ export default function GlobalParametersMain() {
 				return parameters.filter(param => param.category.name === "Industry");
 			case "Technology":
 				return parameters.filter(param => param.category.name === "Technology");
+			case "Mandatory":
+				return parameters.filter(param => param.category.name === "Mandatory" || param.category.name === "required");
 			default:
 				return [];
 		}
@@ -139,7 +142,8 @@ export default function GlobalParametersMain() {
 			Global: "bg-blue-100 text-blue-800",
 			Industry: "bg-green-100 text-green-800",
 			Technology: "bg-purple-100 text-purple-800",
-		};
+			Mandatory: "bg-red-100 text-red-800",
+			};
 		return categoryColorMap[category] || "bg-gray-100 text-gray-800";
 	};
 

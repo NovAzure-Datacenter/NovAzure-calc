@@ -58,6 +58,17 @@ export default function GlobalParametersTabs({
 				>
 					Technology
 				</TabsTrigger>
+				<TabsTrigger
+					value="Mandatory"
+					className="text-muted-foreground text-sm bg-background/80 hover:bg-background border-backdrop"
+					style={
+						activeTab === "Mandatory"
+							? getActiveTabStyleWrapper("Mandatory")
+							: getCategoryStyleWrapper("Mandatory")
+					}
+				>
+					Mandatory
+				</TabsTrigger>
 			</TabsList>
 		</Tabs>
 	);
