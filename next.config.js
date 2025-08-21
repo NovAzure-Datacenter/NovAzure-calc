@@ -1,17 +1,18 @@
+/** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'standalone',
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
+    outputFileTracingRoot: process.cwd(),
   },
-  // Configure CSS handling to prevent entryCSSFiles errors
-  webpack: (config, { isServer, dev }) => {
+  
+  webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
         fs: false,
       };
     }
-
-    // Handle CSS modules and global CSS properly
     config.module.rules.forEach((rule) => {
       if (rule.oneOf) {
         rule.oneOf.forEach((oneOfRule) => {
@@ -21,9 +22,8 @@ const nextConfig = {
         });
       }
     });
-
     return config;
   },
 };
 
-module.exports = nextConfig; 
+module.exports = nextConfig;
