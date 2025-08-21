@@ -75,7 +75,6 @@ export function ParameterRow(props: ParameterRowProps) {
 	const isExpanded = expandedRows.has(parameter.id);
 
 
-	console.log('edit', editData)
 	return (
 		<TableRow
 			className={`transition-all duration-300 cursor-pointer ${
