@@ -26,7 +26,7 @@ export function getSortedCategories(
  * Filters parameters based on active tab and search query
  */
 export function getFilteredParameters(
-	parameters: any[],
+	parameters: Parameter[],
 	activeTab: string,
 	searchQuery: string,
 	activeCategories: string[] = []
@@ -44,7 +44,7 @@ export function getFilteredParameters(
 	if (searchQuery.trim()) {
 		const query = searchQuery.toLowerCase();
 		filtered = filtered.filter((param) =>
-			param.parameterName.toLowerCase().includes(query) ||
+			param.name.toLowerCase().includes(query) ||
 			param.description.toLowerCase().includes(query) ||
 			param.category.name.toLowerCase().includes(query)
 		);

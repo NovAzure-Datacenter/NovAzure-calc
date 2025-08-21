@@ -31,7 +31,7 @@ export function CategoryCell({
 			(category) => !CATEGORIES_TO_EXCLUDE.includes(category.name)
 		)
 	];
-
+	console.log("category", parameter.name);
 	return renderCell(
 		columnVisibility.category,
 		isEditing ? (
@@ -54,7 +54,16 @@ export function CategoryCell({
 				</SelectTrigger>
 				<SelectContent>
 					{availableCategories.map((category) => (
-						<SelectItem key={category.name} value={category.name}>
+						<SelectItem
+							key={category.name}
+							value={category.name}
+							onClick={() => {
+								setEditData((prev) => ({
+									...prev,
+									category: category.name,
+								}));
+							}}
+						>
 							<span
 								style={getCategoryBadgeStyleForDropdownWrapper(category.name)}
 							>
