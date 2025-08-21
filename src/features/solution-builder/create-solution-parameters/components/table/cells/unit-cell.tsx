@@ -22,6 +22,10 @@ export function UnitCell({
 
 	const PARAMTER_LIST = [
 		{
+			unit: "none",
+			description: "No unit",
+		},
+		{
 			unit: "$",
 			description: "US Dollar",
 		},
