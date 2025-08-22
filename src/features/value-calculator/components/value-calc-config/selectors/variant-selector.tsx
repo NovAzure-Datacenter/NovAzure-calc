@@ -148,10 +148,10 @@ export function VariantSelectorCard({
 					
 				</CardContent>
                 
-                <Separator className="my-0 py-0" />
+                {/* <Separator className="my-0 py-0" /> */}
 
                 {/* Compact Parameters and Calculations Summary */}
-				<CardFooter className="p-2 py-0 my-0 item-center">
+				{/* <CardFooter className="p-2 py-0 my-0 item-center">
 					<div className="flex items-center gap-4 text-xs justify-between">
 						<div className="flex items-center gap-1">
 							<span className="text-gray-500">Parameters:</span>
@@ -166,7 +166,7 @@ export function VariantSelectorCard({
 							</span>
 						</div>
 					</div>
-				</CardFooter>
+				</CardFooter> */}
 			</Card>
 		)
 	);

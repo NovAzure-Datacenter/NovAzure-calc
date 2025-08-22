@@ -6,6 +6,7 @@ import ModeSelector from "./components/value-calc-config/selectors/mode-selector
 import SolutionSelector from "./components/value-calc-config/selectors/solution-selector";
 import { VariantSelectorCard } from "./components/value-calc-config/selectors/variant-selector";
 import { ClientSolution } from "@/lib/actions/clients-solutions/clients-solutions";
+import SimpleInputConfig from "./components/value-calc-config/input-config/simple";
 
 export interface ModeSelectorProps {
 	setComparisonMode: (mode: "single" | "compare" | null) => void;
@@ -24,14 +25,15 @@ export default function ValueCalculatorMain() {
 	] = useState(false);
 	const [hasSelectedSolution, setHasSelectedSolution] = useState(false);
 
-	
 	const [selectedIndustry, setSelectedIndustry] = useState<string>("");
 	const [selectedTechnology, setSelectedTechnology] = useState<string>("");
 	const [comparisonMode, setComparisonMode] = useState<
 		"single" | "compare" | null
 	>(null);
-	const [selectedVariantDataA, setSelectedVariantDataA] = useState<ClientSolution | null>(null);
-	const [selectedVariantDataB, setSelectedVariantDataB] = useState<ClientSolution | null>(null);
+	const [selectedVariantDataA, setSelectedVariantDataA] =
+		useState<ClientSolution | null>(null);
+	const [selectedVariantDataB, setSelectedVariantDataB] =
+		useState<ClientSolution | null>(null);
 
 	// Reset flow when mode changes
 	useEffect(() => {
@@ -108,23 +110,26 @@ export default function ValueCalculatorMain() {
 				/>
 			)}
 			{selectedVariantDataA && (
-				<div className={comparisonMode === "compare" ? "grid grid-cols-1 lg:grid-cols-2 gap-4" : "w-full"}>
-					<VariantSelectorCard
-						selectedVariantData={selectedVariantDataA}
-					/>
+				<div
+					className={
+						comparisonMode === "compare"
+							? "grid grid-cols-1 lg:grid-cols-2 gap-4 pt-6"
+							: "w-full pt-6"
+					}
+				>
+					<VariantSelectorCard selectedVariantData={selectedVariantDataA} />
 					{selectedVariantDataB && (
-						<VariantSelectorCard
-							selectedVariantData={selectedVariantDataB}
-						/>
+						<VariantSelectorCard selectedVariantData={selectedVariantDataB} />
 					)}
 				</div>
 			)}
-	
 
-
-			
+			{selectedVariantDataA && (
+				<SimpleInputConfig
+					selectedVariantDataA={selectedVariantDataA}
+					selectedVariantDataB={selectedVariantDataB}
+				/>
+			)}
 		</div>
 	);
 }
-
-
