@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { CalculationMain } from "../../components/create-solution-calculations/calculation-main";
+import { CalculationMain } from "../../create-solution-calculations/calculation-main";
 import ValueMain from "../../components/create-solution-valuebuilder/value-main";
 import { CreateSolutionFilter } from "../../create-solution-filter/create-solution-filter";
 import { ParameterMain } from "../../create-solution-parameters/parameter-main";

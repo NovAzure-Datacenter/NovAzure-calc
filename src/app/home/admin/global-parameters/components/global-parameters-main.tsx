@@ -25,7 +25,7 @@ import {
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { getActiveTabStyle, getCategoryStyle } from "@/utils/color-utils";
-import { SearchBar } from "@/features/solution-builder/create-solution-parameters/components/common";
+import { SearchBar } from "@/features/solution-builder/components/common";
 
 
 export default function GlobalParametersMain() {
@@ -487,7 +487,8 @@ export default function GlobalParametersMain() {
 						<SearchBar
 							searchQuery={searchQuery}
 							setSearchQuery={setSearchQuery}
-							filteredParameters={filteredParameters}
+							filteredItems={filteredParameters}
+							placeholder="Search parameters by name, category, description, value, unit, provider, or input type..."
 						/>
 
 						{/* Table Content */}

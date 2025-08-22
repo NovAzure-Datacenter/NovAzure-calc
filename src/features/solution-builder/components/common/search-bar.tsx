@@ -1,21 +1,22 @@
-import { Parameter } from "@/types/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, X } from "lucide-react";
 
-interface SearchBarProps {
+interface SearchBarProps<T> {
 	searchQuery: string;
 	setSearchQuery: (query: string) => void;
-	filteredParameters: Parameter[];
+	filteredItems: T[];
 	placeholder?: string;
+	itemName?: string;
 }
 
-export function SearchBar({
+export function SearchBar<T>({
 	searchQuery,
 	setSearchQuery,
-	filteredParameters,
-	placeholder = "Search parameters by name, category, description, value, unit, provider, or input type...",
-}: SearchBarProps) {
+	filteredItems,
+	placeholder,
+	itemName = "items",
+}: SearchBarProps<T>) {
 	const handleKeyDown = (e: React.KeyboardEvent) => {
 		if (e.key === "Escape") {
 			setSearchQuery("");
@@ -50,8 +51,8 @@ export function SearchBar({
 			{searchQuery && (
 				<div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
 					<span>
-						Searching for: &quot;{searchQuery}&quot; • {filteredParameters.length} result
-						{filteredParameters.length !== 1 ? "s" : ""}
+						Searching for: &quot;{searchQuery}&quot; • {filteredItems.length} result
+						{filteredItems.length !== 1 ? "s" : ""}
 					</span>
 					{searchQuery && (
 						<Button
