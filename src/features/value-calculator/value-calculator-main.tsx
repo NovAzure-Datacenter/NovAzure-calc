@@ -108,7 +108,7 @@ export default function ValueCalculatorMain() {
 				/>
 			)}
 			{selectedVariantDataA && (
-				<div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+				<div className={comparisonMode === "compare" ? "grid grid-cols-1 lg:grid-cols-2 gap-4" : "w-full"}>
 					<VariantSelectorCard
 						selectedVariantData={selectedVariantDataA}
 					/>
@@ -119,11 +119,7 @@ export default function ValueCalculatorMain() {
 					)}
 				</div>
 			)}
-			{!selectedVariantDataA && selectedVariantDataB && (
-				<VariantSelectorCard
-					selectedVariantData={selectedVariantDataB}
-				/>
-			)}
+	
 
 
 			
