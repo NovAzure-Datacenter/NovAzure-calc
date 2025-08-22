@@ -20,8 +20,10 @@ export default function IndustryAndTechnologySelector(props: {
 	setSelectedIndustryParent: (selectedIndustry: string) => void;
 	setSelectedTechnologyParent: (selectedTechnology: string) => void;
 	comparisonMode: "single" | "compare" | null;
+	hasSelectedMode: boolean;
+	onChangeSelection: () => void;
 }) {
-	const { setHasSelectedIndustryAndTechnology, setClientData, setSelectedIndustryParent, setSelectedTechnologyParent, comparisonMode } = props;
+	const { setHasSelectedIndustryAndTechnology, setClientData, setSelectedIndustryParent, setSelectedTechnologyParent, comparisonMode, hasSelectedMode, onChangeSelection } = props;
 	const { user } = useUser();
 	const [industries, setIndustries] = useState<any[]>([]);
 	const [technologies, setTechnologies] = useState<any[]>([]);
@@ -80,15 +82,32 @@ export default function IndustryAndTechnologySelector(props: {
 		setSelectedTechnologyParent(value);
 	};
 
-	// Reset industry and technology selection when industry/technology changes
+	// Reset industry and technology selection when mode changes
 	useEffect(() => {
+		if (!hasSelectedMode) {
+			setSelectedIndustry("");
+			setHasSelectedIndustry(false);
+			setSelectedTechnology("");
+			setHasSelectedTechnology(false);
+			setHasSelectedIndustryAndTechnology(false);
+			
+
+		}
+	}, [hasSelectedMode, setHasSelectedIndustryAndTechnology]);
+
+	const handleChangeSelection = () => {
 		setSelectedIndustry("");
 		setHasSelectedIndustry(false);
 		setSelectedTechnology("");
 		setHasSelectedTechnology(false);
-	}, [comparisonMode]);
+		setHasSelectedIndustryAndTechnology(false);
+		onChangeSelection();
+	};
 
-	return !hasSelectedTechnology ? (
+	// Only show the form when we have a mode selected but haven't completed the selection
+	const shouldShowForm = hasSelectedMode && !hasSelectedTechnology;
+
+	return shouldShowForm ? (
 		<Card className="border-2 border-dashed border-gray-200">
 			<CardHeader>
 				<div className="flex items-center justify-between">
@@ -166,9 +185,13 @@ export default function IndustryAndTechnologySelector(props: {
 			<CardHeader className="">
 				<div className="flex items-center justify-between">
 					<div className="flex items-center gap-2 text-sm text-gray-600">
-						<span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1.5 text-base font-semibold text-blue-800">
+						<span className={`inline-flex items-center rounded-full px-3 py-1.5 text-base font-semibold ${
+							hasSelectedIndustry && hasSelectedTechnology
+								? "bg-green-100 text-green-800"
+								: "bg-blue-100 text-blue-800"
+						}`}>
 							{hasSelectedIndustry && hasSelectedTechnology
-								? "Industry and Technology Selected"
+								? "Industry and Technology Selected ✓"
 								: "Industry and Technology Selector"}
 						</span>
 						<span>•</span>
@@ -193,10 +216,7 @@ export default function IndustryAndTechnologySelector(props: {
 					<Button
 						variant="outline"
 						size="sm"
-						onClick={() => {
-							setHasSelectedIndustry(false);
-							setHasSelectedTechnology(false);
-						}}
+						onClick={handleChangeSelection}
 						className="text-xs"
 					>
 						Change Selection
