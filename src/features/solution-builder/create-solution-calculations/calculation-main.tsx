@@ -161,6 +161,9 @@ export function CalculationMain({
 		range_min: "",
 		range_max: "",
 		conditional_rules: [] as Array<{ condition: string; value: string }>,
+		is_unified: false,
+		is_modifiable: false,
+		is_mandatory: false,
 	});
 
 	// State for add calculation form
@@ -576,6 +579,9 @@ export function CalculationMain({
 			range_min: "",
 			range_max: "",
 			conditional_rules: [],
+			is_unified: false,
+			is_modifiable: false,
+			is_mandatory: false,
 		});
 	};
 

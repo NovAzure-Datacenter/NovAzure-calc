@@ -4,7 +4,8 @@ import React, { useState, useEffect } from "react";
 
 import TableContent from "./table-content";
 import { getLevelColor, getCategoryTailwindClasses } from "@/utils/color-utils";
-import { LoadingIndicator, SearchBar } from "./components/common";
+import { LoadingIndicator } from "./components/common";
+import { SearchBar } from "@/features/solution-builder/components/common";
 import {
 	ConfirmCategoryRemovalDialog,
 	ConfirmParameterRemovalDialog,
@@ -131,7 +132,8 @@ export function ParameterMain({
 					<SearchBar
 						searchQuery={searchQuery}
 						setSearchQuery={setSearchQuery}
-						filteredParameters={filteredParameters}
+						filteredItems={filteredParameters}
+						placeholder="Search parameters by name, category, description, value, unit, provider, or input type..."
 					/>
 					<AddParameterSystem
 						handleAddParameter={parameterState.handleAddParameter}
