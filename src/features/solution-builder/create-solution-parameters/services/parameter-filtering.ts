@@ -50,5 +50,10 @@ export function getFilteredParameters(
 		);
 	}
 
+	const mandatoryParameters = filtered.filter((param) => param.is_mandatory == true).sort((a, b) => a.name.localeCompare(b.name));
+	const nonMandatoryParameters = filtered.filter((param) => param.is_mandatory == false).sort((a, b) => a.name.localeCompare(b.name));
+
+	filtered = [...mandatoryParameters, ...nonMandatoryParameters];
+
 	return filtered;
 }
