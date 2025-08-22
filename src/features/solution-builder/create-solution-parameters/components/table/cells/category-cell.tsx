@@ -1,5 +1,11 @@
 import { CategoryCellProps } from "./types";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 
 export function CategoryCell({
@@ -12,11 +18,19 @@ export function CategoryCell({
 	searchQuery,
 	parameter,
 	renderCell,
-	getAllAvailableCategories,
+
 	getCategoryBadgeStyleWrapper,
 	getCategoryBadgeStyleForDropdownWrapper,
 	isPriority,
+	categories,
 }: CategoryCellProps) {
+	const CATEGORIES_TO_EXCLUDE = ["Use Case"];
+	const availableCategories = [
+		{ name: "none", description: "No category selected", color: "#6B7280" },
+		...categories.filter(
+			(category) => !CATEGORIES_TO_EXCLUDE.includes(category.name)
+		)
+	];
 	return renderCell(
 		columnVisibility.category,
 		isEditing ? (
@@ -30,23 +44,32 @@ export function CategoryCell({
 				}
 				disabled={isPriority}
 			>
-				<SelectTrigger className={`h-7 text-xs ${isPriority ? "bg-gray-100 cursor-not-allowed" : ""}`}>
+				<SelectTrigger
+					className={`h-7 text-xs ${
+						isPriority ? "bg-gray-100 cursor-not-allowed" : ""
+					}`}
+				>
 					<SelectValue placeholder="Select category" />
 				</SelectTrigger>
 				<SelectContent>
-					{getAllAvailableCategories().length > 0 ? (
-						getAllAvailableCategories().map((category) => (
-							<SelectItem key={category.name} value={category.name}>
-								<span style={getCategoryBadgeStyleForDropdownWrapper(category.name)}>
-									{category.name}
-								</span>
-							</SelectItem>
-						))
-					) : (
-						<div className="px-2 py-1.5 text-xs text-muted-foreground">
-							No categories available.
-						</div>
-					)}
+					{availableCategories.map((category) => (
+						<SelectItem
+							key={category.name}
+							value={category.name}
+							onClick={() => {
+								setEditData((prev) => ({
+									...prev,
+									category: category.name,
+								}));
+							}}
+						>
+							<span
+								style={getCategoryBadgeStyleForDropdownWrapper(category.name)}
+							>
+								{category.name === "none" ? "No Category" : category.name}
+							</span>
+						</SelectItem>
+					))}
 				</SelectContent>
 			</Select>
 		) : (
@@ -61,4 +84,4 @@ export function CategoryCell({
 		"category",
 		isExpanded
 	);
-} 
+}

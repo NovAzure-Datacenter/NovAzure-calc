@@ -31,7 +31,7 @@ export function ConfirmParameterRemovalDialog({
 
 	return (
 		<Dialog open={isConfirmDialogOpen} onOpenChange={setIsConfirmDialogOpen}>
-			<DialogContent className="sm:max-w-[425px]">
+			<DialogContent className="">
 				<DialogHeader>
 					<DialogTitle>Confirm Parameter Removal</DialogTitle>
 					<DialogDescription>

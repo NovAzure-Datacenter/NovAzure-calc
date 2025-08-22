@@ -1,10 +1,10 @@
 import { getClientByUserId } from "@/lib/actions/clients/clients";
 import { getIndustries } from "@/lib/actions/industry/industry";
 import { getTechnologies } from "@/lib/actions/technology/technology";
-import { 
+import {
 	getSolutionTypesByIndustryAndTechnology,
 	createSolution,
-	updateSolution 
+	updateSolution,
 } from "@/lib/actions/solution/solution";
 import {
 	createSolutionVariant,
@@ -12,10 +12,11 @@ import {
 	updateSolutionVariant,
 	updateSolutionVariantSolutionId,
 } from "@/lib/actions/solution-variant/solution-variant";
-import { 
-	getClientSolutions, 
-	createClientSolution, 
-	updateClientSolution 
+import {
+	getClientSolutions,
+	createClientSolution,
+	updateClientSolution,
+	getClientSolutionsByIndustryAndTechnology,
 } from "@/lib/actions/clients-solutions/clients-solutions";
 import { getAllGlobalParameters } from "@/lib/actions/global-parameters/global-parameters";
 import { Parameter } from "@/types/types";
@@ -24,6 +25,9 @@ import { Calculation } from "@/types/types";
 // Re-export types for centralized access
 export type { Parameter } from "@/types/types";
 export type { Calculation } from "@/types/types";
+
+// Re-export client solution functions for use in submission service
+export { getClientSolutions } from "@/lib/actions/clients-solutions/clients-solutions";
 
 /**
  * Fetch initial data for solution builder
@@ -46,17 +50,20 @@ export const fetchInitialData = async (userId: string) => {
 
 		// Load industries
 		const industriesResult = await getIndustries();
-		const industries = industriesResult.success ? (industriesResult.industries || []) : [];
+		const industries = industriesResult.success
+			? industriesResult.industries || []
+			: [];
 
 		// Load technologies
 		const technologiesResult = await getTechnologies();
-		const technologies = technologiesResult.success ? (technologiesResult.technologies || []) : [];
-
+		const technologies = technologiesResult.success
+			? technologiesResult.technologies || []
+			: [];
 
 		return {
 			clientData,
 			industries,
-			technologies
+			technologies,
 		};
 	} catch (error) {
 		console.error("Error loading initial data:", error);
@@ -66,39 +73,31 @@ export const fetchInitialData = async (userId: string) => {
 
 /**
  * Fetch solution types based on selected industry and technology
- * Retrieves solution types available for the industry/technology combination
+ * Retrieves client solutions available for the industry/technology combination
  * Used when user selects industry and technology to populate solution options
  */
-export const fetchSolutionTypes = async (industryId: string, technologyId: string) => {
-	if (!industryId || !technologyId) {
+export const fetchSolutionTypes = async (
+	industryId: string,
+	technologyId: string,
+	clientId: string
+) => {
+	if (!industryId || !technologyId || !clientId) {
 		return [];
 	}
 
 	try {
-		const result = await getSolutionTypesByIndustryAndTechnology(industryId, technologyId);
-		return result.success ? (result.solutionTypes || []) : [];
+		const result = await getClientSolutionsByIndustryAndTechnology(
+			clientId,
+			industryId,
+			technologyId
+		);
+
+		// Transform client solutions to match expected format
+
+		return result;
 	} catch (error) {
 		console.error("Error fetching solution types:", error);
 		throw new Error("Failed to load solution types");
-	}
-};
-
-/**
- * Fetch solution variants for the selected solution type
- * Retrieves all variants available for a specific solution type
- * Used when user selects a solution type to populate variant options
- */
-export const fetchSolutionVariants = async (solutionId: string) => {
-	if (!solutionId) {
-		return [];
-	}
-
-	try {
-		const result = await getSolutionVariantsBySolutionId(solutionId);
-		return result.success ? (result.solutionVariants || []) : [];
-	} catch (error) {
-		console.error("Error fetching solution variants:", error);
-		throw new Error("Failed to load solution variants");
 	}
 };
 
@@ -107,23 +106,29 @@ export const fetchSolutionVariants = async (solutionId: string) => {
  * Loads existing solution data for editing or reference
  * Used when user selects an existing solution variant
  */
-export const fetchExistingSolutionData = async (solutionVariantId: string, clientData: any, existingParameters: Parameter[] = []) => {
+export const fetchExistingSolutionData = async (
+	solutionVariantId: string,
+	clientData: any,
+	existingParameters: Parameter[] = []
+) => {
 	if (!solutionVariantId || !clientData?.id) {
 		return {
 			parameters: [],
 			calculations: [],
-			existingSolution: null
+			existingSolution: null,
 		};
 	}
 
 	try {
-		if (!solutionVariantId.startsWith("new-variant-")) {
+		if (
+			!solutionVariantId.startsWith("new-variant-") &&
+			solutionVariantId !== "new"
+		) {
 			const existingSolutions = await getClientSolutions(clientData.id);
 			if (existingSolutions.solutions) {
 				const existingSolution = existingSolutions.solutions.find(
 					(solution) => solution.id === solutionVariantId
 				);
-				console.log("existingSolution", existingSolution)
 
 				if (existingSolution) {
 					// Load global parameters and merge with existing parameters
@@ -133,7 +138,9 @@ export const fetchExistingSolutionData = async (solutionVariantId: string, clien
 					);
 
 					const globalParamCopies = createGlobalParameterCopies(
-						globalParams.filter((globalParam) => !existingParamsMap.has(globalParam.id)),
+						globalParams.filter(
+							(globalParam) => !existingParamsMap.has(globalParam.id)
+						),
 						existingSolution.parameters || []
 					);
 
@@ -145,7 +152,7 @@ export const fetchExistingSolutionData = async (solutionVariantId: string, clien
 					return {
 						parameters: mergedParameters,
 						calculations: existingSolution.calculations || [],
-						existingSolution
+						existingSolution,
 					};
 				}
 			}
@@ -153,12 +160,15 @@ export const fetchExistingSolutionData = async (solutionVariantId: string, clien
 
 		// Default: return global parameters for new variants
 		const globalParams = await getAllGlobalParameters();
-		const globalParamCopies = createGlobalParameterCopies(globalParams, existingParameters);
+		const globalParamCopies = createGlobalParameterCopies(
+			globalParams,
+			existingParameters
+		);
 
 		return {
 			parameters: globalParamCopies,
 			calculations: [],
-			existingSolution: null
+			existingSolution: null,
 		};
 	} catch (error) {
 		console.error("Error loading existing solution data:", error);
@@ -224,17 +234,17 @@ export const createNewClientSolution = async (clientSolutionData: {
 	solution_name: string;
 	solution_description: string;
 	solution_icon: string;
-	industry_id: string;
-	technology_id: string;
-	selected_solution_id: string;
-	selected_solution_variant_id?: string;
-	is_creating_new_solution: boolean;
-	is_creating_new_variant: boolean;
-	new_variant_name: string;
-	new_variant_description: string;
-	new_variant_icon: string;
+	industry: string;
+	technology: string;
+	solution: string;
+	solution_variant: string;
+	solution_variant_name: string;
+	solution_variant_description: string;
+	solution_variant_icon: string;
+	solution_variant_product_badge: boolean;
 	parameters: Parameter[];
 	calculations: Calculation[];
+	categories: any[];
 	status: "draft" | "pending" | "approved" | "rejected";
 	created_by: string;
 }) => {
@@ -274,20 +284,26 @@ export const updateExistingClientSolution = async (
  * Helper function to create copies of global parameters with correct ID convention
  * Creates unique IDs for global parameters to avoid conflicts
  */
-const createGlobalParameterCopies = (globalParams: any[], existingParameters: Parameter[] = []) => {
-	const existingParamNames = new Set(existingParameters.map(param => param.name));
-	
+const createGlobalParameterCopies = (
+	globalParams: any[],
+	existingParameters: Parameter[] = []
+) => {
+	const existingParamNames = new Set(
+		existingParameters.map((param) => param.name)
+	);
+
 	return globalParams
-		.filter(globalParam => !existingParamNames.has(globalParam.name))
+		.filter((globalParam) => !existingParamNames.has(globalParam.name))
 		.map((globalParam) => ({
 			...globalParam,
 			id: `param-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
 			user_interface: {
 				type: "not_viewable",
 				category: globalParam.category?.name || "Global",
-				is_advanced: false
+				is_advanced: false,
 			},
 			is_modifiable: globalParam.is_modifiable || false,
+			is_unified: globalParam.is_unified || false,
 		}));
 };
 
@@ -300,13 +316,13 @@ export const fetchClientSelectedData = (clientData: any) => {
 	if (!clientData) {
 		return {
 			selectedIndustries: [],
-			selectedTechnologies: []
+			selectedTechnologies: [],
 		};
 	}
 
 	return {
 		selectedIndustries: clientData.selected_industries || [],
-		selectedTechnologies: clientData.selected_technologies || []
+		selectedTechnologies: clientData.selected_technologies || [],
 	};
 };
 
@@ -315,9 +331,12 @@ export const fetchClientSelectedData = (clientData: any) => {
  * Returns technologies that are applicable to the selected industry
  * Used for progressive filtering in the solution builder
  */
-export const filterTechnologiesByIndustry = (technologies: any[], selectedIndustry: string) => {
+export const filterTechnologiesByIndustry = (
+	technologies: any[],
+	selectedIndustry: string
+) => {
 	if (!selectedIndustry) return technologies;
-	
+
 	return technologies.filter((technology) => {
 		const applicableIndustries = technology.applicableIndustries || [];
 		return applicableIndustries.includes(selectedIndustry);
@@ -329,7 +348,10 @@ export const filterTechnologiesByIndustry = (technologies: any[], selectedIndust
  * Returns industries that the client hasn't selected
  * Used for showing additional industry options
  */
-export const getOtherIndustries = (availableIndustries: any[], clientSelectedIndustries: string[]) => {
+export const getOtherIndustries = (
+	availableIndustries: any[],
+	clientSelectedIndustries: string[]
+) => {
 	return availableIndustries.filter(
 		(industry) => !clientSelectedIndustries.includes(industry.id)
 	);
@@ -340,7 +362,10 @@ export const getOtherIndustries = (availableIndustries: any[], clientSelectedInd
  * Returns technologies that the client hasn't selected and are applicable to the industry
  * Used for showing additional technology options
  */
-export const getOtherTechnologies = (technologiesForSelectedIndustry: any[], clientSelectedTechnologies: string[]) => {
+export const getOtherTechnologies = (
+	technologiesForSelectedIndustry: any[],
+	clientSelectedTechnologies: string[]
+) => {
 	return technologiesForSelectedIndustry.filter(
 		(technology) => !clientSelectedTechnologies.includes(technology.id)
 	);
@@ -351,16 +376,22 @@ export const getOtherTechnologies = (technologiesForSelectedIndustry: any[], cli
  * Loads calculation data for editing or reference
  * Used when user selects an existing solution variant
  */
-export const fetchCalculationData = async (solutionVariantId: string, clientData: any) => {
+export const fetchCalculationData = async (
+	solutionVariantId: string,
+	clientData: any
+) => {
 	if (!solutionVariantId || !clientData?.id) {
 		return {
 			calculations: [],
-			existingSolution: null
+			existingSolution: null,
 		};
 	}
 
 	try {
-		if (!solutionVariantId.startsWith("new-variant-")) {
+		if (
+			!solutionVariantId.startsWith("new-variant-") &&
+			solutionVariantId !== "new"
+		) {
 			const existingSolutions = await getClientSolutions(clientData.id);
 
 			if (existingSolutions.solutions) {
@@ -371,7 +402,7 @@ export const fetchCalculationData = async (solutionVariantId: string, clientData
 				if (existingSolution) {
 					return {
 						calculations: existingSolution.calculations || [],
-						existingSolution
+						existingSolution,
 					};
 				}
 			}
@@ -380,7 +411,7 @@ export const fetchCalculationData = async (solutionVariantId: string, clientData
 		// Default: return empty calculations for new variants
 		return {
 			calculations: [],
-			existingSolution: null
+			existingSolution: null,
 		};
 	} catch (error) {
 		console.error("Error loading calculation data:", error);
@@ -393,14 +424,19 @@ export const fetchCalculationData = async (solutionVariantId: string, clientData
  * Validates a calculation formula against available parameters
  * Used for real-time formula validation
  */
-export const validateCalculationFormula = (formula: string, parameters: any[], calculations: any[]): { isValid: boolean; error?: string } => {
+export const validateCalculationFormula = (
+	formula: string,
+	parameters: any[],
+	calculations: any[]
+): { isValid: boolean; error?: string } => {
 	try {
 		// Create a safe evaluation context
 		const context: { [key: string]: number } = {};
 
 		// Add parameters to context
 		parameters.forEach((param) => {
-			const value = param.overrideValue !== null ? param.overrideValue : param.defaultValue;
+			const value =
+				param.overrideValue !== null ? param.overrideValue : param.defaultValue;
 			context[param.id] = value;
 			context[param.id.replace(/-/g, "_")] = value;
 		});
@@ -421,7 +457,10 @@ export const validateCalculationFormula = (formula: string, parameters: any[], c
 		// Replace parameter and calculation names in formula with their values
 		let evaluatedFormula = formula;
 		Object.entries(context).forEach(([key, value]) => {
-			const regex = new RegExp(`\\b${key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, "g");
+			const regex = new RegExp(
+				`\\b${key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
+				"g"
+			);
 			evaluatedFormula = evaluatedFormula.replace(regex, value.toString());
 		});
 
@@ -445,13 +484,18 @@ export const validateCalculationFormula = (formula: string, parameters: any[], c
  * Evaluates a calculation formula and returns the result
  * Used for real-time calculation updates
  */
-export const evaluateCalculationFormula = (formula: string, parameters: any[], calculations: any[]): number | string => {
+export const evaluateCalculationFormula = (
+	formula: string,
+	parameters: any[],
+	calculations: any[]
+): number | string => {
 	try {
 		const context: { [key: string]: number } = {};
 
 		// Add parameters to context
 		parameters.forEach((param) => {
-			const value = param.overrideValue !== null ? param.overrideValue : param.defaultValue;
+			const value =
+				param.overrideValue !== null ? param.overrideValue : param.defaultValue;
 			context[param.id] = value;
 			context[param.id.replace(/-/g, "_")] = value;
 		});
@@ -467,7 +511,10 @@ export const evaluateCalculationFormula = (formula: string, parameters: any[], c
 		// Replace parameter and calculation names in formula with their values
 		let evaluatedFormula = formula;
 		Object.entries(context).forEach(([key, value]) => {
-			const regex = new RegExp(`\\b${key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, "g");
+			const regex = new RegExp(
+				`\\b${key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
+				"g"
+			);
 			evaluatedFormula = evaluatedFormula.replace(regex, value.toString());
 		});
 
@@ -492,28 +539,35 @@ export const evaluateCalculationFormula = (formula: string, parameters: any[], c
  * Used for backward compatibility
  */
 export const migrateCalculationData = (calculations: any[]): any[] => {
-	return calculations.map(calc => {
+	return calculations.map((calc) => {
 		// If already in new format, return as is
-		if (calc.category && typeof calc.category === 'object' && calc.category.name && calc.display_result !== undefined) {
+		if (
+			calc.category &&
+			typeof calc.category === "object" &&
+			calc.category.name &&
+			calc.display_result !== undefined
+		) {
 			return calc;
 		}
-		
+
 		// Migrate from old format
-		const oldCategory = typeof calc.category === 'string' ? calc.category : 'financial';
+		const oldCategory =
+			typeof calc.category === "string" ? calc.category : "financial";
 		const defaultColors: Record<string, string> = {
 			financial: "green",
-			performance: "blue", 
+			performance: "blue",
 			efficiency: "yellow",
-			operational: "purple"
+			operational: "purple",
 		};
-		
+
 		return {
 			...calc,
-			display_result: calc.display_result !== undefined ? calc.display_result : false,
+			display_result:
+				calc.display_result !== undefined ? calc.display_result : false,
 			category: {
 				name: oldCategory,
-				color: defaultColors[oldCategory.toLowerCase()] || "gray"
-			}
+				color: defaultColors[oldCategory.toLowerCase()] || "gray",
+			},
 		};
 	});
 };
@@ -523,7 +577,10 @@ export const migrateCalculationData = (calculations: any[]): any[] => {
  * Groups parameters by their category for easier access in formula editor
  * Used for parameter selection in formula building
  */
-export const groupParametersByCategory = (parameters: any[], calculations: any[] = []): Record<string, any[]> => {
+export const groupParametersByCategory = (
+	parameters: any[],
+	calculations: any[] = []
+): Record<string, any[]> => {
 	const grouped = parameters.reduce((acc, param) => {
 		const categoryName = param.category?.name || "Uncategorized";
 		if (!acc[categoryName]) {
@@ -535,7 +592,7 @@ export const groupParametersByCategory = (parameters: any[], calculations: any[]
 
 	// Add calculations as available parameters for formula building
 	if (calculations.length > 0) {
-		grouped["Calculations"] = calculations.map(calc => ({
+		grouped["Calculations"] = calculations.map((calc) => ({
 			id: calc.id,
 			name: calc.name,
 			description: calc.description,
@@ -544,12 +601,12 @@ export const groupParametersByCategory = (parameters: any[], calculations: any[]
 			unit: calc.units,
 			category: {
 				name: "Calculations",
-				color: "indigo"
+				color: "indigo",
 			},
 			user_interface: {
 				type: "input",
 				category: "Calculations",
-				is_advanced: false
+				is_advanced: false,
 			},
 			output: calc.output,
 			display_type: "simple",
@@ -558,7 +615,7 @@ export const groupParametersByCategory = (parameters: any[], calculations: any[]
 			range_max: "",
 			level: calc.level || 1,
 			status: calc.status,
-			formula: calc.formula
+			formula: calc.formula,
 		}));
 	}
 
@@ -570,19 +627,60 @@ export const groupParametersByCategory = (parameters: any[], calculations: any[]
  * Filters calculations based on selected category tab
  * Used for category-based calculation filtering
  */
-export const filterCalculationsByCategory = (calculations: any[], activeTab: string): any[] => {
+export const filterCalculationsByCategory = (
+	calculations: any[],
+	activeTab: string
+): any[] => {
 	if (activeTab === "all") {
 		return calculations;
 	}
-	return calculations.filter(calc => {
+	return calculations.filter((calc) => {
 		if (!calc.category) {
 			return false;
 		}
-		
-		const categoryName = typeof calc.category === 'string' 
-			? calc.category 
-			: calc.category.name;
-		
+
+		const categoryName =
+			typeof calc.category === "string" ? calc.category : calc.category.name;
+
 		return categoryName?.toLowerCase() === activeTab.toLowerCase();
 	});
+};
+
+/**
+ * Fetch solution variants for the selected solution type
+ * Retrieves all client solutions where the solution field matches the selected solution type ID
+ * Used when user selects a solution type to populate variant options
+ */
+export const fetchSolutionVariants = async (
+	solutionId: string,
+	clientId: string
+) => {
+	if (!solutionId || !clientId) {
+		return [];
+	}
+
+	try {
+		// Get all client solutions for this client
+		const allSolutions = await getClientSolutions(clientId);
+
+		if (allSolutions.error || !allSolutions.solutions) {
+			return [];
+		}
+
+		// The solutionId passed here is actually the ID from availableSolutionTypes
+		// which contains client solutions with their id field set to the solution ID (for variants)
+		// or the document ID (for solutions)
+
+		// Find all client solutions where the solution field matches the selected solutionId
+		// This means we're looking for variants that reference this solution type
+		const solutionVariants = allSolutions.solutions.filter(
+			(clientSolution) => clientSolution.solution === solutionId
+		);
+
+		// Return the variants found
+		return solutionVariants;
+	} catch (error) {
+		console.error("Error fetching solution variants:", error);
+		throw new Error("Failed to load solution variants");
+	}
 };

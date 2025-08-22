@@ -131,8 +131,6 @@ export default function ValueMain({
 		selectedParameters: [],
 	});
 
-	console.log("parameters", formData.parameters);
-	console.log("calculations", formData.calculations);
 	// Add collapse state for each section
 	const [isCalculationsCollapsed, setIsCalculationsCollapsed] = useState(false);
 	const [isOpexCollapsed, setIsOpexCollapsed] = useState(false);

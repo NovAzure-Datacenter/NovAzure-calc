@@ -1,8 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ParameterTable } from "./components/table";
-import {
-	TableCell,
-} from "@/components/ui/table";
+import { TableCell } from "@/components/ui/table";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import {
 	TableContentProps,
@@ -12,36 +10,42 @@ import {
 	getCategoryBadgeStyle,
 	getCategoryBadgeStyleForDropdown,
 } from "@/utils/color-utils";
-import { getDisplayTypeBadgeStyle, getUserInterfaceBadgeStyle } from "@/components/table-components/parameter-types";
+import {
+	getDisplayTypeBadgeStyle,
+	getUserInterfaceBadgeStyle,
+} from "@/components/table-components/parameter-types";
 
 export default function TableContent(props: TableContentProps) {
 	const {
-	filteredParameters,
-	editingParameter,
-	editData,
-	setEditData,
-	handleEditParameter,
-	handleSaveParameter,
-	handleCancelEdit,
-	handleDeleteParameter,
-	isAddingParameter,
-	newParameterData,
-	setNewParameterData,
-	handleSaveNewParameter,
-	handleCancelAddParameter,
-	handleAddParameter,
-	customCategories,
-	searchQuery,
-	parameters,
-	activeTab,
-	columnVisibility,
-	setColumnVisibility,
-	usedParameterIds = [],
+		filteredParameters,
+		editingParameter,
+		editData,
+		setEditData,
+		handleEditParameter,
+		handleSaveParameter,
+		handleCancelEdit,
+		handleDeleteParameter,
+		isAddingParameter,
+		newParameterData,
+		setNewParameterData,
+		handleSaveNewParameter,
+		handleCancelAddParameter,
+		handleAddParameter,
+		customCategories,
+		searchQuery,
+		parameters,
+		activeTab,
+		columnVisibility,
+		setColumnVisibility,
+		usedParameterIds = [],
+		categories
 	} = props;
 
 	const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 	const [tableWidth, setTableWidth] = useState<number>(0);
 	const containerRef = useRef<HTMLDivElement>(null);
+
+	// console.log(filteredParameters)
 
 	useEffect(() => {
 		const updateTableWidth = () => {
@@ -68,9 +72,9 @@ export default function TableContent(props: TableContentProps) {
 			value: { minWidth: 80, maxWidth: 150, priority: 2 },
 			testValue: { minWidth: 70, maxWidth: 100, priority: 1 },
 			unit: { minWidth: 50, maxWidth: 80, priority: 1 },
-			description: { minWidth: 120, maxWidth: 300, priority: 4 },
-			userInterface: { minWidth: 100, maxWidth: 160, priority: 2 },
-			output: { minWidth: 60, maxWidth: 80, priority: 1 },
+			description: { minWidth: 120, maxWidth: 100, priority: 4 },
+			userInterface: { minWidth: 150, maxWidth: 300, priority: 2 },
+			// output: { minWidth: 60, maxWidth: 80, priority: 1 },
 			actions: { minWidth: 80, maxWidth: 100, priority: 1 },
 		} as const;
 
@@ -93,7 +97,10 @@ export default function TableContent(props: TableContentProps) {
 			const minWidth = cfg?.minWidth || 80;
 			const maxWidth = cfg?.maxWidth || 200;
 			const priority = cfg?.priority || 1;
-			const calculated = Math.min(maxWidth, minWidth + priorityWeight * priority);
+			const calculated = Math.min(
+				maxWidth,
+				minWidth + priorityWeight * priority
+			);
 			columnWidths[column] = Math.max(minWidth, calculated);
 		});
 		return columnWidths;
@@ -160,7 +167,10 @@ export default function TableContent(props: TableContentProps) {
 		const parts = text.split(regex);
 		return parts.map((part, idx) =>
 			regex.test(part) ? (
-				<mark key={idx} className="bg-yellow-200 text-yellow-900 px-0.5 rounded">
+				<mark
+					key={idx}
+					className="bg-yellow-200 text-yellow-900 px-0.5 rounded"
+				>
 					{part}
 				</mark>
 			) : (
@@ -169,23 +179,15 @@ export default function TableContent(props: TableContentProps) {
 		);
 	}
 
-	function getAllAvailableCategories() {
-		const systemManaged = ["Global", "Industry", "Technology", "Technologies"];
-		const existing = Array.from(new Set(parameters.map((p) => p.category.name))).filter(
-			(c) => !systemManaged.includes(c)
-		);
-		const existingObjects = existing.map((c) => {
-			const param = parameters.find((p) => p.category.name === c);
-			return { name: c, color: param?.category.color || "gray" };
-		});
-		return [...existingObjects, ...customCategories];
-	}
-
 	function getCategoryBadgeStyleWrapper(categoryName: string) {
 		return getCategoryBadgeStyle(categoryName, parameters, customCategories);
 	}
 	function getCategoryBadgeStyleForDropdownWrapper(categoryName: string) {
-		return getCategoryBadgeStyleForDropdown(categoryName, parameters, customCategories);
+		return getCategoryBadgeStyleForDropdown(
+			categoryName,
+			parameters,
+			customCategories
+		);
 	}
 
 	return (
@@ -194,22 +196,25 @@ export default function TableContent(props: TableContentProps) {
 				<TooltipProvider>
 					<div className="min-w-full">
 						<ParameterTable
-								filteredParameters={filteredParameters}
-								editingParameter={editingParameter}
-								editData={editData}
-								setEditData={setEditData}
-								handleEditParameter={handleEditParameter}
-								handleSaveParameter={handleSaveParameter}
-								handleCancelEdit={handleCancelEdit}
-								handleDeleteParameter={handleDeleteParameter}
-					isAddingParameter={isAddingParameter}
-					newParameterData={newParameterData}
-					setNewParameterData={setNewParameterData}
-					handleSaveNewParameter={handleSaveNewParameter}
-					handleCancelAddParameter={handleCancelAddParameter}
-					getAllAvailableCategories={getAllAvailableCategories}
-							getCategoryBadgeStyleForDropdownWrapper={getCategoryBadgeStyleForDropdownWrapper}
-					getUserInterfaceBadgeStyle={getUserInterfaceBadgeStyle}
+							filteredParameters={filteredParameters}
+							editingParameter={editingParameter}
+							editData={editData}
+							setEditData={setEditData}
+							handleEditParameter={handleEditParameter}
+							handleSaveParameter={handleSaveParameter}
+							handleCancelEdit={handleCancelEdit}
+							handleDeleteParameter={handleDeleteParameter}
+							isAddingParameter={isAddingParameter}
+							newParameterData={newParameterData}
+							setNewParameterData={setNewParameterData}
+							handleSaveNewParameter={handleSaveNewParameter}
+							handleCancelAddParameter={handleCancelAddParameter}
+							categories={categories}
+							// getAllAvailableCategories={getAllAvailableCategories}
+							getCategoryBadgeStyleForDropdownWrapper={
+								getCategoryBadgeStyleForDropdownWrapper
+							}
+							getUserInterfaceBadgeStyle={getUserInterfaceBadgeStyle}
 							highlightSearchTerm={highlightSearchTerm}
 							searchQuery={searchQuery}
 							getCategoryBadgeStyleWrapper={getCategoryBadgeStyleWrapper}
@@ -223,9 +228,9 @@ export default function TableContent(props: TableContentProps) {
 							toggleRowExpansion={toggleRowExpansion}
 							usedParameterIds={usedParameterIds}
 						/>
-							</div>
+					</div>
 				</TooltipProvider>
-				</div>
-				</div>
+			</div>
+		</div>
 	);
 }

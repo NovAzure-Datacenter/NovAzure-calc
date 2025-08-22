@@ -10,8 +10,40 @@ import { DescriptionCell } from "./cells/description-cell";
 import { UserInterfaceCell } from "./cells/user-interface-cell";
 import { OutputCell } from "./cells/output-cell";
 import { ActionsCell } from "./cells/actions-cell";
+
 export function ParameterRow(props: ParameterRowProps) {
-    const { parameter, isEditing, editData, setEditData, handleEditParameter, handleSaveParameter, handleCancelEdit, handleDeleteParameter, highlightSearchTerm, searchQuery, getCategoryBadgeStyleWrapper, getCategoryBadgeStyleForDropdownWrapper, getUserInterfaceBadgeStyle, getDisplayTypeBadgeStyle, getAllAvailableCategories, columnVisibility, editingParameter, isAddingParameter, renderCell, expandedRows, toggleRowExpansion, isUnused, parameters } = props;
+	const {
+		parameter,
+		isEditing,
+		editData,
+		setEditData,
+		handleEditParameter,
+		handleSaveParameter,
+		handleCancelEdit,
+		handleDeleteParameter,
+		handleSaveNewParameter,
+		handleCancelAddParameter,
+		highlightSearchTerm,
+		searchQuery,
+		getCategoryBadgeStyleWrapper,
+		getCategoryBadgeStyleForDropdownWrapper,
+		getUserInterfaceBadgeStyle,
+		getDisplayTypeBadgeStyle,
+		getAllAvailableCategories,
+		columnVisibility,
+		editingParameter,
+		isAddingParameter,
+		renderCell,
+		expandedRows,
+		toggleRowExpansion,
+		usedParameterIds,
+		parameters,
+		categories
+	} = props;
+	// Calculate if parameter is unused
+	const isUnused = usedParameterIds
+		? !usedParameterIds.includes(parameter.id)
+		: false;
 	const handleKeyDown = (e: React.KeyboardEvent) => {
 		if (e.key === "Enter") {
 			handleSaveParameter(parameter.id);
@@ -42,15 +74,22 @@ export function ParameterRow(props: ParameterRowProps) {
 
 	const isExpanded = expandedRows.has(parameter.id);
 
+
 	return (
 		<TableRow
-			className={`transition-all duration-200 cursor-pointer ${
-				isEditing ? "bg-blue-50 border-2 border-blue-200 shadow-md" : ""
+			className={`transition-all duration-300 cursor-pointer ${
+				isEditing
+					? "!bg-blue-50 !border-2 !border-blue-300 !shadow-lg !border-b-blue-300 animate-pulse"
+					: ""
 			} ${
-				(editingParameter && !isEditing) || isAddingParameter
+				(editingParameter && !isEditing)
 					? "opacity-40 pointer-events-none"
 					: ""
-			} ${isUnused ? "opacity-50" : ""}`}
+			} ${
+				isAddingParameter
+					? "!bg-green-50 !border-2 !border-green-300 !shadow-lg !border-b-green-300"
+					: ""
+			}`}
 			style={{
 				height: isExpanded ? "auto" : "32px",
 				minHeight: "32px",
@@ -82,8 +121,11 @@ export function ParameterRow(props: ParameterRowProps) {
 				renderCell={renderCell}
 				getAllAvailableCategories={getAllAvailableCategories}
 				getCategoryBadgeStyleWrapper={getCategoryBadgeStyleWrapper}
-				getCategoryBadgeStyleForDropdownWrapper={getCategoryBadgeStyleForDropdownWrapper}
+				getCategoryBadgeStyleForDropdownWrapper={
+					getCategoryBadgeStyleForDropdownWrapper
+				}
 				isPriority={isPriority}
+				categories={categories}
 			/>
 			<DisplayTypeCell
 				columnVisibility={columnVisibility}
@@ -164,7 +206,7 @@ export function ParameterRow(props: ParameterRowProps) {
 				renderCell={renderCell}
 				getUserInterfaceBadgeStyle={getUserInterfaceBadgeStyle}
 			/>
-			<OutputCell
+			{/* <OutputCell
 				columnVisibility={columnVisibility}
 				isExpanded={isExpanded}
 				isEditing={isEditing}
@@ -172,7 +214,7 @@ export function ParameterRow(props: ParameterRowProps) {
 				setEditData={setEditData}
 				parameter={parameter}
 				renderCell={renderCell}
-			/>
+			/> */}
 			<ActionsCell
 				columnVisibility={columnVisibility}
 				isExpanded={isExpanded}
@@ -186,6 +228,8 @@ export function ParameterRow(props: ParameterRowProps) {
 				editingParameter={editingParameter}
 				isAddingParameter={isAddingParameter}
 				isSaveDisabled={isSaveDisabled}
+				handleSaveNewParameter={handleSaveNewParameter}
+				handleCancelAddParameter={handleCancelAddParameter}
 			/>
 		</TableRow>
 	);

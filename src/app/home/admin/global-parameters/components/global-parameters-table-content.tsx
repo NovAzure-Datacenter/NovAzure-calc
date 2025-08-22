@@ -69,11 +69,13 @@ export default function GlobalParametersTableContent({
 		description: string;
 		category: string;
 		is_modifiable: boolean;
+		is_unified: boolean;
 		display_type: "simple" | "dropdown" | "range" | "filter" | "conditional";
 		dropdown_options: Array<{ key: string; value: string }>;
 		range_min: string;
 		range_max: string;
 		conditional_rules: Array<{ condition: string; value: string }>;
+		is_mandatory: boolean;
 	};
 	setEditData: React.Dispatch<
 		React.SetStateAction<{
@@ -84,11 +86,13 @@ export default function GlobalParametersTableContent({
 			description: string;
 			category: string;
 			is_modifiable: boolean;
+			is_unified: boolean;
 			display_type: "simple" | "dropdown" | "range" | "filter" | "conditional";
 			dropdown_options: Array<{ key: string; value: string }>;
 			range_min: string;
 			range_max: string;
 			conditional_rules: Array<{ condition: string; value: string }>;
+			is_mandatory: boolean;
 		}>
 	>;
 	handleEditParameter: (parameter: Parameter) => void;
@@ -106,11 +110,13 @@ export default function GlobalParametersTableContent({
 		description: string;
 		category: string;
 		is_modifiable: boolean;
+		is_unified: boolean;
 		display_type: "simple" | "dropdown" | "range" | "filter" | "conditional";
 		dropdown_options: Array<{ key: string; value: string }>;
 		range_min: string;
 		range_max: string;
 		conditional_rules: Array<{ condition: string; value: string }>;
+		is_mandatory: boolean;
 	};
 	setNewParameterData: React.Dispatch<
 		React.SetStateAction<{
@@ -121,11 +127,13 @@ export default function GlobalParametersTableContent({
 			description: string;
 			category: string;
 			is_modifiable: boolean;
+			is_unified: boolean;
 			display_type: "simple" | "dropdown" | "range" | "filter" | "conditional";
 			dropdown_options: Array<{ key: string; value: string }>;
 			range_min: string;
 			range_max: string;
 			conditional_rules: Array<{ condition: string; value: string }>;
+			is_mandatory: boolean;
 		}>
 	>;
 	handleSaveNewParameter: () => void;

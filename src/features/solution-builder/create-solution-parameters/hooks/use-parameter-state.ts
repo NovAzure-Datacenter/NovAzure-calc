@@ -47,14 +47,14 @@ export function useParameterState({
 		const currentParameter = parameters.find((p) => p.id === parameterId);
 		if (!currentParameter) return;
 
+		const updatedParameter = convertEditDataToParameter(
+			editData,
+			currentParameter.category.color,
+			parameterId
+		);
+
 		const updatedParameters = parameters.map((param) =>
-			param.id === parameterId
-				? convertEditDataToParameter(
-						editData,
-						currentParameter.category.color,
-						parameterId
-				  )
-				: param
+			param.id === parameterId ? updatedParameter : param
 		);
 
 		onParametersChange(updatedParameters);
@@ -69,10 +69,9 @@ export function useParameterState({
 
 	const handleAddParameter = () => {
 		setIsAddingParameter(true);
-		setNewParameterData({
-			...getDefaultParameterEditData(),
-			category: activeTab === "all" || activeTab === "Global" ? "" : activeTab,
-		});
+		// setNewParameterData({
+		// 	...getDefaultParameterEditData(),
+		// });
 	};
 
 	const handleSaveNewParameter = () => {

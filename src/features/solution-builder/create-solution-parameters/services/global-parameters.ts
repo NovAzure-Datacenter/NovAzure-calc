@@ -14,7 +14,10 @@ export async function loadGlobalParametersIfNeeded(
 			const globalParamCopies = createGlobalParameterCopies(globalParams, []);
 			onParametersChange(globalParamCopies);
 		} catch (error) {
-			console.error("Error loading global parameters:", error);
+			console.error(
+				"Global Parameters Service - Error loading global parameters:",
+				error
+			);
 		}
 	}
 }
@@ -29,13 +32,13 @@ export function createGlobalParameterCopies(
 	const existingParamNames = new Set(
 		existingParameters.map((param) => param.name)
 	);
-	
+
+
 	const standardParameters = {
 		name: "Planned years of operation",
 		value: "10",
 		unit: "years",
-		description:
-			"The number of years the solution is planned to operate for.",
+		description: "The number of years the solution is planned to operate for.",
 		category: {
 			name: "standard",
 			color: "blue",
@@ -46,6 +49,8 @@ export function createGlobalParameterCopies(
 			is_advanced: false,
 		},
 		is_modifiable: false,
+		is_unified: false,
+		is_mandatory: false,
 		output: false,
 		display_type: "range",
 		dropdown_options: [],
@@ -56,14 +61,16 @@ export function createGlobalParameterCopies(
 
 	return globalParams
 		.filter((globalParam) => !existingParamNames.has(globalParam.name))
-		.map((globalParam) => ({
-			...globalParam,
-			id: `param-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-			user_interface: {
-				type: "not_viewable",
-				category: globalParam.category?.name || "Global",
-				is_advanced: false,
-			},
-			is_modifiable: globalParam.is_modifiable || false,
-		}));
-} 
+		.map((globalParam) => {
+			const transformedParam = {
+				...globalParam,
+				id: `param-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+				user_interface: {
+					type: "not_viewable",
+					category: globalParam.category?.name || "Global",
+					is_advanced: false,
+				},
+			};
+			return transformedParam;
+		});
+}

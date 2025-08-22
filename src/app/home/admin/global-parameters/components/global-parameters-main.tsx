@@ -46,11 +46,13 @@ export default function GlobalParametersMain() {
 		description: "",
 		category: "Global",
 		is_modifiable: true,
+		is_unified: false,
 		display_type: "simple" as "simple" | "dropdown" | "range" | "filter" | "conditional",
 		dropdown_options: [] as Array<{ key: string; value: string }>,
 		range_min: "",
 		range_max: "",
 		conditional_rules: [] as Array<{ condition: string; value: string }>,
+		is_mandatory: false,
 	});
 
 	// New parameter data state
@@ -62,11 +64,13 @@ export default function GlobalParametersMain() {
 		description: "",
 		category: "Global",
 		is_modifiable: true,
+		is_unified: false,
 		display_type: "simple" as "simple" | "dropdown" | "range" | "filter" | "conditional",
 		dropdown_options: [] as Array<{ key: string; value: string }>,
 		range_min: "",
 		range_max: "",
 		conditional_rules: [] as Array<{ condition: string; value: string }>,
+		is_mandatory: false,
 	});
 
 	// Custom categories for each tab
@@ -170,11 +174,13 @@ export default function GlobalParametersMain() {
 			description: parameter.description,
 			category: parameter.category.name,
 			is_modifiable: parameter.is_modifiable,
+			is_unified: parameter.is_unified,
 			display_type: parameter.display_type,
 			dropdown_options: parameter.dropdown_options || [],
 			range_min: parameter.range_min || "",
 			range_max: parameter.range_max || "",
 			conditional_rules: parameter.conditional_rules || [],
+			is_mandatory: parameter.is_mandatory,
 		});
 	};
 
@@ -200,6 +206,8 @@ export default function GlobalParametersMain() {
 				range_min: editData.range_min,
 				range_max: editData.range_max,
 				conditional_rules: editData.conditional_rules,
+				is_unified: editData.is_unified,
+				is_mandatory: editData.is_mandatory,
 			});
 
 			// Update local state
@@ -218,11 +226,13 @@ export default function GlobalParametersMain() {
 				description: "",
 				category: "Global",
 				is_modifiable: true,
+				is_unified: false,
 				display_type: "simple",
 				dropdown_options: [],
 				range_min: "",
 				range_max: "",
 				conditional_rules: [],
+				is_mandatory: false,
 			});
 
 			toast.success("Parameter updated successfully");
@@ -242,11 +252,13 @@ export default function GlobalParametersMain() {
 			description: "",
 			category: "Global",
 			is_modifiable: true,
+			is_unified: false,
 			display_type: "simple",
 			dropdown_options: [],
 			range_min: "",
 			range_max: "",
 			conditional_rules: [],
+			is_mandatory: false,
 		});
 	};
 
@@ -274,11 +286,13 @@ export default function GlobalParametersMain() {
 			description: "",
 			category: activeTab === "All" ? "Global" : activeTab,
 			is_modifiable: true,
+			is_unified: false,
 			display_type: "simple",
 			dropdown_options: [],
 			range_min: "",
 			range_max: "",
 			conditional_rules: [],
+			is_mandatory: false,
 		});
 	};
 
@@ -304,6 +318,8 @@ export default function GlobalParametersMain() {
 				range_min: newParameterData.range_min,
 				range_max: newParameterData.range_max,
 				conditional_rules: newParameterData.conditional_rules,
+				is_unified: newParameterData.is_unified,
+				is_mandatory: newParameterData.is_mandatory,
 			});
 
 			// Update local state
@@ -318,11 +334,13 @@ export default function GlobalParametersMain() {
 				description: "",
 				category: "Global",
 				is_modifiable: true,
+				is_unified: false,
 				display_type: "simple",
 				dropdown_options: [],
 				range_min: "",
 				range_max: "",
 				conditional_rules: [],
+				is_mandatory: false,
 			});
 
 			toast.success("Parameter added successfully");
@@ -342,11 +360,13 @@ export default function GlobalParametersMain() {
 			description: "",
 			category: "Global",
 			is_modifiable: true,
+			is_unified: false,
 			display_type: "simple",
 			dropdown_options: [],
 			range_min: "",
 			range_max: "",
 			conditional_rules: [],
+			is_mandatory: false,
 		});
 	};
 

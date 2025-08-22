@@ -1,19 +1,18 @@
-FROM python:3.13-alpine AS builder
+FROM python:3.13-alpine
 
 WORKDIR /app
+
+RUN apk add --no-cache gcc musl-dev libffi-dev
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . . 
+COPY ./app ./app
 
-FROM python:3.13-alpine AS runner
+RUN adduser --disabled-password --gecos '' appuser && \
+    chown -R appuser:appuser /app
 
-WORKDIR /app
-
-COPY --from=builder /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
-COPY --from=builder /usr/local/bin /usr/local/bin
-COPY --from=builder /app/app ./app
+USER appuser
 
 EXPOSE 8000
 

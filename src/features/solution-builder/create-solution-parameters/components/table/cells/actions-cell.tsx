@@ -15,7 +15,12 @@ export function ActionsCell({
 	editingParameter,
 	isAddingParameter,
 	isSaveDisabled,
+	handleSaveNewParameter,
+	handleCancelAddParameter,
 }: ActionsCellProps) {
+
+	const NON_REMOVAL_PARAMETERS = ['NovAzure Provided', "Global", "Required"]	
+
 	return renderCell(
 		columnVisibility.actions,
 		<div className="flex items-center gap-1">
@@ -24,19 +29,24 @@ export function ActionsCell({
 					<Button
 						size="sm"
 						variant="ghost"
-						onClick={(e) => { e.stopPropagation(); handleEditParameter(parameter); }}
+						onClick={(e) => {
+							e.stopPropagation();
+							handleEditParameter(parameter);
+						}}
 						className="h-5 w-5 p-0"
-						disabled={editingParameter !== null || isAddingParameter}
+						disabled={isEditing || isAddingParameter}
 					>
 						<Edit className="h-3 w-3" />
 					</Button>
 
-					{parameter.category.name.toLowerCase() !== "global" &&
-						parameter.category.name.toLowerCase() !== "required" && (
+					{!NON_REMOVAL_PARAMETERS.includes(parameter.category.name) && (
 							<Button
 								size="sm"
 								variant="ghost"
-								onClick={(e) => { e.stopPropagation(); handleDeleteParameter(parameter.id); }}
+								onClick={(e) => {
+									e.stopPropagation();
+									handleDeleteParameter(parameter.id);
+								}}
 								className="h-5 w-5 p-0 text-red-600 hover:text-red-700"
 							>
 								<Trash className="h-3 w-3" />
@@ -48,7 +58,13 @@ export function ActionsCell({
 					<Button
 						size="sm"
 						variant="ghost"
-						onClick={() => handleSaveParameter(parameter.id)}
+						onClick={() => {
+							if (isAddingParameter && handleSaveNewParameter) {
+								handleSaveNewParameter();
+							} else {
+								handleSaveParameter(parameter.id);
+							}
+						}}
 						className="h-5 w-5 p-0 text-green-600 hover:text-green-700"
 						disabled={isSaveDisabled()}
 					>
@@ -57,7 +73,13 @@ export function ActionsCell({
 					<Button
 						size="sm"
 						variant="ghost"
-						onClick={handleCancelEdit}
+						onClick={() => {
+							if (isAddingParameter && handleCancelAddParameter) {
+								handleCancelAddParameter();
+							} else {
+								handleCancelEdit();
+							}
+						}}
 						className="h-5 w-5 p-0 text-red-600 hover:text-red-700"
 					>
 						<X className="h-3 w-3" />
@@ -68,4 +90,4 @@ export function ActionsCell({
 		"actions",
 		isExpanded
 	);
-} 
+}

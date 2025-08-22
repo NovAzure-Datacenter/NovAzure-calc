@@ -2,6 +2,7 @@ import { useState } from "react";
 
 export function useUIState() {
 	const [activeTab, setActiveTab] = useState("all");
+	const [activeCategories, setActiveCategories] = useState<string[]>(["all"]);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [isPreviewDialogOpen, setIsPreviewDialogOpen] = useState(false);
 	const [columnVisibility, setColumnVisibility] = useState({
@@ -21,6 +22,8 @@ export function useUIState() {
 		// State
 		activeTab,
 		setActiveTab,
+		activeCategories,
+		setActiveCategories,
 		searchQuery,
 		setSearchQuery,
 		isPreviewDialogOpen,
@@ -28,4 +31,4 @@ export function useUIState() {
 		columnVisibility,
 		setColumnVisibility,
 	};
-} 
+}

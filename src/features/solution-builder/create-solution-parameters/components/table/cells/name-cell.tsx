@@ -1,7 +1,12 @@
 import { NameCellProps } from "./types";
 import { Input } from "@/components/ui/input";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Circle } from "lucide-react";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Asterisk } from "lucide-react";
 import { toast } from "sonner";
 
 export function NameCell({
@@ -40,22 +45,50 @@ export function NameCell({
 				onKeyDown={handleKeyDown}
 			/>
 		) : (
-			<div className="flex items-center gap-2">
-				<span className="font-medium text-xs">
-					{highlightSearchTerm(parameter.name, searchQuery)}
-				</span>
-				{isUnused && (
+			<div className="flex items-center gap-1 min-w-0">
+				{parameter.is_mandatory && (
 					<TooltipProvider>
 						<Tooltip>
-							<TooltipTrigger asChild>
-								<Circle className="h-3 w-3 text-muted-foreground ml-1" onClick={(e) => e.stopPropagation()} />
+							<TooltipTrigger>
+								<span>
+									<Asterisk className="h-5 w-5 flex-shrink-0 min-w-[10px] min-h-[10px] text-red-500" />
+								</span>
 							</TooltipTrigger>
 							<TooltipContent>
-								<p>This parameter is not currently used in any solution</p>
+								<p>This parameter is mandatory</p>
 							</TooltipContent>
 						</Tooltip>
 					</TooltipProvider>
 				)}
+				{isUnused ? (
+					<TooltipProvider>
+						<Tooltip>
+							<TooltipTrigger>
+								<svg
+									className="h-2.5 w-2.5 flex-shrink-0 min-w-[10px] min-h-[10px]"
+									viewBox="0 0 24 24"
+									fill="none"
+								>
+									<circle cx="12" cy="12" r="8" fill="#ef4444" />
+								</svg>
+							</TooltipTrigger>
+							<TooltipContent>
+								<p>This parameter is not used in the solution</p>
+							</TooltipContent>
+						</Tooltip>
+					</TooltipProvider>
+				) : (
+					<svg
+						className="h-2.5 w-2.5 flex-shrink-0 min-w-[10px] min-h-[10px]"
+						viewBox="0 0 24 24"
+						fill="none"
+					>
+						<circle cx="12" cy="12" r="8" fill="#22c55e" />
+					</svg>
+				)}
+				<span className="font-medium text-xs truncate">
+					{highlightSearchTerm(parameter.name, searchQuery)}
+				</span>
 			</div>
 		),
 		"parameterName",

@@ -9,7 +9,7 @@ export function validateParameterEditData(
 	existingParameters: Parameter[] = []
 ): ParameterValidationResult {
 	// Basic validation - check required fields
-	if (!editData.name.trim() || !editData.unit.trim() || !editData.category.trim()) {
+	if (!editData.name.trim() || !editData.unit.trim() ) {
 		return {
 			isValid: false,
 			errorMessage: "Name, unit, and category are required fields."

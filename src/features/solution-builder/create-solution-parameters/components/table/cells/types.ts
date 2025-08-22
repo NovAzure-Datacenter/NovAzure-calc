@@ -38,6 +38,7 @@ export type CategoryCellProps = ParameterCellCommonProps &
 		| "getAllAvailableCategories"
 		| "getCategoryBadgeStyleWrapper"
 		| "getCategoryBadgeStyleForDropdownWrapper"
+		| "categories"
 	> & {
 	isPriority: boolean;
 };
@@ -157,4 +158,6 @@ export type ActionsCellProps = ParameterCellCommonProps &
 		| "isAddingParameter"
 	> & {
 	isSaveDisabled: () => boolean;
+	handleSaveNewParameter?: () => void;
+	handleCancelAddParameter?: () => void;
 };

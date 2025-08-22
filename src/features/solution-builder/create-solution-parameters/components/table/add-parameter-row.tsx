@@ -14,13 +14,13 @@ import { Save, X } from "lucide-react";
 import { toast } from "sonner";
 import type { AddParameterRowProps } from "@/features/solution-builder/types/types";
 import { renderDisplayTypeEditor } from "@/components/table-components/parameter-types";
+import { Badge } from "@/components/ui/badge";
 
 export function AddParameterRow({
 	newParameterData,
 	setNewParameterData,
 	handleSaveNewParameter,
 	handleCancelAddParameter,
-	getAllAvailableCategories,
 	getCategoryBadgeStyleForDropdownWrapper,
 	getUserInterfaceBadgeStyle,
 	getDisplayTypeBadgeStyle,
@@ -28,7 +28,62 @@ export function AddParameterRow({
 	renderCell,
 	usedParameterIds,
 	parameters,
+	categories,
 }: AddParameterRowProps) {
+	const CATEGORIES_TO_EXCLUDE = ["Use Case"];
+	const availableCategories = [
+		{ name: "none", description: "No category selected", color: "#6B7280" },
+		...categories.filter(
+			(category) => !CATEGORIES_TO_EXCLUDE.includes(category.name)
+		),
+	];
+	const PARAMTER_LIST = [
+		{
+			unit: "$",
+			description: "US Dollar",
+		},
+		{
+			unit: "£",
+			description: "British Pound",
+		},
+		{
+			unit: "€",
+			description: "Euro",
+		},
+		{
+			unit: "mWh",
+			description: "Milliwatt-hour",
+		},
+		{
+			unit: "kWh",
+			description: "Kilowatt-hour",
+		},
+		{
+			unit: "%",
+			description: "Percentage",
+		},
+		{
+			unit: "L",
+			description: "Litres",
+		},
+		{
+			unit: "$/kWh",
+			description: "US Dollar per Kilowatt-hour",
+		},
+		{
+			unit: "£/kWh",
+			description: "British Pound per Kilowatt-hour",
+		},
+		{
+			unit: "€/kWh",
+			description: "Euro per Kilowatt-hour",
+		},
+		{
+			unit: "litres/kWh",
+			description: "Litres per Kilowatt-hour",
+		},
+	];
+
 	const handleKeyDown = (e: React.KeyboardEvent) => {
 		if (e.key === "Enter") handleSaveNewParameter();
 		else if (e.key === "Escape") handleCancelAddParameter();
@@ -40,11 +95,15 @@ export function AddParameterRow({
 			!newParameterData.unit.trim() ||
 			!newParameterData.category.trim() ||
 			(newParameterData.user_interface?.type === "static" &&
-				((newParameterData.display_type === "simple" && !newParameterData.value.trim()) ||
+				((newParameterData.display_type === "simple" &&
+					!newParameterData.value.trim()) ||
 					(newParameterData.display_type === "range" &&
-						(!newParameterData.range_min.trim() || !newParameterData.range_max.trim())) ||
-					(newParameterData.display_type === "dropdown" && newParameterData.dropdown_options.length === 0) ||
-					(newParameterData.display_type === "filter" && newParameterData.dropdown_options.length === 0)))
+						(!newParameterData.range_min.trim() ||
+							!newParameterData.range_max.trim())) ||
+					(newParameterData.display_type === "dropdown" &&
+						newParameterData.dropdown_options.length === 0) ||
+					(newParameterData.display_type === "filter" &&
+						newParameterData.dropdown_options.length === 0)))
 		);
 	};
 
@@ -54,12 +113,14 @@ export function AddParameterRow({
 				columnVisibility.parameterName,
 				<div className="flex items-center gap-2">
 					<Input
-						value={newParameterData.name}
+						value={newParameterData.name || ""}
 						onChange={(e) => {
 							const originalValue = e.target.value;
 							const filteredValue = originalValue.replace(/[()+=\-*/]/g, "");
 							if (originalValue !== filteredValue) {
-								toast.error("Characters ()+-*/ are not allowed in parameter names");
+								toast.error(
+									"Characters ()+-*/ are not allowed in parameter names"
+								);
 							}
 							setNewParameterData((prev) => ({ ...prev, name: filteredValue }));
 						}}
@@ -75,23 +136,23 @@ export function AddParameterRow({
 				columnVisibility.category,
 				<Select
 					value={newParameterData.category}
-					onValueChange={(value) => setNewParameterData((prev) => ({ ...prev, category: value }))}
+					onValueChange={(value) =>
+						setNewParameterData((prev) => ({ ...prev, category: value }))
+					}
 				>
 					<SelectTrigger className="h-7 text-xs">
 						<SelectValue placeholder="Select category" />
 					</SelectTrigger>
 					<SelectContent>
-						{getAllAvailableCategories().length > 0 ? (
-							getAllAvailableCategories().map((category) => (
-								<SelectItem key={category.name} value={category.name}>
-									<span style={getCategoryBadgeStyleForDropdownWrapper(category.name)}>
-										{category.name}
-									</span>
-								</SelectItem>
-							))
-						) : (
-							<div className="px-2 py-1.5 text-xs text-muted-foreground">No categories available.</div>
-						)}
+						{availableCategories.map((category) => (
+							<SelectItem key={category.name} value={category.name}>
+								<span
+									style={getCategoryBadgeStyleForDropdownWrapper(category.name)}
+								>
+									{category.name}
+								</span>
+							</SelectItem>
+						))}
 					</SelectContent>
 				</Select>,
 				"category"
@@ -104,13 +165,20 @@ export function AddParameterRow({
 					onValueChange={(value) =>
 						setNewParameterData((prev) => ({
 							...prev,
-							display_type: value as "simple" | "dropdown" | "range" | "filter" | "conditional",
+							display_type: value as
+								| "simple"
+								| "dropdown"
+								| "range"
+								| "filter"
+								| "conditional",
 						}))
 					}
 				>
 					<SelectTrigger className="h-7 text-xs">
 						<SelectValue>
-							<span style={getDisplayTypeBadgeStyle(newParameterData.display_type)}>
+							<span
+								style={getDisplayTypeBadgeStyle(newParameterData.display_type)}
+							>
 								{newParameterData.display_type || "Select type"}
 							</span>
 						</SelectValue>
@@ -143,7 +211,12 @@ export function AddParameterRow({
 				columnVisibility.testValue,
 				<Input
 					value={newParameterData.test_value}
-					onChange={(e) => setNewParameterData((prev) => ({ ...prev, test_value: e.target.value }))}
+					onChange={(e) =>
+						setNewParameterData((prev) => ({
+							...prev,
+							test_value: e.target.value,
+						}))
+					}
 					className="h-7 text-xs"
 					placeholder="Test Value"
 					type="number"
@@ -154,13 +227,35 @@ export function AddParameterRow({
 
 			{renderCell(
 				columnVisibility.unit,
-				<Input
+				<Select
 					value={newParameterData.unit}
-					onChange={(e) => setNewParameterData((prev) => ({ ...prev, unit: e.target.value }))}
-					className="h-7 text-xs"
-					placeholder="Unit"
-					onKeyDown={handleKeyDown}
-				/>,
+					onValueChange={(value) =>
+						setNewParameterData((prev) => ({
+							...prev,
+							unit: value,
+						}))
+					}
+				>
+					<SelectTrigger className={`h-7 text-xs`}>
+						<SelectValue>{newParameterData.unit || "Select unit"}</SelectValue>
+					</SelectTrigger>
+					<SelectContent>
+						{PARAMTER_LIST.map((unit) => (
+							<SelectItem
+								key={unit.unit}
+								value={unit.unit}
+								onClick={() => {
+									setNewParameterData((prev) => ({
+										...prev,
+										unit: unit.unit,
+									}));
+								}}
+							>
+								{unit.unit}
+							</SelectItem>
+						))}
+					</SelectContent>
+				</Select>,
 				"unit"
 			)}
 
@@ -168,7 +263,12 @@ export function AddParameterRow({
 				columnVisibility.description,
 				<Input
 					value={newParameterData.description}
-					onChange={(e) => setNewParameterData((prev) => ({ ...prev, description: e.target.value }))}
+					onChange={(e) =>
+						setNewParameterData((prev) => ({
+							...prev,
+							description: e.target.value,
+						}))
+					}
 					className="h-7 text-xs"
 					placeholder="Description"
 					onKeyDown={handleKeyDown}
@@ -178,89 +278,123 @@ export function AddParameterRow({
 
 			{renderCell(
 				columnVisibility.userInterface,
-				<div className="space-y-1">
-					<Select
-						value={newParameterData.user_interface?.type || "input"}
-						onValueChange={(value) =>
-							setNewParameterData((prev) => ({
-								...prev,
-								user_interface: {
-									type: value as "input" | "static" | "not_viewable",
-									category: "Global",
-									is_advanced: false,
-								},
-							}))
-						}
-					>
-						<SelectTrigger className="h-7 text-xs">
-							<SelectValue>
-								<span
-									style={{
-										color: getUserInterfaceBadgeStyle(newParameterData.user_interface?.type || "input").color,
-									}}
-								>
-									{newParameterData.user_interface?.type || "Select provider"}
-								</span>
-							</SelectValue>
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="input">Input</SelectItem>
-							<SelectItem value="static">Static</SelectItem>
-							<SelectItem value="not_viewable">Not Viewable</SelectItem>
-						</SelectContent>
-					</Select>
-					{newParameterData.user_interface?.type === "input" && (
-						<Select
-							value={newParameterData.user_interface?.is_advanced ? "true" : "false"}
-							onValueChange={(value) =>
-								setNewParameterData((prev) => ({
-									...prev,
-									user_interface: {
-										...prev.user_interface,
-										is_advanced: value === "true",
-									},
-								}))
-							}
-						>
-							<SelectTrigger className="h-6 text-xs">
-								<SelectValue>
-									{newParameterData.user_interface?.is_advanced ? "Advanced" : "Simple"}
-								</SelectValue>
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="false">Simple</SelectItem>
-								<SelectItem value="true">Advanced</SelectItem>
-							</SelectContent>
-						</Select>
-					)}
+				<div className="space-y-2">
+					{/* Headers row */}
+					<div className="flex justify-between text-xs">
+						<div className="text-center font-medium text-gray-600 flex-1">
+							Type
+						</div>
+						<div className="text-center font-medium text-gray-600 flex-1">
+							Modifiable
+						</div>
+						<div className="text-center font-medium text-gray-600 flex-1">
+							Unified
+						</div>
+						<div className="text-center font-medium text-gray-600 flex-1">
+							Output
+						</div>
+					</div>
+
+					{/* Content row - Interactive */}
+					<div className="flex justify-between text-xs">
+						{/* First column: Simple/Advanced toggle */}
+						<div className="flex justify-center flex-1">
+							<button
+								onClick={() =>
+									setNewParameterData((prev) => ({
+										...prev,
+										user_interface: {
+											...prev.user_interface,
+											is_advanced: !prev.user_interface?.is_advanced,
+										},
+									}))
+								}
+								className="px-3 py-1 text-xs rounded-md border transition-colors cursor-pointer hover:bg-gray-50"
+								style={{
+									backgroundColor: newParameterData.user_interface?.is_advanced
+										? "#fef3c7"
+										: "#f0f9ff",
+									color: newParameterData.user_interface?.is_advanced
+										? "#92400e"
+										: "#1e40af",
+									borderColor: newParameterData.user_interface?.is_advanced
+										? "#f59e0b"
+										: "#3b82f6",
+								}}
+							>
+								{newParameterData.user_interface?.is_advanced
+									? "Advanced"
+									: "Simple"}
+							</button>
+						</div>
+
+						{/* Second column: Modifiable checkbox - editable since it's part of editData */}
+						<div className="flex justify-center flex-1">
+							<input
+								type="checkbox"
+								checked={newParameterData.is_modifiable || false}
+								onChange={(e) =>
+									setNewParameterData((prev) => ({
+										...prev,
+										is_modifiable: e.target.checked,
+									}))
+								}
+								className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+							/>
+						</div>
+
+						{/* Third column: Unified checkbox */}
+						<div className="flex justify-center flex-1">
+							<input
+								type="checkbox"
+								checked={newParameterData.is_unified || false}
+								onChange={(e) =>
+									setNewParameterData((prev) => ({
+										...prev,
+										is_unified: e.target.checked,
+									}))
+								}
+								className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+							/>
+						</div>
+
+						{/* Fourth column: Output checkbox */}
+						<div className="flex justify-center flex-1">
+							<input
+								type="checkbox"
+								checked={newParameterData.output || false}
+								onChange={(e) =>
+									setNewParameterData((prev) => ({
+										...prev,
+										output: e.target.checked,
+									}))
+								}
+								className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+							/>
+						</div>
+					</div>
 				</div>,
 				"userInterface"
 			)}
 
 			{renderCell(
-				columnVisibility.output,
-				<Select
-					value={newParameterData.output ? "true" : "false"}
-					onValueChange={(value) => setNewParameterData((prev) => ({ ...prev, output: value === "true" }))}
-				>
-					<SelectTrigger className="h-7 text-xs">
-						<SelectValue>{newParameterData.output ? "True" : "False"}</SelectValue>
-					</SelectTrigger>
-					<SelectContent>
-						<SelectItem value="true">True</SelectItem>
-						<SelectItem value="false">False</SelectItem>
-					</SelectContent>
-				</Select>,
-				"output"
-			)}
-
-			{renderCell(
 				columnVisibility.actions,
 				<div className="flex items-center gap-1">
-					<Button size="sm" variant="ghost" onClick={handleSaveNewParameter} className="h-5 w-5 p-0 text-green-600 hover:text-green-700" disabled={isSaveDisabled()}>
+					<Button
+						size="sm"
+						variant="ghost"
+						onClick={handleSaveNewParameter}
+						className="h-5 w-5 p-0 text-green-600 hover:text-green-700"
+						disabled={isSaveDisabled()}
+					>
 						<Save className="h-3 w-3" />
 					</Button>
-					<Button size="sm" variant="ghost" onClick={handleCancelAddParameter} className="h-5 w-5 p-0 text-red-600 hover:text-red-700">
+					<Button
+						size="sm"
+						variant="ghost"
+						onClick={handleCancelAddParameter}
+						className="h-5 w-5 p-0 text-red-600 hover:text-red-700"
+					>
 						<X className="h-3 w-3" />
 					</Button>
 				</div>,
@@ -268,4 +402,4 @@ export function AddParameterRow({
 			)}
 		</TableRow>
 	);
-} 
+}

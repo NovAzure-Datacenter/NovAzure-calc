@@ -23,6 +23,9 @@ export function getDefaultParameterEditData(): ParameterEditData {
 		range_min: "",
 		range_max: "",
 		conditional_rules: [],
+		is_unified: false,
+		is_modifiable: true,
+		is_mandatory: false,
 	};
 }
 
@@ -57,6 +60,9 @@ export function convertParameterToEditData(parameter: Parameter): ParameterEditD
 		range_min: parameter.range_min || "",
 		range_max: parameter.range_max || "",
 		conditional_rules: parameter.conditional_rules || [],
+		is_unified: parameter.is_unified || false,
+		is_modifiable: parameter.is_modifiable || false,
+		is_mandatory: parameter.is_mandatory || false,
 	};
 }
 
@@ -91,6 +97,8 @@ export function convertEditDataToParameter(
 		range_min: editData.range_min,
 		range_max: editData.range_max,
 		conditional_rules: editData.conditional_rules,
-		is_modifiable: true,
+		is_modifiable: editData.is_modifiable || false,
+		is_unified: editData.is_unified || false,
+		is_mandatory: editData.is_mandatory || false,
 	};
 } 
