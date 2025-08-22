@@ -78,37 +78,33 @@ export function getAllCategories(
 	return ["all", ...allCategories.map(cat => cat.name)];
 }
 
-/**
- * Get category color by name
- */
-export function getCategoryColorByName(
-	categoryName: string,
-	availableCategories: Array<{ name: string; color: string }>,
-	customCategories?: CustomCalculationCategory[]
-) {
-	const allCategories = getAllAvailableCategories(availableCategories, customCategories);
-	const category = allCategories.find(cat => cat.name.toLowerCase() === categoryName.toLowerCase());
-	return category?.color || "bg-gray-50 text-gray-700 border-gray-200";
-}
+// /**
+//  * Get category color by name
+//  */
+// export function getCategoryColorByName(categoryName: string) {
+// 	const allCategories = getAllAvailableCategories();
+// 	const category = allCategories.find(cat => cat.name.toLowerCase() === categoryName.toLowerCase());
+// 	return category?.color || "bg-gray-50 text-gray-700 border-gray-200";
+// };
 
-/**
- * Get category badge style for inline styles
- */
-export function getCategoryBadgeStyle(
-	categoryName: string,
-	availableCategories: Array<{ name: string; color: string }>,
-	customCategories?: CustomCalculationCategory[]
-) {
-	const categoryColor = getCategoryColorByName(categoryName, availableCategories, customCategories);
+// /**
+//  * Get category badge style for inline styles
+//  */
+// export function getCategoryBadgeStyle(
+// 	categoryName: string,
+// 	availableCategories: Array<{ name: string; color: string }>,
+// 	customCategories?: CustomCalculationCategory[]
+// ) {
+// 	const categoryColor = getCategoryColorByName(categoryName, availableCategories, customCategories);
 	
-	const colorMatch = categoryColor.match(/bg-(\w+)-\d+/);
-	if (colorMatch) {
-		const colorName = colorMatch[1];
-		return {
-			backgroundColor: `var(--${colorName}-50)`,
-			borderColor: `var(--${colorName}-200)`,
-			color: `var(--${colorName}-700)`,
-		};
-	}
-	return {};
-} 
+// 	const colorMatch = categoryColor.match(/bg-(\w+)-\d+/);
+// 	if (colorMatch) {
+// 		const colorName = colorMatch[1];
+// 		return {
+// 			backgroundColor: `var(--${colorName}-50)`,
+// 			borderColor: `var(--${colorName}-200)`,
+// 			color: `var(--${colorName}-700)`,
+// 		};
+// 	}
+// 	return {};
+// } 

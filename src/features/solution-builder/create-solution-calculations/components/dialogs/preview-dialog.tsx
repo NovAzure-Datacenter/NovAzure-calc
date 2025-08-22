@@ -7,9 +7,6 @@ interface PreviewDialogProps {
 	onOpenChange: (open: boolean) => void;
 }
 
-
-
-
 export default function PreviewDialog({
 	isOpen,
 	onOpenChange,

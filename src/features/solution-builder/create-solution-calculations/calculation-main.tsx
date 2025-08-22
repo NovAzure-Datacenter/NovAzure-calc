@@ -1,45 +1,26 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
 import { toast } from "sonner";
-import { X, Plus } from "lucide-react";
 
 import CalculationCategoryTabs from "./category-tabs";
 import { CustomCalculationCategory } from "../utils/calculation-color-utils";
 import { Calculation } from "@/types/types";
 import { CalculationTable } from "./components/table";
 import { SearchBar } from "@/features/solution-builder/components/common";
-import PreviewDialog from "./preview-dialog";
+import PreviewDialog from "./components/dialogs/preview-dialog";
+import { LoadingIndicator } from "./components/common/loading-indicator";
+import { AddParameterDialog } from "./components/dialogs/add-parameter-dialog";
 import {
 	CalculationsConfigurationProps,
 	CalculationEditData,
-	FilterOptionsEditorProps,
-	DropdownOptionsEditorProps,
+	ParameterEditData,
 } from "../types/types";
 import { useCalculationValidator } from "./hooks/useCalculationValidator";
 import { useCalculatorLevelManager } from "./hooks/useCalculatorLevelManager";
-import { groupParametersByCategory } from "../api";
-// Remove the global calculations import
-// import { getAllGlobalCalculations, initializeGlobalCalculations } from "@/lib/actions/global-calculations/global-calculations";
+import { getStatusColor } from "./services/calculation-service";
+
 
 /**
  * CalculationMain component
@@ -51,12 +32,6 @@ export function CalculationMain({
 	onCalculationsChange,
 	parameters,
 	onParametersChange,
-	selectedIndustry,
-	selectedTechnology,
-	selectedSolutionId,
-	availableIndustries,
-	availableTechnologies,
-	availableSolutionTypes,
 	customCategories = [],
 	setCustomCategories,
 	isLoadingCalculations = false,
@@ -168,13 +143,12 @@ export function CalculationMain({
 	const [searchQuery, setSearchQuery] = useState("");
 
 	// State for new parameter data
-	const [newParameterData, setNewParameterData] = useState({
+	const [newParameterData, setNewParameterData] = useState<ParameterEditData>({
 		name: "",
 		value: "",
 		test_value: "",
 		unit: "",
 		description: "",
-		information: "",
 		category: "Global",
 		user_interface: {
 			type: "input" as "input" | "static" | "not_viewable",
@@ -186,6 +160,7 @@ export function CalculationMain({
 		dropdown_options: [] as Array<{ key: string; value: string }>,
 		range_min: "",
 		range_max: "",
+		conditional_rules: [] as Array<{ condition: string; value: string }>,
 	});
 
 	// State for add calculation form
@@ -556,7 +531,6 @@ export function CalculationMain({
 			test_value: newParameterData.test_value,
 			unit: newParameterData.unit,
 			description: newParameterData.description,
-			information: newParameterData.information,
 			category: {
 				name: newParameterData.category,
 				color: "gray",
@@ -590,7 +564,6 @@ export function CalculationMain({
 			test_value: "",
 			unit: "",
 			description: "",
-			information: "",
 			category: "Global",
 			user_interface: {
 				type: "input",
@@ -602,6 +575,7 @@ export function CalculationMain({
 			dropdown_options: [],
 			range_min: "",
 			range_max: "",
+			conditional_rules: [],
 		});
 	};
 
@@ -792,20 +766,6 @@ export function CalculationMain({
 	const getCategoryColor = (category: string) => {
 		return getCategoryColorByName(category);
 	};
-
-	const getStatusColor = (status: string) => {
-		switch (status) {
-			case "valid":
-				return "bg-green-100 text-green-800";
-			case "error":
-				return "bg-red-100 text-red-800";
-			case "pending":
-				return "bg-yellow-100 text-yellow-800";
-			default:
-				return "bg-gray-100 text-gray-800";
-		}
-	};
-
 	const getCategoryBadgeStyle = (categoryName: string) => {
 		const categoryColor = getCategoryColorByName(categoryName);
 		
@@ -957,574 +917,3 @@ export function CalculationMain({
 	);
 }
 
-/**
- * FilterOptionsEditor component
- * Manages filter options for parameter configuration
- */
-function FilterOptionsEditor({
-	options,
-	onOptionsChange,
-	isEditing,
-}: FilterOptionsEditorProps) {
-	const addOption = () => {
-		onOptionsChange([...options, ""]);
-	};
-
-	const updateOption = (index: number, value: string) => {
-		const newOptions = [...options];
-		newOptions[index] = value;
-		onOptionsChange(newOptions);
-	};
-
-	const removeOption = (index: number) => {
-		onOptionsChange(options.filter((_, i) => i !== index));
-	};
-
-	if (!isEditing) {
-		return (
-			<div className="text-xs text-muted-foreground">
-				{options.length > 0 ? (
-					<div className="space-y-1">
-						{options.map((option, index) => (
-							<div key={index} className="flex items-center gap-1">
-								<span>{option}</span>
-							</div>
-						))}
-					</div>
-				) : (
-					<span>No filter options defined</span>
-				)}
-			</div>
-		);
-	}
-
-	return (
-		<div className="space-y-2">
-			{options.map((option, index) => (
-				<div key={index} className="flex items-center gap-1">
-					<Input
-						value={option}
-						onChange={(e) => updateOption(index, e.target.value)}
-						className="h-6 text-xs w-24"
-						placeholder="UK, USA, UAE"
-					/>
-					<Button
-						size="sm"
-						variant="ghost"
-						onClick={() => removeOption(index)}
-						className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
-					>
-						<X className="h-3 w-3" />
-					</Button>
-				</div>
-			))}
-			<Button
-				size="sm"
-				variant="outline"
-				onClick={addOption}
-				className="h-6 text-xs"
-			>
-				<Plus className="h-3 w-3 mr-1" />
-				Add Filter Option
-			</Button>
-		</div>
-	);
-}
-
-/**
- * DropdownOptionsEditor component
- * Manages dropdown options for parameter configuration
- */
-function DropdownOptionsEditor({
-	options,
-	onOptionsChange,
-	isEditing,
-}: DropdownOptionsEditorProps) {
-	const addOption = () => {
-		onOptionsChange([...options, { key: "", value: "" }]);
-	};
-
-	const updateOption = (
-		index: number,
-		field: "key" | "value",
-		value: string
-	) => {
-		const newOptions = [...options];
-		newOptions[index] = { ...newOptions[index], [field]: value };
-		onOptionsChange(newOptions);
-	};
-
-	const removeOption = (index: number) => {
-		onOptionsChange(options.filter((_, i) => i !== index));
-	};
-
-	if (!isEditing) {
-		return (
-			<div className="text-xs text-muted-foreground">
-				{options.length > 0 ? (
-					<div className="space-y-1">
-						{options.map((option, index) => (
-							<div key={index} className="flex items-center gap-1">
-								<span className="font-medium">{option.key}:</span>
-								<span>{option.value}</span>
-							</div>
-						))}
-					</div>
-				) : (
-					<span>No options defined</span>
-				)}
-			</div>
-		);
-	}
-
-	return (
-		<div className="space-y-2">
-			{options.map((option, index) => (
-				<div key={index} className="flex items-center gap-1">
-					<Input
-						value={option.key}
-						onChange={(e) => updateOption(index, "key", e.target.value)}
-						className="h-6 text-xs w-20"
-						placeholder="Location"
-					/>
-					<span className="text-xs">:</span>
-					<Input
-						value={option.value}
-						onChange={(e) => updateOption(index, "value", e.target.value)}
-						className="h-6 text-xs w-24"
-						placeholder="UK, UAE, USA, Singapore"
-					/>
-					<Button
-						size="sm"
-						variant="ghost"
-						onClick={() => removeOption(index)}
-						className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
-					>
-						<X className="h-3 w-3" />
-					</Button>
-				</div>
-			))}
-			<Button
-				size="sm"
-				variant="outline"
-				onClick={addOption}
-				className="h-6 text-xs"
-			>
-				<Plus className="h-3 w-3 mr-1" />
-				Add Option
-			</Button>
-		</div>
-	);
-}
-
-/**
- * LoadingIndicator component
- * Shows loading state for calculations
- */
-function LoadingIndicator({ isLoading }: { isLoading: boolean }) {
-	if (!isLoading) return null;
-
-	return (
-		<div className="flex items-center justify-center py-8">
-			<div className="flex items-center gap-3">
-				<div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
-				<span className="text-sm text-muted-foreground">
-					Loading calculations and global parameters...
-				</span>
-			</div>
-		</div>
-	);
-}
-
-
-/**
- * AddParameterDialog component
- * Dialog for adding new parameters
- */
-function AddParameterDialog({
-	isOpen,
-	onOpenChange,
-	newParameterData,
-	setNewParameterData,
-	onSaveParameter,
-	onCancelParameter,
-	getAllAvailableCategories,
-	getCategoryBadgeStyle,
-	parametersCount,
-}: {
-	isOpen: boolean;
-	onOpenChange: (open: boolean) => void;
-	newParameterData: any;
-	setNewParameterData: React.Dispatch<React.SetStateAction<any>>;
-	onSaveParameter: () => void;
-	onCancelParameter: () => void;
-	getAllAvailableCategories: () => Array<{ name: string; color: string }>;
-	getCategoryBadgeStyle: (categoryName: string) => React.CSSProperties;
-	parametersCount: number;
-}) {
-	return (
-		<Dialog open={isOpen} onOpenChange={onOpenChange}>
-			<DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
-				<DialogHeader>
-					<DialogTitle>Add New Parameter</DialogTitle>
-					<DialogDescription>
-						Create a new parameter for your calculations. Current parameters:{" "}
-						{parametersCount}
-					</DialogDescription>
-				</DialogHeader>
-				<div className="grid gap-4 py-4">
-					{/* Parameter Name */}
-					<div className="grid grid-cols-4 items-center gap-4">
-						<Label htmlFor="parameter-name" className="text-right">
-							Name *
-						</Label>
-						<div className="col-span-3">
-							<Input
-								id="parameter-name"
-								value={newParameterData.name}
-								onChange={(e) =>
-									setNewParameterData((prev: any) => ({
-										...prev,
-										name: e.target.value,
-									}))
-								}
-								placeholder="Parameter name"
-							/>
-						</div>
-					</div>
-
-					{/* Category */}
-					<div className="grid grid-cols-4 items-center gap-4">
-						<Label htmlFor="parameter-category" className="text-right">
-							Category *
-						</Label>
-						<div className="col-span-3">
-							<Select
-								value={newParameterData.category}
-								onValueChange={(value) =>
-									setNewParameterData((prev: any) => ({
-										...prev,
-										category: value,
-									}))
-								}
-								required
-							>
-								<SelectTrigger className={!newParameterData.category ? "border-red-500" : ""}>
-									<SelectValue placeholder="Select category *" />
-								</SelectTrigger>
-								<SelectContent>
-									{getAllAvailableCategories().length > 0 ? (
-										getAllAvailableCategories().map((category) => (
-											<SelectItem key={category.name} value={category.name}>
-												<div className="flex items-center gap-2">
-													<Badge
-														variant="outline"
-														className="text-xs"
-														style={getCategoryBadgeStyle(category.name)}
-													>
-														{category.name}
-													</Badge>
-												</div>
-											</SelectItem>
-										))
-									) : (
-										<div className="px-2 py-1.5 text-xs text-muted-foreground">
-											No categories available.
-										</div>
-									)}
-								</SelectContent>
-							</Select>
-							{!newParameterData.category && (
-								<p className="text-sm text-red-500 mt-1">Category is required</p>
-							)}
-						</div>
-					</div>
-
-					{/* Display Type */}
-					<div className="grid grid-cols-4 items-center gap-4">
-						<Label htmlFor="parameter-display-type" className="text-right">
-							Display Type
-						</Label>
-						<div className="col-span-3">
-							<Select
-								value={newParameterData.display_type}
-								onValueChange={(value) =>
-									setNewParameterData((prev: any) => ({
-										...prev,
-										display_type: value as
-											| "simple"
-											| "dropdown"
-											| "range"
-											| "filter",
-									}))
-								}
-							>
-								<SelectTrigger>
-									<SelectValue>
-										{newParameterData.display_type || "Select type"}
-									</SelectValue>
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="simple">Simple</SelectItem>
-									<SelectItem value="dropdown">Dropdown</SelectItem>
-									<SelectItem value="range">Range</SelectItem>
-									<SelectItem value="filter">Filter</SelectItem>
-								</SelectContent>
-							</Select>
-						</div>
-					</div>
-
-					{/* Value based on display type */}
-					<div className="grid grid-cols-4 items-center gap-4">
-						<Label htmlFor="parameter-value" className="text-right">
-							Value
-						</Label>
-						<div className="col-span-3">
-							{newParameterData.display_type === "dropdown" ? (
-								<DropdownOptionsEditor
-									options={newParameterData.dropdown_options}
-									onOptionsChange={(options) =>
-										setNewParameterData((prev: any) => ({
-											...prev,
-											dropdown_options: options,
-										}))
-									}
-									isEditing={true}
-								/>
-							) : newParameterData.display_type === "range" ? (
-								<div className="space-y-2">
-									<div className="flex items-center gap-2">
-										<Input
-											value={newParameterData.range_min}
-											onChange={(e) =>
-												setNewParameterData((prev: any) => ({
-													...prev,
-													range_min: e.target.value,
-												}))
-											}
-											placeholder="Min"
-											type="number"
-											step="any"
-										/>
-										<span className="text-xs text-muted-foreground">to</span>
-										<Input
-											value={newParameterData.range_max}
-											onChange={(e) =>
-												setNewParameterData((prev: any) => ({
-													...prev,
-													range_max: e.target.value,
-												}))
-											}
-											placeholder="Max"
-											type="number"
-											step="any"
-										/>
-									</div>
-								</div>
-							) : newParameterData.display_type === "filter" ? (
-								<FilterOptionsEditor
-									options={newParameterData.dropdown_options.map(
-										(opt: any) => opt.value
-									)}
-									onOptionsChange={(options) =>
-										setNewParameterData((prev: any) => ({
-											...prev,
-											dropdown_options: options.map((opt: string) => ({
-												key: "",
-												value: opt,
-											})),
-										}))
-									}
-									isEditing={true}
-								/>
-							) : (
-								<Input
-									value={newParameterData.value}
-									onChange={(e) =>
-										setNewParameterData((prev: any) => ({
-											...prev,
-											value: e.target.value,
-										}))
-									}
-									placeholder={
-										newParameterData.user_interface?.type === "static"
-											? "Value *"
-											: "Value (optional)"
-									}
-									type="number"
-								/>
-							)}
-						</div>
-					</div>
-
-					{/* Test Value */}
-					<div className="grid grid-cols-4 items-center gap-4">
-						<Label htmlFor="parameter-test-value" className="text-right">
-							Test Value
-						</Label>
-						<div className="col-span-3">
-							<Input
-								id="parameter-test-value"
-								value={newParameterData.test_value}
-								onChange={(e) =>
-									setNewParameterData((prev: any) => ({
-										...prev,
-										test_value: e.target.value,
-									}))
-								}
-								placeholder="Test Value"
-								type="number"
-							/>
-						</div>
-					</div>
-
-					{/* Unit */}
-					<div className="grid grid-cols-4 items-center gap-4">
-						<Label htmlFor="parameter-unit" className="text-right">
-							Unit *
-						</Label>
-						<div className="col-span-3">
-							<Input
-								id="parameter-unit"
-								value={newParameterData.unit}
-								onChange={(e) =>
-									setNewParameterData((prev: any) => ({
-										...prev,
-										unit: e.target.value,
-									}))
-								}
-								placeholder="Unit"
-							/>
-						</div>
-					</div>
-
-					{/* Description */}
-					<div className="grid grid-cols-4 items-center gap-4">
-						<Label htmlFor="parameter-description" className="text-right">
-							Description
-						</Label>
-						<div className="col-span-3">
-							<Input
-								id="parameter-description"
-								value={newParameterData.description}
-								onChange={(e) =>
-									setNewParameterData((prev: any) => ({
-										...prev,
-										description: e.target.value,
-									}))
-								}
-								placeholder="Description"
-							/>
-						</div>
-					</div>
-
-					{/* Information */}
-					<div className="grid grid-cols-4 items-center gap-4">
-						<Label htmlFor="parameter-information" className="text-right">
-							Information
-						</Label>
-						<div className="col-span-3">
-							<Input
-								id="parameter-information"
-								value={newParameterData.information}
-								onChange={(e) =>
-									setNewParameterData((prev: any) => ({
-										...prev,
-										information: e.target.value,
-									}))
-								}
-								placeholder="Information"
-							/>
-						</div>
-					</div>
-
-					{/* Provided By */}
-					<div className="grid grid-cols-4 items-center gap-4">
-						<Label htmlFor="parameter-provided-by" className="text-right">
-							Provided By
-						</Label>
-						<div className="col-span-3">
-							<Select
-								value={newParameterData.user_interface?.type || "input"}
-								onValueChange={(value) =>
-									setNewParameterData((prev: any) => ({
-										...prev,
-										user_interface: {
-											...prev.user_interface,
-											type: value as "input" | "static" | "not_viewable",
-										},
-									}))
-								}
-							>
-								<SelectTrigger>
-									<SelectValue>
-										{newParameterData.user_interface?.type || "Select provider"}
-									</SelectValue>
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="input">User Input</SelectItem>
-									<SelectItem value="static">Static Value</SelectItem>
-									<SelectItem value="not_viewable">Not Viewable</SelectItem>
-								</SelectContent>
-							</Select>
-						</div>
-					</div>
-
-					{/* Output */}
-					<div className="grid grid-cols-4 items-center gap-4">
-						<Label htmlFor="parameter-output" className="text-right">
-							Output
-						</Label>
-						<div className="col-span-3">
-							<Select
-								value={newParameterData.output ? "true" : "false"}
-								onValueChange={(value) =>
-									setNewParameterData((prev: any) => ({
-										...prev,
-										output: value === "true",
-									}))
-								}
-							>
-								<SelectTrigger>
-									<SelectValue>
-										{newParameterData.output ? "True" : "False"}
-									</SelectValue>
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="true">True</SelectItem>
-									<SelectItem value="false">False</SelectItem>
-								</SelectContent>
-							</Select>
-						</div>
-					</div>
-				</div>
-				<DialogFooter>
-					<Button variant="outline" onClick={onCancelParameter}>
-						Cancel
-					</Button>
-					<Button
-						onClick={onSaveParameter}
-						disabled={
-							!newParameterData.name.trim() ||
-							!newParameterData.unit.trim() ||
-							!newParameterData.category ||
-							!newParameterData.category.trim() ||
-							(newParameterData.user_interface?.type === "static" &&
-								((newParameterData.display_type === "simple" &&
-									!newParameterData.value.trim()) ||
-									(newParameterData.display_type === "range" &&
-										(!newParameterData.range_min.trim() ||
-											!newParameterData.range_max.trim())) ||
-									(newParameterData.display_type === "dropdown" &&
-										newParameterData.dropdown_options.length === 0) ||
-									(newParameterData.display_type === "filter" &&
-										newParameterData.dropdown_options.length === 0)))
-						}
-					>
-						Add Parameter
-					</Button>
-				</DialogFooter>
-			</DialogContent>
-		</Dialog>
-	);
-}

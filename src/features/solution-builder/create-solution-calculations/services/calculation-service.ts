@@ -1,4 +1,5 @@
 import { Calculation } from "@/types/types";
+// import { getCategoryColorByName } from "./category-service";
 
 /**
  * Service for calculation management
@@ -95,3 +96,7 @@ export function getStatusColor(status: string): string {
 			return "bg-gray-100 text-gray-800";
 	}
 } 
+
+// export function getCategoryColor(category: string) {
+// 	return getCategoryColorByName(category);
+// }
