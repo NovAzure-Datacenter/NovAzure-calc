@@ -145,13 +145,14 @@ export function VariantSelectorCard({
 							)}
 						</div>
 					</div>
-
-					<Separator className="my-2" />
-
-					{/* Compact Parameters and Calculations Summary */}
+					
 				</CardContent>
-				<CardFooter className="p-2 py-0 my-0">
-					<div className="flex items-center gap-4 text-xs">
+                
+                <Separator className="my-0 py-0" />
+
+                {/* Compact Parameters and Calculations Summary */}
+				<CardFooter className="p-2 py-0 my-0 item-center">
+					<div className="flex items-center gap-4 text-xs justify-between">
 						<div className="flex items-center gap-1">
 							<span className="text-gray-500">Parameters:</span>
 							<span className="font-medium text-gray-700">

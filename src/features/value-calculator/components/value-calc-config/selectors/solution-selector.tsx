@@ -142,7 +142,7 @@ export default function SolutionSelector(props: {
 	// Show summary when variants are selected
 	if (hasSelectedVariants) {
 		return (
-			<Card className="border-2 border-dashed border-gray-200">
+			<Card className="border-2 border-dashed border-gray-200 py-2 ">
 				<CardHeader>
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-2 text-sm text-gray-600">

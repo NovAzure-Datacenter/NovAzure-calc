@@ -1,7 +1,7 @@
 import { useUser } from "@/hooks/useUser";
 import { useCallback, useEffect, useState } from "react";
 
-import { fetchClientInitialData } from "../../services/fetch-client-data";
+import { fetchClientInitialData } from "../../../services/fetch-client-data";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
 	Select,
@@ -181,9 +181,9 @@ export default function IndustryAndTechnologySelector(props: {
 			</CardContent>
 		</Card>
 	) : (
-		<Card className="border-2 border-dashed border-gray-200 ">
+		<Card className="border-2 border-dashed border-gray-200 py-2">
 			<CardHeader className="">
-				<div className="flex items-center justify-between">
+				<div className="flex items-center justify-between ">
 					<div className="flex items-center gap-2 text-sm text-gray-600">
 						<span className={`inline-flex items-center rounded-full px-3 py-1.5 text-base font-semibold ${
 							hasSelectedIndustry && hasSelectedTechnology

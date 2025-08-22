@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ModeSelectorProps } from "../../value-calculator-main";
+import { ModeSelectorProps } from "../../../value-calculator-main";
 
 export default function ModeSelector({
 	setComparisonMode,
@@ -21,7 +21,7 @@ export default function ModeSelector({
 	};
 
 	return (
-		<Card className="border-2 border-dashed border-gray-200">
+		<Card className="border-2 border-dashed border-gray-200 py-2">
 			<CardHeader>
 				<div className="flex items-center justify-between">
 					<div className="flex items-center gap-2 text-sm text-gray-600">

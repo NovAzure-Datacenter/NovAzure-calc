@@ -1,10 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
 
-import IndustryAndTechnologySelector from "./components/value-calc-config/industry-and-technology-selector";
-import ModeSelector from "./components/value-calc-config/mode-selector";
-import SolutionSelector from "./components/value-calc-config/solution-selector";
-import { VariantSelectorCard } from "./components/value-calc-config/variant-selector";
+import IndustryAndTechnologySelector from "./components/value-calc-config/selectors/industry-and-technology-selector";
+import ModeSelector from "./components/value-calc-config/selectors/mode-selector";
+import SolutionSelector from "./components/value-calc-config/selectors/solution-selector";
+import { VariantSelectorCard } from "./components/value-calc-config/selectors/variant-selector";
 import { ClientSolution } from "@/lib/actions/clients-solutions/clients-solutions";
 
 export interface ModeSelectorProps {
@@ -71,7 +71,7 @@ export default function ValueCalculatorMain() {
 	};
 
 	return (
-		<div className="space-y-4">
+		<div className="space-y-2">
 			<ModeSelector
 				setComparisonMode={setComparisonMode}
 				comparisonMode={comparisonMode}
