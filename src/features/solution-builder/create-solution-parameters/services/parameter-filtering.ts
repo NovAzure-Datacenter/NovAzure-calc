@@ -1,4 +1,5 @@
 import { Parameter } from "@/types/types";
+import { FoldHorizontal } from "lucide-react";
 
 /**
  * Returns sorted categories with Global first, then alphabetically
@@ -49,6 +50,11 @@ export function getFilteredParameters(
 			param.category.name.toLowerCase().includes(query)
 		);
 	}
+
+	const mandatoryParameters = filtered.filter((param) => param.is_mandatory == true).sort((a, b) => a.name.localeCompare(b.name));
+	const nonMandatoryParameters = filtered.filter((param) => param.is_mandatory == false).sort((a, b) => a.name.localeCompare(b.name));
+
+	filtered = [...mandatoryParameters, ...nonMandatoryParameters];
 
 	return filtered;
 }
