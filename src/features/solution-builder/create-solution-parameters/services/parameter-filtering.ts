@@ -1,5 +1,4 @@
 import { Parameter } from "@/types/types";
-import { FoldHorizontal } from "lucide-react";
 
 /**
  * Returns sorted categories with Global first, then alphabetically
