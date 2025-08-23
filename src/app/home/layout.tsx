@@ -19,6 +19,7 @@ export default async function DashboardLayout({
 
 	return (
 		<DashboardClientWrapper>
+			<CustomSidebar />
 			<SidebarInset className="flex h-screen overflow-x-hidden   bg-gradient-to-br from-blue-50 to-sky-50 relative">
 				{children}
 			</SidebarInset>
