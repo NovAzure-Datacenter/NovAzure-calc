@@ -26,7 +26,6 @@ export default function RootLayout({
 			>
 				<Providers>
 					<SidebarProvider className="flex h-screen overflow-x-hidden ">
-						<CustomSidebar />
 						{children}
 					</SidebarProvider>
 				</Providers>
