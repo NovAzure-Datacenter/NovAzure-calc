@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import {
 	Card,
@@ -16,8 +17,18 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 export default function SignUpPage() {
+	const { data: session, status } = useSession();
 	const router = useRouter();
 	const [isLoading, setIsLoading] = useState(false);
+
+	// Redirect if user is already authenticated
+	useEffect(() => {
+		if (status === "loading") return; // Still loading
+		
+		if (session) {
+			router.push("/home/dashboard");
+		}
+	}, [session, status, router]);
 
 	async function onSubmit(event: React.FormEvent) {
 		event.preventDefault();
