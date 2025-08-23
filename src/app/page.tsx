@@ -10,5 +10,18 @@ export default async function Home() {
 	}else{
 		redirect("/home/dashboard");
 	}
+	//Old Home Page
+	// <div className="flex flex-col items-center w-full">
+	// 		{/* <Navbar />
+	// 		<Hero /> */}
+	// 		{/* <Features />
+	// 		<DataSecurity />
+	// 		<Stats />
+	// 		<CaseStudies />
+	// 		<Testimonials />
+	// 		<CTA /> */}
+	// 		{/* <Footer /> */}
+	// 		<UnderConstruction/>
+	// 	</div>
 	
 }
